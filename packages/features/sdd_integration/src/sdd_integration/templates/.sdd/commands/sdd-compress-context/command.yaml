@@ -1,0 +1,11 @@
+id: "sdd-compress-context"
+slash: "/sdd-compress-context"
+routes_to:
+  type: skill
+  id: sdd-compress-context
+args: []
+adapter_targets:
+  - claude
+  - codex
+  - copilot
+  - antigravity

@@ -1,0 +1,36 @@
+# Development artifacts (not needed in Docker build context)
+.git/
+.github/
+.vscode/
+.idea/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Generated runtime state (compiled fresh inside builder stage)
+generated/
+.sdd/
+.sdd-local/
+
+# Local dev config
+.env
+*.local
+erro_esteira*.txt
+.sdd/.spec.config
+.sdd/trust/*.key
+
+# Docs build output
+docs/archive/
+docs/site/
+site/

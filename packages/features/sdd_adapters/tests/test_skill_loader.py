@@ -1,0 +1,132 @@
+"""Tests for SkillLoader."""
+
+import json
+from pathlib import Path
+
+import pytest
+import yaml
+
+from sdd_adapters.skill_loader import SkillLoader
+
+
+@pytest.fixture
+def sdd_dir(tmp_path: Path) -> Path:
+    """Create a minimal .sdd/ structure for testing."""
+    sdd = tmp_path / ".sdd"
+    skills_dir = sdd / "skills"
+    skills_dir.mkdir(parents=True)
+    commands_dir = sdd / "commands"
+    commands_dir.mkdir(parents=True)
+
+    # Registry
+    registry = {
+        "schema_version": "1.0.0",
+        "skills": [
+            {
+                "name": "diagnose",
+                "version": "1.0.0",
+                "category": "analysis",
+                "description": "Diagnose workspace problems.",
+                "risk_score": "low",
+                "status": "active",
+                "skill_yaml": ".sdd/skills/diagnose/skill.yaml",
+            }
+        ],
+    }
+    (skills_dir / "registry.json").write_text(json.dumps(registry), encoding="utf-8")
+
+    # skill.yaml
+    skill_yaml_dir = skills_dir / "diagnose"
+    skill_yaml_dir.mkdir()
+    skill_data = {
+        "name": "diagnose",
+        "category": "analysis",
+        "when_to_use": ["failing checks", "unknown failures"],
+        "allowed_tools": ["sdd doctor run", "sdd runtime status"],
+        "cli_fallback": ["sdd doctor run"],
+        "risk_score": "low",
+    }
+    (skill_yaml_dir / "skill.yaml").write_text(yaml.dump(skill_data), encoding="utf-8")
+
+    # Commands registry
+    cmd_registry = {
+        "schema_version": "1.0.0",
+        "commands": [
+            {
+                "id": "diagnose",
+                "slash": "/diagnose",
+                "routes_to": {"type": "skill", "id": "diagnose"},
+                "targets": ["claude", "codex"],
+            }
+        ],
+    }
+    (commands_dir / "registry.json").write_text(
+        json.dumps(cmd_registry), encoding="utf-8"
+    )
+
+    # command.yaml
+    cmd_yaml_dir = commands_dir / "diagnose"
+    cmd_yaml_dir.mkdir()
+    cmd_data = {
+        "id": "diagnose",
+        "slash": "/diagnose",
+        "routes_to": {"type": "skill", "id": "diagnose"},
+        "args": [],
+    }
+    (cmd_yaml_dir / "command.yaml").write_text(yaml.dump(cmd_data), encoding="utf-8")
+
+    return sdd
+
+
+class TestSkillLoader:
+    def test_load_skills_returns_merged_data(self, sdd_dir: Path) -> None:
+        loader = SkillLoader()
+        skills = loader.load_skills(sdd_dir)
+
+        assert len(skills) == 1
+        skill = skills[0]
+        assert skill["name"] == "diagnose"
+        assert skill["category"] == "analysis"
+        assert "allowed_tools" in skill
+        assert "sdd doctor run" in skill["allowed_tools"]
+
+    def test_load_skills_missing_registry_returns_empty(self, tmp_path: Path) -> None:
+        loader = SkillLoader()
+        skills = loader.load_skills(tmp_path / ".sdd")
+        assert skills == []
+
+    def test_load_skills_skips_missing_yaml(self, tmp_path: Path) -> None:
+        sdd = tmp_path / ".sdd" / "skills"
+        sdd.mkdir(parents=True)
+        registry = {
+            "schema_version": "1.0.0",
+            "skills": [{"name": "ghost", "description": "missing yaml"}],
+        }
+        (sdd / "registry.json").write_text(json.dumps(registry), encoding="utf-8")
+
+        loader = SkillLoader()
+        skills = loader.load_skills(tmp_path / ".sdd")
+        assert skills == []
+
+    def test_load_commands_returns_merged_data(self, sdd_dir: Path) -> None:
+        loader = SkillLoader()
+        commands = loader.load_commands(sdd_dir)
+
+        assert len(commands) == 1
+        cmd = commands[0]
+        assert cmd["id"] == "diagnose"
+        assert cmd["slash"] == "/diagnose"
+
+    def test_load_commands_missing_registry_returns_empty(self, tmp_path: Path) -> None:
+        loader = SkillLoader()
+        commands = loader.load_commands(tmp_path / ".sdd")
+        assert commands == []
+
+    def test_load_skills_reads_skill_md_when_present(self, sdd_dir: Path) -> None:
+        skill_dir = sdd_dir / "skills" / "diagnose"
+        (skill_dir / "SKILL.md").write_text(
+            "# Diagnose\nDetailed docs.", encoding="utf-8"
+        )
+        loader = SkillLoader()
+        skills = loader.load_skills(sdd_dir)
+        assert skills[0].get("skill_md") == "# Diagnose\nDetailed docs."

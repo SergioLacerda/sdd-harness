@@ -1,0 +1,13 @@
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ Compiling Governance Artifacts                                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+        Compilation Summary
+┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃ Metric         ┃ Value          ┃
+┡━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+│ Core items     │ 3              │
+│ Client items   │ 5              │
+│ Core msgpack   │ core.msgpack   │
+│ Client msgpack │ client.msgpack │
+└────────────────┴────────────────┘
+Governance compilation succeeded

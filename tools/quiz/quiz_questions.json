@@ -1,0 +1,188 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "title": "SDD Architecture Foundation Quiz",
+    "description": "Assessment of understanding for SDD Architecture governance, seedlings, phases, and health validation",
+    "pass_threshold": 70,
+    "total_questions": 12,
+    "created": "2026-04-26",
+    "topics": [
+      "governance",
+      "seedlings",
+      "phases",
+      "health-check",
+      "architecture",
+      "ai-integration"
+    ]
+  },
+  "questions": [
+    {
+      "id": 1,
+      "topic": "governance",
+      "difficulty": "easy",
+      "question": "What is the primary purpose of SDD Architecture governance?",
+      "options": [
+        "To restrict developer freedom and enforce bureaucracy",
+        "To provide semantic structure, authority definitions, and operational framework for domain-driven systems",
+        "To replace traditional version control systems",
+        "To automatically generate code without human intervention"
+      ],
+      "correct_answer": 1,
+      "explanation": "SDD governance establishes authority definitions, seedling templates, and operational phases to create semantic structure for domain-driven systems."
+    },
+    {
+      "id": 2,
+      "topic": "seedlings",
+      "difficulty": "medium",
+      "question": "What is a seedling in SDD Architecture?",
+      "options": [
+        "A small plant used as decoration in the office",
+        "A template for domain specialization that can be reused across projects",
+        "A backup copy of the codebase",
+        "A type of test that validates database connections"
+      ],
+      "correct_answer": 1,
+      "explanation": "Seedlings are domain templates (e.g., rpg-narrative-server, game-master-api) that provide reusable governance, structure, and implementation patterns."
+    },
+    {
+      "id": 3,
+      "topic": "phases",
+      "difficulty": "easy",
+      "question": "What is the purpose of PHASE 0 in SDD Architecture?",
+      "options": [
+        "To deploy to production immediately",
+        "To initialize the agent and governance structure before technical work",
+        "To write the final documentation",
+        "To delete temporary files"
+      ],
+      "correct_answer": 1,
+      "explanation": "PHASE 0 (Agent Onboarding) initializes governance files, validates structure, and sets up the runtime environment before actual development begins."
+    },
+    {
+      "id": 4,
+      "topic": "health-check",
+      "difficulty": "medium",
+      "question": "What are the 4 layers of the Agent Handshake Protocol (AHP)?",
+      "options": [
+        "Discovery, Configuration, Validation, Reporting",
+        "Planning, Development, Testing, Deployment",
+        "Discovery, Link Validation, Runtime Validation, Governance Health",
+        "Setup, Integration, Execution, Monitoring"
+      ],
+      "correct_answer": 2,
+      "explanation": "AHP validates: (1) Is governance present? (2) Are connections valid? (3) Is it operational? (4) Is it healthy?"
+    },
+    {
+      "id": 5,
+      "topic": "health-check",
+      "difficulty": "easy",
+      "question": "What is the maximum confidence score in the AHP state machine?",
+      "options": [
+        "50%",
+        "75%",
+        "100%",
+        "85%"
+      ],
+      "correct_answer": 2,
+      "explanation": "AHP confidence ranges from 0% (NOT_CONNECTED) to 100% (HEALTHY), indicating system readiness for technical operations."
+    },
+    {
+      "id": 6,
+      "topic": "ai-integration",
+      "difficulty": "medium",
+      "question": "What does semantic triggering mean in the context of health checks?",
+      "options": [
+        "Running a health check on every keystroke",
+        "Automatically detecting if a query is technical vs casual and running validation only when appropriate",
+        "Using natural language processing to understand user intent",
+        "Running checks based on a timer schedule"
+      ],
+      "correct_answer": 1,
+      "explanation": "Semantic triggering detects technical keywords (e.g., 'estou conectado', '.sdd') while suppressing on casual phrases (e.g., 'oi', 'obrigado'), avoiding noisy execution."
+    },
+    {
+      "id": 7,
+      "topic": "architecture",
+      "difficulty": "medium",
+      "question": "Which of the following is NOT a core validation engine in the SDD Architecture health system?",
+      "options": [
+        "health_check.py (explicit 10-check validation)",
+        "agent_confidence.py (confidence scoring)",
+        "diagnostics_test.py (14 diagnostic tests)",
+        "database_validator.py (SQL validation)"
+      ],
+      "correct_answer": 3,
+      "explanation": "The three core engines are health_check, agent_confidence, and diagnostics_test. database_validator is not part of the standard suite."
+    },
+    {
+      "id": 8,
+      "topic": "governance",
+      "difficulty": "easy",
+      "question": "What is the state caching TTL (Time To Live) for AHP validation results?",
+      "options": [
+        "5 minutes",
+        "15 minutes",
+        "30 minutes",
+        "1 hour"
+      ],
+      "correct_answer": 2,
+      "explanation": "AHP caches validation results for 30 minutes to avoid redundant checks. Use --force flag to bypass cache."
+    },
+    {
+      "id": 9,
+      "topic": "health-check",
+      "difficulty": "medium",
+      "question": "What does the 'PARTIAL' state in AHP indicate?",
+      "options": [
+        "The project is completely broken",
+        "The runtime is incomplete or some components are missing",
+        "The project has never been initialized",
+        "The configuration file is invalid"
+      ],
+      "correct_answer": 1,
+      "explanation": "PARTIAL (🟡) means the project is partially operational - runtime exists but some components are incomplete. User should follow suggested fixes."
+    },
+    {
+      "id": 10,
+      "topic": "ai-integration",
+      "difficulty": "medium",
+      "question": "How does VS Code Copilot integrate with the SDD Architecture health system?",
+      "options": [
+        "It replaces all manual health checks with automatic AI checks",
+        "It runs the AHP silently when you ask technical questions, then adapts responses based on confidence",
+        "It disables health checks entirely",
+        "It requires you to run health checks before every code completion"
+      ],
+      "correct_answer": 1,
+      "explanation": "VS Code seedling triggers AHP automatically for technical queries (semantic detection), providing implicit validation without user intervention."
+    },
+    {
+      "id": 11,
+      "topic": "governance",
+      "difficulty": "hard",
+      "question": "What is the relationship between seedlings and specializations in SDD Architecture?",
+      "options": [
+        "Seedlings and specializations are the same thing",
+        "Seedlings are templates; specializations are project-specific instantiations of seedlings",
+        "Specializations are templates; seedlings are implementations",
+        "They are unrelated concepts"
+      ],
+      "correct_answer": 1,
+      "explanation": "Seedlings (e.g., .sdd/seedlings/rpg-narrative-server/) are reusable templates. Specializations are customizations derived from seedlings for specific project domains."
+    },
+    {
+      "id": 12,
+      "topic": "architecture",
+      "difficulty": "hard",
+      "question": "What is agnóstic design in the context of AHP?",
+      "options": [
+        "The system works only with SDD Architecture projects",
+        "The health check system is independent of specific domains and can be adapted to any governed system",
+        "The system requires no configuration",
+        "The system cannot be customized"
+      ],
+      "correct_answer": 1,
+      "explanation": "Agnóstic design means AHP is not SDD-specific - it can validate health for any project with governance structure, enabling broader adoption and reusability."
+    }
+  ]
+}

@@ -1,0 +1,394 @@
+"""Tests for governance pipeline builder and related parsers."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from sdd_integration.builders.governance.fingerprinter import GovernanceFingerprinter
+from sdd_integration.builders.governance.legacy_parser import LegacySpecParser
+from sdd_integration.builders.governance.markdown_parser import MarkdownParser
+from sdd_integration.builders.governance.pipeline_builder import PipelineBuilder
+
+pytestmark = pytest.mark.unit
+
+
+class TestGovernanceFingerprinter:
+    """Tests for deterministic fingerprinting."""
+
+    def test_empty_items_no_salt_returns_empty(self) -> None:
+        """Empty items with no salt should return 'empty'."""
+        result = GovernanceFingerprinter.generate([])
+        assert result == "empty"
+
+    def test_empty_items_with_salt_returns_hash(self) -> None:
+        """Empty items with salt should return hash of salt."""
+        result = GovernanceFingerprinter.generate([], salt="some_salt")
+        assert result != "empty"
+        assert len(result) == 64  # SHA-256 hex is 64 chars
+
+    def test_deterministic_same_input_same_output(self) -> None:
+        """Same input should always produce same output."""
+        items = [{"id": "M001", "title": "Test"}]
+        result1 = GovernanceFingerprinter.generate(items)
+        result2 = GovernanceFingerprinter.generate(items)
+        assert result1 == result2
+
+    def test_different_items_different_fingerprint(self) -> None:
+        """Different items should produce different fingerprints."""
+        items1 = [{"id": "M001", "title": "Test1"}]
+        items2 = [{"id": "M002", "title": "Test2"}]
+        result1 = GovernanceFingerprinter.generate(items1)
+        result2 = GovernanceFingerprinter.generate(items2)
+        assert result1 != result2
+
+    def test_salt_changes_fingerprint(self) -> None:
+        """Salt parameter should change the fingerprint."""
+        items = [{"id": "M001", "title": "Test"}]
+        result1 = GovernanceFingerprinter.generate(items, salt="salt1")
+        result2 = GovernanceFingerprinter.generate(items, salt="salt2")
+        assert result1 != result2
+
+    def test_fingerprint_is_valid_hex(self) -> None:
+        """Fingerprint should be valid hex string."""
+        items = [{"id": "M001", "title": "Test"}]
+        result = GovernanceFingerprinter.generate(items)
+        # Valid hex string should be decodable
+        int(result, 16)  # This raises ValueError if not valid hex
+
+
+class TestMarkdownParser:
+    """Tests for Markdown content parsing."""
+
+    def test_extract_summary_minimal_found(self) -> None:
+        """Should extract title from heading."""
+        content = "# M001: Test Mandate"
+        result = MarkdownParser.extract_summary_minimal(content, "M001")
+        assert result == "Test Mandate"
+
+    def test_extract_summary_minimal_with_heading_level_2(self) -> None:
+        """Should extract from level 2 heading."""
+        content = "## M001 Test Mandate"
+        result = MarkdownParser.extract_summary_minimal(content, "M001")
+        assert result == "Test Mandate"
+
+    def test_extract_summary_minimal_not_found(self) -> None:
+        """Should return None when heading not found."""
+        content = "# M002: Test"
+        result = MarkdownParser.extract_summary_minimal(content, "M001")
+        assert result is None
+
+    def test_extract_summary_minimal_rejects_dash_prefix(self) -> None:
+        """Should reject titles starting with dash."""
+        content = "# M001: - Status"
+        result = MarkdownParser.extract_summary_minimal(content, "M001")
+        assert result is None
+
+    def test_extract_summary_minimal_rejects_status_keywords(self) -> None:
+        """Should reject single-word status keywords."""
+        for keyword in ("accepted", "rejected", "pending", "status"):
+            content = f"# M001: {keyword}"
+            result = MarkdownParser.extract_summary_minimal(content, "M001")
+            assert result is None
+
+    def test_extract_summary_runtime_found(self) -> None:
+        """Should extract first paragraph after heading."""
+        content = """# M001: Title
+First paragraph text here.
+More content."""
+        result = MarkdownParser.extract_summary_runtime(content, "M001")
+        assert result == "First paragraph text here."
+
+    def test_extract_summary_runtime_not_found(self) -> None:
+        """Should return None when no content after heading."""
+        content = "# M001: Title"
+        result = MarkdownParser.extract_summary_runtime(content, "M001")
+        assert result is None
+
+    def test_extract_summary_runtime_truncates_at_200_chars(self) -> None:
+        """Should truncate runtime summary at 200 chars."""
+        long_text = "x" * 300
+        content = f"# M001: Title\n{long_text}"
+        result = MarkdownParser.extract_summary_runtime(content, "M001")
+        assert result.endswith("...")
+        assert len(result) == 200
+
+    def test_extract_summary_runtime_with_multiple_paragraphs(self) -> None:
+        """Should extract only first paragraph."""
+        content = """# M001: Title
+First paragraph.
+
+Second paragraph."""
+        result = MarkdownParser.extract_summary_runtime(content, "M001")
+        assert result == "First paragraph."
+
+
+class TestLegacySpecParser:
+    """Tests for legacy DSL format parsing."""
+
+    def test_parse_mandates_block_format(self) -> None:
+        """Should parse block format: `mandate M001 { ... }`."""
+        content = "mandate M001 { ... }\nmandate M002 { ... }"
+        result = LegacySpecParser.parse_mandates(content)
+        assert len(result) == 2
+        assert result[0]["id"] == "M001"
+        assert result[0]["type"] == "MANDATE"
+        assert result[0]["criticality"] == "high"
+
+    def test_parse_mandates_compact_format(self) -> None:
+        """Should parse compact format: `M001: Title`."""
+        content = "M001: First\nM002: Second"
+        result = LegacySpecParser.parse_mandates(content)
+        assert len(result) == 2
+        assert result[0]["id"] == "M001"
+
+    def test_parse_mandates_bracket_format(self) -> None:
+        """Should parse bracket fallback: `- [M001] ...`."""
+        content = "- [M001] Something\n- [M002] Other"
+        result = LegacySpecParser.parse_mandates(content)
+        assert len(result) == 2
+        assert result[0]["id"] == "M001"
+
+    def test_parse_mandates_empty_content(self) -> None:
+        """Should return empty list for empty content."""
+        result = LegacySpecParser.parse_mandates("")
+        assert result == []
+
+    def test_parse_mandates_deduplicates(self) -> None:
+        """Should deduplicate mandate IDs."""
+        content = "mandate M001 { ... }\n[M001] again"
+        result = LegacySpecParser.parse_mandates(content)
+        assert len(result) == 1
+
+    def test_parse_guidelines_blocks_valid(self) -> None:
+        """Should parse `guideline Gxxx { ... }` blocks."""
+        content = 'guideline G001 { title: "Test" }'
+        result = LegacySpecParser.parse_guidelines_blocks(content)
+        assert len(result) == 1
+        assert result[0]["id"] == "G001"
+        assert result[0]["title"] == "Test"
+
+    def test_parse_guidelines_blocks_with_description(self) -> None:
+        """Should extract description field from block."""
+        content = 'guideline G001 { description: "Test description" }'
+        result = LegacySpecParser.parse_guidelines_blocks(content)
+        assert result[0]["description"] == "Test description"
+
+    def test_parse_guidelines_blocks_empty(self) -> None:
+        """Should return empty list for no blocks."""
+        result = LegacySpecParser.parse_guidelines_blocks("")
+        assert result == []
+
+    def test_parse_guidelines_blocks_sorted(self) -> None:
+        """Should return blocks sorted by ID."""
+        content = "guideline G002 { }\nguideline G001 { }"
+        result = LegacySpecParser.parse_guidelines_blocks(content)
+        assert result[0]["id"] == "G001"
+        assert result[1]["id"] == "G002"
+
+    def test_parse_guidelines_blocks_with_all_fields(self) -> None:
+        """Should include all optional fields when present."""
+        content = """guideline G001 {
+            title: "Test"
+            description: "Desc"
+            summary_minimal: "Min"
+            summary_runtime: "Runtime"
+        }"""
+        result = LegacySpecParser.parse_guidelines_blocks(content)
+        assert result[0]["summary_minimal"] == "Min"
+        assert result[0]["summary_runtime"] == "Runtime"
+
+    def test_extract_block_field_double_quoted(self) -> None:
+        """Should extract double-quoted values."""
+        block = 'title: "Test Value"'
+        result = LegacySpecParser._extract_block_field(block, "title")
+        assert result == "Test Value"
+
+    def test_extract_block_field_single_quoted(self) -> None:
+        """Should extract single-quoted values."""
+        block = "title: 'Test Value'"
+        result = LegacySpecParser._extract_block_field(block, "title")
+        assert result == "Test Value"
+
+    def test_extract_block_field_bare_value(self) -> None:
+        """Should extract bare values."""
+        block = "title: TestValue"
+        result = LegacySpecParser._extract_block_field(block, "title")
+        assert result == "TestValue"
+
+    def test_extract_block_field_missing(self) -> None:
+        """Should return None for missing field."""
+        block = "other: value"
+        result = LegacySpecParser._extract_block_field(block, "title")
+        assert result is None
+
+    def test_extract_block_field_case_insensitive(self) -> None:
+        """Should extract field names case-insensitively."""
+        block = 'Title: "Value"'
+        result = LegacySpecParser._extract_block_field(block, "title")
+        assert result == "Value"
+
+
+class TestPipelineBuilderParsedItems:
+    """Tests for PipelineBuilder with pre-parsed items (fast path)."""
+
+    def test_build_with_parsed_mandates(self, tmp_path: Path) -> None:
+        """Should build from pre-parsed mandates."""
+        builder = PipelineBuilder(
+            str(tmp_path),
+            parsed_items={
+                "mandates": [
+                    {"id": "M001", "title": "First"},
+                    {"id": "M002", "title": "Second"},
+                ],
+                "guidelines": [],
+            },
+        )
+        result = builder.build()
+
+        assert len(result["core_items"]) == 2
+        assert result["core_items"][0]["id"] == "M001"
+        assert result["core_items"][0]["type"] == "MANDATE"
+        assert result["core_items"][0]["criticality"] == "high"
+
+    def test_build_with_parsed_guidelines(self, tmp_path: Path) -> None:
+        """Should build from pre-parsed guidelines."""
+        builder = PipelineBuilder(
+            str(tmp_path),
+            parsed_items={
+                "mandates": [],
+                "guidelines": [
+                    {"id": "G001", "title": "Guideline"},
+                ],
+            },
+        )
+        result = builder.build()
+
+        assert len(result["client_items"]) == 1
+        assert result["client_items"][0]["id"] == "G001"
+        assert result["client_items"][0]["type"] == "GUIDELINE"
+        assert result["client_items"][0]["criticality"] == "medium"
+
+    def test_build_empty_parsed_items(self, tmp_path: Path) -> None:
+        """Should handle empty parsed items."""
+        builder = PipelineBuilder(str(tmp_path), parsed_items={})
+        # Should not raise and should try to read from filesystem
+        with pytest.raises(FileNotFoundError):
+            builder.build()
+
+    def test_build_core_fingerprint_stable(self, tmp_path: Path) -> None:
+        """Core fingerprint should be stable across rebuilds."""
+        builder1 = PipelineBuilder(
+            str(tmp_path),
+            parsed_items={
+                "mandates": [{"id": "M001", "title": "Test"}],
+                "guidelines": [],
+            },
+        )
+        result1 = builder1.build()
+        fp1 = result1["governance_core"]["fingerprint"]
+
+        builder2 = PipelineBuilder(
+            str(tmp_path),
+            parsed_items={
+                "mandates": [{"id": "M001", "title": "Test"}],
+                "guidelines": [],
+            },
+        )
+        result2 = builder2.build()
+        fp2 = result2["governance_core"]["fingerprint"]
+
+        assert fp1 == fp2
+
+    def test_build_sorted_by_id(self, tmp_path: Path) -> None:
+        """Items should be sorted by ID before fingerprinting."""
+        builder = PipelineBuilder(
+            str(tmp_path),
+            parsed_items={
+                "mandates": [
+                    {"id": "M002", "title": "Second"},
+                    {"id": "M001", "title": "First"},
+                ],
+                "guidelines": [],
+            },
+        )
+        result = builder.build()
+        assert result["core_items"][0]["id"] == "M001"
+        assert result["core_items"][1]["id"] == "M002"
+
+
+class TestPipelineBuilderFilesystem:
+    """Tests for PipelineBuilder reading from filesystem."""
+
+    def test_build_from_v3_markdown(self, tmp_path: Path) -> None:
+        """Should parse v3.0 Markdown format."""
+        mandates_dir = tmp_path / "mandates"
+        mandates_dir.mkdir()
+        mandate_file = mandates_dir / "mandates.md"
+        mandate_file.write_text(
+            "# M001: Test Mandate\nFirst paragraph here.", encoding="utf-8"
+        )
+
+        guidelines_file = tmp_path / "guidelines.md"
+        guidelines_file.write_text(
+            "# G001: Test Guideline\nGuideline text.", encoding="utf-8"
+        )
+
+        builder = PipelineBuilder(str(tmp_path))
+        result = builder.build()
+
+        assert len(result["core_items"]) == 1
+        assert result["core_items"][0]["id"] == "M001"
+        assert result["core_items"][0]["title"] == "Test Mandate"
+        assert len(result["client_items"]) == 1
+
+    def test_save_outputs_creates_files(self, tmp_path: Path) -> None:
+        """Should create JSON output files."""
+        builder = PipelineBuilder(
+            str(tmp_path),
+            parsed_items={
+                "mandates": [{"id": "M001", "title": "Test"}],
+                "guidelines": [],
+            },
+        )
+        output_dir = tmp_path / "output"
+        builder.save_outputs(str(output_dir))
+
+        assert output_dir.exists()
+        assert (output_dir / "governance-core.json").exists()
+        assert (output_dir / "governance-client.json").exists()
+
+    def test_save_outputs_returns_paths(self, tmp_path: Path) -> None:
+        """Should return paths to created files."""
+        builder = PipelineBuilder(
+            str(tmp_path),
+            parsed_items={
+                "mandates": [{"id": "M001", "title": "Test"}],
+                "guidelines": [],
+            },
+        )
+        output_dir = tmp_path / "output"
+        result = builder.save_outputs(str(output_dir))
+
+        assert "governance_core" in result
+        assert "governance_client" in result
+        assert "core_fingerprint" in result
+        assert "client_fingerprint" in result
+        assert "governance-core.json" in result["governance_core"]
+
+    def test_save_outputs_calls_build(self, tmp_path: Path) -> None:
+        """Should call build() if not yet built."""
+        builder = PipelineBuilder(
+            str(tmp_path),
+            parsed_items={
+                "mandates": [{"id": "M001", "title": "Test"}],
+                "guidelines": [],
+            },
+        )
+        assert builder.result == {}  # Not built yet
+
+        output_dir = tmp_path / "output"
+        builder.save_outputs(str(output_dir))
+
+        assert builder.result != {}  # Now built

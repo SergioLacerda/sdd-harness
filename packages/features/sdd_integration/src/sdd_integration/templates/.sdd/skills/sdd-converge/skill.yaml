@@ -1,0 +1,53 @@
+name: sdd-converge
+version: 1.0.0
+category: convergence
+description: Drive systemic alignment toward spec target after targeted corrections.
+when_to_use:
+- residual delta after corrigir passes
+- pattern of drift detected across multiple areas
+- spec alignment score below threshold
+- systemic divergence from governance spec
+outcomes:
+- alignment_score
+- convergence_plan
+- delta_report
+- next_corrigir_targets
+allowed_tools:
+- sdd ask
+- sdd governance validate
+- sdd runtime status --force
+- sdd doctor run
+cli_fallback:
+- sdd governance validate
+- sdd doctor run
+required_permissions:
+- workspace-read
+- workspace-write-controlled
+execution_path: PATH_C
+status: active
+deprecated_after: null
+sunset_after: null
+risk_score: high
+tags:
+- convergence
+- governance
+- strategic
+- alignment
+budget_policy:
+  token_budget: full
+  timeout_seconds: 300
+  max_retries: 1
+escalation_policy:
+  mode: block
+  require_human_on:
+  - critical_violation
+  - alignment_score_below_minimum
+  - repeat_failure
+telemetry_policy:
+  emit_runtime_event: true
+  otel_required_if_enabled: true
+validation_policy:
+  require_preflight: true
+  require_postcheck: true
+schema_version: 1.0.0
+deprecation_due: false

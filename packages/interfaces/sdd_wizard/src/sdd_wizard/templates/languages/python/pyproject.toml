@@ -1,0 +1,83 @@
+# ⚡ SDD (Specification-Driven Development) Configuration for Python
+# Language: Python
+# Clean Architecture + Test-Driven Development
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdd-project"
+version = "1.0.0"
+description = "Clean Architecture + TDD (M001, M002)"
+requires-python = ">=3.10"
+
+dependencies = [
+    "dependency-injector>=4.41.0",  # Clean Architecture - DI
+]
+
+# Ranges are intentional — exact versions are pinned in the lock file.
+[dependency-groups]
+test = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+]
+typing = [
+    "mypy>=1.5.0",
+]
+lint = [
+    "ruff>=0.3.0",
+]
+dev = [
+    { include-group = "test" },
+    { include-group = "typing" },
+    { include-group = "lint" },
+    "pre-commit>=3.3.3",
+]
+
+[tool.pytest.ini_options]
+# TDD requirement: All tests must pass for build success
+testpaths = ["tests"]
+addopts = "--cov=src --cov-report=html --cov-report=term-missing --cov-fail-under=80"
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+# M002: TDD mandate - 80% minimum code coverage
+branch = true
+source = ["src"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+fail_under = 80  # TDD requirement
+
+[tool.mypy]
+# Clean Architecture: Type safety
+python_version = "3.10"
+strict = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "W", "C90", "UP", "PT", "SIM"]
+ignore = ["B008", "E501"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.format]
+# Canonical formatter: replaces black + isort.
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

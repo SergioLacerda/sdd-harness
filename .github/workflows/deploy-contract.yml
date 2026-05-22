@@ -1,0 +1,97 @@
+name: Deploy Contract
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Target environment"
+        type: choice
+        options: [staging, production]
+        required: true
+      mode:
+        description: "Deploy mode"
+        type: choice
+        options: [contract, real]
+        default: contract
+        required: true
+      image_digest:
+        description: "Image digest (sha256:...)"
+        required: true
+        type: string
+      rollback_to:
+        description: "Rollback target: previous|sha256:..."
+        required: true
+        default: previous
+        type: string
+      canary_policy:
+        description: "Comma-separated canary percentages"
+        required: true
+        default: 10,25,50,100
+        type: string
+
+env:
+  ENABLE_REAL_DEPLOY: "false"
+  SDD_ENFORCE_PIPELINE_CORRECT: "1"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-readiness:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.target_env }}
+    env:
+      TARGET_ENV: ${{ github.event.inputs.target_env }}
+      DEPLOY_MODE: ${{ github.event.inputs.mode }}
+      IMAGE_DIGEST: ${{ github.event.inputs.image_digest }}
+      ROLLBACK_TO: ${{ github.event.inputs.rollback_to }}
+      CANARY_POLICY: ${{ github.event.inputs.canary_policy }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate deploy contract
+        run: |
+          EXTRA_FLAG=""
+          if [[ "${ENABLE_REAL_DEPLOY}" == "true" ]]; then
+            EXTRA_FLAG="--enable-real-deploy"
+          fi
+          python tools/deploy/validate_deploy_contract.py \
+            --target-env "$TARGET_ENV" \
+            --mode "$DEPLOY_MODE" \
+            --image-digest "$IMAGE_DIGEST" \
+            --rollback-to "$ROLLBACK_TO" \
+            --canary-policy "$CANARY_POLICY" \
+            ${EXTRA_FLAG}
+
+      - name: Simulate canary progression gates
+        run: |
+          IFS=',' read -ra STEPS <<< "$CANARY_POLICY"
+          for step in "${STEPS[@]}"; do
+            echo "Validating mock health gate at ${step}% traffic"
+          done
+          echo "Canary simulation complete"
+
+      - name: Simulate rollback contract
+        run: |
+          echo "Simulating rollback target: $ROLLBACK_TO"
+          if [[ -z "$ROLLBACK_TO" ]]; then
+            echo "Rollback contract missing" >&2
+            exit 1
+          fi
+
+      - name: Deployment readiness summary
+        run: |
+          {
+            echo "## Deployment Readiness Report";
+            echo "- Status: READY";
+            echo "- Environment: $TARGET_ENV";
+            echo "- Mode: $DEPLOY_MODE";
+            echo "- Canary policy: $CANARY_POLICY";
+            echo "- Rollback target: $ROLLBACK_TO";
+            echo "- ENABLE_REAL_DEPLOY: ${ENABLE_REAL_DEPLOY}";
+          } >> "$GITHUB_STEP_SUMMARY"

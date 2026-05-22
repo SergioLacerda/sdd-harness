@@ -1,0 +1,113 @@
+#!/bin/bash
+# Pre-push Hook — SDD Architecture Framework
+#
+# Validates health and governance before pushing to remote.
+# Skip only in genuine emergencies: git push --no-verify
+
+set -euo pipefail
+
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT" || exit 1
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${YELLOW}[PRE-PUSH] Starting final validation before push...${NC}"
+
+# ── P003: Block AI agent pushes ──────────────────────────────────────────────
+# Requires SDD_AGENT_MODE to be exactly "true" (case-sensitive).
+# Any other value (empty, false, 1) does NOT trigger the block.
+if [ "${SDD_AGENT_MODE:-}" = "true" ]; then
+    echo -e "${RED}BLOCKED (P003): Agents are not allowed to push.${NC}"
+    echo "Policy P003 (Mandatory Human Review) requires all remote updates"
+    echo "to be performed by a human."
+    echo "FIX: Ask the user to review your changes and run git push manually."
+    exit 1
+fi
+
+# ── Resolve Python interpreter ───────────────────────────────────────────────
+PYTHON_BIN=""
+if [ -x "$PROJECT_ROOT/.venv/bin/python" ]; then
+    PYTHON_BIN="$PROJECT_ROOT/.venv/bin/python"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="python3"
+else
+    echo -e "${RED}ERROR: Python interpreter not found.${NC}"
+    echo "Install Python 3.10+ or run ./setup.sh first."
+    exit 1
+fi
+
+# ── Resolve sdd CLI ──────────────────────────────────────────────────────────
+SDD_CMD=""
+if [ -x "$PROJECT_ROOT/.venv/bin/sdd" ]; then
+    SDD_CMD="$PROJECT_ROOT/.venv/bin/sdd"
+elif command -v sdd >/dev/null 2>&1; then
+    SDD_CMD="sdd"
+else
+    echo -e "${RED}ERROR: sdd CLI not found.${NC}"
+    echo "Run ./setup.sh or: pip install -e packages/interfaces/sdd_cli"
+    exit 1
+fi
+
+# ── Health check ─────────────────────────────────────────────────────────────
+HEALTH_SCRIPT="$PROJECT_ROOT/tools/health/health_check.py"
+if [ ! -f "$HEALTH_SCRIPT" ]; then
+    echo -e "${RED}ERROR: Health check script not found: $HEALTH_SCRIPT${NC}"
+    exit 1
+fi
+
+echo -e "${YELLOW}→ Running health check...${NC}"
+if HEALTH_OUTPUT=$("$PYTHON_BIN" "$HEALTH_SCRIPT" 2>&1); then
+    if echo "$HEALTH_OUTPUT" | grep -q "FAILED"; then
+        echo -e "${RED}HEALTH CHECK FAILED${NC}"
+        echo "$HEALTH_OUTPUT"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ Health check passed${NC}"
+else
+    echo -e "${RED}HEALTH CHECK ERROR${NC}"
+    echo "$HEALTH_OUTPUT"
+    exit 1
+fi
+
+# ── Governance validation ────────────────────────────────────────────────────
+echo -e "${YELLOW}→ Running governance validation...${NC}"
+if GOV_OUTPUT=$("$SDD_CMD" governance validate 2>&1); then
+    echo -e "${GREEN}✓ Governance validation passed${NC}"
+else
+    echo -e "${RED}GOVERNANCE VALIDATION FAILED${NC}"
+    echo "$GOV_OUTPUT"
+    exit 1
+fi
+
+# ── Architecture checks ──────────────────────────────────────────────────────
+echo -e "${YELLOW}→ Running architecture checks...${NC}"
+if ! "$PYTHON_BIN" "$PROJECT_ROOT/tools/architecture/validate_imports.py"; then
+    echo -e "${RED}GUARDRAIL FAILURE:${NC} layer import violations detected."
+    exit 1
+fi
+if ! "$PYTHON_BIN" "$PROJECT_ROOT/tools/architecture/validate_cycles.py"; then
+    echo -e "${RED}GUARDRAIL FAILURE:${NC} import cycle(s) detected."
+    exit 1
+fi
+if ! "$PYTHON_BIN" "$PROJECT_ROOT/tools/architecture/validate_class_size.py" --show-module-warnings; then
+    echo -e "${YELLOW}WARNING ARCH:${NC} class size guardrail violations detected (CI is blocking)."
+fi
+
+# ── Summary ──────────────────────────────────────────────────────────────────
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+if git rev-parse --abbrev-ref @{u} >/dev/null 2>&1; then
+    COMMIT_COUNT="$(git rev-list --count @{u}..HEAD)"
+else
+    COMMIT_COUNT="(no upstream set)"
+fi
+
+echo -e "${YELLOW}→ Push summary:${NC}"
+echo -e "  Branch: $BRANCH"
+echo -e "  Commits: $COMMIT_COUNT"
+echo -e "  Health:     ${GREEN}✓${NC}"
+echo -e "  Governance: ${GREEN}✓${NC}"
+echo -e "${GREEN}[PRE-PUSH] All checks passed. Push allowed.${NC}"
+exit 0

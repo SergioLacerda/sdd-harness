@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "commands": [
+    {
+      "id": "sdd-diagnose",
+      "slash": "/sdd-diagnose",
+      "routes_to": {
+        "type": "skill",
+        "id": "sdd-diagnose"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    },
+    {
+      "id": "sdd-validate-governance",
+      "slash": "/sdd-validate-governance",
+      "routes_to": {
+        "type": "skill",
+        "id": "sdd-validate-governance"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    },
+    {
+      "id": "sdd-stabilize",
+      "slash": "/sdd-stabilize",
+      "routes_to": {
+        "type": "skill",
+        "id": "sdd-stabilize"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    },
+    {
+      "id": "sdd-review-architecture",
+      "slash": "/sdd-review-architecture",
+      "routes_to": {
+        "type": "skill",
+        "id": "sdd-review-architecture"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    },
+    {
+      "id": "sdd-compress-context",
+      "slash": "/sdd-compress-context",
+      "routes_to": {
+        "type": "skill",
+        "id": "sdd-compress-context"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    },
+    {
+      "id": "sdd-correct",
+      "slash": "/sdd-correct",
+      "routes_to": {
+        "type": "skill",
+        "id": "sdd-correct"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    },
+    {
+      "id": "sdd-converge",
+      "slash": "/sdd-converge",
+      "routes_to": {
+        "type": "skill",
+        "id": "sdd-converge"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    },
+    {
+      "id": "sdd-ask",
+      "slash": "/sdd-ask",
+      "routes_to": {
+        "type": "cli",
+        "command": "sdd ask"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    },
+    {
+      "id": "sdd-ask-full",
+      "slash": "/sdd-ask-full",
+      "routes_to": {
+        "type": "cli",
+        "command": "sdd ask-full"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    },
+    {
+      "id": "sdd-organize",
+      "slash": "/sdd-organize",
+      "routes_to": {
+        "type": "cli",
+        "command": "sdd organize"
+      },
+      "targets": ["claude", "codex", "copilot", "antigravity"]
+    }
+  ]
+}

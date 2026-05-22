@@ -1,0 +1,52 @@
+#!/bin/bash
+# SDD Guardrail — commit-msg hook
+# Enforces commit message format and P002 (Honest Critique Policy).
+
+commit_msg_file="$1"
+commit_msg=$(cat "$commit_msg_file")
+
+echo "SDD Guardrail: Commit-msg Validation"
+
+# ── 1. Allow merge commits and fixup commits ─────────────────────────────────
+# Git generates these automatically; don't apply our format rules to them.
+if echo "$commit_msg" | grep -qE "^(Merge |fixup! |squash! )"; then
+    echo "OK: Merge/fixup commit — skipping format check."
+    exit 0
+fi
+
+# ── 2. Conventional Commits format ───────────────────────────────────────────
+# Accepted: feat(scope): message, fix: message, docs: message, etc.
+CONVENTIONAL="^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert)(\([^)]+\))?: .+"
+# Legacy SDD task-ID format: #01: message
+TASK_ID="^#[0-9]+: .+"
+
+if ! echo "$commit_msg" | grep -qE "$CONVENTIONAL" && ! echo "$commit_msg" | grep -qE "$TASK_ID"; then
+    echo "GUARDRAIL FAILURE: Invalid commit message format."
+    echo ""
+    echo "Accepted formats:"
+    echo "  Conventional: feat: add login  |  fix(auth): null check  |  docs: update README"
+    echo "  Task ID:      #42: implement retry logic"
+    echo ""
+    echo "Your message: $commit_msg"
+    exit 1
+fi
+
+# ── 3. P002 Honest Critique — BLOCKING ───────────────────────────────────────
+# If the state file lists known risks/debt, the commit message must acknowledge them.
+CACHE_FILE=".sdd-local/state.md"
+if [ -f "$CACHE_FILE" ] && grep -qiE "Risk|Debt|Blocker|Known issue" "$CACHE_FILE"; then
+    if ! echo "$commit_msg" | grep -qiE "risk|debt|known.?issue|limitation|wip|partial|caveat"; then
+        echo "GUARDRAIL FAILURE (P002 — Honest Critique):"
+        echo "  Your state file lists risks or known debt, but the commit message"
+        echo "  does not acknowledge them."
+        echo ""
+        echo "  FIX: Add one of these terms to your message:"
+        echo "    risk, debt, known issue, limitation, wip, partial, caveat"
+        echo ""
+        echo "  Reference: docs/spec/canonical/core/policies/P002_HONEST_CRITIQUE.md"
+        exit 1
+    fi
+fi
+
+echo "OK: Commit message is valid."
+exit 0

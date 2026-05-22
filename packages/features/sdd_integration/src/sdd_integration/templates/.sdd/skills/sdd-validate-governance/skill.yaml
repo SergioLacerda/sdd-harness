@@ -1,0 +1,43 @@
+name: sdd-validate-governance
+version: 1.1.0
+category: governance
+description: Validate governance integrity and runtime preflight.
+when_to_use:
+- pre-delivery gate
+- compliance checks
+outcomes:
+- policy_result
+- next_actions
+allowed_tools:
+- sdd governance validate
+- sdd runtime status
+cli_fallback:
+- sdd governance validate
+- sdd runtime status
+required_permissions:
+- workspace-read
+execution_path: PATH_A
+status: active
+deprecated_after: null
+sunset_after: null
+risk_score: medium
+tags:
+- governance
+- validation
+budget_policy:
+  token_budget: medium
+  timeout_seconds: 120
+  max_retries: 1
+escalation_policy:
+  mode: warn
+  require_human_on:
+  - critical_violation
+  - repeat_failure
+telemetry_policy:
+  emit_runtime_event: true
+  otel_required_if_enabled: true
+validation_policy:
+  require_preflight: true
+  require_postcheck: true
+schema_version: 1.0.0
+deprecation_due: false

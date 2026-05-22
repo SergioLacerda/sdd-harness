@@ -1,0 +1,198 @@
+# 🛡️ SDD Harness
+
+> **Executable Governance for the Agentic Era.**
+> Transform architectural specifications into living contracts. Compile, validate, and audit agent behavior at runtime with industrial-grade determinism.
+
+<div align="center">
+
+| **Pipeline Status** | **Quality Gates** | **Ecosystem** |
+|:---:|:---:|:---:|
+| [![Health](https://github.com/SergioLacerda/sdd-harness/actions/workflows/health.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/health.yml) | [![CodeQL](https://github.com/SergioLacerda/sdd-harness/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/codeql.yml) | [![Built with uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv) |
+| [![Validation](https://github.com/SergioLacerda/sdd-harness/actions/workflows/sdd-validation.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/sdd-validation.yml) | [![Release](https://github.com/SergioLacerda/sdd-harness/actions/workflows/release.yml/badge.svg)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/release.yml) | [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/) |
+| [![Docs](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml) | [![Governance: SDD](https://img.shields.io/badge/governance-SDD-blueviolet)](docs/spec/canonical/core/) | [![License: MIT](https://img.shields.io/github/license/SergioLacerda/sdd-harness)](LICENSE) |
+
+**[GitHub Pages](https://sergiolacerda.github.io/sdd-harness/)** • **[Getting Started](#-getting-started)** • **[CLI Reference](#-cli-reference)** • **[Contributing](#-contributing)**
+
+</div>
+
+---
+
+## 💎 Why SDD Harness?
+
+> Without it, AI agents quietly violate their own mandates — specs rot into suggestions, contracts drift undetected, and compliance becomes a post-incident narrative instead of a runtime guarantee.
+
+Spec-Driven Development (SDD) Harness is not just a tool—it's a **Governance Orchestrator**. It bridges the gap between static Markdown documentation and dynamic runtime enforcement for AI Agents.
+
+- **📜 Specs as Code**: Your `docs/spec/` is the Single Source of Truth (SSoT). Human-readable, agent-executable.
+- **⛓️ Execution Contracts**: Compiles mandates into versioned artifacts with cryptographic-grade fingerprints.
+- **🛡️ Zero-Drift CI**: Automated contract tests (Golden Files) prevent accidental schema or logic evolution.
+- **🤖 Agent-Agnostic**: Designed to govern any agentic framework through a unified CLI and runtime API.
+
+---
+
+## Prerequisites
+- **Python 3.10+** (Modern async runtime)
+- **[uv](https://docs.astral.sh/uv/)** (Extremely fast package & project manager)
+
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Have on your IDE / work station: SDD GOVERNANCE(generated from `sdd wizard run`)
+
+### Quick Workflow
+```bash
+# 1) Synchronize workspace and dependencies
+make install
+source .venv/bin/activate
+
+# 2) Initialize workspace profile + PHASE 0 marker (.sdd/profile)
+sdd init --type client --name local-dev --force
+
+# 3) Install local hook infrastructure (SDD hooks + pre-commit)
+make hooks-install
+
+# 4) Initialize governance artifacts (compile + generate + sign bootstrap)
+make governance-bootstrap
+
+# 5) Generate all skills/commands/seeds artifacts + reconcile local seeds with .sdd
+sdd skills --full-bootstrap --regenerate-seeds
+
+# 6) Verify environment health
+sdd runtime status --force
+sdd governance validate
+```
+
+Paste this in your agent prompt after bootstrap:
+
+```text
+Please evaluate governance from project-root files first, then from `.sdd`.
+Read `AGENTS.md`, `.sdd/agent-instructions.md`, `.sdd/source/governance-core.json`,
+and `.sdd/source/mandates/mandates.md`. Confirm:
+1) active mandates loaded, 2) current fingerprint, 3) any drift/blockers,
+4) next governed action using `sdd-*` commands only.
+```
+
+Detailed onboarding, custom slash/prompt commands, and troubleshooting:
+- [`docs/guides/CLIENT_ONBOARDING.md`](docs/guides/CLIENT_ONBOARDING.md)
+- CLI contract/reference: [`docs/spec/reference/commands/cli.md`](docs/spec/reference/commands/cli.md)
+
+Language standard:
+- English-only for code, docs, and generated onboarding artifacts (Mandate M011).
+
+---
+
+## 🛡️ Security & Trust
+
+SDD Harness implements a **fail-closed** security model. Governance artifacts must be cryptographically signed to ensure integrity.
+
+1.  **Key Generation**: Create your identity key in `.sdd/trust/`.
+    ```bash
+    sdd governance keygen --key-id my-org-01
+    ```
+2.  **Signing**: Sign artifacts before deployment.
+    ```bash
+    sdd governance sign --key-id my-org-01
+    ```
+3.  **Audit**: Verify the security posture of your workspace.
+    ```bash
+    sdd governance audit --verbose
+    ```
+
+> [!IMPORTANT]
+> Use `SDD_SIGNATURE_MODE=strict` in production to block any execution with invalid or missing signatures.
+
+---
+
+## 🛠️ CLI Reference
+
+| Command | Description |
+|:---|:---|
+| `sdd governance audit` | Perform a Security Audit of the workspace |
+| `sdd governance keygen`| Generate Ed25519 keys for signing |
+| `sdd governance sign`  | Sign compiled artifacts with a private key |
+| `sdd governance validate` | Validate compiled artifacts against source specs |
+| `sdd governance compile`  | Compile mandates into msgpack artifacts |
+| `sdd governance generate --full-bootstrap` | Compile + generate + keygen + sign + handshake |
+| `sdd skills --full-bootstrap --regenerate-seeds` | Generate skills/commands/seeds artifacts and reconcile local managed seeds with `.sdd` registries |
+| `sdd runtime status` | Holistic health check and "Doctor Score" |
+| `sdd audit` | Summarize governance telemetry, top drift events, and token input/output ratios |
+| `sdd skills list` | List capability-oriented governed skills |
+| `sdd test run` | Execute unit, integration, and contract test suites |
+| `sdd governance score` | Audit the project's compliance level |
+| `sdd tools run` | Execute maintenance tools (uv-powered) |
+| `sdd tools list` | List available maintenance tools |
+
+### Agent Onboarding After Governance Activation
+
+Once governance is active, agents can discover and run governed skills:
+
+```bash
+# List all available governed skills
+sdd skills list
+
+# Inspect a specific skill contract
+sdd skills describe sdd-validate-governance
+
+# Execute a governed skill
+sdd skills run sdd-validate-governance
+```
+
+### Output Modes
+
+```bash
+# Structured output for automation
+sdd --json runtime status | jq '.state,.drift'
+
+# Governance validation in JSON
+sdd --json governance validate | jq '.ok,.checks'
+
+# Verbose mode (global)
+sdd --verbose runtime status
+```
+
+## 🔌 Runtime API & Framework Integration
+
+For integration with external orchestration frameworks (LangGraph, CrewAI, AutoGen), see:
+
+- [`docs/guides/RUNTIME_API_INTEGRATION.md`](docs/guides/RUNTIME_API_INTEGRATION.md)
+
+---
+
+## 📂 Project Blueprint
+
+```text
+├── docs/spec/          <-- Canonical mandates, policies, and rules
+├── packages/           <-- Modularized toolchain (core, compiler, cli, wizard)
+├── tools/              <-- Maintenance and snapshot orchestration scripts
+├── tests/              <-- Multi-layered testing (Contract, Integration, Unit)
+└── generated/          <-- Immutable compiled artifacts (Git-ignored)
+```
+
+---
+
+## 🤝 Contributing
+
+We maintain a **World Class Engineering** environment where Humans and AI Agents collaborate under strict governance.
+
+### 📜 The Golden Rule (P003)
+> **"Agents propose, Humans dispose."**
+
+Every change made by an AI Agent must pass the **Pre-Delivery Quality Gate (P004)** and be explicitly signed by a human using their Ed25519 auditor key. This cryptographic proof is enforced by the CI/CD pipeline and the `compliance.py` tool.
+
+### Development Workflow
+1.  **Code**: Propose changes in `packages/` or `docs/spec/`.
+2.  **Verify**: Run `make pre-delivery` to satisfy all quality gates.
+3.  **Snapshot**: If spec changes are intentional, run `make update-golden-snapshots`.
+4.  **Review**: Submit changes for Human Review. **Agents are forbidden from git commits/pushes.**
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+You may use, study, modify, and replicate this project, including for derivative work, provided that attribution to the original author is preserved:
+- **Repository:** https://github.com/SergioLacerda/sdd-harness
+- **Docs (GitHub Pages):** https://sergiolacerda.github.io/sdd-harness/
+- **Full license text:** [`LICENSE`](LICENSE)

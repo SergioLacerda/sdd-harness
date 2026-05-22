@@ -1,0 +1,114 @@
+{
+  "category": "CORE",
+  "items": [
+    {
+      "criticality": "high",
+      "id": "M001",
+      "status": "active",
+      "summary_minimal": "Clean Architecture",
+      "summary_runtime": null,
+      "title": "Clean Architecture",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M002",
+      "status": "active",
+      "summary_minimal": "Test-Driven Development (TDD)",
+      "summary_runtime": null,
+      "title": "Test-Driven Development (TDD)",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M003",
+      "status": "active",
+      "summary_minimal": "Context Awareness & Task Caching",
+      "summary_runtime": null,
+      "title": "Context Awareness & Task Caching",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M005",
+      "status": "active",
+      "summary_minimal": "Token Economy Enforcement",
+      "summary_runtime": null,
+      "title": "Token Economy Enforcement",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M006",
+      "status": "active",
+      "summary_minimal": "Any change that could require users to update their code or governance artifacts must follow this RFC process.",
+      "summary_runtime": null,
+      "title": "Any change that could require users to update their code or governance artifacts must follow this RFC process.",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M007",
+      "status": "active",
+      "summary_minimal": "Telemetry Enforcement",
+      "summary_runtime": null,
+      "title": "Telemetry Enforcement",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M008",
+      "status": "active",
+      "summary_minimal": "Audit Integrity",
+      "summary_runtime": null,
+      "title": "Audit Integrity",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M009",
+      "status": "active",
+      "summary_minimal": "OpenTelemetry Compliance",
+      "summary_runtime": null,
+      "title": "OpenTelemetry Compliance",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M010",
+      "status": "active",
+      "summary_minimal": "Delivery Hygiene Enforcement",
+      "summary_runtime": null,
+      "title": "Delivery Hygiene Enforcement",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M011",
+      "status": "active",
+      "summary_minimal": "English Language Standard",
+      "summary_runtime": null,
+      "title": "English Language Standard",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M015",
+      "status": "active",
+      "summary_minimal": "Bidirectional Agent Handshake",
+      "summary_runtime": null,
+      "title": "Bidirectional Agent Handshake",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M016",
+      "status": "active",
+      "summary_minimal": "Guardrail Non-Regression",
+      "summary_runtime": null,
+      "title": "Guardrail Non-Regression",
+      "type": "MANDATE"
+    }
+  ],
+  "version": "3.0"
+}

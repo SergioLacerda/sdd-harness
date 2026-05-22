@@ -1,0 +1,11 @@
+id: "sdd-diagnose"
+slash: "/sdd-diagnose"
+routes_to:
+  type: skill
+  id: sdd-diagnose
+args: []
+adapter_targets:
+  - claude
+  - codex
+  - copilot
+  - antigravity

@@ -1,0 +1,10 @@
+{
+  "version": "3.0",
+  "tier": "lite",
+  "format": "spec-v1",
+  "compiled_at": "{{TIMESTAMP}}",
+  "source_hash": "{{SOURCE_HASH}}",
+  "mandates_selected": [],
+  "language": "{{LANGUAGE}}",
+  "profile": "{{PROFILE}}"
+}

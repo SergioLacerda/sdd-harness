@@ -1,0 +1,25 @@
+# CODEOWNERS — automatic review assignment by domain
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: all files require review from @SergioLacerda
+* @SergioLacerda
+
+# Core packages — compiler, runtime, telemetry
+packages/core/                          @SergioLacerda
+
+# Feature packages — integration, wizard logic
+packages/features/                      @SergioLacerda
+
+# Interface packages — CLI, wizard interfaces
+packages/interfaces/                    @SergioLacerda
+
+# Governance specs and canonical docs
+docs/spec/canonical/                    @SergioLacerda
+docs/spec/decisions/                    @SergioLacerda
+
+# CI/CD and workflow configuration
+.github/workflows/                      @SergioLacerda
+.github/dependabot.yml                  @SergioLacerda
+
+# Governance compilation outputs — changes require extra scrutiny
+generated/                              @SergioLacerda

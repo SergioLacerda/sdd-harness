@@ -1,0 +1,21 @@
+"""Centralized logger factory for SDD packages.
+
+Use this instead of calling logging.getLogger(__name__) directly so that
+future changes to the logging backend (e.g., structlog) only require
+updating this module.
+"""
+
+from __future__ import annotations
+
+import logging
+
+
+def get_logger(name: str) -> logging.Logger:
+    """Return a standard library logger for *name*.
+
+    Usage::
+
+        from sdd_core.utils.logging import get_logger
+        logger = get_logger(__name__)
+    """
+    return logging.getLogger(name)

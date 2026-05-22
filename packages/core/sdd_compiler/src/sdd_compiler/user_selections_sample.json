@@ -1,0 +1,809 @@
+{
+  "version": "3.0",
+  "timestamp": "2026-04-23T09:00:00",
+  "description": "Sample user selections for PHASE 1b - demonstrates CORE vs CLIENT split",
+  "selections": {
+    "M001": {
+      "choice": "CORE",
+      "reason": "Foundation mandate - immutable",
+      "customizable": false
+    },
+    "M002": {
+      "choice": "CORE",
+      "reason": "Foundation mandate - immutable",
+      "customizable": false
+    },
+    "G01": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G02": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G03": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G04": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G05": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G06": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G07": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G08": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G09": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G10": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G11": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G12": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G13": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G14": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G15": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G16": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G17": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G18": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G19": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G20": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G21": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G22": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G23": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G24": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G25": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G26": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G27": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G28": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G29": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G30": {
+      "choice": "CORE",
+      "reason": "Core governance principle",
+      "customizable": false
+    },
+    "G31": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G32": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G33": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G34": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G35": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G36": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G37": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G38": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G39": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G40": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G41": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G42": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G43": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G44": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G45": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G46": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G47": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G48": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G49": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G50": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G51": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G52": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G53": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G54": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G55": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G56": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G57": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G58": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G59": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G60": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G61": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G62": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G63": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G64": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G65": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G66": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G67": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G68": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G69": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G70": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G71": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G72": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G73": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G74": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G75": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G76": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G77": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G78": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G79": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G80": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G81": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G82": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G83": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G84": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G85": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G86": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G87": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G88": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G89": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G90": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G91": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G92": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G93": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G94": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G95": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G96": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G97": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G98": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G99": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G100": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G101": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G102": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G103": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G104": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G105": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G106": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G107": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G108": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G109": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G110": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G111": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G112": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G113": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G114": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G115": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G116": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G117": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G118": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G119": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G120": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G121": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G122": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G123": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G124": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G125": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G126": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G127": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G128": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G129": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G130": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G131": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G132": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G133": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G134": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G135": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G136": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G137": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G138": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G139": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G140": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G141": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G142": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G143": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G144": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G145": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G146": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G147": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G148": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G149": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "G150": {
+      "choice": "CLIENT",
+      "reason": "Project-specific guideline",
+      "customizable": true
+    },
+    "ADR-001": {
+      "choice": "CORE",
+      "reason": "Architecture decision - immutable",
+      "customizable": false
+    },
+    "RULE-001": {
+      "choice": "CORE",
+      "reason": "Enforcement rule - immutable",
+      "customizable": false
+    },
+    "GUARDRAIL-001": {
+      "choice": "CLIENT",
+      "reason": "Project can customize enforcement level",
+      "customizable": true
+    }
+  },
+  "summary": {
+    "total_items": 155,
+    "core_items": 34,
+    "client_items": 121,
+    "breakdown": {
+      "MANDATE": {
+        "CORE": 2,
+        "CLIENT": 0
+      },
+      "GUIDELINE": {
+        "CORE": 30,
+        "CLIENT": 120
+      },
+      "DECISION": {
+        "CORE": 1,
+        "CLIENT": 0
+      },
+      "RULE": {
+        "CORE": 1,
+        "CLIENT": 0
+      },
+      "GUARDRAIL": {
+        "CORE": 0,
+        "CLIENT": 1
+      }
+    }
+  }
+}

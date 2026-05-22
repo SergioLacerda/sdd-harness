@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "GovernanceItem": {
+      "properties": {
+        "criticality": {
+          "title": "Criticality",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "summary_minimal": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Summary Minimal"
+        },
+        "summary_runtime": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Summary Runtime"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "type",
+        "status",
+        "criticality"
+      ],
+      "title": "GovernanceItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "category": {
+      "const": "CORE",
+      "title": "Category",
+      "type": "string"
+    },
+    "fingerprint": {
+      "title": "Fingerprint",
+      "type": "string"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/GovernanceItem"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "category",
+    "version",
+    "fingerprint",
+    "items"
+  ],
+  "title": "GovernanceCoreArtifact",
+  "type": "object"
+}

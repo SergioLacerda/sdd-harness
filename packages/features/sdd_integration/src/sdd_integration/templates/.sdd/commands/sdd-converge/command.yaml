@@ -1,0 +1,11 @@
+id: "sdd-converge"
+slash: "/sdd-converge"
+routes_to:
+  type: skill
+  id: sdd-converge
+args: []
+adapter_targets:
+  - claude
+  - codex
+  - copilot
+  - antigravity

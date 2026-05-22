@@ -1,0 +1,91 @@
+name: Reusable Security
+
+on:
+  workflow_call:
+
+jobs:
+  bandit:
+    name: Bandit Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+      - name: Environment boundary preflight (security)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py trusted-keyring-precedence-check --context security --mode warn
+          uv run python tools/ci/environment_gates.py signature-mode-policy-check --context security --mode warn
+      - name: Run Bandit
+        run: uvx 'bandit[toml]' -r packages/ -c pyproject.toml -f txt
+
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+      - name: Environment boundary preflight (security)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py trusted-keyring-precedence-check --context security --mode warn
+          uv run python tools/ci/environment_gates.py signature-mode-policy-check --context security --mode warn
+      - name: Initialize UV workspace (retry)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if uv sync --all-groups; then
+              exit 0
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          exit 1
+      - name: Audit Dependencies
+        run: |
+          uv run --with pip-audit pip-audit --desc \
+            --ignore-vuln PYSEC-2026-89
+          # PYSEC-2026-89: markdown (transitive via mkdocs/mkdocs-material).
+          # No fix available for 3.10.x series; markdown only renders internal
+          # docs (not attacker-controlled input), so DoS risk is not applicable.
+
+  container-scan:
+    name: Container Security (Trivy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+      - name: Environment boundary preflight (security)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py trusted-keyring-precedence-check --context security --mode warn
+          uv run python tools/ci/environment_gates.py signature-mode-policy-check --context security --mode warn
+      - name: Sync Docker ignore rules
+        run: cp infrastructure/docker/.dockerignore .dockerignore
+      - name: Build image
+        run: docker build -t sdd-framework:scan -f infrastructure/docker/Dockerfile .
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: sdd-framework:scan
+          format: table
+          severity: CRITICAL,HIGH

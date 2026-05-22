@@ -1,0 +1,13 @@
+{
+  "allowlist": {
+    "packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/seedlings/governance_seeds.py:GovernanceSeedsGenerator": "Legacy generator under active decomposition plan.",
+    "packages/core/sdd_core/src/sdd_core/governance/handshake.py:AgentHandshakeProtocol": "Extracted _emit_governance_event() and _resolve_signature_status(); requires further decomposition of validate() and cache shortcut logic.",
+    "packages/interfaces/sdd_wizard/src/sdd_wizard/src/interactive_mode.py:InteractiveWizard": "High-coupling orchestrator pending extraction by wizard phases.",
+    "packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/wizard/phase3_compiler.py:Phase3Compiler": "Compiler pipeline consolidation in progress.",
+    "packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/phase5_source_writer.py:SddSourceWriter": "Source writer split scheduled after artifact pipeline hardening.",
+    "packages/core/sdd_compiler/src/sdd_compiler/integrate.py:SDDIntegrator": "Integration coordinator currently monolithic; planned split by responsibilities.",
+    "packages/core/sdd_telemetry/src/sdd_telemetry/engine/patterns.py:ExtendedPatterns": "Pattern catalog kept centralized for deterministic lookups.",
+    "packages/core/sdd_compiler/src/sdd_compiler/governance_compiler.py:GovernanceCompiler": "Compiler internals targeted for staged extraction.",
+    "packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/wizard/phase1_generator.py:Phase1Generator": "Phase generator refactor queued with onboarding stream."
+  }
+}

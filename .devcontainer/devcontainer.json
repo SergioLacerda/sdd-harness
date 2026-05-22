@@ -1,0 +1,38 @@
+{
+  "name": "SDD Sovereign Development Environment",
+  "build": {
+    "dockerfile": "../infrastructure/docker/Dockerfile",
+    "context": ".."
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/venv/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestArgs": [
+          "tests"
+        ],
+        "python.linting.enabled": true,
+        "python.formatting.provider": "ruff",
+        "editor.formatOnSave": true,
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "tamasfe.even-better-toml",
+        "mechatroner.rainbow-csv"
+      ]
+    }
+  },
+  "remoteUser": "sdd",
+  "workspaceFolder": "/app",
+  "postCreateCommand": "sdd tools list && sdd runtime status",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:1": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": false
+    }
+  }
+}

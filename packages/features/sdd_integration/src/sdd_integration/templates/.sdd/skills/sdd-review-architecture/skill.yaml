@@ -1,0 +1,41 @@
+name: sdd-review-architecture
+version: 1.0.0
+category: architecture
+description: Review architecture adherence against SDD mandates.
+when_to_use:
+- major refactor
+- architecture review
+outcomes:
+- policy_result
+- next_actions
+allowed_tools:
+- sdd governance score --verbose
+cli_fallback:
+- sdd governance score --verbose
+required_permissions:
+- workspace-read
+execution_path: PATH_A
+status: active
+deprecated_after: null
+sunset_after: null
+risk_score: high
+tags:
+- architecture
+- review
+budget_policy:
+  token_budget: medium
+  timeout_seconds: 120
+  max_retries: 1
+escalation_policy:
+  mode: warn
+  require_human_on:
+  - critical_violation
+  - high_risk_change
+telemetry_policy:
+  emit_runtime_event: true
+  otel_required_if_enabled: true
+validation_policy:
+  require_preflight: true
+  require_postcheck: true
+schema_version: 1.0.0
+deprecation_due: false

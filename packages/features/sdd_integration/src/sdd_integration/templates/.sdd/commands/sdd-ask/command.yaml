@@ -1,0 +1,21 @@
+id: "sdd-ask"
+slash: "/sdd-ask"
+description: "Query SDD governance context. Minimal governed query against compiled context."
+routes_to:
+  type: cli
+  command: "sdd ask"
+args:
+  - name: query
+    required: true
+    description: "Governance query text"
+  - name: skill
+    required: false
+    description: "Optional skill context (e.g. diagnose, corrigir)"
+  - name: budget
+    required: false
+    description: "Optional token budget ceiling"
+adapter_targets:
+  - claude
+  - codex
+  - copilot
+  - antigravity

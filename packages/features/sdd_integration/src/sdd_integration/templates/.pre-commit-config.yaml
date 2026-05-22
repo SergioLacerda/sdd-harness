@@ -1,0 +1,42 @@
+# Pre-commit hooks configuration for SDD framework governance
+# Runs checks before each commit to ensure quality
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+      - id: end-of-file-fixer
+        name: Fix end of file
+      - id: check-yaml
+        name: Check YAML syntax
+      - id: check-json
+        name: Check JSON syntax
+      - id: detect-private-key
+        name: Detect private keys
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+        name: Check file size (<1MB)
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.0
+    hooks:
+      - id: ruff
+        name: Lint with Ruff
+        args: ['--fix']
+      - id: ruff-format
+        name: Format with Ruff
+
+ci:
+  autofix_commit_msg: |
+    chore: Auto-format via pre-commit hooks
+
+    - Formatted and linted with Ruff
+    - Fixed trailing whitespace
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: 'chore: Auto-update pre-commit hooks'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

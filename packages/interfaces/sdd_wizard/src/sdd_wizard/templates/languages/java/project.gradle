@@ -1,0 +1,68 @@
+// ⚡ SDD (Specification-Driven Development) Configuration for Java
+// Language: Java
+// Clean Architecture + Test-Driven Development
+
+plugins {
+    id 'java'
+    id 'jacoco'  // Code coverage (TDD mandate)
+}
+
+group = 'com.yourcompany'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    // Clean Architecture - Dependency Injection
+    implementation 'javax.inject:javax.inject:1'
+
+    // Testing Framework (TDD M002)
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.2.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
+
+    // Code Quality
+    testImplementation 'org.assertj:assertj-core:3.24.1'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+
+    // Generate code coverage (TDD requirement)
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+// SDD: Enforce test coverage minimum
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+// TDD Mandate (M002): Tests must pass before build success
+tasks.check.dependsOn jacocoTestCoverageVerification
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            element = 'CLASS'
+            excludes = ['*Test']
+            limits {
+                minimum = 0.80  // 80% coverage minimum (M002: TDD)
+            }
+        }
+    }
+}

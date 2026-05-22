@@ -1,0 +1,34 @@
+{
+  "name": "sdd-project",
+  "version": "1.0.0",
+  "description": "Clean Architecture + TDD (M001, M002)",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --coverage --coverageReporters=text --coverageReporters=html",
+    "test:watch": "jest --watch",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write src",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "inversify": "6.0.1",
+    "reflect-metadata": "0.1.13"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.3",
+    "@types/node": "20.5.0",
+    "@typescript-eslint/eslint-plugin": "6.2.1",
+    "@typescript-eslint/parser": "6.2.1",
+    "eslint": "8.46.0",
+    "jest": "29.6.4",
+    "prettier": "3.0.1",
+    "ts-jest": "29.1.1",
+    "ts-node": "10.9.1",
+    "typescript": "5.1.6"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

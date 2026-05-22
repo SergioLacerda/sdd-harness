@@ -1,0 +1,102 @@
+name: Documentation Quality & Publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'README.md'
+      - 'tools/verify_mkdocs_paths.py'
+      - 'packages/interfaces/sdd_cli/src/sdd_cli/commands/docs.py'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'README.md'
+      - 'tools/verify_mkdocs_paths.py'
+      - 'packages/interfaces/sdd_cli/src/sdd_cli/commands/docs.py'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+        with:
+          version: "latest"
+
+      - name: Install all dependencies (retry)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if make install; then
+              exit 0
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          exit 1
+
+      - name: Enforce CI command policy
+        run: uv run python tools/ci/check_no_sdd_ci_commands.py
+
+      - name: Verify CLI module
+        run: uv run python -m sdd_cli --help > /dev/null
+
+      - name: Validate MkDocs mapped paths
+        run: uv run python tools/verify_mkdocs_paths.py
+
+      - name: Validate active docs anchors
+        run: uv run python -m sdd_cli lint spec --validate-all-anchors --strict-anchor-style
+
+      - name: Build documentation (strict)
+        run: uv run mkdocs build --strict
+
+      - name: Set up Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_GITHUB_PAGES == 'true'
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d  # v6
+        with:
+          enablement: false
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_GITHUB_PAGES == 'true'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5
+        with:
+          path: build/site
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_GITHUB_PAGES == 'true'
+    needs: docs-quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128  # v5

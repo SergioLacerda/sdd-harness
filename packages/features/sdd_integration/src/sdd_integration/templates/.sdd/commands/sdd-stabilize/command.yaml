@@ -1,0 +1,11 @@
+id: "sdd-stabilize"
+slash: "/sdd-stabilize"
+routes_to:
+  type: skill
+  id: sdd-stabilize
+args: []
+adapter_targets:
+  - claude
+  - codex
+  - copilot
+  - antigravity

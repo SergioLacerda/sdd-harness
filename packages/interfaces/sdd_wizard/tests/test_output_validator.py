@@ -1,0 +1,120 @@
+"""Tests for OutputValidator (phase6_output_validator.py)."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from sdd_wizard.orchestration.phase6_output_validator import OutputValidator
+
+
+def _make_validator(
+    tmp_path: Path, categories: list[str] | None = None
+) -> OutputValidator:
+    sdd = tmp_path / ".sdd"
+    return OutputValidator(
+        output_base=tmp_path,
+        sdd_dir=sdd,
+        source_dir=sdd / "source",
+        runtime_dir=sdd / "runtime",
+        mandates_dir=sdd / "source" / "mandates",
+        guidelines_dir=sdd / "source" / "guidelines",
+        guidelines_by_category={c: [] for c in (categories or [])},
+        verbose=False,
+    )
+
+
+def _create_all_required(tmp_path: Path, categories: list[str] | None = None) -> None:
+    sdd = tmp_path / ".sdd"
+    (sdd / "source" / "mandates").mkdir(parents=True)
+    (sdd / "source" / "guidelines").mkdir(parents=True)
+    (sdd / "runtime").mkdir(parents=True)
+    (tmp_path / ".github" / "workflows").mkdir(parents=True)
+    (sdd / "source" / "mandates" / "mandates.md").write_text("# M", encoding="utf-8")
+    (sdd / "runtime" / "README.md").write_text("# R", encoding="utf-8")
+    (sdd / "source" / "README.md").write_text("# S", encoding="utf-8")
+    (sdd / "metadata.json").write_text("{}", encoding="utf-8")
+    (tmp_path / ".pre-commit-config.yaml").write_text("x", encoding="utf-8")
+    (tmp_path / ".github" / "setup-precommit-hook.sh").write_text("x", encoding="utf-8")
+    (tmp_path / ".github" / "copilot-instructions.md").write_text("x", encoding="utf-8")
+    (tmp_path / ".vscode").mkdir()
+    (tmp_path / ".vscode" / "ai-rules.md").write_text("x", encoding="utf-8")
+    (tmp_path / ".cursor" / "rules").mkdir(parents=True)
+    (tmp_path / ".cursor" / "rules" / "spec.mdc").write_text("x", encoding="utf-8")
+    (tmp_path / ".claude").mkdir()
+    (tmp_path / ".claude" / "claude-instructions.md").write_text("x", encoding="utf-8")
+    (tmp_path / ".gemini").mkdir()
+    (tmp_path / ".gemini" / "gemini-instructions.md").write_text("x", encoding="utf-8")
+    for cat in categories or []:
+        (sdd / "source" / "guidelines" / f"{cat}.md").write_text(
+            f"# {cat}", encoding="utf-8"
+        )
+
+
+class TestOutputValidatorAllPresent:
+    def test_valid_when_all_files_exist(self, tmp_path: Path) -> None:
+        _create_all_required(tmp_path, categories=["git"])
+        validator = _make_validator(tmp_path, categories=["git"])
+        is_valid, result = validator.validate()
+        assert is_valid is True
+        assert result["errors"] == []
+
+    def test_checks_dict_populated(self, tmp_path: Path) -> None:
+        _create_all_required(tmp_path)
+        validator = _make_validator(tmp_path)
+        _, result = validator.validate()
+        assert len(result["checks"]) > 0
+
+    def test_category_guideline_checked(self, tmp_path: Path) -> None:
+        _create_all_required(tmp_path, categories=["testing"])
+        validator = _make_validator(tmp_path, categories=["testing"])
+        is_valid, _ = validator.validate()
+        assert is_valid is True
+
+
+class TestOutputValidatorMissingFiles:
+    def test_invalid_when_dirs_missing(self, tmp_path: Path) -> None:
+        validator = _make_validator(tmp_path)
+        is_valid, result = validator.validate()
+        assert is_valid is False
+        assert len(result["errors"]) > 0
+
+    def test_errors_list_mandatory_dirs(self, tmp_path: Path) -> None:
+        validator = _make_validator(tmp_path)
+        _, result = validator.validate()
+        assert any("Missing directory" in e for e in result["errors"])
+
+    def test_missing_mandatory_file_invalid(self, tmp_path: Path) -> None:
+        # Create dirs but no files
+        sdd = tmp_path / ".sdd"
+        (sdd / "source" / "mandates").mkdir(parents=True)
+        (sdd / "source" / "guidelines").mkdir(parents=True)
+        (sdd / "runtime").mkdir(parents=True)
+        (tmp_path / ".github" / "workflows").mkdir(parents=True)
+        validator = _make_validator(tmp_path)
+        is_valid, result = validator.validate()
+        assert is_valid is False
+        assert any("Missing file" in e for e in result["errors"])
+
+    def test_missing_category_guideline_invalid(self, tmp_path: Path) -> None:
+        _create_all_required(tmp_path)  # no "security" category file
+        validator = _make_validator(tmp_path, categories=["security"])
+        is_valid, result = validator.validate()
+        assert is_valid is False
+        assert any("security" in e for e in result["errors"])
+
+
+class TestOutputValidatorVerbose:
+    def test_verbose_mode_emits_log(self, tmp_path: Path, capsys) -> None:
+        validator = OutputValidator(
+            output_base=tmp_path,
+            sdd_dir=tmp_path / ".sdd",
+            source_dir=tmp_path / ".sdd" / "source",
+            runtime_dir=tmp_path / ".sdd" / "runtime",
+            mandates_dir=tmp_path / ".sdd" / "source" / "mandates",
+            guidelines_dir=tmp_path / ".sdd" / "source" / "guidelines",
+            guidelines_by_category={},
+            verbose=True,
+        )
+        validator.validate()
+        captured = capsys.readouterr()
+        assert "Validating" in captured.out

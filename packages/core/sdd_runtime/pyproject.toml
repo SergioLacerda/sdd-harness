@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdd-runtime"
+version = "0.1.0"
+description = "Runtime execution engine for SDD governance"
+requires-python = ">=3.10"
+license = {text = "Proprietary"}
+authors = [
+    {name = "Sergio Lacerda", email = "sergio.lacerda.vieira@gmail.com"},
+]
+
+dependencies = [
+    "sdd-skills",
+]
+
+[project.urls]
+Repository = "https://github.com/SergioLacerda/sdd-harness"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+sdd_runtime = ["py.typed"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

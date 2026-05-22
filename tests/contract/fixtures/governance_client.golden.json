@@ -1,0 +1,34 @@
+{
+  "category": "CLIENT",
+  "items": [
+    {
+      "criticality": "medium",
+      "id": "G001",
+      "status": "active",
+      "title": "Auto-discovered G001",
+      "type": "GUIDELINE"
+    },
+    {
+      "criticality": "medium",
+      "id": "G100",
+      "status": "active",
+      "title": "Auto-discovered G100",
+      "type": "GUIDELINE"
+    },
+    {
+      "criticality": "medium",
+      "id": "G101",
+      "status": "active",
+      "title": "Auto-discovered G101",
+      "type": "GUIDELINE"
+    },
+    {
+      "criticality": "medium",
+      "id": "G150",
+      "status": "active",
+      "title": "Auto-discovered G150",
+      "type": "GUIDELINE"
+    }
+  ],
+  "version": "3.0"
+}

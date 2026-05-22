@@ -1,0 +1,107 @@
+site_name: SDD Harness
+site_description: Executable governance platform for AI agents — compile, validate and audit architecture compliance at runtime
+site_author: Sergio Lacerda
+site_url: https://sergiolacerda.github.io/sdd-harness/
+site_dir: build/site
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+
+nav:
+  - Welcome: README.md
+  - Runtime:
+    - Agent Entrypoint: runtime/AGENT_ENTRYPOINT.md
+    - Agent Runtime Protocol: runtime/AGENT_RUNTIME_PROTOCOL.md
+  - Architecture:
+    - Clean Architecture: spec/canonical/features/CLEAN_ARCHITECTURE.md
+    - TDD: spec/canonical/features/TDD.md
+    - Diagrams:
+      - Overview: architecture/README.md
+      - C4 Context (L1): architecture/c4-context.md
+      - C4 Containers (L2): architecture/c4-containers.md
+      - C4 Components — Runtime (L3): architecture/c4-components-runtime.md
+  - Governance:
+    - Mandatory Human Review: spec/canonical/core/policies/P003_MANDATORY_HUMAN_REVIEW.md
+    - Honest Critique: spec/canonical/core/policies/P002_HONEST_CRITIQUE.md
+    - SLIs and SLOs: superpowers/plans/observability.md
+  - Reference:
+    - CLI Commands: spec/reference/commands/cli.md
+    - Context Template: spec/reference/templates/AI_CONTEXT_AWARE_TEMPLATE.md
+    - Context Standards: spec/reference/templates/CONTEXT_MANAGEMENT_STANDARDS.md
+    - Security Policy: spec/reference/SECURITY.md
+  - Guides:
+    - Client Onboarding: guides/CLIENT_ONBOARDING.md
+    - Technical Guide: guides/TECHNICAL_GUIDE.md
+    - Runtime API Integration: guides/RUNTIME_API_INTEGRATION.md
+    - Agent Entry Point: guides/AGENT_GUIDE.md
+    - Commit Protocol (P003): spec/guides/commit-protocol.md
+    - Golden Files: spec/guides/golden-files.md
+    - FAQ: guides/FAQ.md
+    - .sdd/ Folder Reference: guides/SDD_FOLDER_REFERENCE.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+validation:
+  omitted_files: ignore
+
+exclude_docs: |
+  QUICKSTART_AGENT.md
+  spec/canonical/INDEX.md
+  cognition/**
+  indices/**
+  spec/canonical/concepts/**
+  spec/canonical/core/cognition/**
+  spec/canonical/core/generated/**
+  spec/canonical/core/guardrails/**
+  spec/canonical/core/mandates/**
+  spec/canonical/core/policies/P001_PROJECT_BOUNDARY.md
+  spec/canonical/core/rules/**
+  spec/canonical/SEMANTIC_MAP.md
+  spec/canonical/specifications/**
+  spec/decisions/**
+  spec/guides/adoption/**
+  spec/guides/integration/**
+  spec/guides/navigation/**
+  spec/guides/onboarding/**
+  spec/guides/operational/**

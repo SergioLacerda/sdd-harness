@@ -1,0 +1,41 @@
+name: sdd-compress-context
+version: 1.0.0
+category: economy
+description: Reduce context footprint while preserving governance context.
+when_to_use:
+- high token usage
+- long sessions
+outcomes:
+- policy_result
+- next_actions
+allowed_tools:
+- sdd runtime status
+cli_fallback:
+- sdd runtime status
+required_permissions:
+- workspace-read
+execution_path: PATH_A
+status: active
+deprecated_after: null
+sunset_after: null
+risk_score: low
+tags:
+- token-economy
+- context
+budget_policy:
+  token_budget: low
+  timeout_seconds: 60
+  max_retries: 1
+escalation_policy:
+  mode: warn
+  require_human_on:
+  - critical_violation
+  - repeat_failure
+telemetry_policy:
+  emit_runtime_event: true
+  otel_required_if_enabled: true
+validation_policy:
+  require_preflight: true
+  require_postcheck: true
+schema_version: 1.0.0
+deprecation_due: false

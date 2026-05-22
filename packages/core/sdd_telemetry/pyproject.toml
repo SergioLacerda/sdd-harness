@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdd-telemetry"
+version = "1.0.0"
+description = "High-performance telemetry and metrics engine for SDD Architecture"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Sergio Lacerda", email = "sergio.lacerda.vieira@gmail.com"},
+]
+
+dependencies = [
+    "msgpack>=1.0",
+]
+
+[project.urls]
+Repository = "https://github.com/SergioLacerda/sdd-harness"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+sdd_telemetry = ["py.typed"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

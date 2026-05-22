@@ -1,0 +1,402 @@
+name: Reusable Tests
+
+on:
+  workflow_call:
+
+jobs:
+  artifact-gate:
+    name: Artifact Gate
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+        with:
+          version: "latest"
+
+      - name: Bootstrap SDD CLI
+        uses: ./.github/actions/bootstrap-sdd-cli
+
+      - name: Environment boundary preflight (tests)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+
+      - name: Validate governance contract golden
+        shell: bash
+        run: |
+          uv run pytest -q \
+            tests/contract/test_governance_schema.py::TestGovernanceCoreGoldenFile::test_structure_matches_golden
+
+      - name: Repository .sdd mutation guard
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+
+      - name: Runtime/seed drift check
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+
+  cli-gate:
+    name: CLI Gate (${{ matrix.os }} / Py ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    continue-on-error: ${{ matrix.required == false }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.11"
+            required: true
+          - os: windows-latest
+            python-version: "3.11"
+            required: true
+          - os: ubuntu-latest
+            python-version: "3.12"
+            required: true
+          - os: windows-latest
+            python-version: "3.12"
+            required: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+        with:
+          version: "latest"
+
+      - name: Bootstrap SDD CLI
+        uses: ./.github/actions/bootstrap-sdd-cli
+
+      - name: Environment boundary preflight (tests)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+
+      - name: Report non-blocking channel
+        if: matrix.required == false
+        shell: bash
+        run: |
+          echo "Running desired/non-blocking compatibility lane for Python ${{ matrix.python-version }} on ${{ matrix.os }}."
+
+      - name: Run CLI cross-platform regression tests
+        shell: bash
+        run: |
+          uv run pytest -q \
+            packages/interfaces/sdd_cli/tests/test_governance_output_snapshots.py \
+            packages/core/sdd_core/tests/execution/test_guardrail_code_review.py
+
+      - name: Repository .sdd mutation guard
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+
+      - name: Runtime/seed drift check
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+
+  skills-commands-gate:
+    name: Skills/Commands Gate
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+
+      - name: Bootstrap SDD CLI
+        uses: ./.github/actions/bootstrap-sdd-cli
+
+      - name: Environment boundary preflight (tests)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+
+      - name: Validate prompt and CI command policy
+        shell: bash
+        run: |
+          uv run python tools/ci/check_codex_sdd_ask.py
+          uv run python tools/ci/check_no_sdd_ci_commands.py
+          uv run python tools/ci/check_no_legacy_ai_paths.py
+
+      - name: Enforce global print policy (T201)
+        shell: bash
+        run: |
+          uv run ruff check packages tools tests --select T201
+
+      - name: Enforce text I/O encoding policy (blocking)
+        shell: bash
+        run: |
+          uv run python tools/ci/check_text_io_encoding.py
+
+      - name: Analyze text I/O migration baseline (non-blocking)
+        shell: bash
+        run: |
+          uv run python tools/ci/check_text_io_helpers_critical.py || true
+          uv run python tools/ci/check_text_io_centralization.py || true
+          uv run python tools/ci/check_encoding_edge_marker_policy.py || true
+
+      - name: Validate skills/commands contracts
+        shell: bash
+        run: |
+          uv run pytest -q \
+            packages/interfaces/sdd_cli/tests/test_skills_command.py \
+            packages/interfaces/sdd_cli/tests/test_skills_sync_contract.py \
+            packages/interfaces/sdd_cli/tests/test_skills_layering.py
+
+      - name: Build sdd_cli reliability digest (warnings/skips)
+        shell: bash
+        run: |
+          mkdir -p .artifacts
+          uv run pytest -q packages/interfaces/sdd_cli/tests -ra 2>&1 | tee .artifacts/sdd_cli_pytest.log
+          uv run python tools/ci/sdd_cli_reliability_digest.py \
+            --log .artifacts/sdd_cli_pytest.log \
+            --json-out .artifacts/sdd_cli_reliability_digest.json \
+            --md-out .artifacts/sdd_cli_reliability_digest.md \
+            --max-warnings 0
+
+      - name: Upload sdd_cli reliability digest artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: sdd-cli-reliability-digest
+          path: |
+            .artifacts/sdd_cli_reliability_digest.json
+            .artifacts/sdd_cli_reliability_digest.md
+            .artifacts/sdd_cli_pytest.log
+
+      - name: Repository .sdd mutation guard
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+
+      - name: Runtime/seed drift check
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+
+      - name: Enforce registry reconciliation (drift check)
+        shell: bash
+        run: |
+          uv run python -m sdd_cli governance reconcile-registries --check
+
+  seeds-gate:
+    name: Seeds Gate (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+
+      - name: Bootstrap SDD CLI
+        uses: ./.github/actions/bootstrap-sdd-cli
+
+      - name: Environment boundary preflight (tests)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+
+      - name: Run seed generation regressions
+        shell: bash
+        run: |
+          uv run pytest -q \
+            packages/interfaces/sdd_wizard/tests/test_seedlings_generators.py \
+            tests/integration/wizard/test_seedlings_e2e.py
+
+      - name: Repository .sdd mutation guard
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+
+      - name: Runtime/seed drift check
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+
+  coverage-strict:
+    name: Coverage Gates (core ≥ 90%, features/interfaces ≥ 70%)
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+        with:
+          version: "latest"
+
+      - name: Bootstrap SDD CLI
+        uses: ./.github/actions/bootstrap-sdd-cli
+
+      - name: Environment boundary preflight (tests)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+
+      - name: Run strict per-layer coverage gates
+        shell: bash
+        run: make coverage-strict
+
+      - name: Repository .sdd mutation guard
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+
+      - name: Runtime/seed drift check
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+
+  runtime-dev-smoke:
+    name: Runtime/Dev Smoke
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+        with:
+          version: "latest"
+
+      - name: Bootstrap SDD CLI
+        uses: ./.github/actions/bootstrap-sdd-cli
+
+      - name: Environment boundary preflight (tests)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+
+      - name: Validate runtime health
+        shell: bash
+        run: |
+          uv run python -m sdd_cli runtime status --force
+
+      - name: Validate governance integrity
+        shell: bash
+        run: |
+          uv run python -m sdd_cli governance validate --skip-handshake
+
+      - name: Repository .sdd mutation guard
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+
+      - name: Runtime/seed drift check
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+
+  container-integrity:
+    name: Sovereign Container Integrity
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+        with:
+          version: "latest"
+      - name: Sync Docker ignore rules
+        run: cp infrastructure/docker/.dockerignore .dockerignore
+
+      - name: Build Sovereign Container
+        run: |
+          docker build -t sdd-harness:latest -f infrastructure/docker/Dockerfile .
+
+      - name: Verify Safety-Mode Boot (No Keyring)
+        run: |
+          # Container must boot in safety mode and exit gracefully
+          docker run --rm sdd-harness:latest | grep "SAFETY-MODE ACTIVE"
+
+      - name: Environment boundary preflight (tests)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
+
+      - name: Run Hermetic Health Suite
+        run: |
+          # Run full health suite inside the container
+          docker run --rm sdd-harness:latest make check
+
+      - name: Repository .sdd mutation guard
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+
+      - name: Runtime/seed drift check
+        if: always()
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn

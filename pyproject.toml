@@ -1,0 +1,324 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sdd-harness"
+dynamic = ["version"]
+description = "SDD Harness — Executable governance platform for AI agents"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Sergio Lacerda", email = "sergio.lacerda.vieira@gmail.com"},
+]
+dependencies = [
+    "structlog>=25.5.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "pytest-timeout>=2.4.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-asyncio>=0.23.0",
+    "msgpack>=1.0.0",
+    "PyYAML>=6.0.0",
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "hypothesis>=6.0.0",
+    "httpx>=0.27.0",
+]
+lint = [
+    "ruff>=0.3.0",
+]
+typing = [
+    "mypy>=1.9.0",
+    "types-PyYAML>=6.0",
+]
+dev = [
+    "hatchling>=1.21.0",
+    "hatch-vcs>=0.4.0",
+]
+
+[project.urls]
+Repository = "https://github.com/SergioLacerda/sdd-harness"
+
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "v(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)"
+fallback-version = "0.0.0+unknown"
+
+[tool.hatch.build.targets.wheel]
+# Root is not publishable (package = false); prevents hatchling from discovering packages.
+bypass-selection = true
+
+[tool.uv]
+# Workspace root — not a publishable package, only orchestrates the workspace.
+managed = true
+package = false
+constraint-dependencies = [
+    "idna>=3.15",  # CVE-2026-45409: DoS via arbitrarily large inputs in idna.encode()
+]
+
+[tool.uv.workspace]
+members = [
+    "packages/core/sdd_core",
+    "packages/core/sdd_compiler",
+    "packages/core/sdd_telemetry",
+    "packages/core/sdd_runtime",
+    "packages/features/sdd_integration",
+    "packages/features/sdd_adapters",
+    "packages/features/sdd_skills",
+    "packages/interfaces/sdd_wizard",
+    "packages/interfaces/sdd_cli",
+]
+
+[tool.uv.sources]
+sdd-core        = { workspace = true }
+sdd-compiler    = { workspace = true }
+sdd-telemetry   = { workspace = true }
+sdd-runtime     = { workspace = true }
+sdd-integration = { workspace = true }
+sdd-adapters    = { workspace = true }
+sdd-skills      = { workspace = true }
+sdd-wizard      = { workspace = true }
+sdd-cli         = { workspace = true }
+
+# Ranges are intentional — exact versions are pinned in uv.lock.
+# To update a tool: edit the range, run `uv lock`, commit both files.
+[dependency-groups]
+lint = [
+    "ruff>=0.3.0",
+    # black removed: ruff format is the canonical formatter (ruff 0.1+).
+]
+test = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "pytest-timeout>=2.4.0",
+    "pytest-xdist>=3.5.0",
+    "msgpack>=1.0.0",
+    "PyYAML>=6.0.0",
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+]
+typing = [
+    "mypy>=1.9.0",
+    "types-PyYAML>=6.0",
+]
+security = [
+    "bandit>=1.7.0",
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "pymdown-extensions>=10.21.3",  # CVE-2026-46338: path traversal via sibling prefix
+]
+dev = [
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "typing" },
+    { include-group = "security" },
+    "hatchling>=1.21.0",
+    "hatch-vcs>=0.4.0",
+    "tomli>=2.0.0; python_version < '3.11'",
+]
+
+# Type checking policy: mypy is the canonical and only type-checking gate (strict mode).
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = false
+exclude = ["^generated/", "^site/", "^tests/", "^packages/.*/tests/", "^packages/features/sdd_wizard/tests/conftest\\.py", "build/", "dist/"]
+cache_dir = "build/.mypy_cache"
+
+[[tool.mypy.overrides]]
+module = ["msgpack"]
+ignore_missing_imports = true
+disable_error_code = ["import-untyped"]
+
+[[tool.mypy.overrides]]
+module = ["tomllib"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pytest_xdist"]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+exclude = ["generated/", "build/"]
+cache-dir = "build/.ruff_cache"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "W", "C90", "UP", "PT", "SIM", "D1", "T201"]
+# E501 is superseded by ruff format's line-length enforcement for code.
+# Comments, docstrings, and template strings cannot be auto-wrapped — ruff format is the line-length gate.
+# D105: magic method docstrings are conventionally omitted.
+# D107: __init__ docstrings belong on the class, not the method.
+ignore = ["B008", "E501", "D105", "D107"]
+
+[tool.ruff.lint.per-file-ignores]
+"*/tests/*" = ["D1", "T201"]
+"*/test_*.py" = ["D1", "T201"]
+"**/tests/**" = ["D1", "T201"]
+"tests/**" = ["D1", "T201"]
+"tools/**" = ["D1", "T201"]
+"packages/interfaces/sdd_wizard/src/**" = ["T201"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "sdd_core",
+    "sdd_compiler",
+    "sdd_telemetry",
+    "sdd_integration",
+    "sdd_adapters",
+    "sdd_skills",
+    "sdd_wizard",
+    "sdd_cli",
+]
+
+[tool.ruff.format]
+# Canonical formatter: replaces black. Defaults match black's style.
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+    "packages"
+]
+norecursedirs = [
+    "templates",
+    "generated",
+    "*.egg",
+    ".*",
+    "build",
+    "dist",
+]
+cache_dir = "build/.pytest_cache"
+
+# python_files: intentionally excludes *_test.py convention — all tests use test_* prefix.
+python_files = ["test_*.py"]
+
+addopts = """
+--strict-markers
+--strict-config
+--tb=short
+-q
+--import-mode=importlib
+--timeout=30
+--timeout-method=thread
+"""
+
+filterwarnings = [
+    "ignore:cannot collect 'test_app' because it is not a function:pytest.PytestCollectionWarning",
+]
+
+asyncio_mode = "auto"
+
+markers = [
+    "unit: isolated fast tests",
+    "integration: cross-package tests",
+    "contract: architectural compliance tests",
+    "e2e: full-system tests",
+    "slow: expensive execution",
+    "governance: governance validation tests",
+    "encoding_edge: tests that intentionally exercise malformed text bytes via permissive decode helper",
+]
+
+pythonpath = [
+    ".",
+    "packages/core/sdd_core/src",
+    "packages/core/sdd_compiler/src",
+    "packages/core/sdd_runtime/src",
+    "packages/core/sdd_telemetry/src",
+    "packages/features/sdd_integration/src",
+    "packages/features/sdd_adapters/src",
+    "packages/features/sdd_skills/src",
+    "packages/interfaces/sdd_wizard/src",
+    "packages/interfaces/sdd_cli/src"
+]
+
+[tool.coverage.run]
+# source is set via --cov=packages on the CLI; omit controls what is excluded.
+omit = [
+    "*/tests/*",       # test files in packages/ are not production code
+    "*/templates/*",   # scaffolding templates are not executed source
+    "*/__main__.py",   # entry-point boilerplate
+]
+data_file = "build/.coverage"
+# branch = true  # enable once branch gaps are resolved (~79% today vs 90% line)
+
+[tool.coverage.html]
+directory = "build/coverage/html"
+
+[tool.coverage.report]
+# Single source of truth for the coverage gate.
+# Remove --cov-fail-under from CLI flags — this is read automatically by pytest-cov.
+# Baseline: 80.62% (source-only, tests and templates omitted). Target: push toward 85%.
+fail_under = 80
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@(abc\\.)?abstractmethod",
+    "\\.\\.\\.",        # abstract body stubs
+]
+
+[tool.sdd.governance]
+# source_root is a sub-path of [tool.sdd.paths].spec_root ("docs/spec").
+# If spec_root changes, update source_root accordingly.
+source_root = "docs/spec/canonical/core/policies"
+compiled_output = "generated/master/compiled"
+
+[tool.sdd.codegen]
+# generated_paths mirrors [tool.sdd.paths].generated_root for tool-exclusion contexts (ruff, mypy).
+generated_paths = ["generated/", "build/"]
+immutable_generated = true
+
+[tool.sdd.runtime]
+context_root = ".sdd"
+cache_file = ".sdd/runtime/.sdd-cache.md"
+token_budget_ceiling = 100000
+context_compression_threshold = 70
+context_compression_target = 50
+# "test" → generated/tmp/build/final-template  (sandbox — default)
+# "production" → generated/client/build/final-template  (wizard output)
+runtime_env = "test"
+
+[tool.sdd.paths]
+spec_root = "docs/spec"
+generated_root = "generated"
+
+[tool.sdd.enforcement]
+mode = "guided"
+fingerprint = true
+
+[tool.sdd.architecture.layers]
+core = ["packages/core"]
+features = ["packages/features"]
+interfaces = ["packages/interfaces"]
+
+[tool.sdd.architecture.rules]
+interfaces_cannot_import_features = true
+features_cannot_import_interfaces = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "generated", ".venv", "build", "dist"]
+skips = ["B101", "B607"]

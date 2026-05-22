@@ -1,0 +1,187 @@
+name: Container Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish image to GHCR and sign artifacts"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+concurrency:
+  group: container-release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+  id-token: write
+  attestations: write
+
+env:
+  REGISTRY: ghcr.io
+  SDD_ENFORCE_PIPELINE_CORRECT: "1"
+
+jobs:
+  build-scan-sign-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      image_ref: ${{ steps.meta.outputs.image_ref }}
+      image_digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+
+      - name: Preflight GHCR connectivity
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'true' }}
+        run: |
+          set -euo pipefail
+          status_code="$(curl --silent --show-error --location \
+            --retry 5 --retry-all-errors --retry-delay 3 \
+            --output /dev/null --write-out "%{http_code}" \
+            "https://${REGISTRY}/v2/")"
+          if [[ "${status_code}" != "200" && "${status_code}" != "401" ]]; then
+            echo "Unexpected GHCR preflight status: ${status_code}"
+            exit 1
+          fi
+
+      - name: Login to GHCR (retry)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'true' }}
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if echo "${GHCR_TOKEN}" | docker login "${REGISTRY}" -u "${GHCR_USER}" --password-stdin; then
+              echo "GHCR login succeeded on attempt ${attempt}"
+              exit 0
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep_seconds=$((attempt * 10))
+              echo "GHCR login failed on attempt ${attempt}; retrying in ${sleep_seconds}s..."
+              sleep "${sleep_seconds}"
+            fi
+          done
+          echo "GHCR login failed after 3 attempts"
+          exit 1
+
+      - name: Resolve image metadata
+        id: meta
+        run: |
+          IMAGE_NAME_LOWER="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+          IMAGE_REF="${REGISTRY}/${IMAGE_NAME_LOWER}"
+          SHA_TAG="sha-${GITHUB_SHA}"
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION_TAG="${GITHUB_REF#refs/tags/}"
+            echo "tags=${IMAGE_REF}:${SHA_TAG},${IMAGE_REF}:${VERSION_TAG}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=${IMAGE_REF}:${SHA_TAG}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "image_ref=${IMAGE_REF}" >> "$GITHUB_OUTPUT"
+
+      - name: Sync Docker ignore rules
+        run: cp infrastructure/docker/.dockerignore .dockerignore
+
+      - name: Build image (local load for scan)
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          file: ./infrastructure/docker/Dockerfile
+          load: true
+          tags: local/sdd-release:scan
+
+      - name: Trivy scan (blocking)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: local/sdd-release:scan
+          format: table
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+
+      - name: Build and push image
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'true' }}
+        id: push
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          file: ./infrastructure/docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          provenance: true
+          sbom: true
+
+      - name: Install cosign
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'true' }}
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign image digest
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'true' }}
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+          SIGN_IMAGE_REF: ${{ steps.meta.outputs.image_ref }}
+          SIGN_IMAGE_DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          cosign sign --yes "$SIGN_IMAGE_REF@$SIGN_IMAGE_DIGEST"
+
+      - name: Generate SBOM artifact
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'true' }}
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          image: ${{ steps.meta.outputs.image_ref }}@${{ steps.push.outputs.digest }}
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM artifact
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom.spdx.json
+          path: sbom.spdx.json
+
+      - name: Attest build provenance
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'true' }}
+        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
+        with:
+          subject-name: ${{ steps.meta.outputs.image_ref }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+      - name: Release summary
+        env:
+          IMAGE_REF: ${{ steps.meta.outputs.image_ref }}
+          IMAGE_DIGEST: ${{ steps.push.outputs.digest }}
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PUBLISH: ${{ inputs.publish }}
+        run: |
+          {
+            echo "## Container Release";
+            echo "- image_ref: \`$IMAGE_REF\`";
+            if [[ "$EVENT_NAME" == "workflow_dispatch" && "$INPUT_PUBLISH" == "true" ]]; then
+              echo "- image_digest: \`$IMAGE_DIGEST\`";
+            else
+              echo "- image_digest: \`n/a (test-only mode)\`";
+            fi
+            echo "- tags: \`$IMAGE_TAGS\`";
+            if [[ "$EVENT_NAME" == "workflow_dispatch" && "$INPUT_PUBLISH" == "true" ]]; then
+              echo "- mode: \`publish\`";
+            else
+              echo "- mode: \`test-only\`";
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

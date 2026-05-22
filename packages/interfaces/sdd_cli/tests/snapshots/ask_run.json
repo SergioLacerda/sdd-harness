@@ -1,0 +1,54 @@
+{
+  "command": "ask",
+  "data": {
+    "ask_decision_envelope": {
+      "allowed_paths": [],
+      "allowed_tools": [
+        "sdd ask",
+        "sdd skills run sdd-diagnose",
+        "sdd skills run sdd-correct"
+      ],
+      "envelope_scope_mode": "inferred",
+      "expires_at": "__EXPIRES_AT__",
+      "forbidden_paths": [],
+      "goal": "status?",
+      "issued_at": "__ISSUED_AT__",
+      "min_diagnosis_confidence": 0.8,
+      "requires_diagnosis": true,
+      "rollback_hint": "manual_rollback",
+      "task_id": "__TASK_ID__",
+      "task_type": "analysis",
+      "validation_set": [
+        "sdd governance validate",
+        "sdd runtime status --force"
+      ]
+    },
+    "context_source": "compiled",
+    "degraded": false,
+    "degraded_reason": "",
+    "drift_detected": false,
+    "exit_code": 0,
+    "fingerprint": "fp-1",
+    "governance_footer": "SDD GOVERNANCE: drift=none | governance=ok | profile=master",
+    "intake_artifact": "n/a",
+    "intake_chunks": 0,
+    "intake_index_mode": "none",
+    "intake_retrieval": "indexed_only",
+    "learning_context": {
+      "observed_events": 0,
+      "recommendation_policy_version": "ask-learning-v1",
+      "window_days": 7
+    },
+    "mandates_loaded": 1,
+    "non_actionable": false,
+    "policy_result": "governance_context_loaded",
+    "profile": "master",
+    "query_hash": "88d34acb",
+    "reason": "governance context loaded",
+    "state": "ok",
+    "trust_source": "verified"
+  },
+  "error": null,
+  "ok": true,
+  "status": "ok"
+}

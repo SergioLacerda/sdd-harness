@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdd-skills"
+version = "1.0.0"
+description = "Public contracts and validation for SDD skill execution"
+requires-python = ">=3.10"
+license = {text = "Proprietary"}
+authors = [
+    {name = "Sergio Lacerda", email = "sergio.lacerda.vieira@gmail.com"},
+]
+
+dependencies = [
+    "sdd-core",
+]
+
+[project.urls]
+Repository = "https://github.com/SergioLacerda/sdd-harness"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+sdd_skills = ["py.typed"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,11 @@
+id: "sdd-validate-governance"
+slash: "/sdd-validate-governance"
+routes_to:
+  type: skill
+  id: sdd-validate-governance
+args: []
+adapter_targets:
+  - claude
+  - codex
+  - copilot
+  - antigravity

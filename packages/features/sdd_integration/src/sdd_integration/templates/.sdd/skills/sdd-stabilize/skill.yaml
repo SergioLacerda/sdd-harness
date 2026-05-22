@@ -1,0 +1,43 @@
+name: sdd-stabilize
+version: 1.0.0
+category: operations
+description: Run stabilization checks before handoff.
+when_to_use:
+- before release
+- before merge
+outcomes:
+- policy_result
+- next_actions
+allowed_tools:
+- sdd lint run
+- sdd test ci-validate
+cli_fallback:
+- sdd lint run
+- sdd test ci-validate
+required_permissions:
+- workspace-read
+execution_path: PATH_A
+status: active
+deprecated_after: null
+sunset_after: null
+risk_score: medium
+tags:
+- stability
+- quality-gate
+budget_policy:
+  token_budget: medium
+  timeout_seconds: 120
+  max_retries: 1
+escalation_policy:
+  mode: warn
+  require_human_on:
+  - critical_violation
+  - repeat_failure
+telemetry_policy:
+  emit_runtime_event: true
+  otel_required_if_enabled: true
+validation_policy:
+  require_preflight: true
+  require_postcheck: true
+schema_version: 1.0.0
+deprecation_due: false

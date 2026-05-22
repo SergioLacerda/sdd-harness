@@ -1,0 +1,241 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write  # required for SBOM attestation
+
+jobs:
+  validate:
+    name: Validate Release Tag
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Validate semver tag format
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "ERROR: Tag '$TAG' does not match semver format vX.Y.Z"
+            exit 1
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if uv sync --all-groups \
+              && uv pip install -e packages/core/sdd_core \
+              && uv pip install -e packages/core/sdd_telemetry \
+              && uv pip install -e packages/core/sdd_compiler \
+              && uv pip install -e packages/features/sdd_integration \
+              && uv pip install -e packages/interfaces/sdd_wizard \
+              && uv pip install -e packages/interfaces/sdd_cli; then
+              exit 0
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep $((attempt * 15))
+            fi
+          done
+          exit 1
+
+      - name: Run tests
+        shell: bash
+        run: uv run pytest tests/unit tests/integration -q --tb=short
+
+      - name: Verify version matches tag
+        shell: bash
+        run: |
+          # Generate _version.py from the current git tag via setuptools_scm
+          uv run python -m setuptools_scm
+          PKG_VERSION=$(uv run python -c "from _version import __version__; print(__version__)")
+          echo "Package version: $PKG_VERSION"
+          echo "Tag version:     $VERSION"
+          if [ "$PKG_VERSION" != "$VERSION" ]; then
+            echo "ERROR: _version.py ($PKG_VERSION) does not match tag ($VERSION)"
+            exit 1
+          fi
+
+  build:
+    name: Build Distribution
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if pip install uv build; then
+              exit 0
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          exit 1
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Sync sub-package versions to tag
+        shell: bash
+        run: python tools/release/sync_versions.py "${{ steps.version.outputs.version }}"
+
+      - name: Verify all package versions match tag
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Verifying all package versions = $VERSION"
+
+          for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
+            if [ -f "$pkg_dir/pyproject.toml" ]; then
+              PKG_VER=$(grep -E '^version\s*=' "$pkg_dir/pyproject.toml" | head -1 | sed 's/version\s*=\s*"\(.*\)"/\1/')
+              if [ "$PKG_VER" != "$VERSION" ]; then
+                echo "❌ ERROR: $pkg_dir version $PKG_VER != $VERSION"
+                exit 1
+              else
+                echo "✓ $pkg_dir → $VERSION"
+              fi
+            fi
+          done
+          echo "✓ All package versions verified"
+
+      - name: Build packages
+        shell: bash
+        run: |
+          for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
+            if [ -f "$pkg_dir/pyproject.toml" ]; then
+              echo "Building $pkg_dir"
+              python -m build "$pkg_dir" --outdir dist/
+            fi
+          done
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: dist
+          path: dist/
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Extract changelog entry
+        id: changelog
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          # Extract section between this version header and the next
+          NOTES=$(awk "/^## \[$VERSION\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
+          if [ -z "$NOTES" ]; then
+            echo "ERROR: missing changelog section for version $VERSION in CHANGELOG.md"
+            exit 1
+          fi
+          # Write to file to avoid quoting issues
+          echo "$NOTES" > release_notes.txt
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: dist/
+          artifact-name: sbom.spdx.json
+          output-file: sbom.spdx.json
+          format: spdx-json
+
+      - name: Sign artifacts with cosign
+        uses: sigstore/gh-action-release-sign@4c6f2d1f9d8a5c7e2b9a3f4e5d6c7b8a9f0e1d2c
+        with:
+          artifact-path: dist/
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-signing-secret: ${{ secrets.SIGSTORE_SIGNING_SECRET }}
+        continue-on-error: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        with:
+          draft: false
+          body_path: release_notes.txt
+          files: |
+            dist/*
+            sbom.spdx.json
+          tag_name: ${{ github.ref_name }}
+
+  provenance:
+    name: Generate SLSA Provenance
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Generate build provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32  # v4
+        with:
+          subject-path: dist/

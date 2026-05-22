@@ -1,0 +1,11 @@
+id: "sdd-correct"
+slash: "/sdd-correct"
+routes_to:
+  type: skill
+  id: sdd-correct
+args: []
+adapter_targets:
+  - claude
+  - codex
+  - copilot
+  - antigravity

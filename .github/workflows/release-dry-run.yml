@@ -1,0 +1,119 @@
+name: Release Dry Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "SemVer tag to validate (example: v1.2.3)"
+        required: true
+        type: string
+
+concurrency:
+  group: release-dry-run-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    name: Validate & Build Dry Run
+    runs-on: ubuntu-latest
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Validate semver tag format
+        shell: bash
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "ERROR: Tag '$TAG' does not match semver format vX.Y.Z"
+            exit 1
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+
+      - name: Validate changelog entry exists
+        shell: bash
+        run: |
+          NOTES=$(awk "/^## \[$VERSION\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
+          if [ -z "$NOTES" ]; then
+            echo "ERROR: missing changelog section for version $VERSION in CHANGELOG.md"
+            exit 1
+          fi
+          echo "Changelog section found for $VERSION"
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if uv sync --all-groups \
+              && uv pip install -e packages/core/sdd_core \
+              && uv pip install -e packages/core/sdd_telemetry \
+              && uv pip install -e packages/core/sdd_compiler \
+              && uv pip install -e packages/features/sdd_integration \
+              && uv pip install -e packages/interfaces/sdd_wizard \
+              && uv pip install -e packages/interfaces/sdd_cli; then
+              exit 0
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep $((attempt * 15))
+            fi
+          done
+          exit 1
+
+      - name: Run release-critical tests
+        shell: bash
+        run: uv run pytest tests/unit tests/integration -q --tb=short
+
+      - name: Install build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if pip install build; then
+              exit 0
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          exit 1
+
+      - name: Sync sub-package versions (dry run)
+        shell: bash
+        run: python tools/release/sync_versions.py "$VERSION"
+
+      - name: Build packages (dry run)
+        shell: bash
+        run: |
+          mkdir -p dist
+          for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
+            if [ -f "$pkg_dir/pyproject.toml" ]; then
+              echo "Building $pkg_dir"
+              python -m build "$pkg_dir" --outdir dist/
+            fi
+          done
+
+      - name: Upload dry-run artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: release-dry-run-dist
+          path: dist/

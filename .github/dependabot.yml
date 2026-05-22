@@ -1,0 +1,66 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "SergioLacerda"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore(deps):"
+      prefix-development: "chore(deps-dev):"
+      include: "scope"
+    groups:
+      production-minor-patch:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+        exclude-patterns: ["setuptools", "pip"]
+      production-major:
+        dependency-type: "production"
+        update-types: ["major"]
+      dev-dependencies:
+        dependency-type: "development"
+
+  # Docker base image
+  - package-ecosystem: "docker"
+    directory: "/infrastructure/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    reviewers:
+      - "SergioLacerda"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "ci(docker):"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "SergioLacerda"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci:"
+      include: "scope"
+    groups:
+      actions-patch-minor:
+        update-types: ["minor", "patch"]
+      actions-major:
+        update-types: ["major"]

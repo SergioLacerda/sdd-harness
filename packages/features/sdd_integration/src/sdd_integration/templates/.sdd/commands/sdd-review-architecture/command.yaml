@@ -1,0 +1,11 @@
+id: "sdd-review-architecture"
+slash: "/sdd-review-architecture"
+routes_to:
+  type: skill
+  id: sdd-review-architecture
+args: []
+adapter_targets:
+  - claude
+  - codex
+  - copilot
+  - antigravity

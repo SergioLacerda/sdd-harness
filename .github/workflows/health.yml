@@ -1,0 +1,111 @@
+name: Health Orchestrator
+
+on:
+  push:
+    branches: [main, dev, develop]
+    paths-ignore:
+      - "site/**"
+      - "docs/**"
+  pull_request:
+    branches: [main, dev, develop]
+
+concurrency:
+  group: health-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  branch-policy:
+    name: Branch Promotion Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce DEV -> MAIN promotion rule
+        shell: bash
+        env:
+          GH_EVENT_NAME: ${{ github.event_name }}
+          GH_BASE_REF: ${{ github.base_ref }}
+          GH_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "${GH_EVENT_NAME}" != "pull_request" ]; then
+            echo "Non-PR event: skipping strict promotion source check."
+            exit 0
+          fi
+
+          base_branch="${GH_BASE_REF}"
+          head_branch="${GH_HEAD_REF}"
+
+          if [ "${base_branch}" = "main" ] && [ "${head_branch}" != "dev" ]; then
+            echo "ERROR: Promotion to 'main' must come from 'dev'."
+            echo "Received: ${head_branch} -> ${base_branch}"
+            exit 1
+          fi
+
+          echo "Branch promotion policy passed (${head_branch} -> ${base_branch})."
+
+  environment-preflight:
+    name: Environment Boundary Preflight
+    needs: [branch-policy]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+      - name: Run environment boundary gates (health)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py env-boundary-lint --context health --mode warn
+          uv run python tools/ci/environment_gates.py workspace-root-resolution-check --mode warn
+
+  lint:
+    needs: [branch-policy, environment-preflight]
+    uses: ./.github/workflows/reusable-lint.yml
+
+  security:
+    needs: [lint]
+    uses: ./.github/workflows/reusable-security.yml
+
+  tests:
+    needs: [lint]
+    uses: ./.github/workflows/reusable-test.yml
+
+  governance:
+    needs: [tests, security]
+    uses: ./.github/workflows/reusable-governance.yml
+
+  scorecard:
+    name: Artifact Quality Scorecard
+    needs: [branch-policy, lint, security, tests, governance]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Generate Summary
+        shell: bash
+        run: |
+          echo "## 🛡️ Sovereign Factory: Quality Scorecard" >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "| Dimension | Status | Notes |"
+          echo "|---|---|---|"
+          echo "| **Branch Policy** | ${{ needs.branch-policy.result == 'success' && '✅ PASS' || '❌ FAIL' }} | only DEV -> MAIN promotion |"
+          echo "| **Linting** | ${{ needs.lint.result == 'success' && '✅ PASS' || '❌ FAIL' }} | ruff, hadolint |"
+          echo "| **Security** | ${{ needs.security.result == 'success' && '✅ PASS' || '❌ FAIL' }} | bandit, trivy |"
+          echo "| **Artifact Gate** | ${{ needs.tests.result == 'success' && '✅ PASS' || '❌ FAIL' }} | contract/golden consistency |"
+          echo "| **CLI Gate** | ${{ needs.tests.result == 'success' && '✅ PASS' || '❌ FAIL' }} | windows/linux + encoding/snapshots |"
+          echo "| **Skills/Commands Gate** | ${{ needs.tests.result == 'success' && '✅ PASS' || '❌ FAIL' }} | registry/prompt/policy enforcement |"
+          echo "| **Seeds Gate** | ${{ needs.tests.result == 'success' && '✅ PASS' || '❌ FAIL' }} | generation/idempotency/fingerprint |"
+          echo "| **Governance Compliance** | ${{ needs.governance.result == 'success' && '✅ PASS' || '❌ FAIL' }} | P003 (Ed25519), compile, audit |"
+          echo ""
+          if [ "${{ needs.governance.result }}" == "success" ]; then
+            echo "> [!TIP]" >> $GITHUB_STEP_SUMMARY
+            echo "> Artifact is compliant and ready for Sovereign Factory assembly." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "> [!CAUTION]" >> $GITHUB_STEP_SUMMARY
+            echo "> Governance breach detected. Artifact integrity cannot be guaranteed." >> $GITHUB_STEP_SUMMARY
+          fi

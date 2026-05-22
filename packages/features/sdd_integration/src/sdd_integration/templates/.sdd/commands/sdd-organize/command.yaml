@@ -1,0 +1,18 @@
+id: "sdd-organize"
+slash: "/sdd-organize"
+description: "Index and prepare large context blocks for efficient retrieval before analysis."
+routes_to:
+  type: cli
+  command: "sdd organize"
+args:
+  - name: query
+    required: true
+    description: "Input text or context block to organize and index"
+  - name: input_file
+    required: false
+    description: "Optional file path for large logs or context"
+adapter_targets:
+  - claude
+  - codex
+  - copilot
+  - antigravity

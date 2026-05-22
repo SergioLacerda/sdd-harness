@@ -1,0 +1,48 @@
+name: sdd-correct
+version: 1.0.0
+category: correction
+description: Apply minimal targeted correction to a specific governance violation.
+when_to_use:
+- specific violation identified by diagnose
+- governance drift on a single item
+- mandate non-compliance found in targeted check
+outcomes:
+- correction_applied
+- violation_resolved
+- residual_violations
+allowed_tools:
+- sdd governance validate
+- sdd runtime status --force
+- sdd doctor run
+cli_fallback:
+- sdd governance validate
+- sdd doctor run
+required_permissions:
+- workspace-read
+- workspace-write-controlled
+execution_path: PATH_B
+status: active
+deprecated_after: null
+sunset_after: null
+risk_score: medium
+tags:
+- correction
+- governance
+- surgical
+budget_policy:
+  token_budget: medium
+  timeout_seconds: 120
+  max_retries: 2
+escalation_policy:
+  mode: warn
+  require_human_on:
+  - critical_violation
+  - repeat_failure
+telemetry_policy:
+  emit_runtime_event: true
+  otel_required_if_enabled: true
+validation_policy:
+  require_preflight: true
+  require_postcheck: true
+schema_version: 1.0.0
+deprecation_due: false

@@ -1,0 +1,44 @@
+name: Bootstrap SDD CLI
+description: Initialize SDD workspace using uv (uv must already be installed)
+
+runs:
+  using: composite
+  steps:
+    - name: Install all dependencies
+      shell: bash
+      run: make install
+
+    - name: Verify CLI module
+      shell: bash
+      run: uv run python -m sdd_cli --help > /dev/null
+
+    - name: Initialize SDD Workspace
+      shell: bash
+      run: uv run python -m sdd_cli init --type master --force
+
+    - name: Update documentation metadata
+      shell: bash
+      run: uv run python -m sdd_cli docs update
+
+    - name: Compile governance artifacts
+      shell: bash
+      run: uv run python -m sdd_cli governance compile
+
+    - name: Sync client compiled artifacts
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p generated/client/compiled
+        for f in generated/master/compiled/*.msgpack generated/master/compiled/*.json; do
+          [ -f "$f" ] && cp "$f" generated/client/compiled/
+        done
+        echo "✓ Client compiled artifacts synced from master."
+
+    - name: Verify compiled artifacts exist
+      shell: bash
+      run: |
+        test -f generated/master/compiled/governance-core.json || \
+          (echo "ERROR: generated/master/compiled/governance-core.json missing" && exit 1)
+        test -f generated/client/compiled/governance-core.compiled.msgpack || \
+          (echo "ERROR: generated/client/compiled/governance-core.compiled.msgpack missing" && exit 1)
+        echo "✓ Compiled artifacts verified (master + client)."
