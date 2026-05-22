@@ -49,7 +49,6 @@ nav:
   - Governance:
     - Mandatory Human Review: spec/canonical/core/policies/P003_MANDATORY_HUMAN_REVIEW.md
     - Honest Critique: spec/canonical/core/policies/P002_HONEST_CRITIQUE.md
-    - SLIs and SLOs: superpowers/plans/observability.md
   - Reference:
     - CLI Commands: spec/reference/commands/cli.md
     - Context Template: spec/reference/templates/AI_CONTEXT_AWARE_TEMPLATE.md
