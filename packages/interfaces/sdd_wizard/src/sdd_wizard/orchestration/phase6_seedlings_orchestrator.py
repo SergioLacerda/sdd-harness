@@ -15,7 +15,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from sdd_core.utils.logging import get_logger
+from sdd_core.utils.log import get_logger
 
 from .intelligent_seedlings_generator import IntelligentSeedlingsGenerator
 

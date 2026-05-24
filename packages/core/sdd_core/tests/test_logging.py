@@ -1,4 +1,4 @@
-"""Tests for sdd_core.logging central configuration module."""
+"""Tests for sdd_core.log_config central configuration module."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import sys
 import pytest
 import structlog
 
-import sdd_core.logging as logging_mod
+import sdd_core.log_config as logging_mod
 
 
 def _reset_structlog(monkeypatch) -> None:

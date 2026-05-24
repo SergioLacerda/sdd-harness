@@ -23,15 +23,6 @@ import structlog
 
 _CONFIGURED = False
 
-_LOG_LEVELS: dict[str, int] = {
-    "DEBUG": 10,
-    "INFO": 20,
-    "WARNING": 30,
-    "WARN": 30,
-    "ERROR": 40,
-    "CRITICAL": 50,
-}
-
 
 def configure_logging(level: str = "INFO") -> None:
     """Configure structlog for the current process.
@@ -43,6 +34,15 @@ def configure_logging(level: str = "INFO") -> None:
         return
     _CONFIGURED = True
 
+    _log_levels: dict[str, int] = {
+        "DEBUG": 10,
+        "INFO": 20,
+        "WARNING": 30,
+        "WARN": 30,
+        "ERROR": 40,
+        "CRITICAL": 50,
+    }
+
     is_production = os.environ.get("SDD_ENV", "").lower() == "production"
     is_tty = sys.stdout.isatty()
     use_json = is_production or not is_tty
@@ -53,7 +53,7 @@ def configure_logging(level: str = "INFO") -> None:
         else structlog.dev.ConsoleRenderer(colors=True)
     )
 
-    numeric_level = _LOG_LEVELS.get(level.upper(), 20)
+    numeric_level = _log_levels.get(level.upper(), 20)
 
     structlog.configure(
         processors=[
