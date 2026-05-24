@@ -20,15 +20,15 @@ class Prompter(Protocol):
 
     def select(self, question: str, choices: list[Any]) -> str:
         """Present a single-choice menu and return the selected value."""
-        ...
+        pass
 
     def checkbox(self, question: str, choices: list[Any]) -> list[str]:
         """Present a multi-choice menu and return the selected values."""
-        ...
+        pass
 
     def confirm(self, question: str, default: bool = True) -> bool:
         """Present a yes/no question and return the boolean answer."""
-        ...
+        pass
 
 
 def _real_choices(choices: list[Any]) -> list[tuple[int, str, str]]:

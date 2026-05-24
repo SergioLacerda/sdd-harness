@@ -6,6 +6,7 @@ change any observable behaviour of GovernanceSeedsGenerator.
 
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
 
 from sdd_core.utils.text_io import read_text_utf8
@@ -106,9 +107,7 @@ def test_generate_agent_instructions_still_works(tmp_path: Path) -> None:
 
 
 def test_governance_seeds_module_size_reduced() -> None:
-    import sdd_wizard.orchestration.seedlings.governance_seeds as mod
-
-    source = read_text_utf8(Path(mod.__file__))
+    source = read_text_utf8(Path(inspect.getfile(GovernanceSeedsGenerator)))
     lines = source.splitlines()
     assert len(lines) < 900, (
         f"governance_seeds.py grew to {len(lines)} lines — "
