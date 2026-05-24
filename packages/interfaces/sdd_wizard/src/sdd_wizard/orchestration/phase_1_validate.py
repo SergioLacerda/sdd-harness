@@ -37,10 +37,8 @@ def phase_1_validate_source(
     If absent, attempts to fetch them from GitHub Releases before failing.
     """
     sdd_dir = repo_root / ".sdd"
-    core_path = sdd_dir / "governance-core.json"
-    client_path = sdd_dir / "governance-client.json"
-
-    if core_path.exists() and client_path.exists():
+    required_paths = tuple(sdd_dir / filename for filename in _REQUIRED_FILES)
+    if all(path.exists() for path in required_paths):
         return _build_success_report(source="local", advisory=None)
 
     cli_version = get_cli_version()

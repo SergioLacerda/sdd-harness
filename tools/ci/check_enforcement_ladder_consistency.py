@@ -34,7 +34,7 @@ RULES = [
         description="Release workflow must run STRICT mode",
     ),
     Rule(
-        path=".analysis/done/progressive-enforcement-ladder/policy-matrix.md",
+        path="docs/adr/ADR-009-progressive-enforcement-ladder.md",
         pattern="| strict |",
         description="Policy matrix must document STRICT lane",
     ),

@@ -36,8 +36,8 @@ extra_javascript:
 nav:
   - Welcome: README.md
   - Runtime:
-    - Agent Entrypoint: runtime/AGENT_ENTRYPOINT.md
-    - Agent Runtime Protocol: runtime/AGENT_RUNTIME_PROTOCOL.md
+    - Agent Entrypoint: runtime/protocols/AGENT_ENTRYPOINT.md
+    - Agent Runtime Protocol: runtime/protocols/AGENT_RUNTIME_PROTOCOL.md
   - Architecture:
     - Clean Architecture: spec/canonical/features/CLEAN_ARCHITECTURE.md
     - TDD: spec/canonical/features/TDD.md

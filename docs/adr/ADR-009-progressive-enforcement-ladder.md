@@ -30,12 +30,11 @@ signal    prevention enforcement
 
 ### Phase semantics
 
-- **WARN:** emit advisory signal; do not stop execution. Critical violations are the
-  only exception — they block immediately regardless of phase.
-- **BLOCK:** prevent merge or deploy on policy failure; execution continues in the
-  current process.
-- **STRICT:** runtime and pipeline hard-fail when unmet prerequisites are detected;
-  no degraded fallback.
+| phase | behaviour | gate context | owner |
+|---|---|---|---|
+| warn | Emit advisory signal; do not fail build on missing evidence | `make check` / local validation | feature author |
+| block | Fail on missing evidence; require reviewer approval for class B/C | CI `artifact-gate` (`reusable-test.yml`) | maintainer + governance reviewer |
+| strict | Fail on any missing approval (A/B/C) + class C artifact validity | release/hard gate contexts | governance owner |
 
 ### Promotion criteria (WARN → BLOCK, BLOCK → STRICT)
 
