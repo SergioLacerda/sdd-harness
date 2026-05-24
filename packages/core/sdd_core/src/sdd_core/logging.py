@@ -16,13 +16,21 @@ Output format
 
 from __future__ import annotations
 
-import logging as _stdlib_logging
 import os
 import sys
 
 import structlog
 
 _CONFIGURED = False
+
+_LOG_LEVELS: dict[str, int] = {
+    "DEBUG": 10,
+    "INFO": 20,
+    "WARNING": 30,
+    "WARN": 30,
+    "ERROR": 40,
+    "CRITICAL": 50,
+}
 
 
 def configure_logging(level: str = "INFO") -> None:
@@ -45,7 +53,7 @@ def configure_logging(level: str = "INFO") -> None:
         else structlog.dev.ConsoleRenderer(colors=True)
     )
 
-    numeric_level = getattr(_stdlib_logging, level.upper(), _stdlib_logging.INFO)
+    numeric_level = _LOG_LEVELS.get(level.upper(), 20)
 
     structlog.configure(
         processors=[
