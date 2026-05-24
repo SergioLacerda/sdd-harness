@@ -13,7 +13,7 @@ fi
 echo "  uv $(uv --version) found."
 
 echo "→ Installing SDD CLI from source..."
-uv tool install "git+${REPO}" --force
+uv tool install "git+${REPO}" --package sdd-cli --force
 
 echo "→ Verifying installation..."
 sdd --version
