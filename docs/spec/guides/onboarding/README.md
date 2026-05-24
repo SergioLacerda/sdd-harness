@@ -15,7 +15,7 @@ onboarding/
 
 **Follow this in order:**
 
-### 1️⃣  START HERE: `/docs/ia/guides/FIRST_SESSION_SETUP.md`
+### 1️⃣  START HERE: `docs/spec/guides/FIRST_SESSION_SETUP.md`
 - 20 min total
 - Reads MASTER_INDEX → ia-rules → QUIZ → QUICK_START
 - Ends with you ready to code
@@ -57,7 +57,7 @@ onboarding/
 
 **For Humans**:
 ```
-1. Open: /docs/ia/guides/onboarding/VALIDATION_QUIZ.md
+1. Open: docs/spec/guides/onboarding/VALIDATION_QUIZ.md
 2. Answer 5 questions (A/B/C/D)
 3. Self-score (need ≥80%)
 4. If passed: continue
@@ -66,7 +66,7 @@ onboarding/
 
 **For AI Agents**:
 ```bash
-python /docs/ia/scripts/validate_quiz.py
+python docs/spec/scripts/validate_quiz.py
 ```
 - Runs 5 questions interactively
 - Logs result automatically
@@ -79,7 +79,7 @@ python /docs/ia/scripts/validate_quiz.py
 
 Your quiz attempts are logged to:
 ```
-/docs/ia/REALITY/current-system-state/_quiz_tracking.json
+docs/spec/REALITY/current-system-state/_quiz_tracking.json
 ```
 
 **What's tracked**:

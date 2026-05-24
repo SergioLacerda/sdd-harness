@@ -70,6 +70,14 @@ jobs:
         shell: bash
         run: uv run pytest tests/unit tests/integration -q --tb=short
 
+      - name: Enforce golden snapshot policy (strict)
+        shell: bash
+        run: uv run python tools/ci/check_golden_policy.py --mode strict
+
+      - name: Validate release readiness v1 checklist
+        shell: bash
+        run: uv run python tools/ci/check_release_readiness_v1.py
+
       - name: Verify version matches tag
         shell: bash
         run: |
@@ -154,6 +162,27 @@ jobs:
               python -m build "$pkg_dir" --outdir dist/
             fi
           done
+
+      - name: Install packages for compile step
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv pip install -e packages/core/sdd_core \
+            && uv pip install -e packages/core/sdd_telemetry \
+            && uv pip install -e packages/core/sdd_compiler \
+            && uv pip install -e packages/features/sdd_integration \
+            && uv pip install -e packages/interfaces/sdd_wizard \
+            && uv pip install -e packages/interfaces/sdd_cli
+
+      - name: Compile governance artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python -m sdd_cli compile
+          cp generated/client/build/governance-core.json dist/governance-core.json
+          cp generated/client/build/governance-client.json dist/governance-client.json
+          cp generated/client/build/governance-core.json generated/client/build/final-template/.sdd/governance-core.json
+          cp generated/client/build/governance-client.json generated/client/build/final-template/.sdd/governance-client.json
 
       - name: Upload artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1

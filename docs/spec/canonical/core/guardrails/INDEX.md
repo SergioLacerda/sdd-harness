@@ -16,7 +16,7 @@
 *Focus: Is the process being followed?*
 - **Constraint**: `.sdd-cache.md` must be updated before any commit.
 - **Constraint**: `mandate.spec` must pass validation.
-- **Mechanism**: [pre-commit](../../../../../scripts/git-hooks/pre-commit) (Git Hooks).
+- **Mechanism**: [pre-commit](../../../../../tools/scripts/git-hooks/pre-commit) (Git Hooks).
 
 ### Level 3: Cognitive & Integrity (Intelligence)
 *Focus: Is the reasoning quality high?*
@@ -37,5 +37,5 @@
 ---
 
 ## 🔗 References
-- Git Hooks: [`../../../../../scripts/git-hooks/pre-commit`](../../../../../scripts/git-hooks/pre-commit)
-- Honest Critique: [`../HONEST_CRITIQUE.md`](../HONEST_CRITIQUE.md)
+- Git Hooks: [`../../../../../tools/scripts/git-hooks/pre-commit`](../../../../../tools/scripts/git-hooks/pre-commit)
+- Honest Critique: [`../policies/P002_HONEST_CRITIQUE.md`](../policies/P002_HONEST_CRITIQUE.md)

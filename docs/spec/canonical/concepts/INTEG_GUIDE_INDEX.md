@@ -6,7 +6,7 @@
 
 ## 📚 Guides
 
-### [INTENTION-DETECTION-CONCEPT.md](./INTENTION-DETECTION-CONCEPT.md)
+### [Intention Detection (STEP_6.md)](../../guides/integration/STEP_6.md)
 **How integration now works: Intention-Driven approach (V2)**
 
 - Technical setup vs Intention detection phases
@@ -14,7 +14,7 @@
 - Benefits of informed adoption choices
 - Implementation details
 
-### [V1-vs-V2-COMPARISON.md](./V1-vs-V2-COMPARISON.md)
+### [Integration Flow Index](../../guides/integration/INTEG_INDEX.md)
 **Evolution of integration flow: V1 (Choose First) → V2 (Understand First)**
 
 - Problems with V1
@@ -26,19 +26,19 @@
 
 ## 🔗 Related
 
-- **How to integrate:** [../CHECKLIST.md](../CHECKLIST.md) (step-by-step)
-- **Choose your adoption:** [../STEP_6.md](../STEP_6.md) (intention detection)
-- **Compare LITE/FULL:** [../../.sdd-core/spec/guides/adoption/INDEX.md](../../.sdd-core/spec/guides/adoption/INDEX.md)
+- **How to integrate:** [CHECKLIST.md](../../guides/integration/CHECKLIST.md) (step-by-step)
+- **Choose your adoption:** [STEP_6.md](../../guides/integration/STEP_6.md) (intention detection)
+- **Compare LITE/FULL:** [Adoption Index](../../guides/adoption/INDEX.md)
 
 ---
 
 ## 📖 Reading Order
 
-1. **First time?** → [../README.md](../README.md)
-2. **Understand evolution?** → [./V1-vs-V2-COMPARISON.md](./V1-vs-V2-COMPARISON.md)
-3. **Understand concepts?** → [./INTENTION-DETECTION-CONCEPT.md](./INTENTION-DETECTION-CONCEPT.md)
-4. **Ready to integrate?** → [../CHECKLIST.md](../CHECKLIST.md)
-5. **Choosing adoption?** → [../STEP_6.md](../STEP_6.md) (intention detection)
+1. **First time?** → [INTEG_INDEX.md](../../guides/integration/INTEG_INDEX.md)
+2. **Understand evolution?** → [INTEG_INDEX.md](../../guides/integration/INTEG_INDEX.md)
+3. **Understand concepts?** → [STEP_6.md](../../guides/integration/STEP_6.md)
+4. **Ready to integrate?** → [CHECKLIST.md](../../guides/integration/CHECKLIST.md)
+5. **Choosing adoption?** → [STEP_6.md](../../guides/integration/STEP_6.md) (intention detection)
 
 ---
 

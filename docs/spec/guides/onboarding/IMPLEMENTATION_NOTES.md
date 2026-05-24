@@ -301,11 +301,11 @@ These 5 insights prevent 80% of architectural failures.
 
 ## 📚 Related Documentation
 
-- [ia-rules.md](../ia-rules.md) — The source material
-- [ADR-005](../decisions/ADR-005-thread-isolation-mandatory.md) — Thread isolation rationale
-- [ADR-003](../decisions/ADR-003-ports-adapters-pattern.md) — Ports pattern reasoning
-- [constitution.md](../specs/constitution.md) — Philosophical foundation
-- [guides/onboarding/](./onboarding/) — Full onboarding flow
+- [IA_FIRST.md](../../../runtime/IA_FIRST.md) — The source material
+- [ADR-005](../../decisions/ADR-005-thread-isolation-mandatory.md) — Thread isolation rationale
+- [ADR-003](../../decisions/ADR-003-ports-adapters-pattern.md) — Ports pattern reasoning
+- [Rules Index](../../canonical/core/rules/INDEX.md) — Philosophical foundation
+- [onboarding/README.md](./README.md) — Full onboarding flow
 
 ---
 

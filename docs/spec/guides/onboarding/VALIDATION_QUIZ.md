@@ -29,7 +29,7 @@ D) Whichever file you trust most
 **Correct Answer**: B ✅
 **Reasoning**: `constitution.md` is immutable and takes precedence over everything. Rules stop execution conflicts.
 
-**If wrong**: Re-read [ia-rules.md](../../ia-rules.md) section "Source of Truth Priority"
+**If wrong**: Re-read [IA_FIRST.md](../../../runtime/IA_FIRST.md) section "Source of Truth Priority"
 
 ---
 
@@ -54,7 +54,7 @@ D) Only if Thread B is inactive
 **After implementing a feature, what MUST you do?**
 
 A) Just commit the code, documentation updates are optional
-B) Update `/docs/ia/DEVELOPMENT/execution-state/_current.md` with:
+B) Update `docs/spec/DEVELOPMENT/execution-state/_current.md` with:
    - Decisions taken
    - Open questions
    - Risks identified
@@ -65,7 +65,7 @@ D) Notify the team via Slack
 **Correct Answer**: B ✅
 **Reasoning**: Checkpointing is mandatory (ia-rules protocol #14). Executable + documentation state in sync prevents the system diverging from its spec.
 
-**If wrong**: Re-read [ia-rules.md](../../ia-rules.md) section "Checkpointing Protocol"
+**If wrong**: Re-read [IA_FIRST.md](../../../runtime/IA_FIRST.md) section "Checkpointing Protocol"
 
 ---
 
@@ -98,7 +98,7 @@ D) Trust the documentation, don't question it
 **Correct Answer**: C ✅
 **Reasoning**: ia-rules protocol #16 "Gap documentation": Reality ≠ docs is normal. Document gaps, include evidence, update tracking. Don't assume docs are wrong.
 
-**If wrong**: Re-read [ia-rules.md](../../ia-rules.md) section "When Reality Differs from Specs"
+**If wrong**: Re-read [IA_FIRST.md](../../../runtime/IA_FIRST.md) section "When Reality Differs from Specs"
 
 ---
 
@@ -107,7 +107,7 @@ D) Trust the documentation, don't question it
 **For Claude agents** (automatic):
 ```
 Score tracking is logged to:
-  → /docs/ia/REALITY/current-system-state/_quiz_tracking.json
+  → docs/spec/REALITY/current-system-state/_quiz_tracking.json
 
 Your score appears in:
   → execution_state.md (under "Agent Readiness" section)
@@ -130,7 +130,7 @@ If < 4 correct (< 80%):
 
 **If you PASSED (4+ correct)**:
 1. Continue with FIRST_SESSION_SETUP.md (minute 9+)
-2. Read `/docs/ia/guides/QUICK_START.md` to choose your PATH
+2. Read `docs/spec/guides/QUICK_START.md` to choose your PATH
 3. Proceed to work ✓
 
 **If you FAILED (< 4 correct)**:

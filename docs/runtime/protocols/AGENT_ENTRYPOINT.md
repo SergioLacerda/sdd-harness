@@ -1,3 +1,5 @@
+> Layer: runtime - operational agent instructions
+
 # AI Agent Entry Point
 
 Guia operacional para Copilot e outros agentes que atuam neste workspace com governança SDD.

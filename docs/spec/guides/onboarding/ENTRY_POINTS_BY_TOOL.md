@@ -61,11 +61,11 @@ When a user asks for work (bug fix, feature, etc.), respond:
 
 1. First: Direct to AGENT_HARNESS.md
    "Before we start, please follow AGENT_HARNESS (30-40 min)"
-   → /docs/ia/guides/onboarding/AGENT_HARNESS.md
+   → docs/spec/guides/onboarding/AGENT_HARNESS.md
 
 2. Verify QUIZ completion
    "Have you passed VALIDATION_QUIZ?"
-   → If NO: "Take it here: /docs/ia/guides/onboarding/VALIDATION_QUIZ.md"
+   → If NO: "Take it here: docs/spec/guides/onboarding/VALIDATION_QUIZ.md"
    → If YES: Continue
 
 3. Verify PATH selection
@@ -91,7 +91,7 @@ When a user asks for work (bug fix, feature, etc.), respond:
 Great! Before we start, let's make sure you're set up correctly.
 
 Have you completed AGENT_HARNESS? (30-40 min one-time setup)
-→ Guide: /docs/ia/guides/onboarding/AGENT_HARNESS.md
+→ Guide: docs/spec/guides/onboarding/AGENT_HARNESS.md
 
 Required verification:
   ✅ Read constitution.md + ia-rules.md
@@ -154,7 +154,7 @@ Plus add:
 2. Sees: "Welcome to [PROJECT_NAME]"
 3. Gets suggestion: "Read AGENT_HARNESS for guided setup"
 4. Can access:
-   - /docs/ia/guides/onboarding/AGENT_HARNESS.md
+   - docs/spec/guides/onboarding/AGENT_HARNESS.md
    - /EXECUTION/spec/CANONICAL/rules/constitution.md
    - /EXECUTION/spec/CANONICAL/rules/ia-rules.md
 5. Cursor context automatically includes these files
@@ -397,7 +397,7 @@ User:
 
 Bot:
   1️⃣ Have you completed AGENT_HARNESS?
-  2️⃣ Send link: /docs/ia/guides/onboarding/AGENT_HARNESS.md
+  2️⃣ Send link: docs/spec/guides/onboarding/AGENT_HARNESS.md
   3️⃣ Suggest: "Looks like PATH A (bug fix). Read architecture.md + known_issues.md"
   4️⃣ Offer: "Questions? I can help with PATH details"
 

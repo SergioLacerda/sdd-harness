@@ -1,32 +1,25 @@
-# PATH C
+# PATH C - Complex Feature
 
-## Cognitive Objective
-
-Minimize exploration breadth while preserving deterministic convergence for this path.
+## Context Budget
+- Broad: affected domain layers, contracts, and cross-layer tests.
 
 ## Scope
+- Multi-layer change or architectural decision requiring explicit design control.
 
-- Restrict execution to affected modules and directly connected tests.
-- Expand context only with explicit evidence.
+## Entry Checklist
+- Confirm approved plan/spec before implementation.
+- Identify impacted interfaces and dependencies upfront.
 
 ## MUST
-
-- Start with smallest meaningful validation.
-- Keep changes within declared path intent.
-- Document deviations when path escalation is required.
+- Keep requirements/design traceable to implementation.
+- Validate behavior across all touched layers.
+- Record architectural decisions in canonical decision docs.
 
 ## MUST NOT
+- Start coding without approved scope.
+- Hide architectural change under simple-feature path.
+- Combine with PATH F in same delivery.
 
-- Run broad refactors outside scoped objective.
-- Execute full-suite retries without new evidence.
-- Mix unrelated tasks in the same path execution.
-
-## INVALID
-
-- Any execution that changes architectural scope without path reclassification.
-- Any retry loop without new diagnostics.
-
-## Escalation/Recovery
-
-- If convergence stalls, reclassify task using TASK_CLASSIFICATION.
-- If risk crosses path boundaries, escalate to PATH C with explicit rationale.
+## Escalation
+- Split independent streams into PATH D.
+- Pause and switch to PATH E if production emergency appears.

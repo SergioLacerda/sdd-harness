@@ -341,9 +341,9 @@ act -v
 ## Questions?
 
 - **About LITE/FULL?** → [LITE-ADOPTION.md](./LITE-ADOPTION.md) / [FULL-ADOPTION.md](./FULL-ADOPTION.md)
-- **About rules?** → [Rules Reference](../../CANONICAL/rules/)
-- **About workflow?** → [EXECUTION/_START_HERE.md](../../_START_HERE.md)
-- **Emergency?** → [Emergency Guide](../emergency/)
+- **About rules?** → [Rules Reference](../../canonical/core/rules/INDEX.md)
+- **About workflow?** → [CORE__START_HERE.md](../operational/CORE__START_HERE.md)
+- **Emergency?** → [Troubleshooting](../operational/TROUBLESHOOTING_SPEC_VIOLATIONS.md)
 
 ---
 

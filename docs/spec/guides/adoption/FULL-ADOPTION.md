@@ -72,7 +72,7 @@ echo "✅ FULL adoption complete!"
 14. **Performance as Requirement**
 15. **Operational Excellence**
 
-See [constitution.md](../../CANONICAL/rules/constitution.md) for full details.
+See [Rules Index](../../canonical/core/rules/INDEX.md) for full details.
 
 ---
 
@@ -324,19 +324,19 @@ Agents can execute full 7-phase workflow autonomously.
 ## Need Help?
 
 **Getting started?**
-→ [README](../../README.md)
+→ [README](../../../README.md)
 
 **Detailed workflow?**
-→ [EXECUTION/_START_HERE.md](../../_START_HERE.md)
+→ [CORE__START_HERE.md](../operational/CORE__START_HERE.md)
 
 **Reference?**
-→ [Rules](../../CANONICAL/rules/)
+→ [Rules](../../canonical/core/rules/INDEX.md)
 
 **Questions?**
-→ [FAQ](../reference/FAQ.md)
+→ [FAQ](../faq.md)
 
 **Emergency?**
-→ [Emergency Guide](../emergency/)
+→ [Troubleshooting](../operational/TROUBLESHOOTING_SPEC_VIOLATIONS.md)
 
 **Want to go lighter?**
 → [Back to LITE](./LITE-ADOPTION.md)
@@ -355,6 +355,6 @@ No "one size fits all". SDD is collaborative. Your needs matter.
 
 ---
 
-**Ready? Let's go:** [EXECUTION/_START_HERE.md](../../_START_HERE.md)
+**Ready? Let's go:** [CORE__START_HERE.md](../operational/CORE__START_HERE.md)
 
 *Framework under active development. Your feedback drives priorities.*

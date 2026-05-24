@@ -52,7 +52,7 @@ Circumventing mandates, policies, or rules by using workarounds, hacks, or "just
 ## Prevention
 
 1. **Understand the rule first** — Read why it exists (check ADRs, commit history, decision models)
-2. **Use [GO_NO_GO_DECISION.md](../decision-models/GO_NO_GO_DECISION.md)** — Validate governance before proceeding
+2. **Use [EXECUTION_DECISION.md](../decision-models/EXECUTION_DECISION.md)** — Validate governance before proceeding
 3. **If rule conflicts with task:** Escalate per [P003](../../policies/P003_MANDATORY_HUMAN_REVIEW.md) — get human approval BEFORE bypassing
 4. **Check anti-patterns before hacking** — "Is there a compliant path?" (probably yes)
 5. **Enforce via CI/CD** — Use pre-commit hooks, CI gates, branch protection (not agent-bypassed)
@@ -78,6 +78,6 @@ Circumventing mandates, policies, or rules by using workarounds, hacks, or "just
 ## Related
 
 - [P003: Mandatory Human Review](../../policies/P003_MANDATORY_HUMAN_REVIEW.md) — Escalation process
-- [GO_NO_GO_DECISION.md](../decision-models/GO_NO_GO_DECISION.md) — Pre-delivery governance validation
+- [EXECUTION_DECISION.md](../decision-models/EXECUTION_DECISION.md) — Pre-delivery governance validation
 - [M005: Token Economy](../../mandates/M005_TOKEN_ECONOMY.md) — Circuit breaker rules (cannot bypass)
 - [RESOLUTION_BYPASS.md](../../../../../cognition/anti-patterns/RESOLUTION_BYPASS.md) — Specific case: dependency resolution hacking

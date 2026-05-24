@@ -21,6 +21,8 @@ ALLOWED_PACKAGES = {
 
 ALLOWED_TOOLS = {
     "tools/ci/environment_gates.py",
+    "tools/ci/check_golden_policy.py",
+    "tools/ci/check_core_compiler_runtime_contract.py",
 }
 
 MIGRATED_TOOLS = {

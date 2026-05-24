@@ -31,7 +31,7 @@ You're about to:
 cd /path/to/your-project
 
 # Run PHASE 0 setup
-python $(grep spec_path .spec.config | cut -d' ' -f3)/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 **Breaking down the command:**
@@ -41,7 +41,7 @@ $(grep spec_path .spec.config | cut -d' ' -f3)
 # Returns: ../sdd-harness (or your absolute path)
 
 # Part 2: Run the script
-python [path-from-part-1]/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python [path-from-part-1]docs/spec/SCRIPTS/phase-0-agent-onboarding.py
 # Results: Runs PHASE 0 setup
 ```
 
@@ -51,10 +51,10 @@ If the command above doesn't work:
 
 ```bash
 # If sdd-harness is in sibling directory
-python ../sdd-harness/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python ../sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 
 # Or if you know the full path
-python /path/to/sdd-harness/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python /path/to/sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 ---
@@ -167,7 +167,7 @@ python3 --version
 # Should show: Python 3.8+
 
 # Then use python3 instead of python
-python3 $(grep spec_path .spec.config | cut -d' ' -f3)/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python3 $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 ### Issue: ".spec.config not found"
@@ -182,7 +182,7 @@ ls -la .spec.config
 cp ../sdd-harness/INTEGRATION/templates/.spec.config .
 
 # Then re-run validation
-python $(grep spec_path .spec.config | cut -d' ' -f3)/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 ### Issue: "spec_path points to wrong location"
@@ -195,7 +195,7 @@ nano .spec.config
 # Edit: spec_path = ../sdd-harness
 
 # Then re-run validation
-python $(grep spec_path .spec.config | cut -d' ' -f3)/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 ### Issue: "VALIDATION_QUIZ score too low"
@@ -209,7 +209,7 @@ python $(grep spec_path .spec.config | cut -d' ' -f3)/docs/ia/SCRIPTS/phase-0-ag
 # 3. Answer best you can (doesn't block progress)
 
 # To try again later:
-python ../sdd-harness/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python ../sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 ### Issue: Script Hangs or Never Completes
@@ -226,7 +226,7 @@ python ../sdd-harness/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
 3. Run validation again
 
 # If still stuck, check:
-ls ../sdd-harness/docs/ia/SCRIPTS/
+ls ../sdd-harnessdocs/spec/SCRIPTS/
 # Should show: phase-0-agent-onboarding.py
 ```
 

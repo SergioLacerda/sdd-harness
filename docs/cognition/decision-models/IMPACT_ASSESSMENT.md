@@ -47,4 +47,4 @@ If impact score ≥ 6, wrap in a feature flag before deploying to production.
 
 ## References
 - Classification: [`TASK_CLASSIFICATION.md`](./TASK_CLASSIFICATION.md)
-- Complex PATH: [`runtime/paths/PATH_C_COMPLEX.md`](../../runtime/paths/PATH_C_COMPLEX.md)
+- Complex PATH: [`runtime/paths/PATH_C_COMPLEX_FEATURE.md`](../../runtime/paths/PATH_C_COMPLEX_FEATURE.md)

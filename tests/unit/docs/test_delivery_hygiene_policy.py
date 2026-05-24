@@ -10,7 +10,7 @@ def _read(relpath: str) -> str:
 
 
 def test_mandate_index_registers_m010() -> None:
-    content = _read("docs/spec/canonical/core/mandates/index.md")
+    content = _read("docs/spec/canonical/core/mandates/INDEX.md")
     assert "M010" in content
     assert "M010_DELIVERY_HYGIENE.md" in content
 

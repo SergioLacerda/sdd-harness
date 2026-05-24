@@ -98,7 +98,7 @@ Changing implementations shouldn't require rewriting business logic.
 
 ## Port Specifications
 
-See: [current-system-state/contracts.md](../current-system-state/contracts.md)
+See: [contracts.md](../canonical/specifications/contracts.md)
 
 Each port has:
 - Interface definition

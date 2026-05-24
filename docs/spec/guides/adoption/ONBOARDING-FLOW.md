@@ -343,24 +343,24 @@ Root
 ## 🎯 Next Actions Based on Your Scenario
 
 ### "I'm totally new to SDD"
-1. Read: [README.md](../../README.md) (5 min)
+1. Read: [README.md](../../../README.md) (5 min)
 2. Choose: [adoption/INDEX.md](./INDEX.md) (5 min)
 3. Read: [adoption/LITE-ADOPTION.md](./LITE-ADOPTION.md) or [FULL-ADOPTION.md](./FULL-ADOPTION.md) (15-40 min)
 
 ### "I'm adding a new project"
-1. Read: [INTEGRATION/README.md](../../INTEGRATION/README.md) (5 min)
-2. Follow: [INTEGRATION/CHECKLIST.md](../../INTEGRATION/CHECKLIST.md) STEP 1-5 (20 min, technical)
-3. Follow: [INTEGRATION/STEP_6.md](../../INTEGRATION/STEP_6.md) (10 min, detect intention)
+1. Read: [INTEGRATION/CHECKLIST.md](../integration/CHECKLIST.md) (5 min)
+2. Follow: [INTEGRATION/CHECKLIST.md](../integration/CHECKLIST.md) STEP 1-5 (20 min, technical)
+3. Follow: [INTEGRATION/STEP_6.md](../integration/STEP_6.md) (10 min, detect intention)
 4. Choose: LITE or FULL based on answers
 
 ### "I'm implementing now"
 1. Confirm: Your adoption level (check `.spec.config` adoption_level)
-2. Read: [EXECUTION/_START_HERE.md](../../../EXECUTION/_START_HERE.md) (5 min)
+2. Read: [CORE__START_HERE.md](../operational/CORE__START_HERE.md) (5 min)
 3. Follow: AGENT_HARNESS phases (1-8 hours)
 
 ### "I have questions"
-1. Search: [EXECUTION/NAVIGATION.md](../../../EXECUTION/NAVIGATION.md)
-2. Read: [FAQ.md](../reference/FAQ.md)
+1. Search: [NAVIGATION.md](../operational/NAVIGATION.md)
+2. Read: [FAQ.md](../faq.md)
 3. Ask: Create an issue or discussion
 
 ---

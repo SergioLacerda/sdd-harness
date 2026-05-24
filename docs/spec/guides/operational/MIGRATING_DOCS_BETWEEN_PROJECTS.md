@@ -197,7 +197,7 @@ Individual projects may specialize this rule:
 
 ## Related Docs
 
-- [linked-doc.md](../path/linked-doc.md)
+- [ADDING_NEW_PROJECT.md](./ADDING_NEW_PROJECT.md)
 - ADR/decision record this relates to
 
 ---
@@ -250,7 +250,7 @@ cat > docs/ia/custom/PROJECT/reality/concurrent-limits.md << 'EOF'
 This document has been promoted to CANONICAL.
 
 **New location:**
-[ADR-007: Concurrent Entity Constraints](../../../CANONICAL/decisions/ADR-007-concurrent-entity-constraints.md)
+[ADR-007: Implementation Guardrails (Design First)](../../decisions/ADR-007-implementation-guardrails-design-first.md)
 
 **Reason:** Rule proven stable across multiple projects
 
@@ -416,9 +416,9 @@ Before migrating a doc:
 
 ## 🔗 Related Docs
 
-- [architecture.md](../../CANONICAL/specifications/architecture.md)
-- [ADR-003: Ports & Adapters Pattern](../../CANONICAL/decisions/ADR-003-ports-adapters-pattern.md)
-- [generate-specializations.py](../SCRIPTS/generate-specializations.py)
+- [architecture.md](../../canonical/specifications/architecture.md)
+- [ADR-003: Ports & Adapters Pattern](../../decisions/ADR-003-ports-adapters-pattern.md)
+- [ADDING_NEW_PROJECT.md](./ADDING_NEW_PROJECT.md)
 - [ADDING_NEW_PROJECT.md](ADDING_NEW_PROJECT.md)
 
 ---

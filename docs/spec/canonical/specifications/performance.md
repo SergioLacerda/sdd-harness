@@ -351,9 +351,9 @@ Critical:  50ms → timeout (fail fast)
 
 ## 🔗 Related Documents
 
-- [ADR-001: Clean Architecture](../decisions/ADR-001.md) — Layer structure
-- [ADR-002: Async-first](../decisions/ADR-002.md) — No blocking I/O
-- [ADR-003: Ports & Adapters](../decisions/ADR-003.md) — Performance boundaries
+- [ADR-001: Clean Architecture](spec/decisions/ADR-001-clean-architecture-8-layer.md) — Layer structure
+- [ADR-002: Async-first](../../decisions/ADR-002-async-first-no-blocking.md) — No blocking I/O
+- [ADR-003: Ports & Adapters](../../decisions/ADR-003-ports-adapters-pattern.md) — Performance boundaries
 
 ---
 

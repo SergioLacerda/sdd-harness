@@ -7,7 +7,7 @@ Version: 1.2
 
 # 📖 START HERE
 
-**First time implementing a feature?** Read [IMPLEMENTATION_ROADMAP.md](../IMPLEMENTATION_ROADMAP.md)
+**First time implementing a feature?** Read [architecture.md](./architecture.md)
 
 It provides the COMPLETE sequence with time estimates and links to each spec.
 
@@ -476,8 +476,8 @@ def execute(...) -> Result:
 # 🧪 TESTING CHECKLIST
 
 **For detailed testing guidance:** See [testing.md](./testing.md)
-**For testing validation rules:** See [testing_strategy_spec.md](./testing_strategy_spec.md)
-**For testing clarification:** See [TESTING_STRATEGY_CLARIFICATION.md](../TESTING_STRATEGY_CLARIFICATION.md)
+**For testing validation rules:** See [testing.md](./testing.md)
+**For testing clarification:** See [testing.md](./testing.md)
 
 For each layer, ensure:
 
@@ -544,14 +544,14 @@ Before committing, ask:
 
 # 🔗 RELATED DOCUMENTS
 
-- **[IMPLEMENTATION_ROADMAP.md](../IMPLEMENTATION_ROADMAP.md)** — START HERE! Complete sequence with time estimates
+- **[architecture.md](./architecture.md)** — START HERE! Complete sequence with time estimates
 - **[definition_of_done.md](./definition_of_done.md)** — Merge validation checklist
-- **[TESTING_STRATEGY_CLARIFICATION.md](../TESTING_STRATEGY_CLARIFICATION.md)** — Clarifies testing.md vs testing_strategy_spec.md roles
-- [Project Structure](./project-structure.md) — Folder layout
-- [Feature Template](./feature-template.md) — Complete example
-- [Conventions](./conventions.md) — Naming rules
-- [Constitution](./constitution.md) — Non-negotiables
+- **[testing.md](./testing.md)** — Clarifies testing.md roles
+- [Project Structure](./architecture.md) — Folder layout
+- [Feature Template](./feature-checklist.md) — Complete example
+- [Conventions](./communication.md) — Naming rules
+- [Constitution](../core/rules/INDEX.md) — Non-negotiables
 - [Testing Best Practices](./testing.md) — Testing strategies & patterns
-- [Testing Strategy Spec](./testing_strategy_spec.md) — Testing validation rules
+- [Testing Strategy Spec](./testing.md) — Testing validation rules
 - [Architecture](./architecture.md) — Layer responsibilities
-- [Design Decisions](./design-decisions.md) — Architectural decisions record
+- [Design Decisions](../../decisions/DECISIONS_APRIL_2026.md) — Architectural decisions record

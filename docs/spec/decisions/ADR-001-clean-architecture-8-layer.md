@@ -98,8 +98,8 @@ Layer 1: Entities (Domain models)
 ## How to Implement
 
 When adding a feature, follow all 8 layers:
-- See: [feature-checklist.md](../specs/_shared/feature-checklist.md)
-- See: [architecture.md](../specs/architecture.md)
+- See: [feature-checklist.md](../canonical/specifications/feature-checklist.md)
+- See: [architecture.md](../canonical/specifications/architecture.md)
 
 ---
 

@@ -12,6 +12,11 @@ import pytest
 pytestmark = pytest.mark.unit
 
 
+def _stdin_prompter(prompt: str) -> str:
+    """Thin wrapper so patch('builtins.input') intercepts at call time, not definition time."""
+    return input(prompt)
+
+
 def _make_wizard(tmp_path: Path) -> Any:
     from sdd_wizard.src.interactive_mode import InteractiveWizard
 
@@ -25,10 +30,7 @@ def _make_wizard(tmp_path: Path) -> Any:
     with patch(
         "sdd_wizard.src.interactive_mode.get_sdd_paths", return_value=mock_paths
     ):
-        wizard = InteractiveWizard(
-            repo_root=tmp_path,
-            prompter=lambda prompt: input(prompt),  # noqa: PLC3002  # lgtm[py/unnecessary-lambda]
-        )
+        wizard = InteractiveWizard(repo_root=tmp_path, prompter=_stdin_prompter)
     return wizard
 
 

@@ -68,5 +68,5 @@ Unrecorded governance decisions are a security risk. Telemetry provides the "bla
 
 ## References
 
-- Envelope definition: [`telemetry/index.md`](../telemetry/index.md)
+- Envelope definition: [`telemetry/INDEX.md`](../telemetry/INDEX.md)
 - Metric definitions: [`economy/metrics.md`](../economy/metrics.md)

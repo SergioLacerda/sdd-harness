@@ -226,7 +226,7 @@ In README.md, always include a table like:
 
 In summaries, always end with:
 ```markdown
-**See full details:** [PHASE_X_FULL.md](../detailed/PHASE_X_FULL.md)
+**See full details:** [Template Source](./CONTEXT_MANAGEMENT_STANDARDS.md)
 ```
 
 ---

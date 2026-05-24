@@ -239,7 +239,7 @@ After committing, your project is now:
 
 Your developers can now:
 
-1. **Read:** [../EXECUTION/_START_HERE.md](../EXECUTION/_START_HERE.md)
+1. **Read:** [spec/guides/operational/CORE__START_HERE.md](spec/guides/operational/CORE__START_HERE.md)
 2. **Understand:** AGENT_HARNESS 7-phase workflow
 3. **Implement:** Features following SDD governance
 
@@ -274,4 +274,4 @@ Your developers can now:
 **Integration successful!** 🎉
 Your project now has SDD governance.
 
-Next: Developers read [../EXECUTION/_START_HERE.md](../EXECUTION/_START_HERE.md)
+Next: Developers read [spec/guides/operational/CORE__START_HERE.md](spec/guides/operational/CORE__START_HERE.md)

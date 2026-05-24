@@ -83,6 +83,14 @@ jobs:
         shell: bash
         run: uv run pytest tests/unit tests/integration -q --tb=short
 
+      - name: Enforce golden snapshot policy (strict)
+        shell: bash
+        run: uv run python tools/ci/check_golden_policy.py --mode strict
+
+      - name: Validate release readiness v1 checklist
+        shell: bash
+        run: uv run python tools/ci/check_release_readiness_v1.py
+
       - name: Install build tools
         shell: bash
         run: |
@@ -111,6 +119,16 @@ jobs:
               python -m build "$pkg_dir" --outdir dist/
             fi
           done
+
+      - name: Compile governance artifacts (dry run)
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python -m sdd_cli compile
+          cp generated/client/build/governance-core.json dist/governance-core.json
+          cp generated/client/build/governance-client.json dist/governance-client.json
+          cp generated/client/build/governance-core.json generated/client/build/final-template/.sdd/governance-core.json
+          cp generated/client/build/governance-client.json generated/client/build/final-template/.sdd/governance-client.json
 
       - name: Upload dry-run artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1

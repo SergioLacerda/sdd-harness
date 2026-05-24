@@ -1,32 +1,25 @@
-# PATH E
+# PATH E - Hotfix
 
-## Cognitive Objective
-
-Minimize exploration breadth while preserving deterministic convergence for this path.
+## Context Budget
+- Minimal: only production failure surface and immediate dependencies.
 
 ## Scope
+- Minimum viable change to restore production availability.
 
-- Restrict execution to affected modules and directly connected tests.
-- Expand context only with explicit evidence.
+## Entry Checklist
+- Confirm active production impact.
+- Identify smallest safe restoring action.
 
 ## MUST
-
-- Start with smallest meaningful validation.
-- Keep changes within declared path intent.
-- Document deviations when path escalation is required.
+- Apply minimal fix only.
+- Document follow-up debt as PATH A.
+- Validate no new critical failure mode introduced.
 
 ## MUST NOT
+- Add features or refactor under emergency path.
+- Treat hotfix as permanent resolution.
+- Skip debt registration.
 
-- Run broad refactors outside scoped objective.
-- Execute full-suite retries without new evidence.
-- Mix unrelated tasks in the same path execution.
-
-## INVALID
-
-- Any execution that changes architectural scope without path reclassification.
-- Any retry loop without new diagnostics.
-
-## Escalation/Recovery
-
-- If convergence stalls, reclassify task using TASK_CLASSIFICATION.
-- If risk crosses path boundaries, escalate to PATH C with explicit rationale.
+## Escalation
+- Coordinate post-stabilization PATH C when deeper change is needed.
+- Open PATH A immediately after production stabilizes.

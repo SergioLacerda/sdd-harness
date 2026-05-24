@@ -83,9 +83,9 @@ NEW: "AGENT_HARNESS Phase 3 will guide you through PATH selection"
 
 **Files to Update:**
 - [ ] .github/copilot-instructions.md
-- [ ] /docs/ia/_INDEX.md (master index)
-- [ ] /docs/ia/guides/onboarding/README.md (if exists)
-- [ ] /docs/ia/guides/navigation/INDEX.md
+- [ ] docs/spec/_INDEX.md (master index)
+- [ ] docs/spec/guides/onboarding/README.md (if exists)
+- [ ] docs/spec/guides/navigation/INDEX.md
 - [ ] README.md (root level)
 - [ ] Any other links to old onboarding
 
@@ -142,7 +142,7 @@ When starting work in this project, you MUST:
      "Great! Before we start coding, please follow AGENT_HARNESS
      (30-40 min one-time setup) to ensure you have the right foundation.
 
-     Read: /docs/ia/guides/onboarding/AGENT_HARNESS.md
+     Read: docs/spec/guides/onboarding/AGENT_HARNESS.md
 
      Quick summary:
      - Phase 1 (5 min): Read constitution.md + ia-rules.md + take QUIZ
@@ -164,7 +164,7 @@ When starting work in this project, you MUST:
       - Execution state verification
 
      Without this, we might violate project rules. Start here:
-     /docs/ia/guides/onboarding/AGENT_HARNESS.md (Phase 1)"
+     docs/spec/guides/onboarding/AGENT_HARNESS.md (Phase 1)"
 
    If user says YES but you doubt their understanding:
      "Quick validation: What's the source of truth when docs conflict?"
@@ -180,7 +180,7 @@ When starting work in this project, you MUST:
 
    Response:
      "You're using GitHub Copilot. Here's your entry point:
-      /docs/ia/guides/onboarding/ENTRY_POINTS_BY_TOOL.md
+      docs/spec/guides/onboarding/ENTRY_POINTS_BY_TOOL.md
       → Section: 'ENTRY POINT #1: GITHUB COPILOT'
 
      But first: Have you completed AGENT_HARNESS?"
@@ -449,7 +449,7 @@ def main():
     # NEW: Require AGENT_HARNESS completion first
     print("\n" + Colors.BOLD + Colors.BLUE + "Step 0: AGENT_HARNESS Verification" + Colors.END)
     print("\nBefore using this wizard, you MUST complete AGENT_HARNESS.")
-    print("Link: /docs/ia/guides/onboarding/AGENT_HARNESS.md")
+    print("Link: docs/spec/guides/onboarding/AGENT_HARNESS.md")
 
     response = ask_question(
         "Have you completed AGENT_HARNESS (read constitution + ia-rules + passed quiz)?",
@@ -458,7 +458,7 @@ def main():
 
     if response == "No, show me where to go":
         print(f"\n{Colors.RED}Please complete AGENT_HARNESS first:{Colors.END}")
-        print("  1. Open: /docs/ia/guides/onboarding/AGENT_HARNESS.md")
+        print("  1. Open: docs/spec/guides/onboarding/AGENT_HARNESS.md")
         print("  2. Follow Phases 1-2 (about 8 minutes)")
         print("  3. Take the VALIDATION_QUIZ (5 minutes)")
         print("  4. Come back and run this wizard again")
@@ -481,7 +481,7 @@ Hi team!
 We've consolidated onboarding into ONE clear pathway: AGENT_HARNESS
 
 📍 NEW STRUCTURE:
-  Primary: /docs/ia/guides/onboarding/AGENT_HARNESS.md (7 phases, 30-40 min)
+  Primary: docs/spec/guides/onboarding/AGENT_HARNESS.md (7 phases, 30-40 min)
   Entry Points: Copilot, VSCode, Cursor, Terminal, Pre-Commit, CI/CD
   Supporting: QUICK_START.md (for quick PATH reminder), VALIDATION_QUIZ.md, WORKFLOW_VALIDATION.md
 
@@ -490,7 +490,7 @@ We've consolidated onboarding into ONE clear pathway: AGENT_HARNESS
   - ULTRA_QUICK_ONBOARDING.md (use setup-wizard.py instead)
 
 ✅ IF YOU'RE NEW:
-  Start here: /docs/ia/guides/onboarding/AGENT_HARNESS.md (30-40 min)
+  Start here: docs/spec/guides/onboarding/AGENT_HARNESS.md (30-40 min)
 
 ✅ IF YOU'RE EXPERIENCED:
   Have you taken the VALIDATION_QUIZ? If yes: You're ready.
@@ -518,11 +518,11 @@ Questions? Ask me!
 - [ ] Mark ULTRA_QUICK_ONBOARDING.md as archived (add warning header)
 - [ ] Update .github/copilot-instructions.md (use template above)
 - [ ] Update setup-wizard.py (enforce AGENT_HARNESS first)
-- [ ] Update /docs/ia/_INDEX.md (link AGENT_HARNESS as primary)
-- [ ] Update /docs/ia/guides/onboarding/README.md (if exists)
+- [ ] Update docs/spec/_INDEX.md (link AGENT_HARNESS as primary)
+- [ ] Update docs/spec/guides/onboarding/README.md (if exists)
 - [ ] Send team announcement (email + Slack)
-- [ ] Move old guides to /docs/ia/ARCHIVE/deprecated-onboarding/ (optional)
-- [ ] Create /docs/ia/ARCHIVE/ONBOARDING_MIGRATION_LOG.md (what changed when)
+- [ ] Move old guides to docs/spec/ARCHIVE/deprecated-onboarding/ (optional)
+- [ ] Create docs/spec/ARCHIVE/ONBOARDING_MIGRATION_LOG.md (what changed when)
 
 ---
 

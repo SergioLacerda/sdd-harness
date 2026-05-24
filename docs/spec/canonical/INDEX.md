@@ -6,9 +6,9 @@
 ## 🏗️ Core (Immutable Governance Kernel)
 *Non-negotiable rules and mandates that govern all agent behavior.*
 
-- **Mandates**: [core/meta/mandate.spec](./core/meta/mandate.spec) — The 3 primary execution mandates (M001-M003).
-- **Guidelines**: [core/meta/guidelines.dsl](./core/meta/guidelines.dsl) — Customization rules for the governance system.
-- **Policies**: [core/policies/index.md](./core/policies/index.md) — Enforcement levels (Strict/Permissive).
+- **Mandates**: [core/mandates/INDEX.md](./core/mandates/INDEX.md) — Primary execution mandates.
+- **Guidelines**: [core/policies/INDEX.md](./core/policies/INDEX.md) — Customization and governance policy rules.
+- **Policies**: [core/policies/INDEX.md](./core/policies/INDEX.md) — Enforcement levels (Strict/Permissive).
 - **Invariants**: [core/INDEX.md](./core/INDEX.md) — Architectural lock-in rules.
 
 ## 🧩 Specifications (Technical Guardrails)

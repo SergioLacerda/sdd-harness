@@ -15,7 +15,7 @@ else
   PYTHON := $(VENV_PYTHON)
 endif
 
-.PHONY: check test lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help
+.PHONY: check test lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check
 
 help:
 	@echo "SDD Architecture Development"
@@ -36,6 +36,8 @@ help:
 	@echo "governance-bootstrap - Generate full governance artifacts for local workspace"
 	@echo "docs-build      - Build MkDocs site (strict mode)"
 	@echo "docs-serve      - Serve MkDocs docs locally"
+	@echo "docs-link-check - Check internal relative links in docs"
+	@echo "docs-link-fix   - Apply deterministic internal-link rewrites"
 	@echo "docker-build    - Build Docker image"
 	@echo "release-dry-run - Validate version, changelog, and tags before release"
 	@echo "clean           - Remove temporary files"
@@ -47,9 +49,39 @@ install-docs:
 	uv sync --group docs
 
 check: golden-status
+	$(PYTHON) tools/ci/check_golden_policy.py --mode warn
 	$(PYTHON) -m pytest tests packages \
 		--cov=packages \
 		--cov-report=term-missing:skip-covered
+
+golden-policy-check:
+	$(PYTHON) tools/ci/check_golden_policy.py --mode block
+
+golden-policy-check-strict:
+	$(PYTHON) tools/ci/check_golden_policy.py --mode strict
+
+enforcement-ladder-consistency:
+	$(PYTHON) tools/ci/check_enforcement_ladder_consistency.py
+
+enforcement-ladder-digest:
+	$(PYTHON) tools/ci/enforcement_ladder_digest.py \
+		--json-out .artifacts/enforcement_ladder_digest.json \
+		--md-out .artifacts/enforcement_ladder_digest.md
+
+enforcement-threshold-signoff:
+	$(PYTHON) tools/ci/check_enforcement_threshold_signoff.py
+
+core-compiler-runtime-contract:
+	$(PYTHON) tools/ci/check_core_compiler_runtime_contract.py --mode enforce
+
+observability-contract-check:
+	$(PYTHON) tools/ci/check_observability_contract.py
+
+release-readiness-v1-check:
+	$(PYTHON) tools/ci/check_release_readiness_v1.py
+
+runbook-hardening-check:
+	$(PYTHON) tools/ci/check_runbook_hardening_protocol.py
 
 golden-status:
 	@echo "🔍 Checking golden file status..."
@@ -112,6 +144,12 @@ docs-build:
 
 docs-serve:
 	$(PYTHON) -m mkdocs serve
+
+docs-link-check:
+	$(PYTHON) tools/docs/check_links.py --mode ci
+
+docs-link-fix:
+	$(PYTHON) tools/docs/check_links.py --mode fix
 
 docker-build:
 	cp infrastructure/docker/.dockerignore .dockerignore

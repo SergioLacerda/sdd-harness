@@ -135,5 +135,5 @@ with bridge.start_span("task.execute") as span:
 
 - [M007: Telemetry](M007_TELEMETRY.md) — Mandatory event emission
 - [M008: Audit Integrity](M008_AUDIT_INTEGRITY.md) — Append-only audit trail
-- [telemetry/index.md](../telemetry/index.md) — Telemetry architecture overview
+- [telemetry/INDEX.md](../telemetry/INDEX.md) — Telemetry architecture overview
 - [governance-events.md](../telemetry/governance-events.md) — Event schema with OTEL mapping

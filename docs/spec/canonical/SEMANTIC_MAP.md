@@ -29,12 +29,12 @@ graph TD
 
 | Topic | Primary Documentation (Truth) | Core Implementation (Enforcement) |
 | :--- | :--- | :--- |
-| **Architectural Rules** | [core/meta/mandate.spec](./core/meta/mandate.spec) | `packages/core/sdd_core` |
+| **Architectural Rules** | [core/mandates/INDEX.md](./core/mandates/INDEX.md) | `packages/core/sdd_core` |
 | **Code Generation** | [features/CUSTOMIZATION_GOVERNANCE.md](./features/CUSTOMIZATION_GOVERNANCE.md) | `packages/core/sdd_compiler` |
 | **Pipeline & Setup** | [specifications/testing.md](./specifications/testing.md) | `packages/features/sdd_integration` |
 | **CLI & Tools** | [specifications/security-model.md](./specifications/security-model.md) | `packages/interfaces/sdd_cli` |
-| **Wizard & Onboarding** | [concepts/provisioning.md](./concepts/provisioning.md) | `packages/interfaces/sdd_wizard` |
-| **Token Economy** | [core/economy/index.md](./core/economy/index.md) | `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py` |
+| **Wizard & Onboarding** | [guides/onboarding/README.md](../guides/onboarding/README.md) | `packages/interfaces/sdd_wizard` |
+| **Token Economy** | [core/economy/INDEX.md](./core/economy/INDEX.md) | `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py` |
 
 ## 🏗️ Layered Logic Map
 

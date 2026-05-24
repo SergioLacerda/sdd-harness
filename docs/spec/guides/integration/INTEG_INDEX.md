@@ -6,7 +6,7 @@
 
 ## 📍 Entry Point
 
-- [README.md](./README.md) — Start here (5 min overview)
+- [CHECKLIST.md](./CHECKLIST.md) — Start here (5 min overview)
 - [CHECKLIST.md](./CHECKLIST.md) — 5-step process with commands
 
 ---
@@ -90,7 +90,7 @@ cp -r INTEGRATION/templates/* /path/to/your-project/
 
 **Run validation:**
 ```bash
-python ../sdd-harness/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python ../sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 **Commit:**
@@ -109,7 +109,7 @@ git commit -m "feat: Integrate SDD framework governance"
 | Python path error | Check `.spec.config` spec_path = correct relative path |
 | Templates not copying | Use: `cp -r INTEGRATION/templates/` (with trailing /) |
 | Validation script fails | Check STEP_4_VALIDATE.md troubleshooting |
-| Pre-commit hook error | See [Setup Pre-commit](./STEP_5_COMMIT.md) |
+| Pre-commit hook error | See [Setup Pre-commit](./STEP_5.md) |
 
 ---
 

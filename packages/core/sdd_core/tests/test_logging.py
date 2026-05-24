@@ -13,8 +13,8 @@ import sdd_core.log_config as logging_mod
 
 
 def _reset_structlog(monkeypatch) -> None:
-    """Reset structlog and the _CONFIGURED flag between tests."""
-    monkeypatch.setattr(logging_mod, "_CONFIGURED", False)
+    """Reset structlog and the _state flag between tests."""
+    monkeypatch.setattr(logging_mod, "_state", [False])
     structlog.reset_defaults()
 
 
@@ -64,7 +64,7 @@ def test_configure_logging_idempotent(monkeypatch) -> None:
     logging_mod.configure_logging()
     logging_mod.configure_logging()  # second call must not raise or reset config
 
-    assert logging_mod._CONFIGURED is True
+    assert logging_mod._state[0] is True
 
 
 def test_configure_logging_console_when_tty(monkeypatch) -> None:

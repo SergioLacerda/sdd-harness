@@ -37,6 +37,19 @@ jobs:
           uv run pytest -q \
             tests/contract/test_governance_schema.py::TestGovernanceCoreGoldenFile::test_structure_matches_golden
 
+      - name: Enforce golden snapshot policy matrix
+        shell: bash
+        run: |
+          uv run python tools/ci/check_golden_policy.py --mode block
+
+      - name: Enforce core/compiler/runtime contract invariants
+        shell: bash
+        run: |
+          mkdir -p .artifacts
+          uv run python tools/ci/check_core_compiler_runtime_contract.py \
+            --mode enforce \
+            --json-out .artifacts/core_compiler_runtime_contract_gate.json
+
       - name: Repository .sdd mutation guard
         if: always()
         shell: bash
@@ -149,6 +162,10 @@ jobs:
           uv run python tools/ci/check_codex_sdd_ask.py
           uv run python tools/ci/check_no_sdd_ci_commands.py
           uv run python tools/ci/check_no_legacy_ai_paths.py
+          uv run python tools/ci/check_enforcement_ladder_consistency.py
+          uv run python tools/ci/check_enforcement_threshold_signoff.py
+          uv run python tools/ci/check_observability_contract.py
+          uv run python tools/ci/check_runbook_hardening_protocol.py
 
       - name: Enforce global print policy (T201)
         shell: bash
@@ -185,6 +202,10 @@ jobs:
             --json-out .artifacts/sdd_cli_reliability_digest.json \
             --md-out .artifacts/sdd_cli_reliability_digest.md \
             --max-warnings 0
+          uv run python tools/ci/enforcement_ladder_digest.py \
+            --json-out .artifacts/enforcement_ladder_digest.json \
+            --md-out .artifacts/enforcement_ladder_digest.md \
+            --mode report
 
       - name: Upload sdd_cli reliability digest artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -194,6 +215,8 @@ jobs:
             .artifacts/sdd_cli_reliability_digest.json
             .artifacts/sdd_cli_reliability_digest.md
             .artifacts/sdd_cli_pytest.log
+            .artifacts/enforcement_ladder_digest.json
+            .artifacts/enforcement_ladder_digest.md
 
       - name: Repository .sdd mutation guard
         if: always()

@@ -169,7 +169,7 @@ cat $SPEC_PATH/EXECUTION/spec/CANONICAL/specifications/context-aware-agent-patte
 SPEC_PATH=$(grep spec_path .spec.config | cut -d' ' -f3)
 
 # Read quiz
-cat $SPEC_PATH/docs/ia/guides/onboarding/VALIDATION_QUIZ.md
+cat $SPEC_PATHdocs/spec/guides/onboarding/VALIDATION_QUIZ.md
 ```
 
 **Quiz structure (5 questions):**

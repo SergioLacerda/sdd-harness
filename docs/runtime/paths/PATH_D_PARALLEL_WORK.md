@@ -1,32 +1,25 @@
-# PATH D
+# PATH D - Parallel Work
 
-## Cognitive Objective
-
-Minimize exploration breadth while preserving deterministic convergence for this path.
+## Context Budget
+- Per-stream isolation: each thread loads only its own required context.
 
 ## Scope
+- 2+ independent work streams with no shared mutable state.
 
-- Restrict execution to affected modules and directly connected tests.
-- Expand context only with explicit evidence.
+## Entry Checklist
+- Enumerate streams and ownership.
+- Validate no shared state between streams.
 
 ## MUST
-
-- Start with smallest meaningful validation.
-- Keep changes within declared path intent.
-- Document deviations when path escalation is required.
+- Classify each stream with its own PATH.
+- Define integration order before execution.
+- Validate isolation before merge.
 
 ## MUST NOT
+- Share mutable state between streams.
+- Merge incomplete streams.
+- Add new streams without reclassification.
 
-- Run broad refactors outside scoped objective.
-- Execute full-suite retries without new evidence.
-- Mix unrelated tasks in the same path execution.
-
-## INVALID
-
-- Any execution that changes architectural scope without path reclassification.
-- Any retry loop without new diagnostics.
-
-## Escalation/Recovery
-
-- If convergence stalls, reclassify task using TASK_CLASSIFICATION.
-- If risk crosses path boundaries, escalate to PATH C with explicit rationale.
+## Escalation
+- Redesign as PATH C when streams share state.
+- Switch affected stream to PATH E for urgent production incidents.

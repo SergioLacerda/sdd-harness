@@ -41,12 +41,12 @@ cat .spec.config
 
 # 3. Agent sees: "Execute PHASE 0"
 SPEC_PATH=$(grep spec_path .spec.config | cut -d' ' -f3)
-cat $SPEC_PATH/docs/ia/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md
+cat $SPEC_PATHdocs/spec/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md
 
 # 4. Agent executes PHASE 0 (either manually or automated)
 # Option A: Manual (follow 6 steps in guide)
 # Option B: Automated (run script)
-python $SPEC_PATH/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python $SPEC_PATHdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 ---
@@ -86,7 +86,7 @@ Step 1: Read .spec.config
 
 Step 2: Read PHASE-0 Guide
   └─ SPEC_PATH=$(grep spec_path .spec.config | cut -d' ' -f3)
-     cat $SPEC_PATH/docs/ia/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md
+     cat $SPEC_PATHdocs/spec/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md
 
 Step 3: Create Directories
   └─ mkdir -p .sdd/context-aware/{task-progress/completed,analysis,runtime-state}
@@ -116,7 +116,7 @@ Step 7: Commit
 
 ```bash
 # Single command (does all steps)
-python $(grep spec_path .spec.config | cut -d' ' -f3)/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 **What script does:**

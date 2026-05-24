@@ -242,11 +242,11 @@ Week 2+ (Ongoing)
 
 **Other important documentation:**
 
-- **Framework Overview:** [README.md](../README.md)
+- **Framework Overview:** [CORE__START_HERE.md](./CORE__START_HERE.md)
 - **Architecture Details:** [.sdd-core/NAVIGATION.md](./NAVIGATION.md)
-- **Specific Operational Tasks:** [guides/operational/](../../_spec/guides/operational/)
-- **Troubleshooting Deep-Dive:** [guides/troubleshooting/](../../_spec/guides/troubleshooting/)
-- **Integration Workflow:** [.sdd-integration/README.md](../sdd-integration/README.md)
+- **Specific Operational Tasks:** [OPERATIONS.md](./OPERATIONS.md)
+- **Troubleshooting Deep-Dive:** [TROUBLESHOOTING_SPEC_VIOLATIONS.md](./TROUBLESHOOTING_SPEC_VIOLATIONS.md)
+- **Integration Workflow:** [INTEG_INDEX.md](../integration/INTEG_INDEX.md)
 
 ---
 
