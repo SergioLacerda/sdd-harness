@@ -7,6 +7,7 @@ from unittest.mock import patch
 from click.testing import CliRunner
 from sdd_runtime._skill_executor import _evaluate_correction_gate
 
+from sdd_cli.commands.pipeline import _load_freeze_mode_state
 from sdd_cli.main import app
 
 runner = CliRunner()
@@ -551,14 +552,10 @@ def test_pipeline_run_exits_2_on_zero_budget(tmp_path) -> None:
 
 class TestLoadFreezeModeState:
     def test_returns_disabled_when_file_missing(self, tmp_path) -> None:
-        from sdd_cli.commands.pipeline import _load_freeze_mode_state
-
         result = _load_freeze_mode_state(tmp_path, task_id="t1")
         assert result == {"enabled": False}
 
     def test_returns_disabled_on_json_decode_error(self, tmp_path) -> None:
-        from sdd_cli.commands.pipeline import _load_freeze_mode_state
-
         state_file = tmp_path / ".sdd" / "runtime" / "freeze-mode-state.json"
         state_file.parent.mkdir(parents=True, exist_ok=True)
         state_file.write_text("not-json", encoding="utf-8")
@@ -566,10 +563,6 @@ class TestLoadFreezeModeState:
         assert result == {"enabled": False}
 
     def test_returns_disabled_when_payload_not_dict(self, tmp_path) -> None:
-        import json
-
-        from sdd_cli.commands.pipeline import _load_freeze_mode_state
-
         state_file = tmp_path / ".sdd" / "runtime" / "freeze-mode-state.json"
         state_file.parent.mkdir(parents=True, exist_ok=True)
         state_file.write_text(json.dumps([1, 2, 3]), encoding="utf-8")
@@ -577,10 +570,6 @@ class TestLoadFreezeModeState:
         assert result == {"enabled": False}
 
     def test_returns_disabled_when_task_id_mismatch(self, tmp_path) -> None:
-        import json
-
-        from sdd_cli.commands.pipeline import _load_freeze_mode_state
-
         state_file = tmp_path / ".sdd" / "runtime" / "freeze-mode-state.json"
         state_file.parent.mkdir(parents=True, exist_ok=True)
         state_file.write_text(
@@ -590,10 +579,6 @@ class TestLoadFreezeModeState:
         assert result["enabled"] is False
 
     def test_sets_default_task_id_when_absent(self, tmp_path) -> None:
-        import json
-
-        from sdd_cli.commands.pipeline import _load_freeze_mode_state
-
         state_file = tmp_path / ".sdd" / "runtime" / "freeze-mode-state.json"
         state_file.parent.mkdir(parents=True, exist_ok=True)
         state_file.write_text(json.dumps({"enabled": True}), encoding="utf-8")

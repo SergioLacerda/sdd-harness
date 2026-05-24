@@ -16,7 +16,7 @@ Output format
 
 from __future__ import annotations
 
-import logging
+import logging as _stdlib_logging
 import os
 import sys
 
@@ -45,7 +45,7 @@ def configure_logging(level: str = "INFO") -> None:
         else structlog.dev.ConsoleRenderer(colors=True)
     )
 
-    numeric_level = getattr(logging, level.upper(), logging.INFO)
+    numeric_level = getattr(_stdlib_logging, level.upper(), _stdlib_logging.INFO)
 
     structlog.configure(
         processors=[

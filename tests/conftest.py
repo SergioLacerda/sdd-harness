@@ -102,7 +102,7 @@ def _governance_artifacts_valid(paths: dict[str, Path]) -> bool:
             if len(_items) >= 4 and all("id" in _item for _item in _items):
                 return True
         except Exception:
-            pass
+            continue
     return False
 
 

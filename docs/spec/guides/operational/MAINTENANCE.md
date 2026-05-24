@@ -474,7 +474,7 @@ python compile_artifacts.py
 echo ""
 echo "Post-update validation..."
 sdd governance validate
-sdd --version
+sdd version
 
 # Run tests
 echo ""

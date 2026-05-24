@@ -17,7 +17,7 @@ echo "→ Installing SDD CLI from source..."
 uv tool install "git+${REPO}#subdirectory=${CLI_SUBDIR}" --force
 
 echo "→ Verifying installation..."
-sdd --version
+sdd version
 
 echo ""
-echo "✓ SDD CLI installed. Run: sdd wizard"
+echo "✓ SDD CLI installed. Next: cd <your-project> && sdd wizard run"

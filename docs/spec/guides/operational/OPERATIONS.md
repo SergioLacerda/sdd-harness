@@ -592,7 +592,7 @@ du -sh .sdd-*
 4. **Escalate:** Contact SDD framework maintainers
 
 **Provide when reporting issues:**
-- Command run: `sdd --version` output
+- Command run: `sdd version` output
 - Error message: Full stack trace if available
 - Environment: OS, Python version
 - Recent changes: What changed before issue occurred

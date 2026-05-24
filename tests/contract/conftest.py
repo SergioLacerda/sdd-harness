@@ -45,7 +45,7 @@ def _artifacts_valid(repo_root: Path) -> bool:
             if len(items) >= 4 and all("id" in item for item in items):
                 return True
         except Exception:
-            pass
+            continue
     return False
 
 

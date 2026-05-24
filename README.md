@@ -48,7 +48,7 @@ cat install.sh && sh install.sh
 ```bash
 # 2) Navigate to your project and run the interactive wizard
 cd your-project
-sdd wizard
+sdd wizard run
 ```
 
 The wizard walks you through 4 phases: template generation → customization → compile → project structure. At the end, `.sdd/` is created with your governance artifacts, IDE templates, and agent instructions.

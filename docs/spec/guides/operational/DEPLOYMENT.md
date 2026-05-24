@@ -171,7 +171,7 @@ echo "✅ Artifacts compiled"
 chmod +x ./dist/sdd
 
 # Verify binary works
-./dist/sdd --version
+./dist/sdd version
 # Expected: "SDD Framework v3.0"
 
 # Optionally add to PATH
@@ -179,7 +179,7 @@ sudo ln -sf $(pwd)/dist/sdd /usr/local/bin/sdd
 
 # Verify system-wide availability
 which sdd
-sdd --version
+sdd version
 
 echo "✅ CLI binary deployed"
 ```
@@ -197,7 +197,7 @@ python -m cli --help
 alias sdd="python -m cli"
 
 # Verify alias works
-sdd --version
+sdd version
 
 echo "✅ CLI installed from source"
 ```
@@ -238,7 +238,7 @@ echo "✅ All deployment validations passed"
 ```bash
 # Verify CLI is accessible
 which sdd
-sdd --version
+sdd version
 
 # Quick governance check
 sdd governance validate | grep -E "(✅|✗)"
@@ -300,7 +300,7 @@ echo "✅ Performance baseline established"
 cat >> deployment_log.txt << EOF
 
 ## Deployment: $(date)
-- Version: $(sdd --version)
+- Version: $(sdd version)
 - Environment: $(uname -a)
 - Backup location: $BACKUP_DIR
 - CLI location: $(which sdd)

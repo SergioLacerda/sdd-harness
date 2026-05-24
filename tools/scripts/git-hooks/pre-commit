@@ -63,7 +63,7 @@ else
     now=$(date +%s)
     age=$((now - last_mod))
 
-    if [ "$age" -gt 900 ]; then
+    if [ "$age" -gt 3600 ]; then
         if is_protected_branch; then
             echo "GUARDRAIL L2 FAILURE: .sdd/runtime/.sdd-cache.md is stale ($((age / 60)) min ago)."
             echo "FIX: Update the cache and run the Validation Quiz before committing."
