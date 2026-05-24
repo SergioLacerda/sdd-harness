@@ -7,10 +7,7 @@ updating this module.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import logging as _stdlib_logging
+import logging as _stdlib_logging
 
 
 def get_logger(name: str) -> _stdlib_logging.Logger:
@@ -18,9 +15,7 @@ def get_logger(name: str) -> _stdlib_logging.Logger:
 
     Usage::
 
-        from sdd_core.utils.logging import get_logger
+        from sdd_core.utils.log import get_logger
         logger = get_logger(__name__)
     """
-    import logging as _logging  # noqa: PLC0415
-
-    return _logging.getLogger(name)
+    return _stdlib_logging.getLogger(name)

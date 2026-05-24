@@ -255,11 +255,13 @@ def main() -> None:
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     try:
-        from sdd_core.logging import configure_logging
+        from sdd_core.log_config import configure_logging
 
         configure_logging()
     except ImportError:
-        logging.debug("sdd_core.logging not available; using stdlib logging defaults.")
+        logging.debug(
+            "sdd_core.log_config not available; using stdlib logging defaults."
+        )
     app()
 
 

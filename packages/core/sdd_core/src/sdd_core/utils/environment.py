@@ -129,8 +129,17 @@ def get_project_config() -> dict[str, Any]:
 
 
 def get_sdd_paths() -> dict[str, Path]:
-    """Resolve standard SDD paths based on the /generated hierarchy."""
-    root = detect_repo_root()
+    """Resolve standard SDD paths for both framework repo and client workspaces.
+
+    Resolution precedence:
+    1. SDD framework repository root (development mode)
+    2. Active workspace root containing `.sdd/` (installed CLI mode)
+    3. Current working directory (fresh onboarding before `.sdd` exists)
+    """
+    try:
+        root = detect_repo_root()
+    except RuntimeError:
+        root = find_workspace_root() or Path.cwd().resolve()
     gen = root / "generated"
 
     # Prefer .sdd/source over generated/client/build/docs-meta when compiling

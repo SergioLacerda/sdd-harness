@@ -242,6 +242,47 @@ class TestGetSddPaths:
             paths = get_sdd_paths()
             assert paths["source_spec"] == sdd_source
 
+    def test_falls_back_to_workspace_root_when_repo_root_missing(
+        self, tmp_path: Path
+    ) -> None:
+        """Should use workspace root when framework repo root is unavailable."""
+        workspace_root = tmp_path / "client-project"
+        (workspace_root / ".sdd" / "source").mkdir(parents=True)
+
+        with (
+            patch(
+                "sdd_core.utils.environment.detect_repo_root",
+                side_effect=RuntimeError("repo root missing"),
+            ),
+            patch(
+                "sdd_core.utils.environment.find_workspace_root",
+                return_value=workspace_root,
+            ),
+        ):
+            paths = get_sdd_paths()
+            assert paths["root"] == workspace_root
+            assert paths["source_spec"] == workspace_root / ".sdd" / "source"
+
+    def test_falls_back_to_cwd_when_repo_and_workspace_missing(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """Should use cwd for onboarding flows before `.sdd` exists."""
+        monkeypatch.chdir(tmp_path)
+
+        with (
+            patch(
+                "sdd_core.utils.environment.detect_repo_root",
+                side_effect=RuntimeError("repo root missing"),
+            ),
+            patch("sdd_core.utils.environment.find_workspace_root", return_value=None),
+        ):
+            paths = get_sdd_paths()
+            assert paths["root"] == tmp_path.resolve()
+            assert (
+                paths["source_spec"]
+                == tmp_path / "generated" / "client" / "build" / "docs-meta"
+            )
+
 
 class TestWorkspaceNotInitializedError:
     """Tests for workspace initialization error."""
