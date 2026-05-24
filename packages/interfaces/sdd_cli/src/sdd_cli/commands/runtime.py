@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from pathlib import Path
 from typing import Any, Literal
 
@@ -95,6 +96,15 @@ def status(
 
     # D3: show ask_confidence block if last_ask is present
     ask_confidence = _show_ask_confidence(root, emit=not output_json)
+
+    cache_staleness = _check_cache_staleness(root)
+    if not output_json and cache_staleness["stale"]:
+        typer.echo(
+            f"\nWARNING L2: .sdd-cache.md is stale ({cache_staleness['age_min']} min ago)."
+            " Update it before committing to a protected branch.",
+            err=False,
+        )
+
     governance_footer = format_governance_footer(
         drift=_footer_drift_status(drift_info),
         governance=state.lower(),
@@ -109,6 +119,7 @@ def status(
             "drift": drift_info,
             "ask_confidence": ask_confidence,
             "governance_footer": governance_footer,
+            "cache_staleness": cache_staleness,
         }
         if code == 0:
             payload = build_ok_result("runtime status", data)
@@ -125,6 +136,15 @@ def status(
 
     if code != 0:
         raise typer.Exit(code)
+
+
+def _check_cache_staleness(root: Path) -> dict[str, Any]:
+    """Return staleness info for .sdd/runtime/.sdd-cache.md."""
+    cache_file = root / ".sdd" / "runtime" / ".sdd-cache.md"
+    if not cache_file.exists():
+        return {"stale": False, "missing": True, "age_min": None}
+    age = int(time.time() - cache_file.stat().st_mtime)
+    return {"stale": age > 900, "missing": False, "age_min": age // 60}
 
 
 def _footer_drift_status(drift_info: dict[str, Any]) -> str:

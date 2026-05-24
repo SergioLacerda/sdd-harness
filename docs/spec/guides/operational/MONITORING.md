@@ -65,7 +65,7 @@ echo ""
 # 2. CLI availability
 echo "⚙️  CLI Status:"
 if command -v sdd &> /dev/null; then
-    VERSION=$(sdd --version 2>/dev/null || echo "ERROR")
+    VERSION=$(sdd version 2>/dev/null || echo "ERROR")
     echo "  ✅ CLI available: $VERSION"
 else
     echo "  ❌ CLI not found in PATH"

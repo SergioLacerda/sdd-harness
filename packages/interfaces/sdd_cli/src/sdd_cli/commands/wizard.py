@@ -25,4 +25,17 @@ def run() -> None:
         typer.echo("Run: sdd setup run")
         raise typer.Exit(1) from err
 
-    run_wizard()
+    try:
+        run_wizard()
+    except RuntimeError as err:
+        message = str(err)
+        if "SDD Project root not found" in message:
+            typer.echo("ERROR: No SDD project context found in the current directory.")
+            typer.echo(
+                "Run from your project root (where you want .sdd/ to be created)."
+            )
+            typer.echo("Example:")
+            typer.echo("  mkdir my-project && cd my-project")
+            typer.echo("  sdd wizard run")
+            raise typer.Exit(1) from err
+        raise

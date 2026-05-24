@@ -137,6 +137,7 @@ class TestMetricsServeCommand:
                 return int(sock.getsockname()[1])
         except PermissionError:
             pytest.skip("Socket creation is restricted in this environment")
+            return 0  # unreachable — pytest.skip() raises Skipped
 
     def test_serve_no_jsonl_file_error(self, tmp_path: Path) -> None:
         """Serve should error gracefully when JSONL not found."""
