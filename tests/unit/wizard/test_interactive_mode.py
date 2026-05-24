@@ -25,9 +25,7 @@ def _make_wizard(tmp_path: Path) -> Any:
     with patch(
         "sdd_wizard.src.interactive_mode.get_sdd_paths", return_value=mock_paths
     ):
-        wizard = InteractiveWizard(
-            repo_root=tmp_path, prompter=lambda prompt: input(prompt)
-        )
+        wizard = InteractiveWizard(repo_root=tmp_path, prompter=input)
     return wizard
 
 

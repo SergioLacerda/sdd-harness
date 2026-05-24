@@ -21,8 +21,8 @@ class OtelExporter(Protocol):
         span_id: str | None = None,
     ) -> None:
         """Send a single telemetry event with the given OTel attributes."""
-        ...
+        pass
 
     def shutdown(self) -> None:
         """Flush and release any resources held by the exporter."""
-        ...
+        pass

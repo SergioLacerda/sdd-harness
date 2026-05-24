@@ -19,7 +19,8 @@ from sdd_cli.utils.telemetry_paths import resolve_compliance_events_path
 
 
 class _EventSink(Protocol):
-    def emit(self, event: RuntimeEvent) -> None: ...
+    def emit(self, event: RuntimeEvent) -> None:
+        pass
 
 
 def resolve_tokens(query: str, output_text: str) -> tuple[int | None, int | None, str]:

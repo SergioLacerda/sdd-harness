@@ -27,7 +27,6 @@ app = typer.Typer()
 
 # Canonical project-scoped paths (§4 Phase 1 — §15.2 Phase 2).
 _RUNTIME_DIR = Path(".sdd") / "runtime"
-_EVENTS_FILENAME = "compliance-events.jsonl"
 
 
 @app.callback()

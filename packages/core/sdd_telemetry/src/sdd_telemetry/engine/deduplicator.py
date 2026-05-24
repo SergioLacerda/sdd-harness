@@ -34,7 +34,7 @@ class DeduplicationEngine:
     def deduplicate(self, event: dict[str, Any]) -> dict[str, Any]:
         """Return a compressed copy of event, served from cache when identical hash is seen."""
         event_json = json.dumps(event, sort_keys=True, default=str)
-        event_hash = hashlib.md5(event_json.encode(), usedforsecurity=False).hexdigest()
+        event_hash = hashlib.sha256(event_json.encode()).hexdigest()
 
         cached = self._cache.get(event_hash)
         if cached is not None:
