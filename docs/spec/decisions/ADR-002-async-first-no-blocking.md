@@ -94,7 +94,7 @@ When implementing:
 - **Sleep**: Never use time.sleep(), use asyncio.sleep()
 - **File I/O**: Never use open(), use aiofiles or similar
 
-See: [threading_concurrency.md](../current-system-state/threading_concurrency.md)
+See: [AGENT_RUNTIME_PROTOCOL.md](../../runtime/protocols/AGENT_RUNTIME_PROTOCOL.md)
 
 ---
 
@@ -107,7 +107,7 @@ See: [threading_concurrency.md](../current-system-state/threading_concurrency.md
 - ⚠️ Some adapters have sync I/O (technical debt)
 - 🚨 Signal handlers not tested with async (bug)
 
-See: [known_issues.md](../current-system-state/known_issues.md)
+See: [runbooks](../canonical/specifications/runbooks/)
 
 ---
 

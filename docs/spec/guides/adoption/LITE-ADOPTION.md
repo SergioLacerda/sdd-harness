@@ -60,7 +60,7 @@ echo "✅ LITE adoption complete!"
 ```
 
 **Need help customizing?**
-→ See [CONSTITUTION-CUSTOMIZATION.md](../guides/CONSTITUTION-CUSTOMIZATION.md)
+→ See [Core Mandates](../../canonical/core/mandates/INDEX.md)
 
 ---
 
@@ -172,8 +172,8 @@ echo "✅ LITE adoption complete!"
 
 - [ ] Read this file (5 min)
 - [ ] Run quick start script (15 min)
-- [ ] Try your first feature following [LITE-QUICK-START.md](./LITE-QUICK-START.md)
-- [ ] Ask questions → [FAQ](../reference/FAQ.md)
+- [ ] Try your first feature following [ULTRA-LITE-ADOPTION.md](./ULTRA-LITE-ADOPTION.md)
+- [ ] Ask questions → [FAQ](../faq.md)
 
 ---
 
@@ -217,13 +217,13 @@ This gives you:
 ## Need Help?
 
 **Getting started?**
-→ [LITE-QUICK-START.md](./LITE-QUICK-START.md)
+→ [ULTRA-LITE-ADOPTION.md](./ULTRA-LITE-ADOPTION.md)
 
 **Have questions?**
-→ [FAQ](../reference/FAQ.md)
+→ [FAQ](../faq.md)
 
 **Emergency?**
-→ [Emergency Guide](../emergency/)
+→ [Troubleshooting](../operational/TROUBLESHOOTING_SPEC_VIOLATIONS.md)
 
 **Ready to upgrade?**
 → [LITE to FULL Migration](./LITE-TO-FULL-MIGRATION.md)
@@ -241,6 +241,6 @@ No pressure. SDD is collaborative. Your experience shapes v2.2.
 
 ---
 
-**Ready? Start here:** [LITE-QUICK-START.md](./LITE-QUICK-START.md)
+**Ready? Start here:** [ULTRA-LITE-ADOPTION.md](./ULTRA-LITE-ADOPTION.md)
 
 *Framework under active development. Your feedback drives priorities.*

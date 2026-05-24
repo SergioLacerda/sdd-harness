@@ -13,7 +13,7 @@ Centralize immutable cognitive governance artifacts and their operational mappin
 
 ## Decision Models
 
-- [decision-models/index.md](./decision-models/index.md)
+- [decision-models/INDEX.md](./decision-models/INDEX.md)
 - [decision-models/TASK_CLASSIFICATION.md](./decision-models/TASK_CLASSIFICATION.md)
 - [decision-models/EXECUTION_DECISION.md](./decision-models/EXECUTION_DECISION.md)
 
@@ -24,6 +24,6 @@ Centralize immutable cognitive governance artifacts and their operational mappin
 
 ## Context Loading
 
-- [context-loading/index.md](./context-loading/index.md)
+- [context-loading/INDEX.md](./context-loading/INDEX.md)
 - [context-loading/path-routing.md](./context-loading/path-routing.md)
 - [context-loading/context-budget.md](./context-loading/context-budget.md)

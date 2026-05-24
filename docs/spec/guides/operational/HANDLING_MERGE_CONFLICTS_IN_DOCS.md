@@ -335,8 +335,8 @@ Question 4: Can you merge both versions?
 ---
 
 ## 🔗 Related Docs
-- [architecture.md](../../CANONICAL/specifications/architecture.md)
-- [ADR-005: Thread Isolation Mandatory](../../CANONICAL/decisions/ADR-005-thread-isolation-mandatory.md)
+- [architecture.md](../../canonical/specifications/architecture.md)
+- [ADR-005: Thread Isolation Mandatory](../../decisions/ADR-005-thread-isolation-mandatory.md)
 - [MIGRATING_DOCS_BETWEEN_PROJECTS.md](MIGRATING_DOCS_BETWEEN_PROJECTS.md)
 - [git documentation](https://git-scm.com/docs/git-merge)
 

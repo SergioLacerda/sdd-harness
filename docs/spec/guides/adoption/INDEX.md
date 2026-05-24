@@ -88,7 +88,7 @@
 
 **Before you choose adoption, you need to understand your project's intention.**
 
-→ **[INTEGRATION/STEP_6.md](../../INTEGRATION/STEP_6.md)** — Intention Detection Guide
+→ **[INTEGRATION/STEP_6.md](../integration/STEP_6.md)** — Intention Detection Guide
 - Answer 5 questions about your project
 - Questions reveal whether you need LITE or FULL
 - Determines adoption level for your project
@@ -188,13 +188,13 @@
 ### For Individual Developers
 → **LITE** if learning on your own
 → **FULL** if building production code
-→ Ask if unsure → [FAQ](../reference/FAQ.md)
+→ Ask if unsure → [FAQ](../faq.md)
 
 ### For AI Agents
 → Both LITE and FULL supported
 → All rules explicit in constitution
 → Autonomous execution possible
-→ See [.ai-index.md](../../.ai-index.md)
+→ See [docs/.ai-index.md](../../../.ai-index.md)
 
 ---
 
@@ -207,10 +207,10 @@
 → [LITE-TO-FULL-MIGRATION.md](./LITE-TO-FULL-MIGRATION.md)
 
 **General FAQ?**
-→ [FAQ](../reference/FAQ.md)
+→ [FAQ](../faq.md)
 
 **Emergency?**
-→ [Emergency Guide](../emergency/)
+→ [Troubleshooting](../operational/TROUBLESHOOTING_SPEC_VIOLATIONS.md)
 
 **Something broken?**
 → File issue (GitHub) or reach out in discussions

@@ -120,7 +120,7 @@ System needs semantic search over narrative documents.
 
 ## Known Issues
 
-See: [current-system-state/known_issues.md](../current-system-state/known_issues.md)
+See: [vector-search-down.md](../canonical/specifications/runbooks/vector-search-down.md)
 
 - 🔴 CRITICAL: IVF lazy initialization race condition
 - 🟡 MEDIUM: Sometimes returns incomplete results
@@ -147,7 +147,7 @@ See: [current-system-state/known_issues.md](../current-system-state/known_issues
 
 ## Implementation Notes
 
-See: [current-system-state/rag_pipeline.md](../current-system-state/rag_pipeline.md)
+See: [observability.md](../canonical/specifications/observability.md)
 
 8-component RAG pipeline:
 1. Query expansion

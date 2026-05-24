@@ -100,7 +100,7 @@ Need persistent storage for campaigns. Options:
 
 ## Known Limitations
 
-See: [current-system-state/storage_limitations.md](../current-system-state/storage_limitations.md)
+See: [performance.md](../canonical/specifications/performance.md)
 
 - Single-file JSON (no DB structure)
 - No transactions (race conditions possible)
@@ -137,7 +137,7 @@ See: [current-system-state/storage_limitations.md](../current-system-state/stora
 
 ## Implementation Notes
 
-See: [current-system-state/data_models.md](../current-system-state/data_models.md)
+See: [contracts.md](../canonical/specifications/contracts.md)
 
 Storage format per campaign:
 ```

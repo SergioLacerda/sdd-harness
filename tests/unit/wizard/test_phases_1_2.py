@@ -14,7 +14,6 @@ from sdd_wizard.orchestration.phase_2_load_compiled_v3 import (
     phase_2_load_compiled_v3 as phase_2_load_compiled,
 )
 from sdd_wizard.validator import SourceValidator
-from tests.conftest import get_governance_config
 
 
 @pytest.mark.xdist_group("governance_pipeline")
@@ -22,13 +21,8 @@ class TestPhase1ValidateSource:
     """Tests for Phase 1: Validate SOURCE"""
 
     def test_phase_1_with_valid_files(self, mock_repo: Path) -> None:
-        """Phase 1 should succeed with valid mandate.spec and guidelines.dsl"""
-        config = get_governance_config()
-        spec_path = mock_repo / config.get(
-            "source_root", "docs/spec/canonical/core/policies"
-        )
-
-        success, report = phase_1_validate_source(mock_repo, spec_path=spec_path)
+        """Phase 1 should succeed when governance-core.json and governance-client.json exist in .sdd/."""
+        success, report = phase_1_validate_source(mock_repo)
 
         assert success, f"Phase 1 failed: {report['errors']}"
         assert report["status"] == "SUCCESS"
@@ -37,67 +31,48 @@ class TestPhase1ValidateSource:
         assert report["checks"]["mandate_spec_valid"]
         assert report["checks"]["guidelines_dsl_valid"]
 
-    def test_phase_1_detects_missing_mandate(self) -> None:
-        """Phase 1 should fail if mandate.spec is missing"""
+    def test_phase_1_detects_missing_compiled_defaults(self) -> None:
+        """Phase 1 should fail if compiled governance files are absent and fetch fails."""
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
-            config = get_governance_config()
 
-            # Acatando parâmetro de configuração para evitar paths fixos de produção
-            source_root = config.get("source_root", "docs/spec/canonical/core/policies")
-            spec = repo_root / source_root
-            spec.mkdir(parents=True)
+            from unittest.mock import patch
 
-            # Create guidelines.md but not mandate.md
-            (spec / "guidelines.md").write_text(
-                "# G001: Test\n\nThis is a guideline.", encoding="utf-8"
-            )
-
-            # O teste estimula o recurso simulando a estrutura correta para o validador
-            success, report = phase_1_validate_source(repo_root, spec_path=spec)
+            with patch(
+                "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+                return_value=(False, "failed"),
+            ):
+                success, report = phase_1_validate_source(repo_root)
 
             assert not success
-            assert "mandate" in str(report["errors"]).lower()
+            assert len(report["errors"]) > 0
 
-    def test_phase_1_detects_syntax_errors(self) -> None:
-        """Phase 1 should detect malformed mandate syntax"""
+    def test_phase_1_returns_dict_report(self) -> None:
+        """Phase 1 should always return a dict report regardless of outcome."""
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
-            config = get_governance_config()
 
-            # Isolando recursos para o teste integrado sem depender do ambiente produtivo
-            source_root = config.get("source_root", "docs/spec/canonical/core/policies")
-            spec = repo_root / source_root
-            spec.mkdir(parents=True)
+            from unittest.mock import patch
 
-            # Create files with incomplete/malformed content
-            (spec / "mandate.md").write_text(
-                "# M001 **Test", encoding="utf-8"
-            )  # No ID brackets
-            (spec / "guidelines.md").write_text(
-                "# G001: Test\n\nThis is a guideline.", encoding="utf-8"
-            )
+            with patch(
+                "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+                return_value=(False, "failed"),
+            ):
+                success, report = phase_1_validate_source(repo_root)
 
-            success, report = phase_1_validate_source(repo_root, spec_path=spec)
-
-            # Since parse is lenient with MD, just verify the phase runs and reports something
             assert isinstance(report, dict)
+            assert "phase" in report
+            assert "status" in report
 
-    def test_phase_1_reports_statistics(self, mock_repo: Path) -> None:
-        """Phase 1 should report mandate/guideline counts"""
-        config = get_governance_config()
-        spec_path = mock_repo / config.get(
-            "source_root", "docs/spec/canonical/core/policies"
-        )
-
-        success, report = phase_1_validate_source(mock_repo, spec_path=spec_path)
+    def test_phase_1_reports_success_with_compiled_defaults(
+        self, mock_repo: Path
+    ) -> None:
+        """Phase 1 should succeed when compiled governance defaults are present in .sdd/."""
+        success, report = phase_1_validate_source(mock_repo)
 
         assert success
-        mandate_count = report["data"]["mandate"]["mandate_count"]
-        guideline_count = report["data"]["guidelines"]["guideline_count"]
-
-        assert mandate_count > 0, "Should find at least one mandate"
-        assert guideline_count > 0, "Should find at least one guideline"
+        assert report["status"] == "SUCCESS"
+        assert report["data"]["source"] == "local"
 
 
 class TestPhase2LoadCompiled:
@@ -221,13 +196,8 @@ class TestIntegration:
 
     def test_phases_1_and_2_complete_successfully(self, mock_repo: Path) -> None:
         """Both phases should complete successfully with real repo"""
-        config = get_governance_config()
-        spec_path = mock_repo / config.get(
-            "source_root", "docs/spec/canonical/core/policies"
-        )
-
         # Phase 1
-        success1, report1 = phase_1_validate_source(mock_repo, spec_path=spec_path)
+        success1, report1 = phase_1_validate_source(mock_repo)
         assert success1, f"Phase 1 failed: {report1['errors']}"
 
         # Phase 2

@@ -568,7 +568,7 @@ cat CHANGELOG.md | grep -i "fingerprint\|35efc54"
 - [OPERATIONS.md](./OPERATIONS.md) — Daily operational procedures
 - [MONITORING.md](./MONITORING.md) — Deployment monitoring
 - [MAINTENANCE.md](./MAINTENANCE.md) — Ongoing maintenance
-- [.sdd-wizard/ARCHITECTURE_ALIGNMENT.md](./.sdd-wizard/ARCHITECTURE_ALIGNMENT.md) — Architecture overview
+- [architecture.md](../../canonical/specifications/architecture.md) — Architecture overview
 
 ---
 

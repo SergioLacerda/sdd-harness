@@ -332,12 +332,12 @@ async def shutdown() -> None
 - CONSOLIDATION_QUALITY_AUDIT.md (validation)
 - SEMANTIC_MEMORY_VISION.md (business rules alignment)
 
-**These are consolidated into this file. Original files archived in /docs/ia/ARCHIVE/ for reference.**
+**These are consolidated into this file. Original files archived in docs/spec/ARCHIVE/ for reference.**
 
 **Detailed Specs:**
-- For full context, see: `/docs/ia/specs/_shared/business-rules.md`
-- For architecture details: `/docs/ia/specs/_shared/architecture.md`
-- For contracts: `/docs/ia/specs/_shared/contracts.md`
+- For full context, see: `docs/spec/specs/_shared/business-rules.md`
+- For architecture details: `docs/spec/specs/_shared/architecture.md`
+- For contracts: `docs/spec/specs/_shared/contracts.md`
 
 ---
 

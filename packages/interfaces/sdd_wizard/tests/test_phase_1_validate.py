@@ -1,205 +1,217 @@
-"""Tests for Phase 1 validation."""
+"""Tests for Phase 1 validation — compiled defaults bootstrap."""
 
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
+from sdd_core.utils.text_io import write_text_utf8
 from sdd_wizard.orchestration.phase_1_validate import phase_1_validate_source
 
 
-class TestPhase1ValidateSource:
-    """Test Phase 1 source validation."""
+class TestPhase1LocalFilesPresent:
+    """When both governance files already exist, no fetch should occur."""
 
-    def test_success_returns_true_and_report(self, tmp_path: Path) -> None:
-        """phase_1_validate_source should return success and report on valid pipeline."""
+    def test_success_when_files_exist(self, tmp_path: Path) -> None:
+        """Returns SUCCESS without network access when both files are present."""
+        sdd_dir = tmp_path / ".sdd"
+        sdd_dir.mkdir()
+        write_text_utf8(sdd_dir / "governance-core.json", "{}")
+        write_text_utf8(sdd_dir / "governance-client.json", "{}")
+
         with patch(
-            "sdd_wizard.orchestration.phase_1_validate.GovernanceOrchestrator"
-        ) as mock_orchestrator_cls:
-            mock_orchestrator = MagicMock()
-            mock_orchestrator_cls.return_value = mock_orchestrator
-            mock_orchestrator.run_full_pipeline.return_value = {
-                "full_pipeline_success": True,
-                "phase_1": {
-                    "core_item_count": 5,
-                    "core_fingerprint": "fp-core-123",
-                    "client_item_count": 3,
-                    "client_fingerprint": "fp-client-456",
-                    "error": None,
-                },
-            }
-
+            "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults"
+        ) as mock_fetch:
             success, report = phase_1_validate_source(tmp_path)
 
-            assert success is True
-            assert report["status"] == "SUCCESS"
-            assert report["phase"] == "PHASE_1_VALIDATE_SOURCE"
-            assert report["errors"] == []
-            assert report["data"]["mandate"]["mandate_count"] == 5
-            assert report["data"]["mandate"]["fingerprint"] == "fp-core-123"
-            assert report["data"]["guidelines"]["guideline_count"] == 3
-            assert report["data"]["guidelines"]["fingerprint"] == "fp-client-456"
+        mock_fetch.assert_not_called()
+        assert success is True
+        assert report["status"] == "SUCCESS"
+        assert report["data"]["source"] == "local"
 
-    def test_failure_returns_false_and_error(self, tmp_path: Path) -> None:
-        """phase_1_validate_source should return False and error on failure."""
+    def test_report_structure_on_local_success(self, tmp_path: Path) -> None:
+        """Report contains all required keys on local success."""
+        sdd_dir = tmp_path / ".sdd"
+        sdd_dir.mkdir()
+        write_text_utf8(sdd_dir / "governance-core.json", "{}")
+        write_text_utf8(sdd_dir / "governance-client.json", "{}")
+
+        with patch("sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults"):
+            _, report = phase_1_validate_source(tmp_path)
+
+        assert report["phase"] == "PHASE_1_VALIDATE_SOURCE"
+        assert report["errors"] == []
+        assert "mandate_spec_exists" in report["checks"]
+        assert "guidelines_dsl_exists" in report["checks"]
+        assert "mandate_spec_valid" in report["checks"]
+        assert "guidelines_dsl_valid" in report["checks"]
+        assert "mandate" in report["data"]
+        assert "guidelines" in report["data"]
+
+    def test_no_advisory_on_local_source(self, tmp_path: Path) -> None:
+        """No advisory field emitted when files are local."""
+        sdd_dir = tmp_path / ".sdd"
+        sdd_dir.mkdir()
+        write_text_utf8(sdd_dir / "governance-core.json", "{}")
+        write_text_utf8(sdd_dir / "governance-client.json", "{}")
+
+        with patch("sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults"):
+            _, report = phase_1_validate_source(tmp_path)
+
+        assert "advisory" not in report
+
+    def test_only_core_missing_triggers_fetch(self, tmp_path: Path) -> None:
+        """If only one file is present the fetch path is still triggered."""
+        sdd_dir = tmp_path / ".sdd"
+        sdd_dir.mkdir()
+        write_text_utf8(sdd_dir / "governance-client.json", "{}")
+
         with patch(
-            "sdd_wizard.orchestration.phase_1_validate.GovernanceOrchestrator"
-        ) as mock_orchestrator_cls:
-            mock_orchestrator = MagicMock()
-            mock_orchestrator_cls.return_value = mock_orchestrator
-            error_msg = "Mandate spec not found"
-            mock_orchestrator.run_full_pipeline.return_value = {
-                "full_pipeline_success": False,
-                "phase_1": {
-                    "error": error_msg,
-                },
-            }
+            "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+            return_value=(True, "versioned_release"),
+        ) as mock_fetch:
+            success, _ = phase_1_validate_source(tmp_path)
 
+        mock_fetch.assert_called_once()
+        assert success is True
+
+    def test_only_client_missing_triggers_fetch(self, tmp_path: Path) -> None:
+        """If only governance-client.json is missing the fetch path is triggered."""
+        sdd_dir = tmp_path / ".sdd"
+        sdd_dir.mkdir()
+        write_text_utf8(sdd_dir / "governance-core.json", "{}")
+
+        with patch(
+            "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+            return_value=(True, "versioned_release"),
+        ) as mock_fetch:
+            success, _ = phase_1_validate_source(tmp_path)
+
+        mock_fetch.assert_called_once()
+        assert success is True
+
+
+class TestPhase1FetchVersionedRelease:
+    """When files are absent and fetch succeeds via versioned release."""
+
+    def test_success_via_versioned_release(self, tmp_path: Path) -> None:
+        """Returns SUCCESS with source=versioned_release when fetch works."""
+        with patch(
+            "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+            return_value=(True, "versioned_release"),
+        ):
             success, report = phase_1_validate_source(tmp_path)
 
-            assert success is False
-            assert report["status"] == "FAILED"
-            assert error_msg in report["errors"]
+        assert success is True
+        assert report["status"] == "SUCCESS"
+        assert report["data"]["source"] == "versioned_release"
+        assert "advisory" not in report
 
-    def test_spec_path_override(self, tmp_path: Path) -> None:
-        """phase_1_validate_source should pass spec_path override to orchestrator."""
-        spec_path = tmp_path / "custom_spec"
-
-        with patch(
-            "sdd_wizard.orchestration.phase_1_validate.GovernanceOrchestrator"
-        ) as mock_orchestrator_cls:
-            mock_orchestrator = MagicMock()
-            mock_orchestrator_cls.return_value = mock_orchestrator
-            mock_orchestrator.run_full_pipeline.return_value = {
-                "full_pipeline_success": True,
-                "phase_1": {
-                    "core_item_count": 0,
-                    "client_item_count": 0,
-                },
-            }
-
-            phase_1_validate_source(tmp_path, spec_path=spec_path)
-
-            # Verify orchestrator was initialized with spec_path
-            mock_orchestrator_cls.assert_called_once()
-            call_kwargs = mock_orchestrator_cls.call_args[1]
-            assert call_kwargs["spec_path"] == str(spec_path)
-
-    def test_no_spec_path_uses_none(self, tmp_path: Path) -> None:
-        """phase_1_validate_source should pass None when spec_path not provided."""
-        with patch(
-            "sdd_wizard.orchestration.phase_1_validate.GovernanceOrchestrator"
-        ) as mock_orchestrator_cls:
-            mock_orchestrator = MagicMock()
-            mock_orchestrator_cls.return_value = mock_orchestrator
-            mock_orchestrator.run_full_pipeline.return_value = {
-                "full_pipeline_success": True,
-                "phase_1": {
-                    "core_item_count": 0,
-                    "client_item_count": 0,
-                },
-            }
-
+    def test_fetch_called_with_cli_version(self, tmp_path: Path) -> None:
+        """fetch_compiled_defaults receives the installed CLI version and sdd_dir."""
+        with (
+            patch(
+                "sdd_wizard.orchestration.phase_1_validate.get_cli_version",
+                return_value="1.2.3",
+            ),
+            patch(
+                "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+                return_value=(True, "versioned_release"),
+            ) as mock_fetch,
+        ):
             phase_1_validate_source(tmp_path)
 
-            call_kwargs = mock_orchestrator_cls.call_args[1]
-            assert call_kwargs["spec_path"] is None
+        mock_fetch.assert_called_once_with("1.2.3", dest=tmp_path / ".sdd")
 
-    def test_report_structure_on_success(self, tmp_path: Path) -> None:
-        """phase_1_validate_source report should have correct structure on success."""
-        with patch(
-            "sdd_wizard.orchestration.phase_1_validate.GovernanceOrchestrator"
-        ) as mock_orchestrator_cls:
-            mock_orchestrator = MagicMock()
-            mock_orchestrator_cls.return_value = mock_orchestrator
-            mock_orchestrator.run_full_pipeline.return_value = {
-                "full_pipeline_success": True,
-                "phase_1": {
-                    "core_item_count": 10,
-                    "core_fingerprint": "abc123",
-                    "client_item_count": 5,
-                    "client_fingerprint": "xyz789",
-                    "error": None,
-                },
-            }
 
-            _, report = phase_1_validate_source(tmp_path)
+class TestPhase1FetchLatestFallback:
+    """When versioned asset misses and latest fallback is used."""
 
-            # Verify report structure
-            assert "phase" in report
-            assert "status" in report
-            assert "errors" in report
-            assert "checks" in report
-            assert "data" in report
-
-            # Verify checks
-            assert "mandate_spec_exists" in report["checks"]
-            assert "guidelines_dsl_exists" in report["checks"]
-            assert "mandate_spec_valid" in report["checks"]
-            assert "guidelines_dsl_valid" in report["checks"]
-
-            # Verify data
-            assert "mandate" in report["data"]
-            assert "guidelines" in report["data"]
-            assert "mandate_count" in report["data"]["mandate"]
-            assert "guideline_count" in report["data"]["guidelines"]
-
-    def test_zero_counts_on_empty_phase_1(self, tmp_path: Path) -> None:
-        """phase_1_validate_source should handle missing counts with defaults."""
-        with patch(
-            "sdd_wizard.orchestration.phase_1_validate.GovernanceOrchestrator"
-        ) as mock_orchestrator_cls:
-            mock_orchestrator = MagicMock()
-            mock_orchestrator_cls.return_value = mock_orchestrator
-            mock_orchestrator.run_full_pipeline.return_value = {
-                "full_pipeline_success": False,
-                "phase_1": {},  # Empty phase_1 data
-            }
-
+    def test_success_via_latest_includes_advisory(self, tmp_path: Path) -> None:
+        """Returns SUCCESS with advisory text when latest-release fallback is used."""
+        with (
+            patch(
+                "sdd_wizard.orchestration.phase_1_validate.get_cli_version",
+                return_value="1.2.3",
+            ),
+            patch(
+                "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+                return_value=(True, "latest_release"),
+            ),
+        ):
             success, report = phase_1_validate_source(tmp_path)
 
-            assert success is False
-            assert report["data"]["mandate"]["mandate_count"] == 0
-            assert report["data"]["guidelines"]["guideline_count"] == 0
+        assert success is True
+        assert report["status"] == "SUCCESS"
+        assert report["data"]["source"] == "latest_release"
+        assert "advisory" in report
+        assert "1.2.3" in report["advisory"]
 
-    def test_multiple_errors_concatenated(self, tmp_path: Path) -> None:
-        """phase_1_validate_source should include error when present."""
+
+class TestPhase1FetchFailure:
+    """When all fetch attempts fail."""
+
+    def test_failure_returns_false_with_error_message(self, tmp_path: Path) -> None:
+        """Returns FAILED with actionable error when network is unavailable."""
         with patch(
-            "sdd_wizard.orchestration.phase_1_validate.GovernanceOrchestrator"
-        ) as mock_orchestrator_cls:
-            mock_orchestrator = MagicMock()
-            mock_orchestrator_cls.return_value = mock_orchestrator
-            error_msg = "Multiple validation errors"
-            mock_orchestrator.run_full_pipeline.return_value = {
-                "full_pipeline_success": False,
-                "phase_1": {
-                    "error": error_msg,
-                },
-            }
+            "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+            return_value=(False, "failed"),
+        ):
+            success, report = phase_1_validate_source(tmp_path)
 
+        assert success is False
+        assert report["status"] == "FAILED"
+        assert len(report["errors"]) == 1
+        assert "governance-core.json" in report["errors"][0]
+        assert "governance-client.json" in report["errors"][0]
+
+    def test_failure_report_all_checks_false(self, tmp_path: Path) -> None:
+        """All checks are False on fetch failure."""
+        with patch(
+            "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+            return_value=(False, "failed"),
+        ):
             _, report = phase_1_validate_source(tmp_path)
 
-            assert len(report["errors"]) == 1
-            assert report["errors"][0] == error_msg
+        for key, value in report["checks"].items():
+            assert value is False, f"check '{key}' should be False"
 
-    def test_no_error_on_success(self, tmp_path: Path) -> None:
-        """phase_1_validate_source should have empty errors on success."""
+    def test_failure_report_zero_counts(self, tmp_path: Path) -> None:
+        """Counts default to zero on fetch failure."""
         with patch(
-            "sdd_wizard.orchestration.phase_1_validate.GovernanceOrchestrator"
-        ) as mock_orchestrator_cls:
-            mock_orchestrator = MagicMock()
-            mock_orchestrator_cls.return_value = mock_orchestrator
-            mock_orchestrator.run_full_pipeline.return_value = {
-                "full_pipeline_success": True,
-                "phase_1": {
-                    "core_item_count": 5,
-                    "core_fingerprint": "abc",
-                    "client_item_count": 3,
-                    "client_fingerprint": "xyz",
-                    "error": None,
-                },
-            }
-
+            "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+            return_value=(False, "failed"),
+        ):
             _, report = phase_1_validate_source(tmp_path)
 
-            assert report["errors"] == []
+        assert report["data"]["mandate"]["mandate_count"] == 0
+        assert report["data"]["guidelines"]["guideline_count"] == 0
+
+    def test_failure_report_structure(self, tmp_path: Path) -> None:
+        """Failure report has same top-level keys as success report."""
+        with patch(
+            "sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults",
+            return_value=(False, "failed"),
+        ):
+            _, report = phase_1_validate_source(tmp_path)
+
+        for key in ("phase", "status", "errors", "checks", "data"):
+            assert key in report
+
+
+class TestPhase1SpecPathIgnored:
+    """spec_path parameter is accepted but ignored for client profile."""
+
+    def test_spec_path_override_accepted(self, tmp_path: Path) -> None:
+        """phase_1_validate_source accepts spec_path without raising."""
+        sdd_dir = tmp_path / ".sdd"
+        sdd_dir.mkdir()
+        write_text_utf8(sdd_dir / "governance-core.json", "{}")
+        write_text_utf8(sdd_dir / "governance-client.json", "{}")
+
+        spec_path = tmp_path / "custom_spec"
+
+        with patch("sdd_wizard.orchestration.phase_1_validate.fetch_compiled_defaults"):
+            success, _ = phase_1_validate_source(tmp_path, spec_path=spec_path)
+
+        assert success is True

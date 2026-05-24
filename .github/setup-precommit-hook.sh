@@ -70,6 +70,28 @@ else
     "${PRE_COMMIT_BIN}" install --install-hooks
 fi
 
+FRAMEWORK_HOOK="${HOOKS_DEST}/pre-commit.framework"
+CHAIN_HOOK="${HOOKS_DEST}/pre-commit"
+SDD_HOOK="${HOOKS_SRC}/pre-commit"
+
+if [ -f "${CHAIN_HOOK}" ] && ! cmp -s "${CHAIN_HOOK}" "${SDD_HOOK}"; then
+    mv "${CHAIN_HOOK}" "${FRAMEWORK_HOOK}"
+    echo "OK: Saved pre-commit framework launcher at ${FRAMEWORK_HOOK}"
+fi
+
+cat > "${CHAIN_HOOK}" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+
+"${SDD_HOOK}" "\$@"
+
+if [ -x "${FRAMEWORK_HOOK}" ]; then
+  "${FRAMEWORK_HOOK}" "\$@"
+fi
+EOF
+chmod +x "${CHAIN_HOOK}"
+echo "OK: Installed chained pre-commit hook (SDD + pre-commit framework)"
+
 echo ""
 echo "SDD hooks installed successfully."
 echo "Verification:"

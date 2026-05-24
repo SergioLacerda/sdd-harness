@@ -104,7 +104,7 @@ This rule is being phased out in favor of automated validation.
 
 **Why deprecated:**
 Manual validation became unnecessary after CI/CD gates implemented.
-See: [ADR-008: Automated Validation Gates](../decisions/ADR-008-automated-validation-gates.md)
+See: [ADR-008: Code Review Governance](../../decisions/ADR-008-code-review-governance.md)
 
 **Timeline:**
 - **Deprecation notice:** 2026-04-19 (today)
@@ -113,7 +113,7 @@ See: [ADR-008: Automated Validation Gates](../decisions/ADR-008-automated-valida
 - **Grace period:** Until 2026-07-19 (90 days) — old references still work but warn
 
 **Migration path:**
-1. Read: [Migration guide: Manual to Automated Validation](../guides/MIGRATING_MANUAL_TO_AUTOMATED_VALIDATION.md)
+1. Read: [Migration guide pattern](./MIGRATING_DOCS_BETWEEN_PROJECTS.md)
 2. Update your process: [Steps here]
 3. Test with old + new process running in parallel (1 week)
 4. Switch to new process on 2026-05-19
@@ -250,14 +250,14 @@ grep -r "old_validation_function" src/
 
 **Status:** Removed (2026-06-19)
 
-**Replacement:** See [Automated Validation Process](../specifications/ci-cd-gates.md)
+**Replacement:** See [Code Review Governance](../../decisions/ADR-008-code-review-governance.md)
 
 **Why removed:**
 Replaced by CI/CD automated gates (more reliable, faster feedback).
 
 **Migration:**
 All projects successfully migrated by 2026-05-19.
-See: [Migration guide](../guides/MIGRATING_RULE5_DEPRECATION.md) (archived)
+See: [Migration guide](./MIGRATING_DOCS_BETWEEN_PROJECTS.md) (archived pattern)
 
 **Grace period:** Until 2026-07-19 (30 days after removal)
 **Final cleanup:** 2026-07-19 (remove redirect references)
@@ -442,9 +442,9 @@ Before removing rule permanently:
 
 ## 🔗 Related Docs
 
-- [architecture.md](../../CANONICAL/specifications/architecture.md)
-- [ia-rules.md](../../CANONICAL/rules/ia-rules.md)
-- [ADR-005: Thread Isolation Mandatory](../../CANONICAL/decisions/ADR-005-thread-isolation-mandatory.md)
+- [architecture.md](../../canonical/specifications/architecture.md)
+- [ADR-014: Legacy Path Deprecation](../../decisions/ADR-014-legacy-path-deprecation.md)
+- [ADR-005: Thread Isolation Mandatory](../../decisions/ADR-005-thread-isolation-mandatory.md)
 - [MIGRATING_DOCS_BETWEEN_PROJECTS.md](MIGRATING_DOCS_BETWEEN_PROJECTS.md)
 
 ---

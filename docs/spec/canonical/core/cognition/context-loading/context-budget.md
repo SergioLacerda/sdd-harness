@@ -1,61 +1,30 @@
-# 🧠 Context Budget
+# Context Budget
 
-## 🎯 Purpose
+## Purpose
+- Preserve reasoning quality by keeping context load bounded and relevant.
 
-Control how much context the agent loads to optimize token usage.
+## Budget Targets
+- PATH A/B: keep task context compact and local.
+- PATH C: load cross-layer context incrementally.
+- PATH D: enforce per-thread budgets independently.
+- PATH E: minimum emergency context only.
+- PATH F: scoped structural context only.
 
----
+## 30/70 Rule
+- Reserve enough reasoning space; avoid overloading docs and code.
+- Prefer progressive loading over full corpus loading.
 
-## 🔒 Core Principle
+## Compression Techniques
+- Functional skeletonizing for neighbor files.
+- Semantic pruning by loading only relevant sections.
+- Layer masking: interfaces before implementations.
 
-> More context ≠ better results
+## Budget Breach Protocol
+- Decompose oversized tasks.
+- Flush stale exploration context.
+- Reload only mandatory artifacts for next step.
 
----
-
-## 📊 Budget Targets
-
-| Scenario | Target |
-|----------|--------|
-| Bug Fix | ~40KB |
-| Simple Feature | ~45KB |
-| Complex Feature | ~85KB |
-| Multi-thread | ~35KB per thread |
-
----
-
-## 🔁 Budget Strategy
-
-1. Load indices (~5KB)
-2. Load minimal canonical (~20–30KB)
-3. Load guides if needed (~10–20KB)
-
----
-
-## ⚖️ Constraints
-
-- MUST stay within target range
-- MUST avoid unnecessary documents
-
----
-
-## 🚨 Anti-Patterns
-
-- Loading entire canonical
-- Loading all guides
-- Ignoring budget limits
-
----
-
-## 📉 Optimization Techniques
-
-- Use indices instead of full docs
-- Prefer summaries over full files
-- Load incrementally
-
----
-
-## 🧬 Outcome
-
-- faster execution
-- lower token cost
-- higher signal density
+## Anti-Patterns
+- Loading complete canonical trees without path need.
+- Carrying stale experiments into final execution.
+- Ignoring explicit path budgets.

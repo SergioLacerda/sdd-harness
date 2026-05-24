@@ -1,32 +1,25 @@
-# PATH F
+# PATH F - Refactor
 
-## Cognitive Objective
-
-Minimize exploration breadth while preserving deterministic convergence for this path.
+## Context Budget
+- Narrow: declared refactor modules and their current tests.
 
 ## Scope
+- Structural/code-quality improvement with zero behavior change.
 
-- Restrict execution to affected modules and directly connected tests.
-- Expand context only with explicit evidence.
+## Entry Checklist
+- Capture baseline test status before edits.
+- Declare exact module scope.
 
 ## MUST
-
-- Start with smallest meaningful validation.
-- Keep changes within declared path intent.
-- Document deviations when path escalation is required.
+- Keep observable behavior identical.
+- Keep before/after test outcomes equivalent.
+- Deliver refactor separately from feature changes.
 
 ## MUST NOT
+- Change product behavior.
+- Mix with PATH B or PATH C in same delivery.
+- Expand scope ad hoc during execution.
 
-- Run broad refactors outside scoped objective.
-- Execute full-suite retries without new evidence.
-- Mix unrelated tasks in the same path execution.
-
-## INVALID
-
-- Any execution that changes architectural scope without path reclassification.
-- Any retry loop without new diagnostics.
-
-## Escalation/Recovery
-
-- If convergence stalls, reclassify task using TASK_CLASSIFICATION.
-- If risk crosses path boundaries, escalate to PATH C with explicit rationale.
+## Escalation
+- Reclassify to PATH B/C if behavior change becomes required.
+- Stop and rescope when module boundary is exceeded.

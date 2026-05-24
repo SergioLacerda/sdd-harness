@@ -56,7 +56,7 @@ Como usar o framework SPEC (Sistema de Princípios e Especificações) em múlti
 **Histórico. Consultar, não modificar.**
 
 ```
-/docs/ia/ARCHIVE/
+docs/spec/ARCHIVE/
 ├── working-sessions/     # Análises completadas
 ├── deprecated-decisions/ # ADRs antigas
 └── project-migrations/   # Histórico de integrações

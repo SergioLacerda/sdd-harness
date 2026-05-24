@@ -711,8 +711,8 @@ OpenAI API experiencing high latency (~5s). Our system had 30s timeout, causing 
 
 ## 🔗 Related Documents
 
-- [ADR-002: Async-First](../decisions/ADR-002.md) — All observability must be async
-- [ADR-001: Clean Architecture](../decisions/ADR-001.md) — Observation points
+- [ADR-002: Async-First](../../decisions/ADR-002-async-first-no-blocking.md) — All observability must be async
+- [ADR-001: Clean Architecture](../../decisions/ADR-001-clean-architecture-8-layer.md) — Observation points
 - [Performance Model](./performance.md) — SLOs for observability operations
 - [Security Model](./security-model.md) — Privacy-preserving logging
 

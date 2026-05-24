@@ -149,7 +149,7 @@ e7e3d2c: Refactor: Move infrastructure creation to PHASE 0 (agent-driven)
    └─ Discovers: spec_path = ../spec-architecture
 
 ✅ Step 2: Agent reads PHASE-0-AGENT-ONBOARDING.md
-   ├─ Location: {spec_path}/docs/ia/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md
+   ├─ Location: {spec_path}docs/spec/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md
    ├─ Content: 6 steps (create dirs, copy templates, quiz, validate, commit)
    └─ Time: ~30 minutes
 
@@ -160,7 +160,7 @@ e7e3d2c: Refactor: Move infrastructure creation to PHASE 0 (agent-driven)
    cp -r {spec_path}/templates/ai/context-aware/* .sdd/context-aware/
 
 ✅ Step 5: Agent takes quiz
-   cat {spec_path}/docs/ia/guides/onboarding/VALIDATION_QUIZ.md
+   cat {spec_path}docs/spec/guides/onboarding/VALIDATION_QUIZ.md
    Score: ≥ 4/5 (80% required)
 
 ✅ Step 6: Agent commits

@@ -158,7 +158,7 @@ cat .spec.config | grep spec_path
 cd /path/to/your-project
 
 # Run PHASE 0 setup
-python $(grep spec_path .spec.config | cut -d' ' -f3)/docs/ia/SCRIPTS/phase-0-agent-onboarding.py
+python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 **Expected output:**
@@ -237,7 +237,7 @@ After all 5 steps:
 
 Your developers can now:
 
-1. Read: [EXECUTION/_START_HERE.md](../EXECUTION/_START_HERE.md)
+1. Read: [EXECUTION/_START_HERE.md](spec/guides/operational/CORE__START_HERE.md)
 2. Follow: AGENT_HARNESS 7-phase workflow
 3. Implement: Features using governance rules
 

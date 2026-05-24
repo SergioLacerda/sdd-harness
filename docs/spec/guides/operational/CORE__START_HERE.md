@@ -9,7 +9,7 @@
 **Have you picked LITE or FULL?**
 
 ### If NO → Do this NOW (5 min)
-Go to: **[adoption/INDEX.md](../../_spec/guides/adoption/INDEX.md)**
+Go to: **[adoption/INDEX.md](../adoption/INDEX.md)**
 - Read the comparison table
 - Choose LITE (15 min, learning) or FULL (40 min, production)
 - Come back here once decided
@@ -36,7 +36,7 @@ You need to set up your development environment with SDD governance.
 
 → **First:** Confirm you chose LITE or FULL (see STEP 0 above)
 
-→ **Then read:** [PHASE_0_SETUP.md](./docs/ia/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md)
+→ **Then read:** [PHASE_0_SETUP.md](.docs/spec/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md)
 
 → **Your setup will use:**
 - LITE: 5 essential rules + 10 DoD
@@ -48,7 +48,7 @@ You need to set up your development environment with SDD governance.
 
 ---First:** Confirm you chose LITE or FULL (see STEP 0 above)
 
-→ **Then read:** [AGENT_HARNESS.md](./docs/ia/guides/onboarding/AGENT_HARNESS.md)
+→ **Then read:** [AGENT_HARNESS.md](.docs/spec/guides/onboarding/AGENT_HARNESS.md)
 
 → **Then:** Choose your PATH (A=bug, B=simple feature, C=complex, D=multithread)
 
@@ -58,7 +58,7 @@ You need to set up your development environment with SDD governance.
 
 You have a task assigned. You want to implement it following SDD rules.
 
-→ **Read:** [AGENT_HARNESS.md](./docs/ia/guides/onboarding/AGENT_HARNESS.md)
+→ **Read:** [AGENT_HARNESS.md](.docs/spec/guides/onboarding/AGENT_HARNESS.md)
 
 → **Then:** Choose your PATH (A=bug, B=simple feature, C=complex, D=multithread)
 
@@ -72,7 +72,7 @@ You have a task assigned. You want to implement it following SDD rules.
 
 Production emergency? Test failure? Governance violation?
 
-→ **Read:** [Emergency Procedures](./docs/ia/guides/emergency/README.md)
+→ **Read:** [Emergency Procedures](.docs/spec/guides/emergency/README.md)
 
 Pick from:
 - `PRE_COMMIT_HOOK_FAILURE.md` — Hook is blocking commits
@@ -103,7 +103,7 @@ You don't have a task—you just want to read about something.
 
 Confused about architecture? Rules? Workflow?
 
-→ **Read:** [FAQ.md](./docs/ia/guides/reference/FAQ.md) or [GLOSSARY.md](./docs/ia/guides/reference/GLOSSARY.md)
+→ **Read:** [FAQ.md](.docs/spec/guides/reference/FAQ.md) or [GLOSSARY.md](.docs/spec/guides/reference/GLOSSARY.md)
 
 *Output: Clarification + links to detailed docs*
 
@@ -179,7 +179,7 @@ Before continuing, confirm:
 - ✅ You have `.sdd/runtime/` directory
 - ✅ PHASE 0 has been run (creates `.sdd/` infrastructure)
 
-If something is missing → [PHASE_0_SETUP.md](./docs/ia/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md)
+If something is missing → [PHASE_0_SETUP.md](.docs/spec/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md)
 
 ---
 
@@ -187,11 +187,11 @@ If something is missing → [PHASE_0_SETUP.md](./docs/ia/guides/onboarding/PHASE
 
 | Scenario | Read This |
 |----------|-----------|
-| First time setup | [PHASE-0-AGENT-ONBOARDING.md](./docs/ia/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md) |
-| Implementing feature | [AGENT_HARNESS.md](./docs/ia/guides/onboarding/AGENT_HARNESS.md) |
-| Emergency/blocked | [Emergency Procedures](./docs/ia/guides/emergency/README.md) |
+| First time setup | [PHASE-0-AGENT-ONBOARDING.md](.docs/spec/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md) |
+| Implementing feature | [AGENT_HARNESS.md](.docs/spec/guides/onboarding/AGENT_HARNESS.md) |
+| Emergency/blocked | [Emergency Procedures](.docs/spec/guides/emergency/README.md) |
 | Need to find docs | [NAVIGATION.md](./NAVIGATION.md) |
-| Questions | [FAQ.md](./docs/ia/guides/reference/FAQ.md) |
+| Questions | [FAQ.md](.docs/spec/guides/reference/FAQ.md) |
 
 ---
 

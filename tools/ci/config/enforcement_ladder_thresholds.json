@@ -1,0 +1,15 @@
+{
+  "window_days": 7,
+  "promotion_candidate": {
+    "min_samples": 5,
+    "max_false_block_rate": 0.15,
+    "max_rollback_rate": 0.10,
+    "max_rework_delta": 0.0
+  },
+  "rollback_trigger": {
+    "min_samples": 3,
+    "false_block_rate": 0.30,
+    "rollback_rate": 0.25,
+    "rework_delta": 0.10
+  }
+}

@@ -1,3 +1,5 @@
+> Layer: runtime - operational agent instructions
+
 # Agent Runtime Protocol
 
 Protocolo operacional obrigatório para qualquer agente de IA que execute tarefas neste workspace.

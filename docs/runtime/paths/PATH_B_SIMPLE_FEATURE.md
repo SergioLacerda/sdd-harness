@@ -1,32 +1,25 @@
-# PATH B
+# PATH B - Simple Feature
 
-## Cognitive Objective
-
-Minimize exploration breadth while preserving deterministic convergence for this path.
+## Context Budget
+- Narrow: 1-2 target files plus direct tests.
 
 ## Scope
+- Bounded feature with no public API contract changes.
 
-- Restrict execution to affected modules and directly connected tests.
-- Expand context only with explicit evidence.
+## Entry Checklist
+- Confirm change fits within 1-2 files.
+- Confirm no cross-domain side effects.
 
 ## MUST
-
-- Start with smallest meaningful validation.
-- Keep changes within declared path intent.
-- Document deviations when path escalation is required.
+- Add tests for new behavior.
+- Keep implementation within declared boundary.
+- Preserve existing contracts.
 
 ## MUST NOT
+- Touch unrelated files opportunistically.
+- Change public API contracts.
+- Mix refactor and feature in same delivery.
 
-- Run broad refactors outside scoped objective.
-- Execute full-suite retries without new evidence.
-- Mix unrelated tasks in the same path execution.
-
-## INVALID
-
-- Any execution that changes architectural scope without path reclassification.
-- Any retry loop without new diagnostics.
-
-## Escalation/Recovery
-
-- If convergence stalls, reclassify task using TASK_CLASSIFICATION.
-- If risk crosses path boundaries, escalate to PATH C with explicit rationale.
+## Escalation
+- Reclassify to PATH C when scope exceeds 2 files.
+- Reclassify to PATH C when contract changes are required.

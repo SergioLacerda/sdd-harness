@@ -7,7 +7,7 @@
 ## 🏗️ TWO LAYERS OF DOCUMENTATION
 
 ### 🔒 GOVERNANCE (Immutable — Stable)
-**See**: [GOVERNANCE_RULES.md](../GOVERNANCE_RULES.md)
+**See**: [IA_FIRST.md](../../../runtime/IA_FIRST.md)
 
 ```
 What's permanent:
@@ -20,7 +20,7 @@ These RARELY change. They're the stable foundation.
 ```
 
 ### 🔄 RUNTIME (Mutable — Changing)
-**See**: [RUNTIME_STATE.md](../RUNTIME_STATE.md)
+**See**: [AGENT_RUNTIME_PROTOCOL.md](../../../runtime/protocols/AGENT_RUNTIME_PROTOCOL.md)
 
 ```
 What's current:
@@ -92,7 +92,7 @@ RESULT: Ready to implement ✓
 ```
 ✓ /EXECUTION/spec/CANONICAL/rules/ia-rules.md (16 rules)
 ✓ /EXECUTION/spec/CANONICAL/rules/constitution.md (principles)
-✓ /docs/ia/DEVELOPMENT/execution-state/_current.md (current state)
+✓ docs/spec/DEVELOPMENT/execution-state/_current.md (current state)
 ```
 
 **Phase 2 - Your PATH (choose one)**
@@ -106,7 +106,7 @@ PATH D: runtime/threads/TEMPLATE.md (thread format)
 **Phase 3 - Before Merge (mandatory)**
 ```
 ✓ /EXECUTION/spec/CANONICAL/specifications/definition_of_done.md
-✓ /docs/ia/DEVELOPMENT/execution-state/_current.md (update checkpoint)
+✓ docs/spec/DEVELOPMENT/execution-state/_current.md (update checkpoint)
 ```
 
 ---
@@ -129,7 +129,7 @@ PATH D: runtime/threads/TEMPLATE.md (thread format)
 ## 📍 WHERE THINGS ARE
 
 ```
-/docs/ia/
+docs/spec/
 ├── ia-rules.md ⭐ (LOCK YOURSELF HERE)
 ├── MASTER_INDEX.md (navigation root)
 │
@@ -222,7 +222,7 @@ After implementation:
 
 Before finishing session:
 ```
-[ ] Updated /docs/ia/DEVELOPMENT/execution-state/_current.md
+[ ] Updated docs/spec/DEVELOPMENT/execution-state/_current.md
     - Documented what you did
     - Flagged open questions
     - Recorded risks
@@ -245,12 +245,12 @@ Before finishing session:
 ## 🔗 IMPORTANT LINKS
 
 **One-stop shortcuts:**
-- Start: `/docs/ia/MASTER_INDEX.md`
+- Start: `docs/spec/MASTER_INDEX.md`
 - Rules: `/EXECUTION/spec/CANONICAL/rules/ia-rules.md` ← LOCK HERE
-- Setup: `/docs/ia/guides/FIRST_SESSION_SETUP.md`
-- PathChoice: `/docs/ia/guides/QUICK_START.md`
-- State: `/docs/ia/DEVELOPMENT/execution-state/_current.md`
-- Queries: `/docs/ia/REALITY/current-system-state/_INDEX.md`
+- Setup: `docs/spec/guides/FIRST_SESSION_SETUP.md`
+- PathChoice: `docs/spec/guides/QUICK_START.md`
+- State: `docs/spec/DEVELOPMENT/execution-state/_current.md`
+- Queries: `docs/spec/REALITY/current-system-state/_INDEX.md`
 
 ---
 

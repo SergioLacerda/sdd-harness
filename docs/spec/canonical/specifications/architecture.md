@@ -34,7 +34,7 @@ It is binding for:
 
 All code MUST conform to this specification. Specification is synchronized with code.
 
-**Reference:** Compliance details in [ADR-001](../decisions/ADR-001.md) (8-layer clean architecture)
+**Reference:** Compliance details in [ADR-001](spec/decisions/ADR-001-clean-architecture-8-layer.md) (8-layer clean architecture)
 
 ---
 
@@ -60,14 +60,14 @@ All code MUST conform to this specification. Specification is synchronized with 
 - ✅ Discord moved from `frameworks/discord/` to `interfaces/discord/`
 - ✅ Application structure cleaned (removed `context/`, `state/`)
 
-For detailed implementation history: see [Architecture Decisions](../decisions/)
+For detailed implementation history: see [Architecture Decisions](../../decisions/)
 
 ---
 
 # 📜 SOURCE OF TRUTH HIERARCHY
 
 This spec extends and enforces:
-1. [Mandates & Policies](../core/mandates/) — immutable principles (M001-M007)
+1. [Mandates & Policies](../core/mandates/INDEX.md) — immutable principles (M001-M007)
 2. [Rules](../core/rules/) — execution protocols (code-style, tests, dependencies)
 3. [Testing](./testing.md) — testing strategies per layer
 
@@ -638,7 +638,7 @@ Objective:
 
 - [testing.md](./testing.md) — Testing strategies and best practices
 - [feature-checklist.md](./feature-checklist.md) — Step-by-step implementation
-- [feature-template.md](./feature-template.md) — Complete working example
-- [conventions.md](./conventions.md) — Naming and style rules
+- [feature-checklist.md](./feature-checklist.md) — Complete working example
+- [communication.md](./communication.md) — Naming and style rules
 - [contracts.md](./contracts.md) — Port interface definitions
-- [project-structure.md](./project-structure.md) — Folder organization
+- [architecture.md](./architecture.md) — Folder organization

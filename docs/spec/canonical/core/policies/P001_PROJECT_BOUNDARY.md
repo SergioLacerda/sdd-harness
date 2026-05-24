@@ -2,7 +2,7 @@
 
 **⚠️ This information is now consolidated in `.ai-index.md`**
 
-**Read this:** [.ai-index.md](../../.ai-index.md)
+**Read this:** [.ai-index.md](../../../../.ai-index.md)
 
 Go to section: **"⚠️ Project Boundary: This Is The SDD Framework Itself"**
 

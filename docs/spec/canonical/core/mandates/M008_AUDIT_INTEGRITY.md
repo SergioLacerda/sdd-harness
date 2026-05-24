@@ -20,7 +20,7 @@ Preserve and protect the integrity of the audit trail (`.sdd/audit-trail/complia
 ### What is Protected
 
 - **`.sdd/audit-trail/compliance-events.jsonl`** — Append-only JSONL containing all governance events
-- **Event Schema** — Format and field definitions (see [`governance-events.md`](./governance-events.md))
+- **Event Schema** — Format and field definitions (see [`governance-events.md`](../telemetry/governance-events.md))
 - **Timestamps** — Original event emission times (never modified retroactively)
 - **Authorship** — Who/what agent triggered each event (never falsified)
 

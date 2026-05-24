@@ -117,7 +117,7 @@ Each thread has its own:
 - Checkpoint progress
 - Status (BLOCKED / IN_PROGRESS / COMPLETE)
 
-See: [/docs/ia/specs/runtime/threads/](../specs/runtime/threads/)
+See: [AGENT_RUNTIME_PROTOCOL.md](../../runtime/protocols/AGENT_RUNTIME_PROTOCOL.md)
 
 ---
 

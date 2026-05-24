@@ -79,7 +79,7 @@ git commit -m "Fix: Move file to correct SPEC layer"
 
 **Prevention:**
 - Always verify path before creating file
-- Reference: [architecture.md](../../CANONICAL/specifications/architecture.md)
+- Reference: [architecture.md](../../canonical/specifications/architecture.md)
 - Ask: "Is this immutable (CANONICAL) or project-specific (custom/)?"
 
 ---
@@ -488,10 +488,10 @@ python docs/ia/SCRIPTS/validate-ia-first.py --audit docs/ia/
 
 ## 🔗 Related Docs
 
-- [IA_FIRST_SPECIFICATION.md](../../IA_FIRST_SPECIFICATION.md)
-- [validate-ia-first.py](../SCRIPTS/validate-ia-first.py)
-- [architecture.md](../../CANONICAL/specifications/architecture.md)
-- [VALIDATE_IA_FIRST_FAILURES.md](../troubleshooting/VALIDATE_IA_FIRST_FAILURES.md)
+- [IA_FIRST.md](../../../runtime/IA_FIRST.md)
+- [architecture.md](../../canonical/specifications/architecture.md)
+- [ARCHITECTURE_VALIDATION.md](./ARCHITECTURE_VALIDATION.md)
+- [CORE__START_HERE.md](./CORE__START_HERE.md)
 
 ---
 

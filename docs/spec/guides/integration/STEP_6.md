@@ -220,7 +220,7 @@ This project uses **SDD LITE** (or FULL) governance.
 - Rules: 5 essential (or 16 mandatory)
 - DoD Criteria: 10 items (or 45 items)
 
-See [SDD Adoption Guide](../EXECUTION/spec/guides/adoption/LITE-ADOPTION.md)
+See [SDD Adoption Guide](../adoption/LITE-ADOPTION.md)
 ```
 
 ---
@@ -248,24 +248,24 @@ After this step:
    ```
 
 2. Read your adoption guide:
-   - **LITE:** [LITE-ADOPTION.md](../EXECUTION/spec/guides/adoption/LITE-ADOPTION.md)
-   - **FULL:** [FULL-ADOPTION.md](../EXECUTION/spec/guides/adoption/FULL-ADOPTION.md)
+   - **LITE:** [LITE-ADOPTION.md](../adoption/LITE-ADOPTION.md)
+   - **FULL:** [FULL-ADOPTION.md](../adoption/FULL-ADOPTION.md)
 
 ### For Developers:
-1. Go to [EXECUTION/_START_HERE.md](../EXECUTION/_START_HERE.md)
+1. Go to [EXECUTION/_START_HERE.md](spec/guides/operational/CORE__START_HERE.md)
 2. Follow AGENT_HARNESS workflow with your adoption level
 
 ### For Team Leads:
 1. Communicate the choice to your team
-2. Reference [adoption/INDEX.md](../EXECUTION/spec/guides/adoption/INDEX.md) for FAQs
-3. Plan LITE→FULL migration if needed (see [LITE-TO-FULL-MIGRATION.md](../EXECUTION/spec/guides/adoption/LITE-TO-FULL-MIGRATION.md))
+2. Reference [adoption/INDEX.md](../adoption/INDEX.md) for FAQs
+3. Plan LITE→FULL migration if needed (see [LITE-TO-FULL-MIGRATION.md](../adoption/LITE-TO-FULL-MIGRATION.md))
 
 ---
 
 ## 🤔 Questions?
 
 **"Can we change from LITE to FULL later?"**
-→ Yes! See [LITE-TO-FULL-MIGRATION.md](../EXECUTION/spec/guides/adoption/LITE-TO-FULL-MIGRATION.md) (30 min)
+→ Yes! See [LITE-TO-FULL-MIGRATION.md](../adoption/LITE-TO-FULL-MIGRATION.md) (30 min)
 
 **"What if our project changes (scales up)?"**
 → Re-answer the 5 questions. If mostly C's now → upgrade to FULL
@@ -298,6 +298,6 @@ After this step:
 
 **Integration complete! 🎉**
 
-**Next:** Start implementing features → [EXECUTION/_START_HERE.md](../EXECUTION/_START_HERE.md)
+**Next:** Start implementing features → [EXECUTION/_START_HERE.md](spec/guides/operational/CORE__START_HERE.md)
 
 *Go team!*

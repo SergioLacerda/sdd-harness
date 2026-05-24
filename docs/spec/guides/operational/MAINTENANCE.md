@@ -649,7 +649,7 @@ EVERY DAY
 - [OPERATIONS.md](./OPERATIONS.md) — Daily operations
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — Deployment procedures
 - [MONITORING.md](./MONITORING.md) — Health monitoring
-- [guides/operational/](../../_spec/guides/operational/) — Specific operational tasks
+- [CORE_INDEX.md](./CORE_INDEX.md) — Specific operational tasks
 
 ---
 

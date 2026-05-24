@@ -33,7 +33,7 @@ READ NOW (in this order):
 RUN IMMEDIATELY:
 
 Option A (Humans/Manual):
-  1. Open: /docs/ia/guides/onboarding/VALIDATION_QUIZ.md
+  1. Open: docs/spec/guides/onboarding/VALIDATION_QUIZ.md
   2. Answer 5 questions
   3. Score yourself (must be ≥80%)
   4. If < 80%: Re-read ia-rules.md + retry

@@ -1,32 +1,25 @@
-# PATH A
+# PATH A - Bugfix
 
-## Cognitive Objective
-
-Minimize exploration breadth while preserving deterministic convergence for this path.
+## Context Budget
+- Narrow: affected module and directly connected tests only.
 
 ## Scope
+- Root-cause fix for a regression or incorrect behavior.
 
-- Restrict execution to affected modules and directly connected tests.
-- Expand context only with explicit evidence.
+## Entry Checklist
+- Reproduce failure via test or concrete runtime evidence.
+- Identify smallest change that restores expected behavior.
 
 ## MUST
-
-- Start with smallest meaningful validation.
-- Keep changes within declared path intent.
-- Document deviations when path escalation is required.
+- Fix root cause, not symptom masking.
+- Add or update a regression test.
+- Keep changes inside failure boundary.
 
 ## MUST NOT
+- Include unrelated refactoring.
+- Expand scope to adjacent issues.
+- Close task without regression proof.
 
-- Run broad refactors outside scoped objective.
-- Execute full-suite retries without new evidence.
-- Mix unrelated tasks in the same path execution.
-
-## INVALID
-
-- Any execution that changes architectural scope without path reclassification.
-- Any retry loop without new diagnostics.
-
-## Escalation/Recovery
-
-- If convergence stalls, reclassify task using TASK_CLASSIFICATION.
-- If risk crosses path boundaries, escalate to PATH C with explicit rationale.
+## Escalation
+- Reclassify to PATH C when architecture must change.
+- Reclassify to PATH C when 3+ modules are required.

@@ -8,6 +8,9 @@ on:
       - 'mkdocs.yml'
       - 'README.md'
       - 'tools/verify_mkdocs_paths.py'
+      - 'tools/docs/check_links.py'
+      - 'tools/docs/check_runtime_path_schema.py'
+      - '.markdownlint-cli2.jsonc'
       - 'packages/interfaces/sdd_cli/src/sdd_cli/commands/docs.py'
       - '.github/workflows/docs.yml'
   pull_request:
@@ -17,6 +20,9 @@ on:
       - 'mkdocs.yml'
       - 'README.md'
       - 'tools/verify_mkdocs_paths.py'
+      - 'tools/docs/check_links.py'
+      - 'tools/docs/check_runtime_path_schema.py'
+      - '.markdownlint-cli2.jsonc'
       - 'packages/interfaces/sdd_cli/src/sdd_cli/commands/docs.py'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
@@ -36,6 +42,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
@@ -72,6 +80,26 @@ jobs:
 
       - name: Validate active docs anchors
         run: uv run python -m sdd_cli lint spec --validate-all-anchors --strict-anchor-style
+
+      - name: Validate PATH IA-first runtime schema
+        run: uv run python tools/docs/check_runtime_path_schema.py
+
+      - name: Check internal docs links (advisory baseline)
+        continue-on-error: true
+        run: uv run python tools/docs/check_links.py --mode ci
+
+      - name: Check internal docs links (PR diff-aware blocking)
+        if: github.event_name == 'pull_request'
+        run: |
+          uv run python tools/docs/check_links.py \
+            --mode ci \
+            --changed-files-from-git \
+            --base-ref "${{ github.event.pull_request.base.sha }}" \
+            --head-ref "${{ github.event.pull_request.head.sha }}"
+
+      - name: Markdown style advisory (non-blocking)
+        continue-on-error: true
+        run: npx --yes markdownlint-cli2 "docs/**/*.md"
 
       - name: Build documentation (strict)
         run: uv run mkdocs build --strict

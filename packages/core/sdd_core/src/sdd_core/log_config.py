@@ -21,7 +21,8 @@ import sys
 
 import structlog
 
-_CONFIGURED = False
+# Mutable container avoids the `global` keyword; CodeQL can verify the read/write.
+_state: list[bool] = [False]
 
 
 def configure_logging(level: str = "INFO") -> None:
@@ -29,10 +30,9 @@ def configure_logging(level: str = "INFO") -> None:
 
     Idempotent — safe to call multiple times; only the first call takes effect.
     """
-    global _CONFIGURED
-    if _CONFIGURED:
+    if _state[0]:
         return
-    _CONFIGURED = True
+    _state[0] = True
 
     _log_levels: dict[str, int] = {
         "DEBUG": 10,

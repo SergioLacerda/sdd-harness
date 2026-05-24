@@ -16,7 +16,7 @@ Complete security model defining threat protection, authentication, authorizatio
 **Framework compliance:** All security decisions must align with:
 - [Architecture Specification](./architecture.md) (Principles)
 - [Performance Specification](./performance.md) (SLOs apply to security operations)
-- [ADR-002: Async-First](../decisions/) (all security operations must be non-blocking)
+- [ADR-002: Async-First](../../decisions/ADR-002-async-first-no-blocking.md) (all security operations must be non-blocking)
 
 ---
 
@@ -843,9 +843,9 @@ Conduct within 5 days, include:
 
 ## 🔗 Related Documents
 
-- [ADR-002: Async-First](../decisions/ADR-002.md) — All security operations must be async
-- [ADR-003: Ports & Adapters](../decisions/ADR-003.md) — Security at boundaries
-- [Constitution](../rules/constitution.md) — Security principles
+- [ADR-002: Async-First](../../decisions/ADR-002-async-first-no-blocking.md) — All security operations must be async
+- [ADR-003: Ports & Adapters](../../decisions/ADR-003-ports-adapters-pattern.md) — Security at boundaries
+- [Constitution](../core/rules/INDEX.md) — Security principles
 - [Performance Model](./performance.md) — SLOs apply to security
 
 ---
