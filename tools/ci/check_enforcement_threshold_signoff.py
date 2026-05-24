@@ -133,7 +133,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--signoff",
-        default=".analysis/done/progressive-enforcement-ladder/threshold-signoff.md",
+        default="docs/adr/ADR-009-threshold-signoff.md",
     )
     return parser.parse_args()
 

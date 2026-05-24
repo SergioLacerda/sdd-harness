@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Enforce contract + golden snapshot policy for CI and local checks.
 
-Policy (from .analysis/done/harden-contract-and-golden-testing/policy-matrix.md):
 - If golden fixtures are unchanged: pass.
 - If golden fixtures changed: require evidence fields and valid drift class.
 - Drift class C requires an explicit governed change artifact path.
@@ -17,7 +16,7 @@ from pathlib import Path
 
 GOLDEN_GLOB = "tests/contract/fixtures/*.golden.json"
 ALLOWED_CLASSES = {"A", "B", "C"}
-EVIDENCE_PATH_DEFAULT = ".analysis/review/golden-change-evidence.md"
+EVIDENCE_PATH_DEFAULT = "golden-change-evidence.md"
 ENFORCEMENT_MODES = {"warn", "block", "strict"}
 
 

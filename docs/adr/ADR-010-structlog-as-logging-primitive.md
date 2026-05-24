@@ -93,6 +93,5 @@ completes. A package with T201 active blocks new `print()` in CI.
 
 ## Links
 
-- Source spec: `.analysis/done/2026-05-21-logging-migration-design.md`
 - Implementation: `packages/core/sdd_core/src/sdd_core/logging.py`
 - Related: M007 (Telemetry Enforcement), ADR-008 (trace_id propagation)

@@ -64,6 +64,6 @@ The cache must contain:
 ---
 
 ## References
-- Agent Entry Point: [`generated/AGENT_ENTRYPOINT.md`](../generated/AGENT_ENTRYPOINT.md)
+- Agent Entry Point: [`core/generated/AGENT_ENTRYPOINT.md`](../generated/AGENT_ENTRYPOINT.md)
 - Context Budgeting: [`cognition/context-loading/context-budget.md`](../cognition/context-loading/context-budget.md)
 - Onboarding Metrics: [`onboarding/metrics.md`](../onboarding/metrics.md)

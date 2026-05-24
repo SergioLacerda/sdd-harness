@@ -82,7 +82,4 @@ drift detected
 
 ## Links
 
-- Source spec: `.analysis/done/harden-contract-and-golden-testing/design.md`
-- Reviewer checklist: `.analysis/done/harden-contract-and-golden-testing/reviewer-checklist.md`
-- Policy matrix: `.analysis/done/harden-contract-and-golden-testing/policy-matrix.md`
 - Related: ADR-001 (Runtime Authority Boundary)

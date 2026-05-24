@@ -69,6 +69,5 @@ snapshots updated in one pass before merge.
 
 ## Links
 
-- Source spec: `.analysis/done/2026-05-21-sdd-cli-legacy-hard-cut-design.md`
 - Implementation: `packages/interfaces/sdd_cli/src/sdd_cli/shared/contracts.py`
 - Related: ADR-001 (Runtime Authority Boundary)

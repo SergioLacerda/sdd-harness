@@ -86,6 +86,4 @@ R = required · O = optional · F = forbidden (fail-fast if present)
 
 ## Links
 
-- Source spec: `.analysis/done/enforce-environment-separation/design.md`
-- Operator reference: `.analysis/done/enforce-environment-separation/operator-quick-reference.md`
 - Related: ADR-001 (Runtime Authority Boundary)

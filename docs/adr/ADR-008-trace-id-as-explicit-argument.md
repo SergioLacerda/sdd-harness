@@ -66,6 +66,5 @@ a new UUID is generated — preserving existing standalone behaviour.
 
 ## Links
 
-- Source spec: `.analysis/done/2026-05-21-observability-core-design.md`
 - Implementation: `packages/core/sdd_runtime/`, `packages/interfaces/sdd_cli/`
 - Related: ADR-001 (Runtime Authority Boundary), M007 (Telemetry Enforcement)

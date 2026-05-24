@@ -83,6 +83,6 @@ postmortem and policy tuning. A block without a telemetry record is a ladder vio
 
 ## Links
 
-- Source spec: `.analysis/done/progressive-enforcement-ladder/design.md`
-- Policy matrix: `.analysis/done/progressive-enforcement-ladder/policy-matrix.md`
+- Policy matrix: `docs/adr/ADR-009-progressive-enforcement-ladder.md` (this file)
+- Threshold signoff: `docs/adr/ADR-009-threshold-signoff.md`
 - Related: M010 (Governance Hardening), ADR-001 (Runtime Authority Boundary)
