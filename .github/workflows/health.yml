@@ -60,8 +60,8 @@ jobs:
       - name: Run environment boundary gates (health)
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py env-boundary-lint --context health --mode warn
-          uv run python tools/ci/environment_gates.py workspace-root-resolution-check --mode warn
+          uv run python tools/ci/environment_gates.py env-boundary-lint --context health --mode enforce
+          uv run python tools/ci/environment_gates.py workspace-root-resolution-check --mode enforce
 
   lint:
     needs: [branch-policy, environment-preflight]

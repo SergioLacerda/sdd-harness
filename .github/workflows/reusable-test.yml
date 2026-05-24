@@ -29,7 +29,7 @@ jobs:
         shell: bash
         run: |
           uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
-          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode enforce
 
       - name: Validate governance contract golden
         shell: bash
@@ -47,7 +47,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode enforce
 
   cli-gate:
     name: CLI Gate (${{ matrix.os }} / Py ${{ matrix.python-version }})
@@ -91,7 +91,7 @@ jobs:
         shell: bash
         run: |
           uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
-          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode enforce
 
       - name: Report non-blocking channel
         if: matrix.required == false
@@ -116,7 +116,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode enforce
 
   skills-commands-gate:
     name: Skills/Commands Gate
@@ -141,7 +141,7 @@ jobs:
         shell: bash
         run: |
           uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
-          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode enforce
 
       - name: Validate prompt and CI command policy
         shell: bash
@@ -205,7 +205,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode enforce
 
       - name: Enforce registry reconciliation (drift check)
         shell: bash
@@ -239,7 +239,7 @@ jobs:
         shell: bash
         run: |
           uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
-          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode enforce
 
       - name: Run seed generation regressions
         shell: bash
@@ -258,7 +258,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode enforce
 
   coverage-strict:
     name: Coverage Gates (core ≥ 90%, features/interfaces ≥ 70%)
@@ -285,7 +285,7 @@ jobs:
         shell: bash
         run: |
           uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
-          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode enforce
 
       - name: Run strict per-layer coverage gates
         shell: bash
@@ -301,7 +301,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode enforce
 
   runtime-dev-smoke:
     name: Runtime/Dev Smoke
@@ -328,7 +328,7 @@ jobs:
         shell: bash
         run: |
           uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
-          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode enforce
 
       - name: Validate runtime health
         shell: bash
@@ -350,7 +350,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode enforce
 
   container-integrity:
     name: Sovereign Container Integrity
@@ -399,4 +399,4 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode warn
+          uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode enforce

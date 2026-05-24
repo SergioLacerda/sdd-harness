@@ -7,6 +7,7 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any, cast
 
+from ._governance_templates import build_activation_guide, build_verification_script
 from .base_generator import BaseSeedlingGenerator
 
 logger = logging.getLogger(__name__)
@@ -239,19 +240,10 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
             return False
 
     def generate_activation_guide(self) -> bool:
-        """
-        Generate ACTIVATION_GUIDE.md with step-by-step instructions
-
-        This guide:
-        - Explains what the seedlings do
-        - Provides verification checklist
-        - Lists activation steps
-        - Includes troubleshooting and enforcement explanation
-        """
+        """Generate ACTIVATION_GUIDE.md with step-by-step instructions."""
         try:
             guide_file = self.seedlings_dir / "ACTIVATION_GUIDE.md"
 
-            # Get enforcement configuration
             enforcement_mode = self.config.get("enforcement_mode", "warn_mode")
             enforcement_labels = {
                 "silent_mode": "Sem Alertas (Silent)",
@@ -261,7 +253,6 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
             enforcement_label = enforcement_labels.get(
                 enforcement_mode, "Alertas (Warnings)"
             )
-
             enforcement_explanations = {
                 "silent_mode": "No warnings when violations detected - suitable for learning and experiments",
                 "warn_mode": "Show warnings but allow violations to continue - flexible during development",
@@ -269,17 +260,6 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
             }
             enforcement_explanation = enforcement_explanations.get(
                 enforcement_mode, "Show warnings only"
-            )
-
-            language = self.config.get("language", "python").upper()
-
-            mandates_list = "\n".join(
-                f"✓ {m['id']}: {m.get('title', 'Unknown')}" for m in self.mandates
-            )
-            guidelines_list = (
-                "\n".join(f"✓ {cat.upper()}" for cat in self.active_categories)
-                if self.active_categories
-                else "(None configured)"
             )
             enforcement_behavior = (
                 "- **Violations are SILENT**: No warnings or errors, just logging"
@@ -291,331 +271,23 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
                 )
             )
 
-            content = f"""# Governance Activation Guide
-<!-- Governance fingerprint: {self.spec_fingerprint} -->
-<!-- Generated: {self.generated_at} -->
-<!-- Drift check: if fingerprint differs from .sdd/metadata.json, run sdd governance generate -->
-
-## What This Is
-
-This `.sdd/seedlings/` directory contains **auto-activation files** for the Governance Activation Protocol (GAP v1.0).
-
-**Generated for:**
-- 🔐 Enforcement Mode: **{enforcement_label}**
-  - {enforcement_explanation}
-- 🔤 Language: **{language}**
-- 📅 Generated: {self.generated_at}
-
----
-
-## ✅ Quick Start (3 Steps)
-
-### Step 1: Copy Governance Files
-
-**Linux/macOS:**
-```bash
-cp -r .sdd/ .
-cp -r .sdd/seedlings/ .
-ls -la .sdd/source/mandates/
-ls -la .sdd/seedlings/
-```
-
-**Windows (PowerShell):**
-```powershell
-Copy-Item -Path .sdd -Destination . -Recurse
-Copy-Item -Path .sdd\\seedlings -Destination . -Recurse
-dir .sdd\\source\\mandates
-dir .sdd\\seedlings
-```
-
-### Step 2: Restart IDE
-
-**VS Code:**
-```bash
-code .
-```
-
-**Cursor:**
-```bash
-cursor .
-```
-
-**Windsurf:**
-```bash
-windsurf .
-```
-
-### Step 3: Verify Activation
-```bash
-# Run verification script
-python3 .sdd/seedlings/verify.py
-
-# Expected output:
-# ✅ .sdd/source/mandates/ exists
-# ✅ .sdd/seedlings/ exists
-# ✅ governance.seed.json valid
-# ✅ SeedlingLoader works
-# ✅ GAP is ACTIVE
-```
-
----
-
-## 📋 Activation Checklist
-
-### Before Activation
-- [ ] `.sdd/source/mandates/mandates.md` exists
-- [ ] `.sdd/source/guidelines/` exists
-- [ ] `.sdd/metadata.json` exists
-- [ ] `.sdd/seedlings/` has 5 files (3 seeds + guide + verify)
-
-### During Activation
-- [ ] Close all IDE windows
-- [ ] Reopen project in IDE
-- [ ] Wait 5 seconds for seedlings to load
-
-### After Activation
-- [ ] Run `python3 .sdd/seedlings/verify.py`
-- [ ] Check SeedlingLoader output
-- [ ] Test agent knowledge of mandates
-- [ ] Confirm every governed response ends with:
-  `SDD GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
-
----
-
-## 🔑 Your Governance Configuration
-
-### Mandates
-Your project enforces these mandatory principles:
-```
-{mandates_list}
-```
-
-### Guidelines
-Your project follows guidelines in these categories:
-```
-{guidelines_list}
-```
-
-### Fingerprint
-Governance fingerprint for validation:
-```
-{self.spec_fingerprint}
-```
-
-This fingerprint will be used to detect if governance rules have changed.
-
----
-
-## � Enforcement Mode
-
-### Your Configuration: **{enforcement_label}**
-
-{enforcement_explanation}
-
-**How violations are handled:**
-
-{enforcement_behavior}
-
-**What this affects:**
-- SeedlingLoader activation behavior
-- Pre-commit hook response to violations
-- CI/CD pipeline behavior on non-compliance
-
-**To change this after setup:**
-1. Edit `.sdd/seedlings/compliance.seed.json`
-2. Change `action_on_drift` value
-3. Restart IDE
-
----
-
-## 📁 What Each Seedling Does
-
-### 1. governance.seed.json (GAP v1.0)
-**Purpose:** Auto-activates governance on project load
-- Loads mandates into memory
-- Sets up agent context
-- Enables fingerprint validation
-- Auto-triggers on `on_project_load`
-
-**You'll know it works when:** Agent chat knows your mandates
-
-### 2. agent-prep.seed.json (IDE Integration)
-**Purpose:** Configures AI agents in your IDE
-- Supports: Copilot, Claude, Gemini, Local LLM
-- Auto-injects `.sdd/source/` context
-- Configures IDE hooks (VS Code, Cursor, Windsurf)
-- Triggers on project load and editor focus
-
-**You'll know it works when:** Agent gives governance-aware suggestions
-
-### 3. compliance.seed.json (CI/CD Validation)
-**Purpose:** Sets up compliance checking
-- Validates fingerprint hasn't drifted
-- Enforces mandates in CI/CD
-- Configures pre-commit hooks
-- Triggers on git operations
-
-**You'll know it works when:** Pre-commit blocks non-compliant changes
-
-### 4. ACTIVATION_GUIDE.md (This File)
-**Purpose:** Instructions for using seedlings
-
-### 5. verify.py (Verification Script)
-**Purpose:** Checks if activation succeeded
-
----
-
-## Invocation Playbook (Skills + CLI)
-
-Use this routing model when handling user requests:
-
-0. Always run preflight first:
-   - `sdd runtime status`
-   - `sdd governance validate`
-1. Prefer **skills** for capability/intention tasks:
-   - `sdd skills list`
-   - `sdd skills describe sdd-validate-governance`
-   - `sdd skills run sdd-validate-governance`
-   - `sdd skills run sdd-diagnose`
-2. Use **CLI primitives** for explicit low-level operations:
-   - `sdd governance validate`
-   - `sdd governance compile`
-   - `sdd runtime status`
-   - `sdd ask-full "<question>"`
-3. Fallback order (default): `skills -> cli`
-
-### Canonical prompts
-
-- Skill-based prompt:
-  - `Run the skill \"sdd-validate-governance\" and return policy_result in JSON.`
-- CLI-based prompt:
-  - `Run sdd governance validate and summarize violations with next steps.`
-
-### Escalation by enforcement mode
-
-- `silent_mode`: log-only, no blocking.
-- `warn_mode`: warn and continue.
-- `strict_mode`: block on critical violations and request human review.
-
----
-
-## 🧪 Verification
-
-### Automatic Check
-```bash
-python3 .sdd/seedlings/verify.py
-```
-
-This will verify:
-- All required directories exist
-- All required files are valid JSON
-- SeedlingLoader can discover seeds
-- GAP can initialize
-- Mandates are loaded
-
-### Manual Checks
-
-**Check 1: Directory Structure**
-```bash
-find . -name ".sdd" -o -name ".sdd/seedlings"
-# Should show both directories
-```
-
-**Check 2: Seed Files Valid**
-```bash
-python3 -m json.tool .sdd/seedlings/governance.seed.json
-# Should print formatted JSON
-```
-
-**Check 3: SeedlingLoader Works**
-```python
-from tools.governance.seedling_loader import SeedlingLoader
-loader = SeedlingLoader(".")
-loaded = loader.load_all()
-logger.info(f"Loaded {{len(loaded)}} seedlings")  # Should print: 3
-```
-
-**Check 4: Agent Knows Mandates**
-In VS Code/Cursor chat, ask:
-```
-"What are my project mandates?"
-```
-Agent should cite: {", ".join(self.mandate_ids)}
-
----
-
-## 🔧 Troubleshooting
-
-### Problem: Seedlings not loading
-**Check:**
-1. Does `.sdd/seedlings/` directory exist?
-2. Are all 5 files present and not corrupted?
-3. Run: `python3 .sdd/seedlings/verify.py`
-
-**Fix:**
-- Regenerate seedlings from wizard
-- Or copy from backup
-
-### Problem: Agent doesn't know mandates
-**Check:**
-1. Does `.sdd/source/mandates/mandates.md` exist?
-2. Is it readable and has content?
-3. Restart IDE and try again
-
-**Fix:**
-- Verify `.sdd/` was copied completely
-- Restart IDE
-- Reload agent context
-
-### Problem: Fingerprint validation failing
-**Check:**
-1. Was `.sdd/metadata.json` copied correctly?
-2. Run: `sdd doctor` (if installed)
-
-**Expected value:** {self.spec_fingerprint}
-
-**Fix:**
-- Regenerate seedlings if governance changed
-- Update expected fingerprint in compliance.seed.json
-
-### Problem: Pre-commit hooks not working
-**Check:**
-1. Are git hooks installed?
-2. Does compliance.seed.json have correct trigger?
-
-**Fix:**
-```bash
-# Install/reinstall git hooks
-python3 scripts/git_hooks.py install
-```
-
----
-
-## 📚 More Information
-
-- [Intelligent Seedlings Guide](../../../../docs/guides/intelligent-seedlings-guide.md)
-- [GAP v1.0 Specification](../../../../docs/guides/governance-activation.md)
-- [SeedlingLoader Reference](../../../../tools/governance/seedling_loader.py)
-- [Agent Integration](../../../../docs/guides/ai-integration.md)
-
----
-
-## ✨ After Activation
-
-Once activated, your project will:
-
-✅ **Auto-load governance** on project open
-✅ **Give agents access** to mandates and guidelines
-✅ **Validate compliance** in pre-commit hooks
-✅ **Enforce rules** in CI/CD pipelines
-✅ **Track fingerprint** to detect drift
-
----
-
-**Last updated:** {self.generated_at}
-**Version:** 1.0
-**Status:** Ready for activation
-    """
+            content = build_activation_guide(
+                fingerprint=self.spec_fingerprint,
+                generated_at=self.generated_at,
+                enforcement_label=enforcement_label,
+                enforcement_explanation=enforcement_explanation,
+                enforcement_behavior=enforcement_behavior,
+                language=self.config.get("language", "python").upper(),
+                mandates_list="\n".join(
+                    f"✓ {m['id']}: {m.get('title', 'Unknown')}" for m in self.mandates
+                ),
+                guidelines_list=(
+                    "\n".join(f"✓ {cat.upper()}" for cat in self.active_categories)
+                    if self.active_categories
+                    else "(None configured)"
+                ),
+                mandate_ids_joined=", ".join(self.mandate_ids),
+            )
 
             with open(guide_file, "w", encoding="utf-8") as f:
                 f.write(content)
@@ -627,258 +299,15 @@ Once activated, your project will:
             return False
 
     def generate_verification_script(self) -> bool:
-        """
-        Generate verify.py - Verification and health check script
-
-        This script:
-        - Checks directory structure
-        - Validates JSON files
-        - Tests SeedlingLoader
-        - Verifies GAP activation
-        - Suggests fixes for common issues
-        """
+        """Generate verify.py - verification and health check script."""
         try:
             script_file = self.seedlings_dir / "verify.py"
-            mandate_ids_str = "', '".join(self.mandate_ids)
-
-            content = f'''#!/usr/bin/env python3
-"""Governance Activation Verification Script
-
-This script verifies that governance seedlings are properly activated.
-
-Usage:
-    python3 verify.py
-    python3 verify.py --verbose
-"""
-
-import json
-import sys
-from pathlib import Path
-
-
-class GovernanceVerifier:
-    """Verify governance activation status"""
-
-    def __init__(self, project_root: Path = None, verbose: bool = False):
-        self.project_root = project_root or Path.cwd()
-        self.verbose = verbose
-        self.checks = {{}}
-        self.passed = 0
-        self.failed = 0
-        self.warnings = 0
-
-    def log(self, message: str):
-        if self.verbose:
-            logger.info(f"  {{message}}")
-
-    def check_directory(self, path: str, description: str) -> bool:
-        full_path = self.project_root / path
-        passed = full_path.exists() and full_path.is_dir()
-        status = "✅" if passed else "❌"
-        logger.info(f"  {{status}} {{description}}: {{path}}")
-        self.checks[description] = "pass" if passed else "fail"
-        if passed:
-            self.passed += 1
-        else:
-            self.failed += 1
-        return passed
-
-    def check_file(self, path: str, description: str, must_be_json: bool = False) -> bool:
-        full_path = self.project_root / path
-        exists = full_path.exists() and full_path.is_file()
-
-        if not exists:
-            logger.warning(f"  ❌ {{description}}: {{path}}")
-            self.checks[description] = "fail"
-            self.failed += 1
-            return False
-
-        if must_be_json:
-            try:
-                with open(full_path, "r") as f:
-                    json.load(f)
-                status = "✅"
-                result = True
-            except json.JSONDecodeError as e:
-                status = "❌"
-                result = False
-                logger.info(f"  {{status}} {{description}} (Invalid JSON): {{path}}")
-                self.failed += 1
-                return False
-        else:
-            status = "✅"
-            result = True
-
-        logger.info(f"  {{status}} {{description}}: {{path}}")
-        self.checks[description] = "pass"
-        if result:
-            self.passed += 1
-        return result
-
-    def check_seedling_loader(self) -> bool:
-        """Test SeedlingLoader discovery"""
-        try:
-            # Robust path discovery: search for tools directory up to 4 levels deep
-            root = self.project_root
-            found_root = False
-            for _ in range(5):
-                if (root / "tools" / "governance").exists():
-                    sys.path.insert(0, str(root))
-                    found_root = True
-                    break
-                if root == root.parent:
-                    break
-                root = root.parent
-
-            if not found_root:
-                # Fallback: try to find repository root by looking for 'packages' or '.git'
-                current_path = Path(__file__).resolve().parent
-                repo_root = None
-                for _ in range(10): # Limit depth to prevent infinite loop
-                    if (current_path / "packages").is_dir() or (current_path / ".git").is_dir():
-                        repo_root = current_path
-                        break
-                    if current_path == current_path.parent: # Reached filesystem root
-                        break
-                    current_path = current_path.parent
-
-                if repo_root:
-                    sys.path.insert(0, str(repo_root))
-                else:
-                    # Last resort, might not be correct for all setups
-                    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent))
-
-            from tools.governance.seedling_loader import SeedlingLoader
-
-            loader = SeedlingLoader(self.project_root)
-            loaded = loader.load_all()
-
-            if len(loaded) >= 3:
-                logger.info(f"  ✅ SeedlingLoader: Discovered {{len(loaded)}} seedlings")
-                self.checks["SeedlingLoader"] = "pass"
-                self.passed += 1
-                return True
-            else:
-                logger.warning(f"  ⚠️  SeedlingLoader: Found only {{len(loaded)}} seedlings (expected 3+)")
-                self.checks["SeedlingLoader"] = "warn"
-                self.warnings += 1
-                return False
-        except Exception as e:
-            logger.warning(f"  ⚠️  SeedlingLoader: Could not test")
-            self.checks["SeedlingLoader"] = "warn"
-            self.warnings += 1
-            return False
-
-    def verify_mandates(self) -> bool:
-        """Verify mandates are configured"""
-        expected = {{'{mandate_ids_str}'}}
-        gov_seed_path = self.project_root / ".sdd/seedlings/governance.seed.json"
-
-        try:
-            with open(gov_seed_path, "r") as f:
-                data = json.load(f)
-                configured = set(data.get("project_metadata", {{}}).get("mandates_selected", []))
-
-            if configured == expected:
-                logger.info(f"  ✅ Mandates: {{', '.join(expected)}}")
-                self.checks["Mandates"] = "pass"
-                self.passed += 1
-                return True
-            else:
-                logger.warning(f"  ❌ Mandates mismatch: Expected {{expected}}, got {{configured}}")
-                self.checks["Mandates"] = "fail"
-                self.failed += 1
-                return False
-        except Exception as e:
-            logger.warning(f"  ❌ Mandates: Could not verify")
-            self.checks["Mandates"] = "fail"
-            self.failed += 1
-            return False
-
-    def run(self) -> bool:
-        """Run all verification checks"""
-        logger.debug("=" * 70)
-        logger.info("🔍 Governance Activation Verification")
-        logger.debug("=" * 70)
-
-        logger.info("\\n📂 Directory Structure:")
-        self.check_directory(".sdd/source/mandates", ".sdd/source/mandates")
-        self.check_directory(".sdd/source/guidelines", ".sdd/source/guidelines")
-        self.check_directory(".sdd/runtime", ".sdd/runtime")
-        self.check_directory(".sdd/seedlings", ".sdd/seedlings")
-
-        logger.info("\\n📄 Required Files:")
-        self.check_file(".sdd/metadata.json", ".sdd/metadata.json", must_be_json=True)
-        self.check_file(".sdd/runtime/mandate.bin", "mandate.bin")
-        self.check_file(".sdd/source/mandates/mandates.md", "mandates.md")
-        self.check_file(".sdd/seedlings/governance.seed.json", "governance.seed.json", must_be_json=True)
-        self.check_file(".sdd/seedlings/agent-prep.seed.json", "agent-prep.seed.json", must_be_json=True)
-        self.check_file(".sdd/seedlings/compliance.seed.json", "compliance.seed.json", must_be_json=True)
-
-        logger.info("\\n🔑 Governance Configuration:")
-        self.verify_mandates()
-
-        logger.info("\\n🧩 Integration Tests:")
-        self.check_seedling_loader()
-
-        logger.debug("=" * 70)
-        logger.info("📊 Summary")
-        logger.debug("=" * 70)
-        logger.info(f"✅ Passed: {{self.passed}}")
-        if self.warnings:
-            logger.info(f"⚠️  Warnings: {{self.warnings}}")
-        if self.failed:
-            logger.info(f"❌ Failed: {{self.failed}}")
-
-        if self.failed == 0 and self.warnings == 0:
-            logger.info("\\n🎉 Governance is fully activated!")
-            return True
-        elif self.failed == 0:
-            logger.info(f"\\n⚠️  Governance is mostly activated ({{self.warnings}} warnings)")
-            return True
-        else:
-            logger.info(f"\\n❌ Governance activation failed ({{self.failed}} critical issues)")
-            logger.info("\\n💡 Next Steps:")
-            logger.info("   1. Review ACTIVATION_GUIDE.md for troubleshooting")
-            logger.info("   2. Verify all files copied from wizard output")
-            logger.info("   3. Restart IDE and try again")
-            return False
-
-
-def main():
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="Verify governance activation",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-    parser.add_argument(
-        "--project",
-        "-p",
-        type=Path,
-        default=Path.cwd(),
-        help="Project root directory",
-    )
-
-    args = parser.parse_args()
-
-    verifier = GovernanceVerifier(project_root=args.project, verbose=args.verbose)
-    success = verifier.run()
-
-    return 0 if success else 1
-
-
-if __name__ == "__main__":
-    sys.exit(main())
-    '''
-
+            content = build_verification_script(
+                mandate_ids_str="', '".join(self.mandate_ids)
+            )
             with open(script_file, "w", encoding="utf-8") as f:
                 f.write(content)
-
-            # Make script executable
             script_file.chmod(0o755)
-
             self.log("✅ Generated verify.py")
             return True
         except Exception as e:

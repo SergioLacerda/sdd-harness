@@ -99,6 +99,7 @@ def run_layer(
     coverage: bool = False,
     parallel: bool = True,
     extra_args: list[str] | None = None,
+    max_workers: int = 2,
 ) -> tuple[bool, str]:
     """Run pytest for one layer. Returns (success, summary_line)."""
     layer_path = REPO_ROOT / layer.path
@@ -139,8 +140,9 @@ def run_layer(
                 pass
 
         if has_xdist:
-            # Auto-detect cores, but leave one free for system
-            cpus = max(1, multiprocessing.cpu_count() - 1)
+            # Cap workers to avoid saturating the machine on local dev.
+            # CI can raise this via --max-workers, but local default is 2.
+            cpus = min(max(1, multiprocessing.cpu_count() - 1), max_workers)
             if cpus > 1:
                 cmd += ["-n", str(cpus)]
         else:
@@ -356,13 +358,20 @@ def _run_layers_loop(
     coverage: bool,
     parallel: bool,
     extra_pytest_args: list[str],
+    max_workers: int = 2,
 ) -> tuple[bool, list[tuple[bool, str]]]:
     """Run tests for all selected layers and return results."""
     results = []
     all_passed = True
     for layer in layers:
         success, summary = run_layer(
-            layer, args.verbose, args.fail_fast, coverage, parallel, extra_pytest_args
+            layer,
+            args.verbose,
+            args.fail_fast,
+            coverage,
+            parallel,
+            extra_pytest_args,
+            max_workers=max_workers,
         )
         results.append((success, summary))
         all_passed = all_passed and success
@@ -388,6 +397,12 @@ def main() -> int:
     parser.add_argument("--no-coverage", action="store_true", help="Disable coverage")
     parser.add_argument(
         "--no-parallel", action="store_true", help="Disable parallel execution"
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=2,
+        help="Max xdist workers per layer in local dev (default: 2). CI ignores this.",
     )
     parser.add_argument(
         "--cov-fail-under", type=int, default=80, help="Coverage threshold"
@@ -428,7 +443,12 @@ def main() -> int:
     print("=" * 70)
 
     all_passed, results = _run_layers_loop(
-        layers, args, coverage, parallel, extra_pytest_args
+        layers,
+        args,
+        coverage,
+        parallel,
+        extra_pytest_args,
+        max_workers=args.max_workers,
     )
 
     print(f"\n{'=' * 70}")

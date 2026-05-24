@@ -1,6 +1,11 @@
 """Seedling selection prompt helpers for interactive wizard."""
 
+from __future__ import annotations
+
 from collections.abc import Callable
+from typing import Any
+
+from sdd_wizard.src.prompter import Prompter, _wrap_prompter
 
 SEEDLINGS: list[tuple[str, str, str]] = [
     ("governance", "CORE", "GAP v1.0 auto-activation"),
@@ -18,55 +23,50 @@ SEEDLINGS: list[tuple[str, str, str]] = [
 ]
 
 
+def _build_choices() -> list[Any]:
+    """Build questionary-compatible choices list with group separators."""
+    try:
+        from questionary import Choice, Separator
+
+        choices: list[Any] = []
+        last_group: str | None = None
+        for key, group, desc in SEEDLINGS:
+            if group != last_group:
+                choices.append(Separator(f"── {group} ──"))
+                last_group = group
+            choices.append(Choice(f"{key:<18} — {desc}", value=key))
+        return choices
+    except ImportError:
+        return [f"{key} — {desc}" for key, _, desc in SEEDLINGS]
+
+
 def ask_seedling_selection(
     emitter: Callable[[str], None],
-    prompter: Callable[[str], str] | None = None,
+    prompter: Prompter | Callable[[str], str] | None = None,
 ) -> set[str] | None:
     """Ask the user which seedlings to include. Returns None for all.
 
     Args:
         emitter: Output callback for display messages.
-        prompter: Input callback for reading user input. Defaults to built-in
-            ``input`` when None. Pass a custom callable in tests to avoid
-            requiring a real TTY.
+        prompter: Prompter instance, legacy callable, or None (uses make_prompter).
     """
+    _p = _wrap_prompter(prompter)
     emitter("\n📦 Seedlings Selection")
     emitter("-" * 50)
-    last_group = None
-    for i, (key, group, desc) in enumerate(SEEDLINGS, start=1):
-        if group != last_group:
-            emitter(f"\n  {group}")
-            last_group = group
-        emitter(f"  [{i:2}] {key:<18} — {desc}")
 
-    emitter("\n  Enter numbers separated by commas (e.g. 1,2,3,4)")
-    emitter("  'all' or blank → generate all seedlings")
-    _prompt = prompter if prompter is not None else input
-    raw = _prompt("\n  Selection: ").strip()
+    choices = _build_choices()
+    selected_values = _p.checkbox("Select seedlings (empty = all):", choices)
 
-    if not raw or raw.lower() == "all":
+    if not selected_values:
         emitter("  → Generating all seedlings")
         return None
 
-    selected: set[str] = set()
-    known = {seed[0] for seed in SEEDLINGS}
-    for token in raw.split(","):
-        token = token.strip()
-        if token.isdigit():
-            idx = int(token) - 1
-            if 0 <= idx < len(SEEDLINGS):
-                selected.add(SEEDLINGS[idx][0])
-            else:
-                emitter(f"  ⚠️  Ignoring invalid index: {token}")
-            continue
-        if token in known:
-            selected.add(token)
-        else:
-            emitter(f"  ⚠️  Unknown seedling key: {token}")
+    known = {s[0] for s in SEEDLINGS}
+    valid = {v for v in selected_values if v in known}
 
-    if not selected:
+    if not valid:
         emitter("  ⚠️  No valid selection — generating all seedlings")
         return None
 
-    emitter(f"  → Generating: {', '.join(sorted(selected))}")
-    return selected
+    emitter(f"  → Generating: {', '.join(sorted(valid))}")
+    return valid
