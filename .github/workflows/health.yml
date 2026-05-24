@@ -37,8 +37,8 @@ jobs:
           base_branch="${GH_BASE_REF}"
           head_branch="${GH_HEAD_REF}"
 
-          if [ "${base_branch}" = "main" ] && [ "${head_branch}" != "dev" ]; then
-            echo "ERROR: Promotion to 'main' must come from 'dev'."
+          if [ "${base_branch}" = "main" ] && [ "${head_branch}" != "dev" ] && [ "${head_branch}" != "develop" ]; then
+            echo "ERROR: Promotion to 'main' must come from 'dev' or 'develop'."
             echo "Received: ${head_branch} -> ${base_branch}"
             exit 1
           fi
@@ -60,8 +60,8 @@ jobs:
       - name: Run environment boundary gates (health)
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py env-boundary-lint --context health --mode warn
-          uv run python tools/ci/environment_gates.py workspace-root-resolution-check --mode warn
+          uv run python tools/ci/environment_gates.py env-boundary-lint --context health --mode enforce
+          uv run python tools/ci/environment_gates.py workspace-root-resolution-check --mode enforce
 
   lint:
     needs: [branch-policy, environment-preflight]

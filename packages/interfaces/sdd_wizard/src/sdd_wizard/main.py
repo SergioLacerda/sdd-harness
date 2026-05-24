@@ -7,17 +7,10 @@ from pathlib import Path
 
 def run_wizard(repo_root: Path | None = None) -> None:
     """Launch the interactive SDD wizard."""
-    from sdd_wizard.src.wizard import WizardOrchestrator
+    from sdd_wizard.src.interactive_mode import run_interactive_wizard
 
     root = repo_root or Path.cwd()
-
-    try:
-        from sdd_wizard.src.interactive_mode import run_interactive_wizard
-
-        success = run_interactive_wizard(root)
-    except ImportError:
-        orchestrator = WizardOrchestrator(repo_root=root, verbose=True)
-        success = orchestrator.run_full_pipeline()
+    success = run_interactive_wizard(root)
 
     if not success:
         import sys

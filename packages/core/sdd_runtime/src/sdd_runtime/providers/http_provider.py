@@ -72,7 +72,7 @@ class HttpProvider:
             return False
 
         try:
-            import httpx
+            import httpx  # type: ignore[import-not-found]
 
             async with httpx.AsyncClient(timeout=2) as client:
                 resp = await client.get(self._url + "/health")

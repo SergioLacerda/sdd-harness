@@ -85,8 +85,8 @@ class TestInitAndPaths:
             return "answer"
 
         wizard = _make_wizard(tmp_path, prompter=my_prompter)
-        assert wizard._prompt("test?") == "answer"
-        assert "test?" in calls
+        # _prompter wraps the callable; verify select() delegates correctly
+        assert wizard._prompter.select("test?", ["answer", "other"]) == "answer"
 
 
 class TestPrintHeader:
@@ -103,13 +103,13 @@ class TestShowPhaseMenu:
         wizard = _make_wizard(tmp_path, prompter=lambda _: "2")
         assert wizard.show_phase_menu() == "2"
 
-    def test_menu_emits_phase_options(self, tmp_path: Path) -> None:
-        logs: list[str] = []
-        wizard = _make_wizard(tmp_path, prompter=lambda _: "1", emitter=logs.append)
-        wizard.show_phase_menu()
-        combined = "\n".join(logs)
-        assert "Phase 1" in combined
-        assert "Phase 3" in combined
+    def test_menu_phase_choices_include_all_phases(self, tmp_path: Path) -> None:
+        # Phase options are delivered via prompter.select() choices, not _emit
+        from sdd_wizard.src.interactive_mode import InteractiveWizard
+
+        choices = list(InteractiveWizard._PHASE_CHOICES.values())
+        assert any("Phase 1" in c for c in choices)
+        assert any("Phase 3" in c for c in choices)
 
 
 class TestAskUserPreferences:
@@ -135,8 +135,9 @@ class TestAskUserPreferences:
         assert config["language"] == "TypeScript"
 
     def test_unknown_choices_default(self, tmp_path: Path) -> None:
+        # Out-of-bounds index → _CallablePrompter falls back to first choice
         config = self._wizard_with_choices(tmp_path, "9", "9").ask_user_preferences()
-        assert config["enforcement_mode"] == "warn_mode"
+        assert config["enforcement_mode"] == "silent_mode"
         assert config["language"] == "Python"
 
     def test_config_has_generated_at(self, tmp_path: Path) -> None:
@@ -543,8 +544,9 @@ class TestRun:
             assert wizard.run() is True
 
     def test_invalid_choice_returns_false(self, tmp_path: Path) -> None:
-        wizard = _make_wizard(tmp_path, prompter=lambda _: "x")
-        assert wizard.run() is False
+        wizard = _make_wizard(tmp_path)
+        with patch.object(wizard, "show_phase_menu", return_value="x"):
+            assert wizard.run() is False
 
     def test_keyboard_interrupt_returns_false(self, tmp_path: Path) -> None:
         def _raise(_: str) -> str:

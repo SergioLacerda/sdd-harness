@@ -351,7 +351,7 @@ class TestAskUserPreferences:
         with patch("builtins.input", side_effect=["99", "99"]):
             config = wizard.ask_user_preferences()
         assert config["language"] == "Python"
-        assert config["enforcement_mode"] == "warn_mode"
+        assert config["enforcement_mode"] == "silent_mode"
 
     def test_strict_mode_choice(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)

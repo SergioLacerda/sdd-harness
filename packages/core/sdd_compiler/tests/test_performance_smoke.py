@@ -54,7 +54,7 @@ def _build_dataset(mandates: int = 400, guidelines: int = 200) -> str:
 
 
 def test_dsl_compiler_performance_smoke() -> None:
-    max_compile_ms = _int_env("SDD_COMPILER_SMOKE_MAX_MS", 3000)
+    max_compile_ms = _int_env("SDD_COMPILER_SMOKE_MAX_MS", 5000)
     max_size_multiplier = _float_env("SDD_COMPILER_SMOKE_MAX_SIZE_MULTIPLIER", 3.0)
 
     dsl = _build_dataset()

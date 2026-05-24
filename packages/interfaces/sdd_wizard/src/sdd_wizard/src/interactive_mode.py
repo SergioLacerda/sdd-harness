@@ -44,6 +44,7 @@ from sdd_wizard.orchestration.wizard.seedling_selection import ask_seedling_sele
 from sdd_wizard.orchestration.wizard.seedlings_runtime import (
     run_phase6_seedlings_generation,
 )
+from sdd_wizard.src.prompter import Prompter, _wrap_prompter
 
 
 class InteractiveWizard:
@@ -69,13 +70,13 @@ class InteractiveWizard:
         self,
         repo_root: Path,
         emitter: Callable[[str], None] | None = None,
-        prompter: Callable[[str], str] | None = None,
+        prompter: Prompter | Callable[[str], str] | None = None,
     ):
         paths = get_sdd_paths()
         self.repo_root = repo_root or paths["root"]
         self.paths = paths
         self._emit = emitter or print
-        self._prompt = prompter if prompter is not None else input
+        self._prompter = _wrap_prompter(prompter)
         self.config: dict[str, Any] = {}
         self.client_build_dir = self.paths["client_build"]
         self.client_compiled_dir = self.paths["client_compiled"]
@@ -105,74 +106,48 @@ class InteractiveWizard:
         self._emit(f"\n{icon} {title}")
         self._emit("=" * 70)
 
+    _PHASE_CHOICES: dict[str, str] = {
+        "1": "Phase 1: Generate governance templates (start here or reset)",
+        "2": "Phase 2: How to customize templates (guidance on editing)",
+        "3": "Phase 3: Compile governance (after editing Phase 1 output)",
+        "4": "Phase 4-6: Generate Project Structure (after Phase 3)",
+    }
+
     def show_phase_menu(self) -> str:
-        """Show menu to choose which phase to start at"""
+        """Show menu to choose which phase to start at."""
         self.print_header("SDD Wizard v3 - Choose Starting Phase", "🧙")
         self._emit(f"\nStarted: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        self._emit("""Which phase would you like to run?
+        labels = list(self._PHASE_CHOICES.values())
+        selected = self._prompter.select("Which phase would you like to run?", labels)
+        for key, val in self._PHASE_CHOICES.items():
+            if val == selected:
+                return key
+        return "1"
 
-  [1] Phase 1: Generate governance templates
-              (Asks for programming language)
-              ✅ Start here or use to reset/regenerate
-
-  [2] Phase 2: How to customize templates
-              (Shows step-by-step instructions)
-              ✅ Use this for guidance on editing
-
-  [3] Phase 3: Compile governance
-              (Reads edited markdown → final JSON)
-              ✅ Use after editing Phase 1 output
-
-  [4] Phase 4-6: Generate Project Structure
-              (Creates .sdd/ with IDE templates)
-              ✅ Use after Phase 3 is complete
-""")
-
-        choice = self._prompt("Select phase (1-4): ").strip()
-        return choice
+    _ENFORCEMENT_CHOICES = ["Sem Alertas", "Alertas", "Bloquear"]
+    _ENFORCEMENT_MAP = {
+        "Sem Alertas": "silent_mode",
+        "Alertas": "warn_mode",
+        "Bloquear": "strict_mode",
+    }
+    _LANGUAGE_CHOICES = ["Python", "Java", "TypeScript"]
 
     def ask_user_preferences(self) -> dict[str, Any]:
-        """Ask user for preferences: enforcement mode and programming language"""
+        """Ask user for preferences: enforcement mode and programming language."""
         self.print_header("User Preferences Setup", "⚙️")
 
-        # Ask for enforcement mode (FIRST - before language)
-        self._emit("""\n1️⃣  How should governance violations be handled?
-
-  [1] Sem Alertas
-       → Silent: No warnings when violations detected
-       → Best for: Learning projects, experimental code
-
-  [2] Alertas
-       → Warn: Show warnings but allow violations
-       → Best for: Development phase, flexible enforcement
-
-  [3] Bloquear
-       → Strict: Block violations in pre-commit hooks
-       → Best for: Production, mandatory governance
-""")
-        enforcement_choice = self._prompt("Select enforcement (1-3): ").strip()
-        enforcement_map = {"1": "silent_mode", "2": "warn_mode", "3": "strict_mode"}
-        enforcement_mode = enforcement_map.get(enforcement_choice, "warn_mode")
-        enforcement_labels = {
-            "silent_mode": "Sem Alertas",
-            "warn_mode": "Alertas",
-            "strict_mode": "Bloquear",
-        }
-        self._emit(
-            f"   ✅ Selected: {enforcement_labels.get(enforcement_mode, enforcement_mode)}"
+        self._emit("\n1️⃣  How should governance violations be handled?")
+        enforcement_label = self._prompter.select(
+            "Select enforcement:", self._ENFORCEMENT_CHOICES
         )
+        enforcement_mode = self._ENFORCEMENT_MAP.get(enforcement_label, "warn_mode")
+        self._emit(f"   ✅ Selected: {enforcement_label}")
 
-        # Ask for language
-        self._emit("""\n2️⃣  Which language would you like examples in?
-(This is for code examples only - governance applies to all languages)
-
-  [1] Python
-  [2] Java
-  [3] TypeScript
-""")
-        language_choice = self._prompt("Select language (1-3): ").strip()
-        language_map = {"1": "Python", "2": "Java", "3": "TypeScript"}
-        language = language_map.get(language_choice, "Python")
+        self._emit(
+            "\n2️⃣  Which language would you like examples in?"
+            "\n(This is for code examples only - governance applies to all languages)"
+        )
+        language = self._prompter.select("Select language:", self._LANGUAGE_CHOICES)
         self._emit(f"   ✅ Selected: {language}")
 
         config = {
@@ -360,7 +335,7 @@ Next steps:
 
         self._emit(phase2_instructions_message(phase1_path, output_path, copied_files))
 
-        self._prompt("\nPress ENTER when you've completed Phase 2...")
+        self._prompter.confirm("Have you completed Phase 2 edits?", default=True)
         return {
             "success": True,
             "phase1_path": str(phase1_path),
@@ -371,7 +346,7 @@ Next steps:
 
     def _ask_seedling_selection(self) -> set[str] | None:
         """Ask the user which seedlings to include. Returns None for all."""
-        return ask_seedling_selection(self._emit, prompter=self._prompt)
+        return ask_seedling_selection(self._emit, prompter=self._prompter)
 
     def phase_4_generate_project(self) -> Phase4GenerateResult:
         """Execute Phase 4-6: Generate project structure from compiled governance"""

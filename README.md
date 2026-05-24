@@ -11,7 +11,7 @@
 | [![Validation](https://github.com/SergioLacerda/sdd-harness/actions/workflows/sdd-validation.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/sdd-validation.yml) | [![Release](https://github.com/SergioLacerda/sdd-harness/actions/workflows/release.yml/badge.svg)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/release.yml) | [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/) |
 | [![Docs](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml) | [![Governance: SDD](https://img.shields.io/badge/governance-SDD-blueviolet)](docs/spec/canonical/core/) | [![License: MIT](https://img.shields.io/github/license/SergioLacerda/sdd-harness)](LICENSE) |
 
-**[GitHub Pages](https://sergiolacerda.github.io/sdd-harness/)** • **[Getting Started](#-getting-started)** • **[CLI Reference](#-cli-reference)** • **[Contributing](#-contributing)**
+**[GitHub Pages](https://sergiolacerda.github.io/sdd-harness/)** • **[Onboarding](#-onboarding--govern-your-project-with-sdd)** • **[CLI Reference](#-cli-reference)** • **[Contributing](#-contributing)**
 
 </div>
 
@@ -30,55 +30,88 @@ Spec-Driven Development (SDD) Harness is not just a tool—it's a **Governance O
 
 ---
 
-## Prerequisites
-- **Python 3.10+** (Modern async runtime)
-- **[uv](https://docs.astral.sh/uv/)** (Extremely fast package & project manager)
+## 🚀 Onboarding — Govern Your Project with SDD
 
+> For teams and developers who want to add SDD governance to an existing project.
 
-## 🚀 Getting Started
+**Prerequisite:** [uv](https://docs.astral.sh/uv) must be installed on your machine.
 
-### Prerequisites
-- Have on your IDE / work station: SDD GOVERNANCE(generated from `sdd wizard run`)
-
-### Quick Workflow
 ```bash
-# 1) Synchronize workspace and dependencies
+# 1) Install the SDD CLI globally
+curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh | sh
+
+# Prefer to inspect first?
+curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh -o install.sh
+cat install.sh && sh install.sh
+```
+
+```bash
+# 2) Navigate to your project and run the interactive wizard
+cd your-project
+sdd wizard
+```
+
+The wizard walks you through 4 phases: template generation → customization → compile → project structure. At the end, `.sdd/` is created with your governance artifacts, IDE templates, and agent instructions.
+
+```bash
+# 3) Bootstrap governance runtime in your project
+sdd init --type client --name <your-project> --force
+sdd governance generate --full-bootstrap
+sdd skills --full-bootstrap --regenerate-seeds
+```
+
+```bash
+# 4) Verify everything is healthy
+sdd runtime status
+sdd governance validate
+```
+
+**Paste this prompt into your AI agent after setup:**
+
+```text
+Read AGENTS.md, .sdd/agent-instructions.md, .sdd/source/governance-core.json,
+and .sdd/source/mandates/mandates.md. Confirm:
+1) active mandates loaded  2) current fingerprint  3) any drift/blockers
+4) next governed action using sdd-* commands only.
+```
+
+Full onboarding guide and troubleshooting: [`docs/guides/CLIENT_ONBOARDING.md`](docs/guides/CLIENT_ONBOARDING.md)
+
+---
+
+## 🛠️ Local Setup — Contributing to SDD Harness
+
+> For developers working on the SDD Harness codebase itself.
+
+**Prerequisites:** Python 3.10+, [uv](https://docs.astral.sh/uv), Git.
+
+```bash
+# 1) Clone and install all workspace dependencies (includes dev/test deps)
+git clone https://github.com/SergioLacerda/sdd-harness.git
+cd sdd-harness
 make install
 source .venv/bin/activate
+```
 
-# 2) Initialize workspace profile + PHASE 0 marker (.sdd/profile)
+```bash
+# 2) Bootstrap local governance runtime
 sdd init --type client --name local-dev --force
+make hooks-install          # SDD hooks + pre-commit
+make governance-bootstrap   # compile + generate + sign artifacts
+```
 
-# 3) Install local hook infrastructure (SDD hooks + pre-commit)
-make hooks-install
-
-# 4) Initialize governance artifacts (compile + generate + sign bootstrap)
-make governance-bootstrap
-
-# 5) Generate all skills/commands/seeds artifacts + reconcile local seeds with .sdd
+```bash
+# 3) Regenerate skills, commands and seeds
 sdd skills --full-bootstrap --regenerate-seeds
+```
 
-# 6) Verify environment health
+```bash
+# 4) Verify environment health
 sdd runtime status --force
 sdd governance validate
 ```
 
-Paste this in your agent prompt after bootstrap:
-
-```text
-Please evaluate governance from project-root files first, then from `.sdd`.
-Read `AGENTS.md`, `.sdd/agent-instructions.md`, `.sdd/source/governance-core.json`,
-and `.sdd/source/mandates/mandates.md`. Confirm:
-1) active mandates loaded, 2) current fingerprint, 3) any drift/blockers,
-4) next governed action using `sdd-*` commands only.
-```
-
-Detailed onboarding, custom slash/prompt commands, and troubleshooting:
-- [`docs/guides/CLIENT_ONBOARDING.md`](docs/guides/CLIENT_ONBOARDING.md)
-- CLI contract/reference: [`docs/spec/reference/commands/cli.md`](docs/spec/reference/commands/cli.md)
-
-Language standard:
-- English-only for code, docs, and generated onboarding artifacts (Mandate M011).
+CLI reference: [`docs/spec/reference/commands/cli.md`](docs/spec/reference/commands/cli.md)
 
 ---
 
@@ -104,7 +137,7 @@ SDD Harness implements a **fail-closed** security model. Governance artifacts mu
 
 ---
 
-## 🛠️ CLI Reference
+## 📋 CLI Reference
 
 | Command | Description |
 |:---|:---|
