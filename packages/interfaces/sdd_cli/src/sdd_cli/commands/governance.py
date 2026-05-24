@@ -10,6 +10,7 @@ import click
 import typer
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table as RichTable
 
 from sdd_cli.generators.agent_seeds import (
     generate_agent_instruction_files,
@@ -62,8 +63,9 @@ from sdd_cli.utils.sdd_authority import (
 )
 from sdd_cli.utils.telemetry_paths import resolve_compliance_events_path
 
-# Intentionally re-exported: tests patch sdd_cli.commands.governance.render_governance_compile_table
-__all__ = ["render_governance_compile_table"]
+# Backward-compat re-exports used by tests/patches.
+Table = RichTable
+__all__ = ["render_governance_compile_table", "Table"]
 
 app = typer.Typer(help="Governance management commands")
 console = Console()

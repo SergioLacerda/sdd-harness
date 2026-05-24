@@ -120,7 +120,7 @@ def test_governance_validate_json_bypasses_rich_tables(monkeypatch) -> None:
         "sdd_cli.commands.governance.run_runtime_preflight",
         lambda _: PreflightResult(passed=True, reason="", details={"skipped": False}),
     )
-    with patch("sdd_cli.commands.governance.Table") as mocked_table:
+    with patch("sdd_cli.commands.governance.Table", create=True) as mocked_table:
         result = runner.invoke(app, ["--json", "governance", "validate"])
 
     assert result.exit_code == 0, result.output
