@@ -27,7 +27,7 @@ def _make_wizard(tmp_path: Path) -> Any:
     ):
         wizard = InteractiveWizard(
             repo_root=tmp_path, prompter=lambda prompt: input(prompt)
-        )
+        )  # noqa: PLC3002
     return wizard
 
 

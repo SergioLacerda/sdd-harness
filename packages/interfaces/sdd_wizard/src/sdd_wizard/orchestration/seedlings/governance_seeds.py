@@ -798,8 +798,6 @@ If `.sdd/` is incomplete or inconsistent:
             f.write(content)
         return True
     except Exception as e:
-        import logging
-
         logging.getLogger(__name__).warning(
             f"Failed to regenerate agent-instructions.md: {e}"
         )

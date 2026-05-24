@@ -3,6 +3,7 @@
 set -eu
 
 REPO="https://github.com/SergioLacerda/sdd-harness"
+CLI_SUBDIR="packages/interfaces/sdd_cli"
 
 echo "→ Checking for uv..."
 if ! command -v uv > /dev/null 2>&1; then
@@ -13,7 +14,7 @@ fi
 echo "  uv $(uv --version) found."
 
 echo "→ Installing SDD CLI from source..."
-uv tool install "git+${REPO}" --package sdd-cli --force
+uv tool install "git+${REPO}#subdirectory=${CLI_SUBDIR}" --force
 
 echo "→ Verifying installation..."
 sdd --version

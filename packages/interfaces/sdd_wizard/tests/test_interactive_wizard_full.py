@@ -270,11 +270,7 @@ class TestPhase1Generate:
 
 class TestPhase2Instructions:
     def test_fails_when_phase1_dir_missing(self, tmp_path: Path) -> None:
-        result = (
-            _make_wizard(tmp_path)._make_wizard_and_call_phase2(tmp_path)
-            if False
-            else _make_wizard(tmp_path).phase_2_show_instructions()
-        )
+        result = _make_wizard(tmp_path).phase_2_show_instructions()
         assert result["success"] is False
 
     def test_fails_when_no_supported_files(self, tmp_path: Path) -> None:

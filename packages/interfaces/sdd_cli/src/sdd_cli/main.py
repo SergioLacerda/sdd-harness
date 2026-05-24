@@ -259,7 +259,7 @@ def main() -> None:
 
         configure_logging()
     except ImportError:
-        pass
+        logging.debug("sdd_core.logging not available; using stdlib logging defaults.")
     app()
 
 
