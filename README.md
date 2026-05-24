@@ -11,7 +11,7 @@
 | [![Validation](https://github.com/SergioLacerda/sdd-harness/actions/workflows/sdd-validation.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/sdd-validation.yml) | [![Release](https://github.com/SergioLacerda/sdd-harness/actions/workflows/release.yml/badge.svg)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/release.yml) | [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/) |
 | [![Docs](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml) | [![Governance: SDD](https://img.shields.io/badge/governance-SDD-blueviolet)](docs/spec/canonical/core/) | [![License: MIT](https://img.shields.io/github/license/SergioLacerda/sdd-harness)](LICENSE) |
 
-**[GitHub Pages](https://sergiolacerda.github.io/sdd-harness/)** • **[Getting Started](#-getting-started)** • **[CLI Reference](#-cli-reference)** • **[Contributing](#-contributing)**
+**[GitHub Pages](https://sergiolacerda.github.io/sdd-harness/)** • **[Onboarding](#-onboarding--govern-your-project-with-sdd)** • **[CLI Reference](#-cli-reference)** • **[Contributing](#-contributing)**
 
 </div>
 
