@@ -43,6 +43,13 @@ dev = [
     "hatchling>=1.21.0",
     "hatch-vcs>=0.4.0",
 ]
+examples-langgraph = [
+    "langgraph>=0.2",
+    "langchain-core>=0.2",
+]
+examples-crewai = [
+    "crewai>=0.80",
+]
 
 [project.urls]
 Repository = "https://github.com/SergioLacerda/sdd-harness"
