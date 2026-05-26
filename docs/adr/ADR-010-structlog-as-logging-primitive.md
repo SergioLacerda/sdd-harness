@@ -32,6 +32,7 @@ def configure_logging(level: str = "INFO") -> None:
 ```
 
 All packages obtain a logger via:
+
 ```python
 import structlog
 logger = structlog.get_logger(__name__)

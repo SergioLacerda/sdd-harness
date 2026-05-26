@@ -9,6 +9,7 @@
 ## What is FULL?
 
 Complete SDD implementation with:
+
 - ✅ **15 constitutional principles**
 - ✅ **16 mandatory rules**
 - ✅ **45 Definition of Done criteria**
@@ -18,6 +19,7 @@ Complete SDD implementation with:
 - ✅ Complete auditability & traceability
 
 **When to use FULL:**
+
 - Production teams building mission-critical software
 - Regulated industries (compliance requirements)
 - Large codebases (500+ lines of code)
@@ -52,6 +54,7 @@ echo "✅ FULL adoption complete!"
 ## The 15 Complete Principles
 
 ### Core Principles (1-5)
+
 1. **Clean Architecture Foundation**
 2. **Async-First Design**
 3. **Ports & Adapters Pattern**
@@ -59,18 +62,20 @@ echo "✅ FULL adoption complete!"
 5. **Explicit Governance Rules**
 
 ### Quality Principles (6-10)
-6. **Zero Framework Bleed**
-7. **Type Safety**
-8. **Comprehensive Testing**
-9. **Documentation as Code**
-10. **Autonomous Developers**
+
+1. **Zero Framework Bleed**
+2. **Type Safety**
+3. **Comprehensive Testing**
+4. **Documentation as Code**
+5. **Autonomous Developers**
 
 ### Enterprise Principles (11-15)
-11. **Technology Stack Immutable**
-12. **Data Governance**
-13. **Security by Default**
-14. **Performance as Requirement**
-15. **Operational Excellence**
+
+1. **Technology Stack Immutable**
+2. **Data Governance**
+3. **Security by Default**
+4. **Performance as Requirement**
+5. **Operational Excellence**
 
 See [Rules Index](../../canonical/core/rules/INDEX.md) for full details.
 
@@ -104,6 +109,7 @@ See [Rules Index](../../canonical/core/rules/INDEX.md) for full details.
 Organized by category:
 
 ### Architecture Compliance (9 items)
+
 - [ ] Layer boundaries enforced (test passes)
 - [ ] No framework imports in domain layers
 - [ ] No framework imports in entity layers
@@ -115,6 +121,7 @@ Organized by category:
 - [ ] Documentation for architecture decisions
 
 ### Async Compliance (8 items)
+
 - [ ] No blocking operations in event loop
 - [ ] No `time.sleep()` — use `asyncio.sleep()`
 - [ ] All I/O operations are async
@@ -125,6 +132,7 @@ Organized by category:
 - [ ] Timeout handling implemented
 
 ### Testing - Domain Layer (6 items)
+
 - [ ] 100% code coverage
 - [ ] Zero mocks used
 - [ ] All edge cases tested
@@ -133,6 +141,7 @@ Organized by category:
 - [ ] Tests run in < 100ms
 
 ### Testing - UseCase Layer (7 items)
+
 - [ ] Ports mocked, adapters not
 - [ ] Success paths tested
 - [ ] Error paths tested
@@ -142,6 +151,7 @@ Organized by category:
 - [ ] Timeout behavior tested
 
 ### Testing - Integration (6 items)
+
 - [ ] Adapter contract tests pass
 - [ ] Database migrations tested
 - [ ] Cache invalidation tested
@@ -150,6 +160,7 @@ Organized by category:
 - [ ] Retry logic tested
 
 ### Testing - E2E (5 items)
+
 - [ ] Critical user journeys tested
 - [ ] Happy path end-to-end
 - [ ] Error recovery end-to-end
@@ -157,6 +168,7 @@ Organized by category:
 - [ ] Load test (50+ concurrent) passed
 
 ### Code Quality (8 items)
+
 - [ ] Type hints on all functions
 - [ ] Docstrings present (why, not what)
 - [ ] Comments for non-obvious code
@@ -167,6 +179,7 @@ Organized by category:
 - [ ] No CSRF vulnerabilities
 
 ### Documentation (6 items)
+
 - [ ] Architecture Decision Record (ADR) created
 - [ ] Why documented (not just what)
 - [ ] Requirements traced to code
@@ -175,17 +188,20 @@ Organized by category:
 - [ ] Runbook updated
 
 ### Security (4 items)
+
 - [ ] Authentication tokens validated
 - [ ] Authorization enforced
 - [ ] Sensitive data encrypted at rest
 - [ ] Audit trail complete
 
 ### Performance (3 items)
+
 - [ ] Response time < SLA
 - [ ] Memory usage acceptable
 - [ ] Database queries optimized
 
 ### Process (3 items)
+
 - [ ] Code review approved
 - [ ] Team consensus documented
 - [ ] Stakeholder sign-off obtained
@@ -197,42 +213,50 @@ Organized by category:
 Each feature follows 7 phases:
 
 **Phase 0: Specification** (30 min)
+
 - Write requirements
 - Design architecture
 - Identify tests needed
 
 **Phase 1: Domain** (1-2 hours)
+
 - Implement domain logic (pure functions, no mocks)
 - Test domain 100% coverage
 - No framework imports
 
 **Phase 2: Adapters** (1-2 hours)
+
 - Implement ports (abstract interfaces)
 - Create adapters (concrete implementations)
 - Test adapters independently
 
 **Phase 3: UseCases** (1-2 hours)
+
 - Orchestrate domain + adapters
 - Implement error handling
 - Test with mocked ports
 
 **Phase 4: Integration** (1 hour)
+
 - Integration tests with real adapters
 - Test database, cache, queues
 - Verify end-to-end
 
 **Phase 5: API** (30 min)
+
 - FastAPI controllers/routes
 - Request/response validation
 - Error mapping to HTTP status codes
 
 **Phase 6: Compliance** (30 min)
+
 - Run architecture tests
 - Check all 45 DoD criteria
 - Security scan
 - Performance test
 
 **Phase 7: Deployment** (Ready for merge)
+
 - Code review approval
 - CI/CD pipeline green
 - Runbook updated
@@ -286,6 +310,7 @@ Before marking PR as "ready to merge":
 ## Key Metrics We Track
 
 (Published in v2.2)
+
 - First PR approval rate
 - Implementation time per phase
 - Bug escape rate

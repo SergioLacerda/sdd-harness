@@ -61,6 +61,7 @@ The hook detects `CI=true` or agent-specific environment variables and exits wit
 ### 3. Branch Protection (L2 — Server Barrier)
 
 In your GitHub repository settings, require:
+
 - 1+ approving review on `main` and `develop`
 - All status checks to pass before merging
 

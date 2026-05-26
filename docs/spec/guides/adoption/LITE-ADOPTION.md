@@ -9,6 +9,7 @@
 ## What is LITE?
 
 Minimal version of SDD with:
+
 - ✅ **10 core constitutional principles** (vs 15 FULL)
 - ✅ **5 mandatory rules** (vs 16 FULL)
 - ✅ **10 essential DoD criteria** (vs 45 FULL)
@@ -17,6 +18,7 @@ Minimal version of SDD with:
 - ❌ NOT: 7-phase workflow, advanced compliance
 
 **When to use LITE:**
+
 - Learning SDD patterns
 - Small teams (< 5 people)
 - Side projects, experiments
@@ -84,52 +86,62 @@ echo "✅ LITE adoption complete!"
 ## The 10 Core LITE Principles
 
 ### 1. **Clean Architecture Basics**
+
 - Domain layer isolated
 - No framework bleed into domain
 - Clear separation of concerns
 
 ### 2. **Async-First Mindset**
+
 - All I/O is async
 - No blocking calls in event loop
 - `async def` for all services
 
 ### 3. **Ports & Adapters Pattern**
+
 - Abstract external dependencies
 - Multiple adapter implementations possible
 - Domain knows no adapters
 
 ### 4. **Immutable Decisions (ADRs)**
+
 - Document major architectural choices
 - Why, not just what
 - Link decisions to code
 
 ### 5. **Explicit Governance Rules**
+
 - Rules live in code and docs
 - No ambiguous "best practices"
 - Everyone knows the rules
 
 ### 6. **Zero Framework Bleed**
+
 - Framework stays in outer layers
 - Business logic framework-agnostic
 - Testable without framework
 
 ### 7. **Type Safety**
+
 - Use Python type hints
 - Pydantic for validation
 - Benefits: IDE support, self-documentation
 
 ### 8. **Test Every Layer**
+
 - Domain: pure, no mocks
 - UseCase: mock ports only
 - Integration: real adapters
 - E2E: full stack
 
 ### 9. **Document Assumptions**
+
 - Docstrings for why (not what)
 - ADRs for decisions
 - Code comments for non-obvious
 
 ### 10. **Autonomous Developers**
+
 - Clear rules → less approval friction
 - Developers operate confidently
 - Governance enforced via CI, not meetings
@@ -149,20 +161,24 @@ echo "✅ LITE adoption complete!"
 ## The 10 Essential DoD Criteria
 
 ### Architecture (3 items)
+
 - [ ] Clean architecture layers properly separated
 - [ ] No framework imports in domain layers
 - [ ] Ports properly abstracted
 
 ### Testing (3 items)
+
 - [ ] Domain tests: 100% coverage, no mocks
 - [ ] UseCase tests: mock ports only
 - [ ] Integration tests: critical paths covered
 
 ### Code Quality (2 items)
+
 - [ ] Type hints on all functions
 - [ ] Docstrings present (why not what)
 
 ### Process (2 items)
+
 - [ ] ADR documented for major decisions
 - [ ] Pre-commit checks passing
 
@@ -182,6 +198,7 @@ echo "✅ LITE adoption complete!"
 When you're ready for production and want comprehensive governance:
 
 ✅ **Conditions to consider upgrading:**
+
 - Team is comfortable with basic SDD concepts
 - Project growing (>500 lines code)
 - Need production-grade compliance
@@ -190,6 +207,7 @@ When you're ready for production and want comprehensive governance:
 → **[Upgrade Guide: LITE to FULL](./LITE-TO-FULL-MIGRATION.md)**
 
 This gives you:
+
 - 5 additional principles
 - 11 more mandatory rules
 - 35 additional DoD criteria
@@ -201,12 +219,14 @@ This gives you:
 ## Key Differences from FULL
 
 ### LITE Focuses On
+
 ✅ Learning core architecture concepts
 ✅ Getting started quickly
 ✅ Validation for small teams
 ✅ Easy upgrade path
 
 ### FULL Focuses On
+
 ✅ Production readiness
 ✅ Comprehensive compliance
 ✅ Regulated industries

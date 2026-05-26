@@ -11,12 +11,14 @@ Loading the entire documentation before starting a task. The agent/developer con
 **Reality:** More context = slower decisions + higher token cost + loss of focus on the actual problem.
 
 ### Symptoms
+
 - Loading full `spec/` for a bugfix
 - Reading unrelated ADRs before a simple feature
 - "I'll just understand the whole system first"
 - Spending 30+ minutes on research for a 10-minute change
 
 ### Why it happens
+
 - Fear of missing context that turns out to be relevant
 - Lack of trust in the PATH classification system
 - No clear entry point defined
@@ -40,11 +42,13 @@ PATH C (complex) → full spec (this is the ONLY justified case)
 ---
 
 ## 📏 Benchmark
+
 A correctly scoped context load takes < 2 minutes.
 If you're still loading context after 5 minutes, you have cognitive overload.
 
 ---
 
 ## References
+
 - Context loading strategy: [`cognition/context-loading/path-routing.md`](../context-loading/path-routing.md)
 - Confidence model: [`cognition/decision-models/CONFIDENCE_THRESHOLD.md`](../decision-models/CONFIDENCE_THRESHOLD.md)

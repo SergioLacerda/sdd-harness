@@ -16,5 +16,6 @@ Maps task intents to the correct execution PATH. For detailed workflow per PATH,
 ## Estratégia de Roteamento
 
 For task classification rules and routing logic, see:
+
 - [`cognition/context-loading/path-routing.md`](../cognition/context-loading/path-routing.md) — Full routing table and decision heuristics
 - [`cognition/decision-models/TASK_CLASSIFICATION.md`](../cognition/decision-models/TASK_CLASSIFICATION.md) — Classification rules

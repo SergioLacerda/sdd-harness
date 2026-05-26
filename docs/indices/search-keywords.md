@@ -28,6 +28,7 @@ Core SDD framework terminology and abstractions.
 Mandates, policies, and rules that cannot be overridden.
 
 ### Mandates
+
 - M001: Clean Architecture
 - M002: TDD (Test-Driven Development)
 - M003: Context Awareness
@@ -36,6 +37,7 @@ Mandates, policies, and rules that cannot be overridden.
 - mandate enforcement
 
 ### Policies
+
 - P001: Project Boundary
 - P002: Honest Critique
 - P003: Mandatory Human Review
@@ -46,6 +48,7 @@ Mandates, policies, and rules that cannot be overridden.
 - autonomous commit prohibition
 
 ### Rules
+
 - code style rules
 - testing rules (F.I.R.S.T)
 - dependency resolution
@@ -81,6 +84,7 @@ Strategic choices and rationale.
 How agents load, manage, and reason about context.
 
 ### Context Loading
+
 - context budget
 - context loading strategy
 - context poisoning
@@ -93,6 +97,7 @@ How agents load, manage, and reason about context.
 - intelligence providers (TFIDF, AST, HTTP, Local)
 
 ### Task Classification
+
 - task classification
 - PATH A (bug fix)
 - PATH B (simple feature)
@@ -107,6 +112,7 @@ How agents load, manage, and reason about context.
 - go/no-go decision
 
 ### Anti-Patterns
+
 - cognitive overload
 - scope creep (scope drift)
 - premature execution
@@ -125,6 +131,7 @@ How agents load, manage, and reason about context.
 Code quality, testing, and development practices.
 
 ### Development
+
 - definition of done (DoD)
 - merge validation
 - quality gate
@@ -137,6 +144,7 @@ Code quality, testing, and development practices.
 - RAG pipeline
 
 ### Testing
+
 - Golden Rule (never alter production code for tests)
 - test pyramid (unit/integration/E2E)
 - layer-specific testing strategy
@@ -149,6 +157,7 @@ Code quality, testing, and development practices.
 - regression test
 
 ### Code Quality
+
 - code comment philosophy (WHY not WHAT)
 - naming conventions
 - type hints
@@ -164,6 +173,7 @@ Code quality, testing, and development practices.
 Processes, tools, and protocols for effective development.
 
 ### Runtime & Execution
+
 - agent entrypoint
 - agent runtime protocol
 - 7-phase execution flow
@@ -179,6 +189,7 @@ Processes, tools, and protocols for effective development.
 - CI/CD validation
 
 ### Governance Lifecycle
+
 - `sdd init` (workspace initialization)
 - `sdd governance compile`
 - `sdd governance validate`
@@ -194,6 +205,7 @@ Processes, tools, and protocols for effective development.
 - `sdd release` (version management)
 
 ### Collaboration
+
 - commit message protocol
 - ADR (Architecture Decision Record) process
 - RFC (Request for Comments)
@@ -230,6 +242,7 @@ Critical failure modes and recovery.
 Definitions and cross-references.
 
 ### Telemetry & Monitoring
+
 - OpenTelemetry (OTEL)
 - runtime events
 - governance events
@@ -243,6 +256,7 @@ Definitions and cross-references.
 - blameless post-mortem
 
 ### Observability Standards
+
 - logging levels
 - PII anonymization
 - retention policy
@@ -253,6 +267,7 @@ Definitions and cross-references.
 - runbook
 
 ### Performance & Budgets
+
 - token economy
 - budget utilization
 - budget_utilization_pct
@@ -275,6 +290,7 @@ Definitions and cross-references.
 - error rate threshold
 
 ### Security & Compliance
+
 - threat model
 - attack surface
 - attack vector
@@ -293,6 +309,7 @@ Definitions and cross-references.
 - evidence preservation
 
 ### Configuration & Storage
+
 - workspace profile (INI schema)
 - `.sdd/` (governance workspace)
 - `.sdd/context-aware/` (project runtime state)

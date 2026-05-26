@@ -128,6 +128,7 @@ git commit on main         # Any commit on main = BLOCKED
 ### 1. Git Config (Local Protection)
 
 Agent should run:
+
 ```bash
 # Make main branch read-only for agent (warn, not block)
 git config branch.main.rebase false
@@ -142,6 +143,7 @@ git config --local core.hooksPath .git-hooks/
 ### 2. GitHub Branch Protection (Server-side)
 
 Architect should enable:
+
 ```
 Repository Settings → Branches → Add rule
 
@@ -172,6 +174,7 @@ Result: **Only GitHub "Merge" button works, never git push**
 ### 3. Pre-commit Hook (Local Warning)
 
 File: `.git-hooks/pre-commit-adr-008`
+
 ```bash
 #!/bin/bash
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -203,6 +206,7 @@ exit 0
 ### 4. Test Suite (Validation)
 
 File: `.sdd-migration/tests/test_adr008_enforcement.py`
+
 ```python
 def test_agent_cannot_commit_to_main():
     """Verify ADR-008: Agent never auto-commits to main"""
@@ -222,6 +226,7 @@ def test_agent_cannot_commit_to_main():
 ### 5. CI/CD Check
 
 GitHub Actions workflow: `.github/workflows/adr008-check.yml`
+
 ```yaml
 name: ADR-008 Enforcement
 
@@ -275,6 +280,7 @@ git push --dry-run origin
 ## Scenario Testing
 
 ### Scenario 1: Agent tries direct main commit (BLOCKED ❌)
+
 ```bash
 $ git checkout main
 Switched to branch 'main'
@@ -292,6 +298,7 @@ $ echo $?
 ```
 
 ### Scenario 2: Agent follows workflow (ALLOWED ✅)
+
 ```bash
 $ git checkout -b wip/update-mandate
 Switched to new branch 'wip/update-mandate'
@@ -317,6 +324,7 @@ $ echo $?
 ```
 
 ### Scenario 3: Try to push main directly (BLOCKED ❌)
+
 ```bash
 $ git checkout main
 $ git merge wip/update-mandate
@@ -360,6 +368,7 @@ $ echo $?
 - [ ] **ALWAYS** run tests before pushing
 
 **Architect will:**
+
 - [ ] Review PR (check code + tests)
 - [ ] Comment on questions
 - [ ] Approve or request changes

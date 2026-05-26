@@ -16,6 +16,7 @@ Define testing strategies that validate behavior without compromising production
 > Tests must validate behavior, not vice versa.
 
 **FORBIDDEN:**
+
 ```python
 # ❌ NEVER: Add flags/modes for testing
 class ProductionService:
@@ -37,6 +38,7 @@ def validate(data):
 ```
 
 **IMPACT IF VIOLATED:**
+
 - Tests become unreliable (don't catch regressions)
 - Prod code grows complexity
 - Hidden dependencies between test and prod
@@ -63,6 +65,7 @@ def test_campaign_add_event():
 ```
 
 **Checklist:**
+
 - [ ] No external dependencies
 - [ ] No mocking required
 - [ ] Tests focus on business rules
@@ -95,6 +98,7 @@ async def test_retrieve_narrative_usecase():
 ```
 
 **Checklist:**
+
 - [ ] Mock Ports (interfaces), NOT adapters
 - [ ] Assert both return value AND port calls
 - [ ] No production adapters instantiated
@@ -102,6 +106,7 @@ async def test_retrieve_narrative_usecase():
 - [ ] Production UseCase logic unchanged
 
 **FORBIDDEN:**
+
 ```python
 # ❌ NEVER: Mock adapters directly
 mock_adapter = AsyncMock(spec=JsonNarrativeAdapter)  # Wrong!
@@ -142,6 +147,7 @@ async def test_json_narrative_adapter(tmp_path):
 ```
 
 **Checklist:**
+
 - [ ] Uses real backend (or test container)
 - [ ] Isolated (temp files, test DB, etc.)
 - [ ] Tests port contract compliance
@@ -175,6 +181,7 @@ async def test_create_narrative_route():
 ```
 
 **Checklist:**
+
 - [ ] Mock only UseCases/Services
 - [ ] Assert HTTP contract (status, schema)
 - [ ] No production logic modified
@@ -187,12 +194,14 @@ async def test_create_narrative_route():
 ## Rule: Treat as Black Box
 
 **DO NOT:**
+
 - Mock internal implementation
 - Test retrieval algorithm
 - Assume ranking behavior
 - Couple tests to index state
 
 **DO:**
+
 - Mock the VectorIndexPort in UseCases
 - Test that port is called correctly
 - Validate error handling
@@ -247,6 +256,7 @@ async def test_something():
 ```
 
 **Advantages over AsyncMock:**
+
 - Tests actual port behavior
 - More realistic scenarios
 - Easier to maintain
@@ -589,6 +599,7 @@ Before merging:
 ## Rule 1: Production Code Never Adapts for Tests
 
 **REQUIRED REVIEW:**
+
 ```bash
 # Before merging, verify:
 grep -r "TEST_MODE\|is_test\|test_flag" src/
@@ -598,6 +609,7 @@ grep -r "TEST_MODE\|is_test\|test_flag" src/
 ## Rule 2: Tests Access Only Ports (Not Adapters)
 
 **REQUIRED REVIEW:**
+
 ```bash
 # Before merging, verify no test imports concrete adapters:
 grep -r "from.*adapters.*import\|from.*adapter import" tests/
@@ -607,6 +619,7 @@ grep -r "from.*adapters.*import\|from.*adapter import" tests/
 ## Rule 3: No Backdoors to Production
 
 **REQUIRED REVIEW:**
+
 ```python
 # ❌ NEVER allow this:
 class SomeService:

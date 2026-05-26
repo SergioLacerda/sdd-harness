@@ -14,6 +14,7 @@ Complete security model defining threat protection, authentication, authorizatio
 **Security is MANDATORY** — Every project must implement all requirements in this document.
 
 **Framework compliance:** All security decisions must align with:
+
 - [Architecture Specification](./architecture.md) (Principles)
 - [Performance Specification](./performance.md) (SLOs apply to security operations)
 - [ADR-002: Async-First](../../decisions/ADR-002-async-first-no-blocking.md) (all security operations must be non-blocking)
@@ -25,6 +26,7 @@ Complete security model defining threat protection, authentication, authorizatio
 ### 1.1 Asset Identification
 
 **Critical Assets:**
+
 1. **User Data** — Campaign state, player information, preferences
 2. **LLM Credentials** — API keys (OpenAI, local endpoints)
 3. **Vector Index** — Narrative embeddings (intellectual property)
@@ -32,12 +34,14 @@ Complete security model defining threat protection, authentication, authorizatio
 5. **Audit Logs** — Event history, debugging information
 
 **Sensitive Assets:**
+
 1. Player behavior patterns
 2. Campaign narratives (potentially copyrighted)
 3. Rate limiting state
 4. Session data
 
 **Infrastructure:**
+
 1. API servers
 2. Storage (JSON files, databases)
 3. Vector index
@@ -48,6 +52,7 @@ Complete security model defining threat protection, authentication, authorizatio
 ### 1.2 Attack Surface Mapping
 
 **Primary Entry Points:**
+
 ```
 HTTP API → API Security (see authentication/authorization section below)
 Discord Bot → interfaces/discord/
@@ -55,6 +60,7 @@ CLI → interfaces/cli/
 ```
 
 **Trust Boundaries:**
+
 ```
          [External Users]
                 |
@@ -85,60 +91,70 @@ CLI → interfaces/cli/
 ### 1.3 OWASP Top 10 Mitigation
 
 **A01:2021 – Broken Access Control**
+
 - ✅ Implement RBAC (Role-Based Access Control)
 - ✅ Explicit allow/deny lists (deny-by-default)
 - ✅ Campaign isolation (each campaign has its own container)
 - ✅ Audit log all privilege escalation attempts
 
 **A02:2021 – Cryptographic Failures**
+
 - ✅ Encryption in transit (HTTPS/TLS 1.2+)
 - ✅ Encryption at rest (AES-256 for sensitive data)
 - ✅ Cryptographically secure random for tokens
 - ✅ Never store plaintext secrets
 
 **A03:2021 – Injection**
+
 - ✅ Input validation on all API endpoints (Pydantic)
 - ✅ Output encoding (JSON serialization)
 - ✅ Parameterized queries when using DB
 - ✅ Strict LLM prompt templates (no user concatenation)
 
 **A04:2021 – Insecure Design**
+
 - ✅ Threat model defined (this section)
 - ✅ Secure defaults in code
 - ✅ Security as architecture requirement
 - ✅ Regular security review (quarterly)
 
 **A05:2021 – Security Misconfiguration**
+
 - ✅ No default credentials
 - ✅ Minimal permissions principle
 - ✅ Security headers enforced (CORS, CSP, X-Frame-Options)
 - ✅ Secrets in environment, never in code
 
 **A06:2021 – Vulnerable Components**
+
 - ✅ Dependency scanning (pip-audit)
 - ✅ Regular updates (monthly)
 - ✅ CVE monitoring
 - ✅ Approved dependencies only
 
 **A07:2021 – Authentication Failures**
+
 - ✅ Strong password policy (if applicable)
 - ✅ Multi-factor authentication support
 - ✅ Session timeout (30min default)
 - ✅ Secure token storage (httpOnly cookies)
 
 **A08:2021 – Software Data Integrity Failures**
+
 - ✅ Dependency verification (pip hash checking)
 - ✅ Code signing (git commits signed)
 - ✅ Immutable event logs (append-only)
 - ✅ Checksum verification on downloads
 
 **A09:2021 – Logging & Monitoring Failures**
+
 - ✅ Security audit log (all authentication events)
 - ✅ Monitoring for suspicious patterns
 - ✅ Alert on repeated failed authentication
 - ✅ Log retention (90 days minimum)
 
 **A10:2021 – Server-Side Request Forgery (SSRF)**
+
 - ✅ Whitelist allowed LLM endpoints
 - ✅ URL validation (no localhost, 127.0.0.1)
 - ✅ Timeout on external requests (30s)
@@ -155,6 +171,7 @@ CLI → interfaces/cli/
 **Requirements:**
 
 1. **Token-Based Authentication (OAuth2 + JWT)**
+
    ```
    Flow:
    1. Client sends credentials
@@ -180,6 +197,7 @@ CLI → interfaces/cli/
    - Session timeout: 30 minutes idle
 
 4. **Token Validation Rules**
+
    ```python
    # Pseudo-code
    def validate_token(token: str) -> dict:
@@ -404,6 +422,7 @@ def decrypt_data(encrypted: str) -> str:
 **Personally Identifiable Information (PII):**
 
 Definition: Any data that can identify a user:
+
 - Email
 - User ID
 - Username
@@ -504,6 +523,7 @@ async def cleanup_old_data():
    - Whitelist check (only allowed values)
 
 2. **Use Pydantic for validation**
+
    ```python
    from pydantic import BaseModel, Field, validator
 
@@ -520,6 +540,7 @@ async def cleanup_old_data():
    ```
 
 3. **Reject invalid input early**
+
    ```python
    @app.post("/campaigns")
    async def create_campaign(
@@ -784,6 +805,7 @@ Conduct within 5 days, include:
 **By Jurisdiction:**
 
 **European Union (GDPR):**
+
 - ✅ Right to be forgotten (data deletion)
 - ✅ Right to access (export user data)
 - ✅ Right to object (opt-out)
@@ -792,6 +814,7 @@ Conduct within 5 days, include:
 - ✅ Incident notification (72 hours)
 
 **United States (CCPA):**
+
 - ✅ Right to access data
 - ✅ Right to delete data
 - ✅ Right to opt-out of sale
@@ -799,6 +822,7 @@ Conduct within 5 days, include:
 - ✅ Incident notification (varies by state)
 
 **Payment Card Industry (PCI DSS):**
+
 - ❌ Don't store credit card data
 - ✅ If stored: Full PCI compliance
 - ✅ Use payment processor instead
@@ -808,18 +832,21 @@ Conduct within 5 days, include:
 ### 6.2 Security Audit Checklist
 
 **Monthly:**
+
 - [ ] Review access logs for anomalies
 - [ ] Check for failed authentication patterns
 - [ ] Verify encryption keys rotated
 - [ ] Check dependency vulnerabilities
 
 **Quarterly:**
+
 - [ ] Full security review (this model)
 - [ ] Threat model update
 - [ ] Penetration test
 - [ ] Code security audit
 
 **Annually:**
+
 - [ ] External security audit
 - [ ] Compliance review (GDPR, etc.)
 - [ ] Security training for team
@@ -853,6 +880,7 @@ Conduct within 5 days, include:
 ## 📚 Implementation Roadmap
 
 **Phase 1 (2 weeks):**
+
 - [ ] Implement JWT authentication
 - [ ] Implement RBAC authorization
 - [ ] Add input validation (Pydantic)
@@ -860,6 +888,7 @@ Conduct within 5 days, include:
 - [ ] Add CORS configuration
 
 **Phase 2 (2 weeks):**
+
 - [ ] Implement encryption at rest (for secrets)
 - [ ] Add HTTPS/TLS requirement
 - [ ] Setup security headers
@@ -867,6 +896,7 @@ Conduct within 5 days, include:
 - [ ] Create incident response procedures
 
 **Phase 3 (2 weeks):**
+
 - [ ] Add comprehensive audit logging
 - [ ] Implement monitoring alerts
 - [ ] Setup automated compliance checks
@@ -878,6 +908,7 @@ Conduct within 5 days, include:
 ## ✅ Validation
 
 See section "Validation" in this ADR:
+
 - [ ] Every HTTP endpoint authenticates
 - [ ] Every endpoint authorizes (checks permissions)
 - [ ] All inputs validated before use
@@ -889,6 +920,7 @@ See section "Validation" in this ADR:
 - [ ] Incident response procedure tested
 
 **How to verify:**
+
 ```bash
 # Run security compliance tests
 pytest tests/contracts/security/ -v
@@ -911,12 +943,14 @@ tail -f /var/log/app/access.log | grep "401\|403"
 ## 📞 Security Contacts
 
 **Report Security Issues:**
+
 - Email: security@[PROJECT_DOMAIN]
 - Do NOT create public GitHub issues
 - Response time: < 24 hours
 - Disclosure: 90 days (coordinated)
 
 **Security Team:**
+
 - Security Lead: [Contact]
 - Incident Response: [Contact]
 - On-Call: [Escalation procedure]

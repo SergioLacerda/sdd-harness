@@ -14,6 +14,7 @@
 ### PHASE 1: LOCK TO RULES (5 minutes) — MANDATORY
 
 #### Step 1.1: Read Constitution & Rules
+
 ```
 READ NOW (in this order):
   1. /EXECUTION/spec/CANONICAL/rules/constitution.md (3 min)
@@ -29,6 +30,7 @@ READ NOW (in this order):
 > "You can implement brilliant code that violates these rules and breaks the entire system."
 
 #### Step 1.2: Take Validation Quiz (5 min)
+
 ```
 RUN IMMEDIATELY:
 
@@ -70,6 +72,7 @@ Answers these questions:
 ```
 
 **If you see CONFLICTS:**
+
 ```
 ❌ DO NOT PROCEED
 ✅ ASK the team via Slack with:
@@ -79,6 +82,7 @@ Answers these questions:
 ```
 
 **If clear:**
+
 ```
 ✅ Continue to Phase 3
 ```
@@ -136,6 +140,7 @@ Is this a...?
 #### Step 4.2: Path-Specific Context
 
 **IF PATH A (Bug Fix):**
+
 ```
 ✅ LOAD (5 min):
    1. /EXECUTION/spec/CANONICAL/specifications/architecture.md
@@ -153,6 +158,7 @@ Is this a...?
 ```
 
 **IF PATH B (Simple Feature):**
+
 ```
 ✅ LOAD (10 min):
    1. /EXECUTION/spec/CANONICAL/specifications/architecture.md (full)
@@ -165,6 +171,7 @@ Is this a...?
 ```
 
 **IF PATH C (Complex Feature):**
+
 ```
 ✅ LOAD (15 min):
    1. /EXECUTION/spec/CANONICAL/specifications/architecture.md (full)
@@ -177,6 +184,7 @@ Is this a...?
 ```
 
 **IF PATH D (Multi-Thread):**
+
 ```
 ✅ LOAD (10 min):
    1. /EXECUTION/spec/custom/_TEMPLATE/development/execution-state/threads/[YOUR_THREAD].md
@@ -360,30 +368,37 @@ Before proceeding past Phase 1, verify:
 ## 🚨 COMMON MISTAKES TO AVOID
 
 ### ❌ Mistake #1: Skipping the Quiz
+
 **Why it's bad:** You won't understand the core rules → violations later → PR rejected
 **Solution:** Take it seriously, it's only 5 minutes
 
 ### ❌ Mistake #2: Skipping execution-state/_current.md check
+
 **Why it's bad:** You might modify someone else's thread → conflict → wasted work
 **Solution:** ALWAYS read current.md before Phase 2
 
 ### ❌ Mistake #3: Loading too much context
+
 **Why it's bad:** Token waste, slower decision making
 **Solution:** Load ONLY what your PATH needs
 
 ### ❌ Mistake #4: Not updating checkpoint after work
+
 **Why it's bad:** Next agent doesn't know what you did → duplicates work or contradicts you
 **Solution:** Checkpoint is as important as code
 
 ### ❌ Mistake #5: Asking questions instead of consulting docs
+
 **Why it's bad:** Blocks team, you learn slower
 **Solution:** grep -r "keyword" docs/ia/ first, then ask
 
 ### ❌ Mistake #6: Skipping tests while implementing
+
 **Why it's bad:** Late discovery of failures, quality issues
 **Solution:** Test as you go, not at the end
 
 ### ❌ Mistake #7: Not following feature-checklist.md
+
 **Why it's bad:** Missed layers, incomplete implementation
 **Solution:** Checklist is your quality gate
 

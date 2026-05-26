@@ -30,6 +30,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 | **Overall** | ≥ 85% | Minimum 80% (total codebase) |
 
 **Branch coverage:**
+
 - Domain logic: ≥ 85% (decision paths tested)
 - Application logic: ≥ 75% (happy path + errors)
 - Infrastructure: ≥ 70% (normal + fault cases)
@@ -39,6 +40,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 1.2 Linting & Code Style
 
 **Mandatory linting:**
+
 - **pylint:** Score ≥ 9.0/10 (all modules)
 - **mypy:** 100% type hint coverage (critical paths)
 - **ruff:** Zero warnings in critical paths
@@ -49,11 +51,13 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 1.3 Static Analysis
 
 **Security scanning:**
+
 - **bandit:** Zero HIGH severity issues
 - **safety:** Zero known CVEs in dependencies
 - **pip-audit:** Monthly audit, all issues tracked
 
 **Maintainability:**
+
 - **radon:** Complexity (CC) ≤ 10 per function
 - **coverage:** No dead code pathways
 
@@ -64,6 +68,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 2.1 Test Types
 
 **Mandatory test pyramid:**
+
 ```
         E2E (10%)
       /     \
@@ -105,6 +110,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 3.1 API Documentation
 
 **Mandatory:**
+
 - OpenAPI/Swagger spec (auto-generated from code)
 - All endpoints documented with examples
 - All error codes documented
@@ -113,6 +119,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 3.2 Architecture Decision Records (ADRs)
 
 **Mandatory for:**
+
 - New architectural decisions (ADR template)
 - Breaking changes (requires ADR)
 - Major refactorings (ADR required)
@@ -123,6 +130,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 3.3 Implementation Guides
 
 **Mandatory for each module:**
+
 - Module purpose (one sentence)
 - Key classes/functions (documented)
 - Common usage patterns
@@ -131,6 +139,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 3.4 Runbooks
 
 **Mandatory for production:**
+
 - Deployment runbook
 - Incident response runbook
 - Scaling runbook
@@ -143,6 +152,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 4.1 SLO Compliance
 
 **Mandatory performance checks:**
+
 - All API endpoints: ≤ p99 latency (see performance.md)
 - Async operations: ≤ timeout budgets (ADR-002)
 - Database queries: ≤ 100ms (p99)
@@ -153,6 +163,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 4.2 Load Testing
 
 **Mandatory before production:**
+
 - Sustained 50-100 concurrent users
 - P99 latency maintained under load
 - Error rate < 0.1% under load
@@ -165,10 +176,12 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 5.1 Automated Checks (CI/CD)
 
 **Pre-commit (developer machine):**
+
 - Black formatting
 - Linting warnings (non-blocking)
 
 **CI/CD Pipeline (GitHub Actions):**
+
 - ✅ Test execution (pytest)
 - ✅ Coverage verification (≥ min SLOs)
 - ✅ Linting (mypy, pylint, bandit)
@@ -179,6 +192,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ### 5.2 Manual Reviews
 
 **Code Review checklist:**
+
 - [ ] Does code follow clean architecture?
 - [ ] Are all error cases handled?
 - [ ] Is async/await used correctly?
@@ -187,6 +201,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 - [ ] Does it follow conventions.md?
 
 **Release Review:**
+
 - [ ] All compliance gates pass
 - [ ] Documentation complete
 - [ ] Runbooks reviewed
@@ -197,6 +212,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 ## 📋 Part 6: Definition of Done (DoD)
 
 **Code CANNOT merge without:**
+
 1. ✅ All tests pass (>= SLO coverage)
 2. ✅ Linting clean (pylint ≥ 9.0)
 3. ✅ Type checking clean (mypy 100% on new code)
@@ -208,6 +224,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 9. ✅ SPEC compliance verified
 
 **Performance gates:**
+
 - ✅ SLO budgets respected
 - ✅ Load testing passed
 - ✅ No regressions detected

@@ -17,6 +17,7 @@ A complete **mandatory validation system** ensuring all agents understand the 16
 ## 📁 Files Created (6 new)
 
 ### 1. **Quiz Content** (`guides/onboarding/VALIDATION_QUIZ.md`)
+
 - 5 multiple-choice questions on ia-rules.md
 - Topics: source-of-truth, thread-isolation, checkpointing, ports, gap-documentation
 - Passing score: 80% (≥4 correct)
@@ -25,6 +26,7 @@ A complete **mandatory validation system** ensuring all agents understand the 16
 - **Coverage**: 100% of critical protocols
 
 ### 2. **Quiz Executor** (`scripts/validate_quiz.py`)
+
 - Interactive Python script for AI agents
 - Asks questions, records answers, validates immediately
 - Logs results to tracking file (JSON Lines format)
@@ -38,6 +40,7 @@ A complete **mandatory validation system** ensuring all agents understand the 16
   - Duration tracking
 
 ### 3. **Onboarding README** (`guides/onboarding/README.md`)
+
 - Welcome guide for new agents
 - 20-minute learning path (visual flowchart)
 - Common Q&A
@@ -47,6 +50,7 @@ A complete **mandatory validation system** ensuring all agents understand the 16
 - **Includes**: Human + AI agent instructions
 
 ### 4. **Scripts README** (`scripts/README.md`)
+
 - Usage documentation for `validate_quiz.py`
 - Installation & execution instructions
 - Output format documentation
@@ -55,6 +59,7 @@ A complete **mandatory validation system** ensuring all agents understand the 16
 - **Size**: 2.1 KB
 
 ### 5. **Tracking Template** (`current-system-state/_quiz_tracking.json.template`)
+
 - Documentation for tracking file format
 - Example JSON entry
 - Analytics query examples (bash + jq)
@@ -63,11 +68,13 @@ A complete **mandatory validation system** ensuring all agents understand the 16
 - **Size**: 2.4 KB
 
 ### 6. **Tracking File** (`current-system-state/_quiz_tracking.json`)
+
 - Empty JSON Lines file ready for data
 - Auto-appended by quiz script
 - **Size**: 1 byte (empty)
 
 ### 7. **Updated: FIRST_SESSION_SETUP.md**
+
 - Added validation checkpoint (minutes 5.5-6.5)
 - Updated total time: 15 min → 20 min
 - Added quiz options (manual + automated)
@@ -76,6 +83,7 @@ A complete **mandatory validation system** ensuring all agents understand the 16
 - **Changes**: +30 lines
 
 ### 8. **Updated: MASTER_INDEX.md**
+
 - Added quiz reference in startup section
 - Updated mandatory sequence (3 steps → 1 read + 1 setup + 1 quiz)
 - Explained validation requirement
@@ -87,6 +95,7 @@ A complete **mandatory validation system** ensuring all agents understand the 16
 ## ✨ Key Features
 
 ### For Humans
+
 ```
 Manual option:
   ✓ Read VALIDATION_QUIZ.md
@@ -97,6 +106,7 @@ Manual option:
 ```
 
 ### For AI Agents
+
 ```
 Automated option:
   ✓ Run: python docs/ia/scripts/validate_quiz.py
@@ -108,6 +118,7 @@ Automated option:
 ```
 
 ### Analytics Built-In
+
 ```
 Tracked metrics:
   ✓ Session ID (UUID)
@@ -133,6 +144,7 @@ Tracked metrics:
 | 5 | Gap Documentation | ia-rules #16 | 🟡 HIGH |
 
 **Failure Impact**:
+
 - Q1 fail → Architectural confusion (wrong authority)
 - Q2 fail → Thread conflicts (data races)
 - Q3 fail → State divergence (docs out of sync)
@@ -172,6 +184,7 @@ Tracked metrics:
 ## 🔄 Integration Points
 
 ### FIRST_SESSION_SETUP.md
+
 ```
 Minutes 1-5:  Read MASTER_INDEX + ia-rules
 Minutes 5.5-6.5: ⭐ TAKE VALIDATION QUIZ
@@ -181,6 +194,7 @@ Minutes 13-15: Load context
 ```
 
 ### MASTER_INDEX.md
+
 ```
 Step 1: Read ia-rules.md (MANDATORY)
 Step 2: Read FIRST_SESSION_SETUP.md (20 min, includes quiz)
@@ -189,6 +203,7 @@ Step 3: ⭐ Take VALIDATION_QUIZ (5-10 min)
 ```
 
 ### CI/CD Ready
+
 ```bash
 # In GitHub Actions workflow:
 python docs/ia/scripts/validate_quiz.py || exit 1
@@ -200,6 +215,7 @@ echo "✅ Agent validated"
 ## 🚀 User Experience
 
 ### Before (Old Flow)
+
 ```
 ❌ Agent reads ia-rules.md passively
 ❌ No verification they understood
@@ -208,6 +224,7 @@ echo "✅ Agent validated"
 ```
 
 ### After (New Flow)
+
 ```
 ✅ Agent reads ia-rules.md
 ✅ Take mandatory validation quiz
@@ -217,6 +234,7 @@ echo "✅ Agent validated"
 ```
 
 ### Impact
+
 - **Risk reduction**: Forces rules into working memory
 - **Consistency**: All agents validated equally
 - **Feedback**: Immediate pass/fail + references
@@ -239,26 +257,30 @@ echo "✅ Agent validated"
 
 ## 🛠️ Maintenance
 
-### What to Do If...
+### What to Do If
 
 **Question gets asked wrong**:
+
 1. Update question text in VALIDATION_QUIZ.md
 2. Update corresponding option in validate_quiz.py
 3. No version bump needed (both auto-synced)
 
 **Concept becomes outdated**:
+
 1. Update corresponding ia-rules.md section
 2. Update quiz explanation
 3. Update reference link
 4. Mark in execution_state.md (deprecation note)
 
 **New protocol added to ia-rules.md**:
+
 1. Wait 2 weeks (stabilization period)
 2. Add new question to quiz (becomes Q6)
 3. Update passing score? (probably not)
 4. Announce in communication channel
 
 **Analytics show failure pattern**:
+
 1. Identify hardest question
 2. Read that ia-rules.md section
 3. Clarify language + add examples
@@ -312,11 +334,13 @@ These 5 insights prevent 80% of architectural failures.
 ## 🚀 What's Next?
 
 **This completes**:
+
 - ✅ Onboarding validation system
 - ✅ Agent readiness verification
 - ✅ Automatic tracking + analytics
 
 **For score 10/10** (future):
+
 - [ ] Enforcement mechanisms (pre-commit hooks)
 - [ ] Role-based guidance (specialist paths)
 - [ ] Observability dashboard

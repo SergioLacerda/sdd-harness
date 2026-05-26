@@ -11,6 +11,7 @@
 This is the COMPLETE validation checklist before code is merged.
 
 It consolidates requirements from:
+
 - [Testing Specification](./testing.md)
 - [Architecture Specification](./architecture.md)
 - [Core Rules](../core/rules/)
@@ -80,6 +81,7 @@ Before merge, verify:
 - [ ] Domain tests run in <100ms
 
 **Example:**
+
 ```python
 def test_player_gains_experience():
     player = Player(id="p1", xp=100)
@@ -98,6 +100,7 @@ def test_player_gains_experience():
 - [ ] Mock port behavior reflects actual port contracts
 
 **Example:**
+
 ```python
 async def test_get_player():
     mock_repo = AsyncMock()
@@ -119,6 +122,7 @@ async def test_get_player():
 - [ ] Adapter tests handle errors correctly
 
 **Example:**
+
 ```python
 async def test_json_adapter_saves_player(tmp_path):
     adapter = JsonPlayerAdapter(storage_path=tmp_path)
@@ -139,6 +143,7 @@ async def test_json_adapter_saves_player(tmp_path):
 - [ ] Interface tests validate input validation
 
 **Example:**
+
 ```python
 async def test_get_player_route(client, mock_usecase):
     mock_usecase.execute.return_value = Player(id="p1")
@@ -229,9 +234,11 @@ Before merge, verify:
 - [ ] ❌ No `pytest.mark.skipif` for missing implementation
 
 **Verification:** Scan with:
+
 ```bash
 grep -r "TEST_MODE\|is_test\|test_flag" src/
 ```
+
 Result should be EMPTY.
 
 ---

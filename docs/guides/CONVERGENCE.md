@@ -28,6 +28,7 @@ diagnóstico -> escopo explícito -> patch mínimo -> validação determinístic
 ### Rule 1 — Controlled Freeze
 
 While any active regression is open:
+
 - No new features
 - No architectural expansion
 - No speculative refactoring
@@ -35,6 +36,7 @@ While any active regression is open:
 ### Rule 2 — Diagnose Before Fix
 
 No correction patch without:
+
 - A causal hypothesis
 - Minimum evidence (log, test output, or code reference)
 - A test that reproduces the failure
@@ -42,6 +44,7 @@ No correction patch without:
 ### Rule 3 — Mandatory Minimum Scope
 
 Every execution must declare:
+
 - Permitted paths (files/modules in scope)
 - Required validations (test suite, lint, type check)
 - Rollback criteria (what triggers abort)
@@ -49,6 +52,7 @@ Every execution must declare:
 ### Rule 4 — Human Gate on Irreversible Git Actions
 
 Agents do not execute autonomously:
+
 - `git commit`, `git push`, `git pull`, `git reset`, `git cherry-pick`
 
 Agents prepare commands and summarize changes. Final execution is human.

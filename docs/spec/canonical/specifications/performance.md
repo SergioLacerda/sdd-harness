@@ -11,6 +11,7 @@ Especificação de performance targets, SLOs e budgets para todos os projetos SP
 Performance targets are **immutable** and **project-agnostic**. All projects must achieve these SLOs.
 
 **Golden Signals** monitored:
+
 - 🟢 **Latency** (response time per layer)
 - 🟢 **Traffic** (throughput & concurrency)
 - 🟢 **Errors** (error rate & type)
@@ -85,6 +86,7 @@ Total: 400ms (P99 = 500ms)
 | Vector search | 50 | 200 | 20 |
 
 **Definition:**
+
 - **RPS** = Requests Per Second
 - **Min** = Minimum acceptable (gate fails if below)
 - **Target** = Expected performance level
@@ -99,6 +101,7 @@ Total: 400ms (P99 = 500ms)
 | AI feedback | 20 | 50 |
 
 **Definition:**
+
 - **MPS** = Messages Per Second
 - Must handle bursts of 10x baseline
 
@@ -189,11 +192,13 @@ Max: < 5000ms (absolute maximum)
 ```
 
 **Definition:**
+
 - **P50** = 50% of requests faster than this
 - **P99** = 99% of requests faster than this
 - **Max** = Worst-case observation
 
 **Monitoring:**
+
 - Sample: Every request
 - Interval: Every 60 seconds
 - Retention: 7 days
@@ -209,6 +214,7 @@ Critical: > 1% error rate
 ```
 
 **Error types tracked:**
+
 - 4xx (client errors)
 - 5xx (server errors)
 - Timeout errors (>5s)
@@ -319,11 +325,13 @@ memory_gauge = metrics.create_gauge(
 ### Alert Rules
 
 **Critical (Page on-call):**
+
 - P99 latency > 1000ms for > 5min
 - Error rate > 5% for > 1min
 - Availability < 99%
 
 **Warning (Create ticket):**
+
 - P99 latency > 500ms for > 15min
 - Error rate > 1% for > 5min
 - Memory per campaign > 400MB
@@ -341,6 +349,7 @@ memory_gauge = metrics.create_gauge(
 5. **Degrade** — Reduce feature scope (e.g., limit top-K)
 
 **Example: Vector search degradation**
+
 ```
 High load: 150ms → 100ms (reduce top-K from 100 to 50)
 Higher:    100ms → 50ms (use fast index, skip reranking)

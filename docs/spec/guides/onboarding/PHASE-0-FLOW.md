@@ -120,6 +120,7 @@ python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-a
 ```
 
 **What script does:**
+
 1. ✅ Verifies .spec.config
 2. ✅ Verifies SPEC framework
 3. ✅ Creates directories
@@ -261,15 +262,18 @@ Real work begins! 🚀
 ## 📚 Files Involved
 
 **In spec-architecture:**
+
 - `docs/ia/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md` — Manual guide
 - `docs/ia/SCRIPTS/phase-0-agent-onboarding.py` — Automated script
 - `templates/ai/context-aware/` — Templates to copy
 
 **In project (minimal):**
+
 - `.spec.config` — Seed configuration
 - `.github/copilot-instructions.md` — References PHASE 0
 
 **Created during PHASE 0 (by agent):**
+
 - `.sdd/context-aware/` — Entire infrastructure
 
 ---
@@ -298,6 +302,7 @@ Real work begins! 🚀
 ## 🚀 Summary
 
 **PHASE 0 is the bridge between:**
+
 - General SPEC framework (in spec-architecture)
 - Project-specific context (in .sdd/context-aware/)
 

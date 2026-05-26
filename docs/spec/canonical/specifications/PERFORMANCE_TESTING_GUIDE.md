@@ -106,6 +106,7 @@ test_example_adapter_layer_latency PASSED
 ```
 
 **Interpretation:**
+
 - Adapter layer meets latency budget
 - 99% of requests complete in 7.2ms
 - Well within 10ms limit
@@ -120,6 +121,7 @@ test_example_application_layer_latency FAILED
 ```
 
 **Interpretation:**
+
 - Application layer exceeds latency budget
 - P99 is 56% over the 100ms limit
 - Needs optimization
@@ -246,6 +248,7 @@ Metrics:
 ### UseCase Layer Optimization
 
 **Baseline (Failing):**
+
 ```
 ❌ application P99: 180ms (limit: 100ms)
 
@@ -256,6 +259,7 @@ Problem: Narrative generation takes too long
 ```
 
 **Optimized:**
+
 ```
 ✅ application P99: 85ms (limit: 100ms)
 
@@ -266,6 +270,7 @@ Solution: Async generation + caching
 ```
 
 **Benchmark Proof:**
+
 ```bash
 $ pytest tests/quality/test_performance_slos.py -k narrative -v
 
@@ -331,6 +336,7 @@ error_counter.add(1, attributes={"error_type": "timeout"})
 ```
 
 **Dashboards:**
+
 - P50/P95/P99 latency per endpoint
 - Throughput (RPS) over time
 - Error rates by type
@@ -345,6 +351,7 @@ error_counter.add(1, attributes={"error_type": "timeout"})
 **Cause:** Function throwing exceptions
 
 **Fix:**
+
 ```python
 def my_operation():
     try:
@@ -360,6 +367,7 @@ def my_operation():
 **Cause:** Performance degradation
 
 **Solution:**
+
 1. Profile code to find bottleneck
 2. Optimize slow operation
 3. Re-run tests
@@ -370,6 +378,7 @@ def my_operation():
 **Cause:** Layer not registered in SLO validator
 
 **Fix:** Add to `LAYER_BUDGETS`:
+
 ```python
 LAYER_BUDGETS = {
     "my_layer": {"p50": 50, "p99": 100},

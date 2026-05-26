@@ -32,22 +32,26 @@ Sum = your confidence score.
 ## 🚦 Confidence Gates
 
 ### Before writing any code
+
 - Score < 50%? → Read relevant `spec/canonical/` first
 - Score < 20%? → Load `cognition/context-loading/path-routing.md` and re-classify the task
 
 ### Before merging
+
 - Did the implementation reveal new unknowns? → Re-assess confidence
 - New score < 50%? → Write tests for the unknowns before merging
 
 ---
 
 ## ⚠️ Override Rule
+
 **Never let time pressure override a low confidence score.**
 A fast wrong answer is more expensive than a slow right one.
 
 ---
 
 ## References
+
 - Anti-pattern: [`anti-patterns/PREMATURE_EXECUTION.md`](../anti-patterns/PREMATURE_EXECUTION.md)
 - ADR process: [`spec/decisions/`](../../spec/decisions/)
 - SDD Governance Gate: [`.sdd/agent-instructions.md`](../../../.sdd/agent-instructions.md) — contém o bloco `SELF-EVALUATION` com o mesmo modelo de confiança aplicado à governança do projeto.

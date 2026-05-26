@@ -120,15 +120,20 @@ CLI reference: [`docs/spec/reference/commands/cli.md`](docs/spec/reference/comma
 
 SDD Harness implements a **fail-closed** security model. Governance artifacts must be cryptographically signed to ensure integrity.
 
-1.  **Key Generation**: Create your identity key in `.sdd/trust/`.
+1. **Key Generation**: Create your identity key in `.sdd/trust/`.
+
     ```bash
     sdd governance keygen --key-id my-org-01
     ```
-2.  **Signing**: Sign artifacts before deployment.
+
+2. **Signing**: Sign artifacts before deployment.
+
     ```bash
     sdd governance sign --key-id my-org-01
     ```
-3.  **Audit**: Verify the security posture of your workspace.
+
+3. **Audit**: Verify the security posture of your workspace.
+
     ```bash
     sdd governance audit --verbose
     ```
@@ -210,15 +215,17 @@ For integration with external orchestration frameworks (LangGraph, CrewAI, AutoG
 We maintain a **World Class Engineering** environment where Humans and AI Agents collaborate under strict governance.
 
 ### 📜 The Golden Rule (P003)
+>
 > **"Agents propose, Humans dispose."**
 
 Every change made by an AI Agent must pass the **Pre-Delivery Quality Gate (P004)** and be explicitly signed by a human using their Ed25519 auditor key. This cryptographic proof is enforced by the CI/CD pipeline and the `compliance.py` tool.
 
 ### Development Workflow
-1.  **Code**: Propose changes in `packages/` or `docs/spec/`.
-2.  **Verify**: Run `make pre-delivery` to satisfy all quality gates.
-3.  **Snapshot**: If spec changes are intentional, run `make update-golden-snapshots`.
-4.  **Review**: Submit changes for Human Review. **Agents are forbidden from git commits/pushes.**
+
+1. **Code**: Propose changes in `packages/` or `docs/spec/`.
+2. **Verify**: Run `make pre-delivery` to satisfy all quality gates.
+3. **Snapshot**: If spec changes are intentional, run `make update-golden-snapshots`.
+4. **Review**: Submit changes for Human Review. **Agents are forbidden from git commits/pushes.**
 
 ---
 
@@ -227,6 +234,7 @@ Every change made by an AI Agent must pass the **Pre-Delivery Quality Gate (P004
 This project is licensed under the MIT License.
 
 You may use, study, modify, and replicate this project, including for derivative work, provided that attribution to the original author is preserved:
-- **Repository:** https://github.com/SergioLacerda/sdd-harness
-- **Docs (GitHub Pages):** https://sergiolacerda.github.io/sdd-harness/
+
+- **Repository:** <https://github.com/SergioLacerda/sdd-harness>
+- **Docs (GitHub Pages):** <https://sergiolacerda.github.io/sdd-harness/>
 - **Full license text:** [`LICENSE`](LICENSE)

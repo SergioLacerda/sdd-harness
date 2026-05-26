@@ -67,13 +67,16 @@ validate → policy check → deprecation → pre_run (if exists)
 ## Consequences
 
 **Positive:**
+
 - Adding a new skill with lifecycle hooks = one new handler class, zero changes to `run_skill`
 - `run_skill` cyclomatic complexity reduced from 12 to ~5; `# noqa: C901` removed
 - Each handler is independently unit-testable without instantiating `SkillEngine`
 
 **Negative:**
+
 - Handler discovery via `globals()` is implicit — a developer must know the naming convention to find `CorrectHandler`
 
 **Files:**
+
 - `packages/core/sdd_runtime/src/sdd_runtime/_skill_executor.py` — handlers + `_get_skill_handler` factory
 - `packages/core/sdd_runtime/tests/test_skill_handler_correct.py` — handler unit tests

@@ -9,11 +9,13 @@
 ## 📍 Where Are You?
 
 You have:
+
 - ✅ A project repository (or about to create one)
 - ✅ Git initialized (`git init` already done)
 - ❓ Need to add SDD framework
 
 You're about to:
+
 - Create necessary directories
 - Verify your project structure
 - Move to Step 2

@@ -28,13 +28,16 @@ Search your task in the table below → follows links to exactly what you need.
 ### By Layer
 
 #### 🔴 Constitutional (Immutable)
+
 - [constitution.md](.docs/spec/canonical/rules/constitution.md) — 15 principles, never changes
 
 #### 🟠 Rules (Mandatory)
+
 - [ia-rules.md](.docs/spec/canonical/rules/ia-rules.md) — 16 mandatory rules
 - [conventions.md](.docs/spec/canonical/rules/conventions.md) — Naming, structure, patterns
 
 #### 🟡 Architecture (Decisions)
+
 - [ADR-001-autonomous-agents.md](.docs/spec/canonical/decisions/ADR-001-autonomous-agents.md)
 - [ADR-002-three-layer-architecture.md](.docs/spec/canonical/decisions/ADR-002-three-layer-architecture.md)
 - [ADR-003-ports-adapters-pattern.md](.docs/spec/canonical/decisions/ADR-003-ports-adapters-pattern.md)
@@ -43,6 +46,7 @@ Search your task in the table below → follows links to exactly what you need.
 - [ADR-006-governance-automation.md](.docs/spec/canonical/decisions/ADR-006-governance-automation.md)
 
 #### 🟢 Specifications (How To)
+
 - [architecture.md](.docs/spec/canonical/specifications/architecture.md) — Overall structure
 - [testing.md](.docs/spec/canonical/specifications/testing.md) — Test patterns
 - [feature-checklist.md](.docs/spec/canonical/specifications/feature-checklist.md) — Quality gate
@@ -50,6 +54,7 @@ Search your task in the table below → follows links to exactly what you need.
 - [communication.md](.docs/spec/canonical/specifications/communication.md) — Docs + clarity
 
 #### 🔵 Guides (Operational)
+
 - [PHASE-0-AGENT-ONBOARDING.md](.docs/spec/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md) — First setup
 - [AGENT_HARNESS.md](.docs/spec/guides/onboarding/AGENT_HARNESS.md) — 7-phase workflow
 - [DEVELOPMENT_WORKFLOW_VALIDATION.md](.docs/spec/guides/operational/DEVELOPMENT_WORKFLOW_VALIDATION.md)
@@ -57,6 +62,7 @@ Search your task in the table below → follows links to exactly what you need.
 - [PRE_COMMIT_HOOKS.md](.docs/spec/guides/operational/PRE_COMMIT_HOOKS.md)
 
 #### 🟣 Emergency (Crisis)
+
 - [README.md](.docs/spec/guides/emergency/README.md) — Pick your emergency
 - [PRE_COMMIT_HOOK_FAILURE.md](.docs/spec/guides/emergency/PRE_COMMIT_HOOK_FAILURE.md)
 - [TEST_FAILURE_GUIDE.md](.docs/spec/guides/emergency/TEST_FAILURE_GUIDE.md)
@@ -65,6 +71,7 @@ Search your task in the table below → follows links to exactly what you need.
 - [METRICS_CORRUPTION_RECOVERY.md](.docs/spec/guides/emergency/METRICS_CORRUPTION_RECOVERY.md)
 
 #### ⚫ Reference (Questions)
+
 - [FAQ.md](.docs/spec/guides/reference/FAQ.md) — Common questions
 - [GLOSSARY.md](.docs/spec/guides/reference/GLOSSARY.md) — Term definitions
 - [HOW_EACH_LAYER_WORKS.md](.docs/spec/guides/reference/HOW_EACH_LAYER_WORKS.md) — Deep dives
@@ -74,22 +81,26 @@ Search your task in the table below → follows links to exactly what you need.
 ### By Role
 
 #### 👨‍💻 Individual Contributor
+
 Start → [CORE__START_HERE.md](./CORE__START_HERE.md)
 Implement → [AGENT_HARNESS.md](.docs/spec/guides/onboarding/AGENT_HARNESS.md)
 Rules → [ia-rules.md](.docs/spec/canonical/rules/ia-rules.md)
 
 #### 🧑‍🔬 Architect / Tech Lead
+
 Read → [ADR-*.md](.docs/spec/canonical/decisions/) (all decisions)
 Validate → [DEVELOPMENT_WORKFLOW_VALIDATION.md](.docs/spec/guides/operational/DEVELOPMENT_WORKFLOW_VALIDATION.md)
 Metrics → [METRICS_TRACKING.md](.docs/spec/guides/operational/METRICS_TRACKING.md)
 
 #### 🤖 AI / Automation Agent
+
 Setup → [PHASE-0-AGENT-ONBOARDING.md](.docs/spec/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md)
 Workflow → [AGENT_HARNESS.md](.docs/spec/guides/onboarding/AGENT_HARNESS.md)
 Rules → [ia-rules.md](.docs/spec/canonical/rules/ia-rules.md) (must pass ≥80%)
 Emergency → [Emergency Procedures](.docs/spec/guides/emergency/)
 
 #### 🏢 DevOps / SRE
+
 Setup → Pre-commit hooks: [PRE_COMMIT_HOOKS.md](.docs/spec/guides/operational/PRE_COMMIT_HOOKS.md)
 Emergency → [PRE_COMMIT_HOOK_FAILURE.md](.docs/spec/guides/emergency/PRE_COMMIT_HOOK_FAILURE.md)
 Metrics → [METRICS_TRACKING.md](.docs/spec/guides/operational/METRICS_TRACKING.md)

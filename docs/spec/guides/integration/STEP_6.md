@@ -10,6 +10,7 @@
 ## 📅 Where Are You?
 
 You have:
+
 - ✅ Project directories created (Step 1)
 - ✅ Template files copied (Step 2)
 - ✅ `.spec.config` configured (Step 3)
@@ -18,6 +19,7 @@ You have:
 - ❓ Now: Understand your project's governance needs
 
 You're about to:
+
 - Answer 5 simple questions about your project
 - Determine if you need LITE or FULL governance
 - Update `.spec.config` with your adoption level
@@ -117,6 +119,7 @@ Count your answers:
 ## 🎯 What Each Level Means
 
 ### 🟢 LITE (15 min to start)
+
 - **Principles:** 10 core
 - **Rules:** 5 essential (imports, async, layers, errors, tests)
 - **DoD Criteria:** 10 items (basic quality)
@@ -126,6 +129,7 @@ Count your answers:
 - **Upgrade path:** → FULL (30 min migration)
 
 ### 🔵 FULL (40 min to start)
+
 - **Principles:** 15 complete
 - **Rules:** 16 mandatory (comprehensive governance)
 - **DoD Criteria:** 45 items (production-grade)
@@ -150,7 +154,7 @@ spec_path = ../sdd-harness
 
 ### New State (Add Your Level)
 
-#### If you chose LITE:
+#### If you chose LITE
 
 ```ini
 [spec]
@@ -158,7 +162,7 @@ spec_path = ../sdd-harness
 adoption_level = lite
 ```
 
-#### If you chose FULL:
+#### If you chose FULL
 
 ```ini
 [spec]
@@ -240,8 +244,10 @@ After this step:
 
 ## 🚀 Next Steps
 
-### For Everyone:
+### For Everyone
+
 1. Commit your changes
+
    ```bash
    git add .spec.config .sdd/README.md
    git commit -m "docs: set adoption level to LITE (or FULL)"
@@ -251,11 +257,13 @@ After this step:
    - **LITE:** [LITE-ADOPTION.md](../adoption/LITE-ADOPTION.md)
    - **FULL:** [FULL-ADOPTION.md](../adoption/FULL-ADOPTION.md)
 
-### For Developers:
+### For Developers
+
 1. Go to [EXECUTION/_START_HERE.md](spec/guides/operational/CORE__START_HERE.md)
 2. Follow AGENT_HARNESS workflow with your adoption level
 
-### For Team Leads:
+### For Team Leads
+
 1. Communicate the choice to your team
 2. Reference [adoption/INDEX.md](../adoption/INDEX.md) for FAQs
 3. Plan LITE→FULL migration if needed (see [LITE-TO-FULL-MIGRATION.md](../adoption/LITE-TO-FULL-MIGRATION.md))
@@ -281,6 +289,7 @@ After this step:
 ## 📊 Real-World Examples
 
 **LITE Projects:**
+
 - Team learning SDD for the first time
 - Side project, hobby, personal tools
 - Internal utilities, < 5 people
@@ -288,6 +297,7 @@ After this step:
 - Experimental features
 
 **FULL Projects:**
+
 - Production API serving customers
 - Mission-critical backend
 - Regulatory compliance required

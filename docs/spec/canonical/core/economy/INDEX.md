@@ -66,11 +66,13 @@ Load `economy/index.md` when:
 ## 🔗 Cross-References
 
 **Canonical governance sources:**
+
 - `→ cognition/context-loading/context-budget.md` — budget KB targets (do not redefine here)
 - `→ cognition/context-loading/strategy.md` — compression techniques (do not redefine here)
 - `→ mandates/M003_CONTEXT_AWARENESS.md` — context cache mandate
 
 **Implementation sources (authoritative for field names, thresholds):**
+
 - `→ packages/core/sdd_runtime/src/sdd_runtime/telemetry.py` — RuntimeEvent schema, zone event emission
 - `→ packages/core/sdd_runtime/src/sdd_runtime/context.py` — ContextLoader, BudgetBreachError exception
 - `→ packages/core/sdd_runtime/src/sdd_runtime/llm.py` — LLM token capture protocol and implementation

@@ -33,6 +33,7 @@ point directly to `docs/runtime/protocols/AGENT_ENTRYPOINT.md` and
 `docs/runtime/protocols/AGENT_RUNTIME_PROTOCOL.md`.
 
 Files removed:
+
 - `docs/runtime/AGENT_ENTRYPOINT.md`
 - `docs/runtime/AGENT_RUNTIME_PROTOCOL.md`
 
@@ -54,12 +55,14 @@ following the IA First schema. Then retire `docs/cognition/` — replace each fi
 one-line pointer to the canonical location.
 
 Merge rules:
+
 - `spec/canonical/` receives the unique content sections from `cognition/`
 - Prose and Portuguese explanations are distilled into IA First format (lists, short rules)
 - No section in the merged file exceeds 5 items
 - `docs/cognition/` files become pointers: `> See: spec/canonical/core/cognition/<file>`
 
 Files affected:
+
 - `docs/spec/canonical/core/cognition/decision-models/TASK_CLASSIFICATION.md` — absorbs classification tree + rules
 - `docs/spec/canonical/core/cognition/context-loading/context-budget.md` — absorbs compression techniques + budget breach protocol
 - `docs/spec/canonical/core/cognition/context-loading/path-routing.md` — absorbs per-PATH load strategy
@@ -84,12 +87,15 @@ the distinction explicit and machine-readable:
 ```markdown
 > Layer: spec/canonical — immutable governance definition
 ```
+
 or
+
 ```markdown
 > Layer: runtime — operational agent instructions
 ```
 
 Files updated (header addition only):
+
 - `docs/spec/canonical/core/generated/AGENT_ENTRYPOINT.md`
 - `docs/spec/canonical/core/generated/AGENT_RUNTIME_PROTOCOL.md`
 - `docs/runtime/protocols/AGENT_ENTRYPOINT.md`

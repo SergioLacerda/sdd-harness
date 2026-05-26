@@ -18,11 +18,13 @@ multiple compression strategies:
 - **Local heuristic** — simple dedup + truncation (guaranteed fallback)
 
 Embedding any single strategy would:
+
 1. Prevent extension and limit future improvements
 2. Break the graceful degradation guarantee (if external service fails, system crashes)
 3. Create tight coupling between governance layer and implementation details
 
 The system needs:
+
 - **Pluggability:** Third-party providers without modifying core
 - **Graceful degradation:** Guaranteed fallback when external providers fail
 - **Transparent integration:** Compression happens automatically at YELLOW zone without caller awareness
@@ -74,6 +76,7 @@ class ProviderRegistry:
 ```
 
 **Default priority chain:**
+
 1. `HttpProvider` — if `SDD_INTELLIGENCE_URL` env var set and endpoint healthy
 2. `AstProvider` — always available (gracefully degrades on non-Python input)
 3. `TfidfProvider` — always available (pure Python, no external deps)

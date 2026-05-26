@@ -60,15 +60,18 @@ class SkillRegistry:
 ## Consequences
 
 **Positive:**
+
 - No circular imports — `_skill_registry.py` has zero dependency on `skills.py`
 - `SkillRegistry` is generic and testable with any `dict[str, SkillDefinition]`
 - Test mutations to `_REGISTRY` remain visible to `SkillRegistry.get_skill` after construction
 
 **Negative:**
+
 - `_REGISTRY` is logically "registry data" but lives in the "facade" module — slightly non-obvious placement
 - Developers moving skills must know to edit `skills.py`, not `_skill_registry.py`
 
 **Files:**
+
 - `packages/core/sdd_runtime/src/sdd_runtime/skills.py` — `_REGISTRY` definition
 - `packages/core/sdd_runtime/src/sdd_runtime/_skill_registry.py` — `SkillRegistry._fallback`
 - `packages/core/sdd_runtime/tests/test_skill_registry.py` — `test_get_skill_reflects_live_fallback_mutations`

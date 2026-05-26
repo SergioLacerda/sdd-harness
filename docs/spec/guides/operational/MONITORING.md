@@ -97,6 +97,7 @@ echo "=== Health Check Complete ==="
 ```
 
 **Run daily:**
+
 ```bash
 chmod +x scripts/health-check.sh
 ./scripts/health-check.sh
@@ -460,6 +461,7 @@ git diff .sdd-integration/
 ## 📋 Monitoring Checklist
 
 ### Daily (Morning)
+
 ```
 [ ] Run health check: ./scripts/health-check.sh
 [ ] Verify artifacts exist
@@ -469,6 +471,7 @@ git diff .sdd-integration/
 ```
 
 ### Weekly (Monday)
+
 ```
 [ ] Generate weekly report
 [ ] Review performance trends
@@ -478,6 +481,7 @@ git diff .sdd-integration/
 ```
 
 ### Monthly (1st of month)
+
 ```
 [ ] Full system audit
 [ ] Capacity planning review
@@ -488,6 +492,7 @@ git diff .sdd-integration/
 ```
 
 ### Quarterly
+
 ```
 [ ] Full system upgrade testing
 [ ] Load testing (simulated traffic)

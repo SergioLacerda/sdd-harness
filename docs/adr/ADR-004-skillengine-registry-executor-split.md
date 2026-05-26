@@ -47,16 +47,19 @@ class SkillEngine:
 ## Consequences
 
 **Positive:**
+
 - `SkillRegistry` is independently testable with any fallback dict — no `SkillEngine` needed
 - `SkillExecutor` is independently testable with a real `SkillRegistry(fallback, tmp_path)` — no full engine needed
 - Adding a new export format = edit `SkillRegistry` only
 - Zero breaking changes: all callers use `SkillEngine` unchanged
 
 **Negative:**
+
 - Three files instead of one (`_skill_registry.py`, `_skill_executor.py`, `skills.py`)
 - `_REGISTRY` must stay in `skills.py` to avoid circular imports (see ADR-005)
 
 **Files:**
+
 - `packages/core/sdd_runtime/src/sdd_runtime/_skill_registry.py`
 - `packages/core/sdd_runtime/src/sdd_runtime/_skill_executor.py`
 - `packages/core/sdd_runtime/src/sdd_runtime/skills.py`

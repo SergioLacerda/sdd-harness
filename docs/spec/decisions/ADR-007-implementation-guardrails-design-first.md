@@ -1,6 +1,7 @@
 # ADR-007: Implementation Guardrails - Design First, Code Follows
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2026-04-21
 - Accepted: 2026-04-21
@@ -12,6 +13,7 @@
 
 **Problem**:
 Previous implementations experienced gaps between planning, documentation, and code execution:
+
 - Vague planning without written specifications
 - Documentation interpreted by agents (error-prone)
 - Code didn't match original intent
@@ -21,6 +23,7 @@ Previous implementations experienced gaps between planning, documentation, and c
 **Scale**: v3.1-beta.1 and all future releases (v3.0-v3.2+)
 
 **Impact**:
+
 - Must ensure zero ambiguity
 - Must enable architect/product owner verification
 - Must support multiple agents working in parallel
@@ -229,6 +232,7 @@ Feature Request Received
 ## Consequences
 
 ### Positive ✅
+
 - Zero ambiguity between design and code
 - Architect can control scope and quality
 - Early detection of design flaws
@@ -238,6 +242,7 @@ Feature Request Received
 - Clear handoff points for review
 
 ### Negative ⚠️
+
 - Slower initial startup (design phase)
 - More documentation upfront
 - Requires discipline to follow

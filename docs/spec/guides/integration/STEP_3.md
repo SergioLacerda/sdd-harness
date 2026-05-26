@@ -11,11 +11,13 @@
 ## 📅 Where Are You?
 
 You have:
+
 - ✅ Project directories created (Step 1)
 - ✅ Template files copied (Step 2)
 - ❓ Need to edit `.spec.config` to point to sdd-harness
 
 You're about to:
+
 - Edit 1 file (`.spec.config`)
 - Configure 2 variables (`spec_path` now, `adoption_level` in STEP 6)
 - Move to Step 4 (validation)
@@ -29,17 +31,20 @@ You're about to:
 **Format:** INI (simple key=value)
 
 **Now (STEP 3):**
+
 ```ini
 [spec]
 spec_path = ../sdd-harness
 ```
 
 **Later (STEP 6):** You'll add:
+
 ```ini
 [spec]
 spec_path = ../sdd-harness
 adoption_level = lite
 ```
+
 (or `adoption_level = full`)
 
 ---
@@ -273,6 +278,7 @@ Run validation script to verify everything works.
 ## 🚀 What Happens Next
 
 In Step 4, the validation script will:
+
 1. Read `.spec.config`
 2. Find sdd-harness at the specified `spec_path`
 3. Create `.sdd/` infrastructure

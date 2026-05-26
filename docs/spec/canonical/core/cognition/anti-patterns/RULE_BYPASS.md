@@ -62,6 +62,7 @@ Circumventing mandates, policies, or rules by using workarounds, hacks, or "just
 ## Cure
 
 **Immediate:**
+
 1. **Revert** the bypass (if committed)
 2. **Document** why you thought bypass was necessary
 3. **Find** the compliant path (escalate to human if needed)
@@ -69,6 +70,7 @@ Circumventing mandates, policies, or rules by using workarounds, hacks, or "just
 5. **Verify** `sdd governance validate` passes
 
 **Long-term:**
+
 - If rule genuinely conflicts with valid use case → RFC (Request for Comments) to change rule
 - Never make unilateral decisions about rule exceptions
 - If you need a bypass → that's a signal the rule needs clarification or the process needs adjustment

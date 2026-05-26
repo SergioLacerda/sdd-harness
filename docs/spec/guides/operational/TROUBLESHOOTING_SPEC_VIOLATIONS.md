@@ -31,6 +31,7 @@ CI/CD Failed: "SPEC Violation Detected"
 ## #1: SPEC_PATH_VIOLATION — Wrong Folder
 
 **Error Message:**
+
 ```
 ❌ validate-ia-first.py (line 42): path 'docs/ia/custom/my-project/something.md'
    not allowed in this layer. Allowed paths: [...]
@@ -78,6 +79,7 @@ git commit -m "Fix: Move file to correct SPEC layer"
 ```
 
 **Prevention:**
+
 - Always verify path before creating file
 - Reference: [architecture.md](../../canonical/specifications/architecture.md)
 - Ask: "Is this immutable (CANONICAL) or project-specific (custom/)?"
@@ -87,6 +89,7 @@ git commit -m "Fix: Move file to correct SPEC layer"
 ## #2: INVALID_STATUS — Wrong Status Field
 
 **Error Message:**
+
 ```
 ❌ validate-ia-first.py (line 156): Status must be one of: [Complete, WIP, Deprecated]
    Found: "in-progress"
@@ -147,6 +150,7 @@ git commit -m "Fix: Update status to valid value"
 ## #3: HEADING_HIERARCHY — Wrong Header Levels
 
 **Error Message:**
+
 ```
 ❌ validate-ia-first.py (line 89): Heading hierarchy broken.
    Found H3 (###) without preceding H2 (##)
@@ -191,6 +195,7 @@ git commit -m "Fix: Correct heading hierarchy"
 ```
 
 **Prevention:**
+
 - H1 (#) — One per file, at top
 - H2 (##) — Major sections
 - H3 (###) — Subsections under H2
@@ -201,6 +206,7 @@ git commit -m "Fix: Correct heading hierarchy"
 ## #4: BACKTICK_LINKS — Links Formatted Wrong
 
 **Error Message:**
+
 ```
 ❌ validate-ia-first.py (line 73): Backtick links not allowed.
    Use format [text](path.md) not [`text`](path.md)
@@ -237,6 +243,7 @@ git commit -m "Fix: Remove backticks from links"
 ```
 
 **Prevention:**
+
 - Links: `[text](path.md)` ✅ CORRECT
 - Code: `` `code` `` ✅ CORRECT (backticks allowed for code)
 - Combined: `` [`code`](path.md) `` ❌ WRONG (backticks in link text)
@@ -246,6 +253,7 @@ git commit -m "Fix: Remove backticks from links"
 ## #5: MISSING_METADATA — Required Fields
 
 **Error Message:**
+
 ```
 ❌ validate-ia-first.py (line 112): Missing metadata field: Status
 ```
@@ -320,6 +328,7 @@ git commit -m "Fix: Add missing metadata"
 ## #6: MISSING_IA_FIRST_NOTICE — IA-FIRST Not Found
 
 **Error Message:**
+
 ```
 ❌ validate-ia-first.py (line 201): No IA-FIRST notice found in first 50 lines
 ```
@@ -393,6 +402,7 @@ Some content...
 ## #7: VALIDATION_ERROR — Unknown Failure
 
 **Error Message:**
+
 ```
 ❌ validate-ia-first.py exited with code 1
    Error details (see full log):
@@ -462,6 +472,7 @@ Before committing docs, verify:
 - [ ] No TODO or FIXME if Status: Complete
 
 **Quick check:**
+
 ```bash
 # Run locally before pushing
 python docs/ia/SCRIPTS/validate-ia-first.py --audit docs/ia/

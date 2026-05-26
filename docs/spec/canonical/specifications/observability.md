@@ -12,12 +12,14 @@
 Complete observability specification defining what MUST be observable in production to maintain system visibility, operability, and reliability.
 
 Observability is NOT optional — Every project must implement **all four pillars**:
+
 1. **Logging** — What happened?
 2. **Tracing** — How did it happen? (request flow)
 3. **Metrics** — Is it healthy? (golden signals)
 4. **On-Call** — How do we respond?
 
 **Framework compliance:**
+
 - Implements ADR-002: Async-First (all observability must be non-blocking)
 - Uses ports for observability (see ADR-003)
 - Respects Performance SLOs (see performance.md)
@@ -39,6 +41,7 @@ Observability is NOT optional — Every project must implement **all four pillar
 | **CRITICAL** | System-wide failures | "Database connection lost", "Out of memory" |
 
 **Production Log Levels:**
+
 - Production: INFO, WARNING, ERROR, CRITICAL (DEBUG disabled)
 - Staging: DEBUG, INFO, WARNING, ERROR, CRITICAL
 - Local: DEBUG (all)
@@ -48,39 +51,47 @@ Observability is NOT optional — Every project must implement **all four pillar
 ### 1.2 Logging at Each Layer
 
 **Layer 1: Entities (Domain)**
+
 - Minimal logging (domain models should be pure)
 - Never log PII directly
 - Log changes: "Entity X created" (log hash of ID, not ID)
 
 **Layer 2: Domain (Business Logic)**
+
 - Business decisions: "Narrative rejected: quality score too low"
 - Validation failures: "Invalid campaign name"
 - Calculations: "Narrative context limited to 5000 tokens"
 
 **Layer 3: Ports (Abstractions)**
+
 - Port calls: "VectorReaderPort.search() called"
 - Port errors: "VectorReaderPort error: connection timeout"
 
 **Layer 4: Use Cases (Orchestration)**
+
 - Request start/end: "ExecuteActionUseCase started"
 - Critical decisions: "LLM generation started with context size X"
 - Failures: "UseCase failed at step X: {error}"
 
 **Layer 5: Error Mapping**
+
 - Map errors to HTTP status: "Domain error → HTTP 400"
 - Log mapped error details
 
 **Layer 6: Adapters (Implementation)**
+
 - External service calls: "Calling OpenAI API"
 - Service responses: "OpenAI returned 200 OK"
 - Service errors: "OpenAI returned 429 rate limit"
 - Retry logic: "Retry #1: exponential backoff 2s"
 
 **Layer 7: DTOs**
+
 - Minimal logging (data transformation)
 - Log only if serialization fails
 
 **Layer 8: Controllers/Interfaces**
+
 - HTTP request received: "POST /campaigns (200ms)"
 - Response status: "Response: 200 OK"
 - HTTP errors: "Request validation failed"
@@ -138,6 +149,7 @@ Observability is NOT optional — Every project must implement **all four pillar
 ### 1.4 What To Log (and What NOT To Log)
 
 **✅ DO Log:**
+
 - Function entry/exit (for critical paths only)
 - External service calls (LLM, Vector DB)
 - Validation failures (with error reason, not input)
@@ -147,6 +159,7 @@ Observability is NOT optional — Every project must implement **all four pillar
 - Request ID on every log (for correlation)
 
 **❌ DON'T Log:**
+
 - Sensitive data (passwords, API keys, tokens)
 - Personally identifiable information (names, emails, IPs)
 - Raw user input (unless validation failure)
@@ -156,6 +169,7 @@ Observability is NOT optional — Every project must implement **all four pillar
 - System passwords or configuration secrets
 
 **❌ NEVER Log:**
+
 - Database credentials
 - OAuth tokens or API keys
 - Session IDs or tokens
@@ -230,6 +244,7 @@ async def cleanup_old_logs():
 **Tracing Framework:** OpenTelemetry (OTLP format)
 
 **Why OpenTelemetry?**
+
 - Vendor-neutral standard
 - Python library: `opentelemetry-api`
 - Exporters: Jaeger, Zipkin, DataDog, etc.
@@ -488,19 +503,23 @@ async def http_middleware(request, call_next):
 ### 3.3 Per-Layer Metrics
 
 **Adapter Layer (Infrastructure):**
+
 - External API latency (OpenAI, vector DB)
 - Connection pool usage
 - Retry rate
 
 **Application Layer:**
+
 - UseCase latency
 - Validation failure rate
 
 **Domain Layer:**
+
 - Business logic latency
 - Domain event count
 
 **Interface Layer:**
+
 - HTTP request latency
 - Error rate by endpoint
 
@@ -684,24 +703,28 @@ OpenAI API experiencing high latency (~5s). Our system had 30s timeout, causing 
 ### 4.4 On-Call Best Practices
 
 **Before Being On-Call:**
+
 - [ ] Read all runbooks
 - [ ] Practice incident response (simulation)
 - [ ] Know escalation procedures
 - [ ] Have personal escalation plan (who covers if you're unavailable)
 
 **During On-Call:**
+
 - [ ] Respond to alerts within response time
 - [ ] Keep incident channel updated
 - [ ] Don't make changes without testing
 - [ ] Communicate with users (status page)
 
 **After Incident:**
+
 - [ ] Blameless post-mortem within 24h
 - [ ] Action items assigned
 - [ ] Update runbooks
 - [ ] Share learnings
 
 **Off-Call:**
+
 - [ ] Review post-mortems from incidents you missed
 - [ ] Improve runbooks
 - [ ] Fix preventive items
@@ -721,24 +744,28 @@ OpenAI API experiencing high latency (~5s). Our system had 30s timeout, causing 
 ## 📚 Implementation Roadmap
 
 **Phase 1 (Week 1):**
+
 - [ ] Setup structured JSON logging
 - [ ] Add request ID propagation
 - [ ] Configure log retention
 - [ ] Verify no secrets in logs
 
 **Phase 2 (Week 2):**
+
 - [ ] Install OpenTelemetry
 - [ ] Add tracing to main endpoints
 - [ ] Setup trace exporter (Jaeger/Zipkin)
 - [ ] Test trace context propagation
 
 **Phase 3 (Week 3):**
+
 - [ ] Add metrics collection
 - [ ] Setup prometheus scraping
 - [ ] Create Grafana dashboards
 - [ ] Configure alerting rules
 
 **Phase 4 (Week 4):**
+
 - [ ] Document runbooks
 - [ ] Conduct on-call training
 - [ ] Run incident simulation
@@ -749,6 +776,7 @@ OpenAI API experiencing high latency (~5s). Our system had 30s timeout, causing 
 ## ✅ Validation
 
 **Logging Validation:**
+
 ```bash
 # Check no secrets in logs
 tail -f /var/log/app.log | grep -i "password\|api_key\|secret"
@@ -758,6 +786,7 @@ cat /var/log/app.log | jq .
 ```
 
 **Tracing Validation:**
+
 ```bash
 # View traces in Jaeger
 # Open: http://localhost:16686
@@ -767,6 +796,7 @@ cat /var/log/app.log | jq .
 ```
 
 **Metrics Validation:**
+
 ```bash
 # Scrape metrics endpoint
 curl http://localhost:9090/metrics
@@ -776,6 +806,7 @@ curl http://localhost:9090/metrics
 ```
 
 **On-Call Validation:**
+
 ```bash
 # Trigger test alert
 # Verify on-call receives page

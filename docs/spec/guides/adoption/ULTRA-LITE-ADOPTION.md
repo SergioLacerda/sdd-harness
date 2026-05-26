@@ -1,4 +1,5 @@
 # ⚡ SDD ULTRA-LITE — Zero-Config Adoption
+
 **For:** Solo developers, prototypes, MVPs, 2-person teams
 **Setup Time:** 5 minutes
 **Commitment:** Minimal (upgrade to LITE anytime)
@@ -6,7 +7,9 @@
 ---
 
 ## What is ULTRA-LITE?
+
 Absolute minimum viable version of SDD with:
+
 - ✅ **5 core principles** (vs 10 LITE, 15 FULL)
 - ✅ **3 essential rules** (vs 5 LITE, 16 FULL)
 - ✅ **5 DoD checkpoints** (vs 10 LITE, 45 FULL)
@@ -15,6 +18,7 @@ Absolute minimum viable version of SDD with:
 - ✅ Pure async-first thinking
 
 **When to use ULTRA-LITE:**
+
 - Solo developer prototyping
 - 2-person startup MVP
 - Learning SDD core concepts (5 min intro)
@@ -25,6 +29,7 @@ Absolute minimum viable version of SDD with:
 ---
 
 ## Quick Start (5 Minutes)
+
 ```bash
 # 1. Create constitution file (1 min)
 
@@ -48,6 +53,7 @@ echo "✅ Rule 3: Every feature has a test"
 ---
 
 ## ULTRA-LITE vs LITE vs FULL
+
 | Aspect | ULTRA-LITE | LITE | FULL |
 |--------|-----------|------|------|
 | **Setup Time** | 5 min | 15 min | 40 min |
@@ -65,25 +71,31 @@ echo "✅ Rule 3: Every feature has a test"
 ---
 
 ## The 5 Core ULTRA-LITE Principles
-### 1️⃣ **Clean Domain**Business logic isolated from framework. Framework stays in adapter layer.
 
-### 2️⃣ **Async Everything**All I/O is async. No blocking calls. Think: `async def`, not `def`.
+### 1️⃣ **Clean Domain**Business logic isolated from framework. Framework stays in adapter layer
 
-### 3️⃣ **Explicit Rules**Document your choices. "Why?" matters more than "What?".
+### 2️⃣ **Async Everything**All I/O is async. No blocking calls. Think: `async def`, not `def`
 
-### 4️⃣ **Test Pyramid**Write unit tests (fast), integration tests (medium), e2e tests (slow). Ratio: 70:20:10.
+### 3️⃣ **Explicit Rules**Document your choices. "Why?" matters more than "What?"
 
-### 5️⃣ **Progressive Disclosure**Start minimal. Grow governance as team grows. ULTRA-LITE → LITE → FULL.
+### 4️⃣ **Test Pyramid**Write unit tests (fast), integration tests (medium), e2e tests (slow). Ratio: 70:20:10
+
+### 5️⃣ **Progressive Disclosure**Start minimal. Grow governance as team grows. ULTRA-LITE → LITE → FULL
 
 ---
 
 ## The 3 Essential Rules
+
 ### Rule 1: Async Everything```python
-# ✅ GOODasync def fetch_user(user_id: int) -> User:
+
+# ✅ GOODasync def fetch_user(user_id: int) -> User
+
     return await db.query(User).filter_by(id=user_id).first()
 
-# ❌ BADdef fetch_user(user_id: int) -> User:
+# ❌ BADdef fetch_user(user_id: int) -> User
+
     return db.query(User).filter_by(id=user_id).first()  # Blocking!
+
 ```
 
 ### Rule 2: No Framework in Domain```python
@@ -99,7 +111,9 @@ class User(BaseModel):
 ```
 
 ### Rule 3: Every Feature Has a Test```python
-# ✅ GOOD - tests/test_user_repository.pyasync def test_fetch_user_returns_user():
+
+# ✅ GOOD - tests/test_user_repository.pyasync def test_fetch_user_returns_user()
+
     result = await fetch_user(1)
     assert result.id == 1
 
@@ -108,6 +122,7 @@ class User(BaseModel):
 ---
 
 ## 5 DoD Checkpoints
+
 Before committing, verify:
 
 - [ ] **Code is in domain/** — Business logic not in adapter layer
@@ -119,6 +134,7 @@ Before committing, verify:
 ---
 
 ## Example Project Structure
+
 ```
 my-project/
 ├── .sdd/
@@ -144,22 +160,26 @@ my-project/
 ---
 
 ## Upgrade Path
+
 **When your team grows beyond ULTRA-LITE:**
 
 ### Step 1: Pick LITE → [LITE-ADOPTION.md](./LITE-ADOPTION.md)- 10 principles (add 5 more)
+
 - 5 rules (add 2 more)
 - 10 DoD criteria (add 5 more)
 - Setup pre-commit hooks
 - Add governance automation
 
-### Time: 10 minutesAll ULTRA-LITE code stays valid. Just add layers on top.
+### Time: 10 minutesAll ULTRA-LITE code stays valid. Just add layers on top
 
 ---
 
 ## Philosophy
+
 **ULTRA-LITE is not a compromise.**
 
 It's the **essential kernel** of SDD thinking:
+
 - Clean separation of concerns
 - Async-first architecture
 - Explicit governance
@@ -167,17 +187,20 @@ It's the **essential kernel** of SDD thinking:
 - Grow as needed
 
 Perfect for:
+
 - **Solopreneurs** starting a project
 - **Startups** validating an idea
 - **Researchers** prototyping algorithms
 - **Learning** how SDD works
 
 Grow to LITE when:
+
 - 3+ people on team
 - Clear roadmap for 6+ months
 - Need predictable quality
 
 Grow to FULL when:
+
 - 5+ people
 - Production mission-critical
 - Regulatory requirements
@@ -185,7 +208,9 @@ Grow to FULL when:
 ---
 
 ## Next Steps
+
 **Ready to start?**
+
 1. Create `.sdd/constitution.md` (copy the 5 principles above)
 2. Create `.sdd/rules.md` (copy the 3 rules above)
 3. Create `tests/` folder (start with 1 test file)
@@ -193,6 +218,7 @@ Grow to FULL when:
 5. Check DoD checklist before each commit
 
 **Questions?**
+
 - Want more structure? → [LITE-ADOPTION.md](./LITE-ADOPTION.md)
 - Want full governance? → [FULL-ADOPTION.md](./FULL-ADOPTION.md)
 - Want comparison? → [INDEX.md](./INDEX.md)

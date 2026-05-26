@@ -106,6 +106,7 @@ All economy fields are exported under the `sdd.economy.*` namespace.
 ## 📝 Notes on `compression_ratio`
 
 **Convention:** `compression_ratio = compressed_bytes / original_bytes`
+
 - Value 1.0 → no compression occurred
 - Value < 1.0 → compression successful (e.g., 0.5 = 50% size reduction)
 - All built-in providers (`TfidfProvider`, `AstProvider`, `LocalIntelligenceProvider`) follow this convention

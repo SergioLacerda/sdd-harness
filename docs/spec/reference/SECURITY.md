@@ -23,6 +23,7 @@ compiles governance artifacts. The primary attack surface is **input parsing**:
 Report vulnerabilities via GitHub's private [Security Advisories](https://github.com/SergioLacerda/sdd-harness/security/advisories/new).
 
 Please include:
+
 1. Description of the vulnerability and affected component
 2. Steps to reproduce
 3. Potential impact assessment

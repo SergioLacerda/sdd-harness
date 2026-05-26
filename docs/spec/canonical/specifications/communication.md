@@ -7,6 +7,7 @@
 ## 🎯 Purpose
 
 Communication standards ensure:
+
 - ✅ Decisions are documented before they're forgotten
 - ✅ Risks are visible to the team
 - ✅ Code reviews have context
@@ -19,6 +20,7 @@ Communication standards ensure:
 Every feature gets a checkpoint entry. This is THE source of truth.
 
 ### Location
+
 File: `.sdd/source/execution-state/_current.md`
 
 ### Template
@@ -293,6 +295,7 @@ For each checkpoint, verify:
 ## 🎯 Excellence Criteria
 
 Your communication is excellent when someone reading it 6 months later:
+
 - ✅ Understands WHAT you built
 - ✅ Understands WHY you built it that way
 - ✅ Understands WHAT COULD GO WRONG

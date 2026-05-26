@@ -59,6 +59,7 @@ echo "✅ Daily backup complete"
 ```
 
 **Run daily at 01:00:**
+
 ```bash
 0 1 * * * /home/sergio/scripts/daily-backup.sh >> /var/log/sdd-backup.log 2>&1
 ```
@@ -144,6 +145,7 @@ echo "✅ Weekly cleanup complete"
 ```
 
 **Run weekly (e.g., Sunday 02:00):**
+
 ```bash
 0 2 * * 0 /home/sergio/scripts/weekly-cleanup.sh
 ```
@@ -222,6 +224,7 @@ echo "✅ Artifact refresh complete"
 ```
 
 **Run monthly (e.g., 1st of month, 03:00):**
+
 ```bash
 0 3 1 * * /home/sergio/scripts/monthly-artifact-refresh.sh
 ```

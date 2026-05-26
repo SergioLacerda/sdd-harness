@@ -16,21 +16,25 @@ onboarding/
 **Follow this in order:**
 
 ### 1️⃣  START HERE: `docs/spec/guides/FIRST_SESSION_SETUP.md`
+
 - 20 min total
 - Reads MASTER_INDEX → ia-rules → QUIZ → QUICK_START
 - Ends with you ready to code
 
 ### 2️⃣  TAKE THE QUIZ: `VALIDATION_QUIZ.md`
+
 - 5-10 minutes
 - 5 questions on ia-rules.md
 - Need ≥80% (4/5) to pass
 
-### 3️⃣  IF YOU PASSED:
+### 3️⃣  IF YOU PASSED
+
 - Continue with FIRST_SESSION_SETUP.md (rest of sections)
 - Choose your PATH (A/B/C/D)
 - Load context
 
-### 4️⃣  IF YOU FAILED:
+### 4️⃣  IF YOU FAILED
+
 - ❌ Stop here
 - 📖 Re-read `/EXECUTION/spec/CANONICAL/rules/ia-rules.md` (10 min)
 - ⏰ Wait 30 minutes
@@ -49,6 +53,7 @@ onboarding/
 5. **Gap Documentation** (reality ≠ docs is normal, document it)
 
 **Why mandatory?**
+
 - These 5 prevent 80% of architectural failures
 - Can't start work without understanding them
 - Forces rules into working memory before you code
@@ -56,6 +61,7 @@ onboarding/
 **Format options**:
 
 **For Humans**:
+
 ```
 1. Open: docs/spec/guides/onboarding/VALIDATION_QUIZ.md
 2. Answer 5 questions (A/B/C/D)
@@ -65,9 +71,11 @@ onboarding/
 ```
 
 **For AI Agents**:
+
 ```bash
 python docs/spec/scripts/validate_quiz.py
 ```
+
 - Runs 5 questions interactively
 - Logs result automatically
 - Tells you immediately if passed
@@ -78,11 +86,13 @@ python docs/spec/scripts/validate_quiz.py
 ## 📊 Quiz Tracking
 
 Your quiz attempts are logged to:
+
 ```
 docs/spec/REALITY/current-system-state/_quiz_tracking.json
 ```
 
 **What's tracked**:
+
 - Session ID
 - Timestamp
 - Score & percentage
@@ -92,6 +102,7 @@ docs/spec/REALITY/current-system-state/_quiz_tracking.json
 - Which questions you got wrong
 
 **Used for**:
+
 - Identifying which concepts need clearer docs
 - Measuring onboarding effectiveness
 - Improving ia-rules.md over time
@@ -159,11 +170,13 @@ A: Take the quiz anyway. Rules may have changed. Keeps everyone in sync.
 ## 📞 Getting Help
 
 **If quiz questions are unclear:**
+
 - Question text unclear? → Report it (include which question)
 - Answer not in ia-rules.md? → It should be. This is a bug. Report it.
 - Disagreeing with a correct answer? → Read the explanation + reference
 
 **If you're stuck:**
+
 - Stuck in quiz → Re-read that section of ia-rules.md
 - Don't understand ia-rules.md? → Read constitution.md (philosophical foundation)
 - Still stuck → ASK (don't guess)

@@ -39,16 +39,19 @@ graph TD
 ## 🏗️ Layered Logic Map
 
 ### Layer 1: The Mandate Layer (Immortal)
+
 - **Files**: `core/meta/mandate.spec`
 - **Context**: These are the "Natural Laws" of the project. If an implementation violates a Mandate, it must be rejected immediately.
 - **Search Key**: `M001`, `M002`, `M003`, `economy.*`, `budget_utilization_pct`, `tokens_input`, `compression_ratio`
 
 ### Layer 2: The Specification Layer (Configurable)
+
 - **Files**: `specifications/*.md`
 - **Context**: Detailed technical definitions (DoD, TDD, Security). These interpret the Mandates for daily work.
 - **Search Key**: `Definition of Done`, `Security Model`
 
 ### Layer 3: The Implementation Layer (Ephemeral)
+
 - **Files**: `packages/*`
 - **Context**: The actual Python code. It is subject to continuous audit by the SDD Doctor and Compliance tools.
 
@@ -66,13 +69,15 @@ To ensure portability and single source of truth, all operational governance sta
 
 ## 🧭 Deep Navigation Tips for Agents
 
-1.  **Context Loading**: When starting a task, first read `docs/spec/canonical/INDEX.md` for a high-level view, then jump to the specific `.md` file in `specifications/` related to the task.
-2.  **Cross-Reference**: If a documentation file mentions a "Phase", refer to `packages/interfaces/sdd_wizard/orchestration/` to see the actual logic of that phase.
-3.  **Governance Refresh**: If you modify the core specification, you MUST run `sdd governance validate` and then `sdd doctor run` to ensure the system hasn't drifted.
-4.  **Truth Source**: Always trust the `.spec` and `.dsl` files over the compiled `.bin` artifacts if there is a discrepancy (as artifacts are just optimized derivatives).
+1. **Context Loading**: When starting a task, first read `docs/spec/canonical/INDEX.md` for a high-level view, then jump to the specific `.md` file in `specifications/` related to the task.
+2. **Cross-Reference**: If a documentation file mentions a "Phase", refer to `packages/interfaces/sdd_wizard/orchestration/` to see the actual logic of that phase.
+3. **Governance Refresh**: If you modify the core specification, you MUST run `sdd governance validate` and then `sdd doctor run` to ensure the system hasn't drifted.
+4. **Truth Source**: Always trust the `.spec` and `.dsl` files over the compiled `.bin` artifacts if there is a discrepancy (as artifacts are just optimized derivatives).
 
 ## 📚 Historical Context (The Archive)
+
 For architectural history or rationale behind the v2.1 -> v3.0 transition:
+
 - **Migration Analyses**: `docs/archive/migration_analyses/`
 - **Migration Guides**: `docs/archive/migration_guides/`
 

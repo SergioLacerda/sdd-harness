@@ -79,21 +79,25 @@ After completing all 5 steps, verify:
 ## 🚀 Quick Commands
 
 **Get all templates:**
+
 ```bash
 cp -r INTEGRATION/templates/* /path/to/your-project/
 ```
 
 **Edit .spec.config:**
+
 ```bash
 # Edit: spec_path = ../sdd-harness
 ```
 
 **Run validation:**
+
 ```bash
 python ../sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 **Commit:**
+
 ```bash
 git add .spec.config .github/ .vscode/ .cursor/ .pre-commit-config.yaml scripts/ .sdd/
 git commit -m "feat: Integrate SDD framework governance"

@@ -54,6 +54,7 @@ Preserve and protect the integrity of the audit trail (`.sdd/audit-trail/complia
 ## 🔒 Validation
 
 Before merge:
+
 - [ ] `.sdd/audit-trail/compliance-events.jsonl` exists and is append-only
 - [ ] No manual editing of compliance events (only appends)
 - [ ] Log is backed up in `.git/` or external secure storage
@@ -75,11 +76,13 @@ Before merge:
 ## 🔧 Implementation
 
 **Runtime:**
+
 - All events persisted via `TelemetrySink` to `.sdd/audit-trail/compliance-events.jsonl` (append-only mode)
 - Pre-commit hook validates log format before commit
 - CI/CD gate prevents merge if log modified incorrectly
 
 **Archival:**
+
 - Old logs archived with timestamp: `compliance-events-2026-05-01.jsonl.gz`
 - Retained per data retention policy (recommend: 2 years minimum)
 - Archived logs treated with same protection as current log

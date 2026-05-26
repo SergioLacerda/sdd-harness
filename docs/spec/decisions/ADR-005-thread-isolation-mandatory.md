@@ -1,6 +1,7 @@
 # ADR-005: Thread Isolation Mandatory
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2025-10-01
 - Accepted: 2025-10-08
@@ -12,6 +13,7 @@
 
 **Problem**:
 System supports parallel agent work (multiple agents implementing features simultaneously).
+
 - Risk: Agents modify global state and break each other
 - Need: Clear isolation between work threads
 - Need: Prevent "I'll just modify this global thing"
@@ -23,9 +25,11 @@ System supports parallel agent work (multiple agents implementing features simul
 **Thread Isolation at TWO levels:**
 
 ### Level 1: AI Agent Threads (Original - Governance)
+
 Each agent work is isolated in its own thread:
 
 Rules:
+
 - ✅ Each thread has its own scope (execution_state.md)
 - ✅ Threads only modify their own checkpoints
 - ✅ No shared mutable global state
@@ -34,9 +38,11 @@ Rules:
 - ❌ No global architecture changes while threads are active
 
 ### Level 2: Campaign Runtime Threads (NEW - April 2026)
+
 Each concurrent campaign has thread-local container isolation:
 
 Rules:
+
 - ✅ Each campaign instance gets CampaignScopedContainer
 - ✅ Thread-local storage prevents cross-campaign state leakage
 - ✅ No shared mutable campaign state between concurrent executions
@@ -45,6 +51,7 @@ Rules:
 - ❌ Must use Ports for inter-campaign communication
 
 **CampaignScopedContainer Pattern:**
+
 ```python
 # Use context manager for automatic cleanup
 with CampaignScopedContainer.instance().campaign_scope("campaign_123"):
@@ -56,6 +63,7 @@ with CampaignScopedContainer.instance().campaign_scope("campaign_123"):
 ```
 
 **Why mandatory?**
+
 - Prevents accidental breaking of other agents' work (Level 1 - Governance)
 - Prevents concurrent campaign state leakage (Level 2 - Runtime)
 - Makes it clear who owns what (campaign isolation)
@@ -67,18 +75,21 @@ with CampaignScopedContainer.instance().campaign_scope("campaign_123"):
 ## Consequences
 
 ### Positive ✅
+
 - No accidental conflicts between agents
 - Clear ownership (this thread owns this work)
 - Can safely run multiple agents in parallel
 - Prevents global state corruption
 
 ### Negative ⚠️
+
 - Agents need to know their thread boundaries
 - Cross-thread communication is harder
 - Global changes require coordination
 - Adds complexity to task tracking
 
 ### Risk 🚨
+
 - Agents can still violate isolation (discipline required)
 - No technical enforcement (soft constraint)
 - Cross-thread data sharing could be missed
@@ -89,20 +100,25 @@ with CampaignScopedContainer.instance().campaign_scope("campaign_123"):
 ## Alternatives Considered
 
 ### 1. No isolation (free-for-all)
+
 **Rejected because**: Too risky, agents would constantly break each other.
 
 ### 2. Serialized work (one agent at a time)
+
 **Rejected because**: Slow, defeats purpose of parallel work.
 
 ### 3. Lock-based serialization (mutex per resource)
+
 **Rejected because**: Too complex, hard to get right.
 
 ### 4. Thread-pool with queues
+
 **Rejected because**: Adds infrastructure, hard to implement for documentation/code work.
 
 ---
 
 ## Related ADRs
+
 - ADR-002: Async-First (threading model)
 - ADR-001: Clean Architecture (isolation at layer level)
 
@@ -111,6 +127,7 @@ with CampaignScopedContainer.instance().campaign_scope("campaign_123"):
 ## Thread Specification
 
 Each thread has its own:
+
 - `docs/ia/specs/runtime/threads/THREAD_NAME.md` (tracking)
 - Assigned work scope
 - List of files they can modify
@@ -124,6 +141,7 @@ See: [AGENT_RUNTIME_PROTOCOL.md](../../runtime/protocols/AGENT_RUNTIME_PROTOCOL.
 ## Rules for Threads
 
 When starting a thread:
+
 1. Create `threads/THREAD_NAME.md`
 2. Document assigned work
 3. Document files you'll modify
@@ -131,12 +149,14 @@ When starting a thread:
 5. Mark as IN_PROGRESS
 
 When modifying global architecture:
+
 1. Check all active threads
 2. Flag as breaking change
 3. Update execution_state.md
 4. Notify all affected threads
 
 When finishing:
+
 1. Update checkpoint
 2. Document decisions made
 3. Flag any open questions
@@ -147,6 +167,7 @@ When finishing:
 ## Current Implementation Status
 
 ### Level 1 (AI Agent Threads - Governance)
+
 - ✅ Thread isolation concept documented
 - ✅ execution_state.md tracks active threads
 - ⚠️ No technical enforcement (GitHub Actions missing)
@@ -157,6 +178,7 @@ When finishing:
 **[MARKER: CampaignScopedContainer Design]** Thread-local campaign isolation
 
 Planned Implementation:
+
 - Location: `src/rpg_narrative_server/bootstrap/campaign/campaign_scoped_container.py`
 - Pattern: Singleton with thread-local storage (threading.local())
 - Features:
@@ -165,6 +187,7 @@ Planned Implementation:
   - Nested campaign_scope() support (if needed)
 
 **DECISION POINTS to resolve before implementation:**
+
 1. **[DECISION: Lock Strategy]** How to handle concurrent campaign_scope() calls?
    - Option A: Simple threading.Lock() on _containers dict
    - Option B: Per-campaign locks for fine-grained concurrency
@@ -274,12 +297,14 @@ pytest tests/integration/test_campaign_cleanup.py --memray
 ### Success Criteria
 
 ✅ Level 1 (AI Agent Threads):
+
 - Zero file ownership conflicts
 - Zero cross-thread modifications
 - All threads properly documented
 - Architecture changes properly coordinated
 
 ✅ Level 2 (Campaign Runtime):
+
 - 50+ concurrent campaigns
 - No state leakage between campaigns
 - Memory returns to baseline on cleanup
@@ -290,6 +315,7 @@ pytest tests/integration/test_campaign_cleanup.py --memray
 ## Next Review: October 1, 2027
 
 Consider:
+
 - Have threads helped prevent conflicts?
 - Any violations of thread boundaries?
 - Should we add technical enforcement?

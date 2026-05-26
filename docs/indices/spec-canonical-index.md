@@ -34,16 +34,19 @@ Always-active behavioral policies.
 Decision engines for task classification, context loading, and anti-pattern avoidance.
 
 **Decision Models:**
+
 - [TASK_CLASSIFICATION.md](../spec/canonical/core/cognition/decision-models/TASK_CLASSIFICATION.md) — Route task to PATH A–F
 - [CONTEXT_SELECTION.md](../spec/canonical/core/cognition/decision-models/CONTEXT_SELECTION.md) — Select minimal context per task
 - [EXECUTION_DECISION.md](../spec/canonical/core/cognition/decision-models/EXECUTION_DECISION.md) — Deterministic vs Guided vs Exploratory
 
 **Context Loading:**
+
 - [context-budget.md](../spec/canonical/core/cognition/context-loading/context-budget.md) — Budget targets per PATH
 - [path-routing.md](../spec/canonical/core/cognition/context-loading/path-routing.md) — Full routing table: task → PATH → docs
 - [strategy.md](../spec/canonical/core/cognition/context-loading/strategy.md) — Priority order: Runtime → Canonical → Guides → Reality
 
 **Anti-Patterns:**
+
 - [CONTEXT_IGNORANCE.md](../spec/canonical/core/cognition/anti-patterns/CONTEXT_IGNORANCE.md) — Loading no runtime context
 - [OVERLOADING_CONTEXT.md](../spec/canonical/core/cognition/anti-patterns/OVERLOADING_CONTEXT.md) — Loading too much, exceeding budget
 - [RULE_BYPASS.md](../spec/canonical/core/cognition/anti-patterns/RULE_BYPASS.md) — Hacking around mandates/policies
@@ -129,6 +132,7 @@ Framework capabilities and adoption models.
 **Location:** `docs/spec/canonical/features/`
 
 Examples (not exhaustive):
+
 - CLEAN_ARCHITECTURE — 8-layer domain/application/infrastructure split
 - TDD — Test-First development mandate
 - TELEMETRY_AUDIT — Mandatory event logging

@@ -43,11 +43,13 @@ never permitted.
 ## Allowed vs. Prohibited
 
 **Allowed** (increment / optimize):
+
 - Adding new checks or expanding coverage of an existing check
 - Refactoring internals for clarity, performance, or testability
 - Updating error messages or audit metadata without changing enforcement logic
 
 **Prohibited** (regression):
+
 - Removing or narrowing a guardrail check
 - Disabling via feature flag, config override, or conditional bypass
 - Silencing errors or suppressing exceptions

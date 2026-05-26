@@ -17,18 +17,21 @@
 ## Why Multi-Language?
 
 ### Adoption Barriers We're Fixing
+
 - ❌ "I love Go but SDD is Python-only" → Will support Go
 - ❌ "We're a Node shop" → Will support Node.js
 - ❌ "Rust for systems work" → Will support Rust
 - ✅ Now: "SDD principles apply to my stack"
 
 ### Economics
+
 - More users = more feedback
 - More languages = more battle-testing
 - Principles validated across ecosystems
 - Network effects (interop between microservices)
 
 ### Timeline Reasoning
+
 - v2.1 (now): Python solid, metrics gathering
 - v2.2 (Q2): Real data on success, decide expansion
 - v3.0 (Q4): Launch Node.js + Go + Rust versions
@@ -81,6 +84,7 @@ sdd-{language}/
 ## sdd-nodejs/ — Node.js Implementation (v3.0)
 
 ### Technology Stack
+
 - **Runtime:** Node.js 18+
 - **Framework:** Express or Fastify (team choice)
 - **Validation:** Zod or Joi
@@ -89,6 +93,7 @@ sdd-{language}/
 - **Type System:** TypeScript (recommended)
 
 ### What's Different from Python
+
 - No decorators (use middleware instead)
 - Express routing vs FastAPI path operations
 - Zod schemas vs Pydantic models
@@ -172,6 +177,7 @@ export class PostgresCampaignRepository implements CampaignRepositoryPort {
 ## sdd-go/ — Go Implementation (v3.0)
 
 ### Technology Stack
+
 - **Language:** Go 1.21+
 - **Framework:** Gin or Echo (team choice)
 - **Validation:** go-playground/validator or ozzo-validation
@@ -235,6 +241,7 @@ type CampaignRepository interface {
 ## sdd-rust/ — Rust Implementation (v3.0)
 
 ### Technology Stack
+
 - **Language:** Rust 1.70+
 - **Framework:** Actix-web or Axum
 - **Validation:** serde + custom validators
@@ -283,6 +290,7 @@ impl Campaign {
 ## Implementation Strategy
 
 ### 2026 Q2: Preparation
+
 - [ ] Finalize v2.1 metrics
 - [ ] Community feedback on SDD approach
 - [ ] Design Node.js skeleton
@@ -290,6 +298,7 @@ impl Campaign {
 - [ ] Design Rust skeleton
 
 ### 2026 Q3: Alpha Implementations
+
 - [ ] sdd-nodejs/ alpha
 - [ ] sdd-go/ alpha
 - [ ] sdd-rust/ alpha
@@ -297,6 +306,7 @@ impl Campaign {
 - [ ] Iterate on design
 
 ### 2026 Q4: v3.0 Launch
+
 - [ ] Release sdd-nodejs/ v1.0
 - [ ] Release sdd-go/ v1.0
 - [ ] Release sdd-rust/ v1.0
@@ -309,6 +319,7 @@ impl Campaign {
 ## Shared Infrastructure (v3.0)
 
 ### Unified Documentation
+
 ```
 sdd/
 ├── core/
@@ -322,12 +333,14 @@ sdd/
 ```
 
 ### Interoperability
+
 - Services in different languages can coexist
 - Shared ADR format (architecture decisions)
 - Unified governance rules
 - Cross-language test suites (contract tests)
 
 ### CI/CD Federation
+
 ```yaml
 # .github/workflows/sdd-compliance.yml
 # Unified pipeline for multi-language projects
@@ -365,12 +378,14 @@ jobs:
 ## Known Challenges
 
 ### Per-Language
+
 - Different idioms (Go vs Python very different)
 - Different testing approaches
 - Different packaging ecosystems
 - Different performance characteristics
 
 ### Cross-Language
+
 - Keeping principles consistent
 - Documentation across 4 languages
 - Community management (4x communities)
@@ -381,10 +396,12 @@ jobs:
 ## Why This Approach?
 
 ### NOT: "One SDD for all languages"
+
 ❌ Unrealistic — Go ≠ Python ≠ Rust
 ❌ Would satisfy nobody
 
 ### YES: "Same principles, different implementation"
+
 ✅ Clean Architecture works in all 4
 ✅ Async-first works in all 4
 ✅ Ports & Adapters works in all 4
@@ -395,16 +412,19 @@ jobs:
 ## Get Involved
 
 ### Today (v2.1)
+
 - Use SDD Python + FastAPI
 - Provide feedback
 - Report pain points
 
 ### Soon (v2.2)
+
 - Help gather metrics
 - Suggest improvements
 - Shape v3.0 priorities
 
 ### Future (v3.0)
+
 - Contribute to language repos
 - Build examples
 - Become a maintainer

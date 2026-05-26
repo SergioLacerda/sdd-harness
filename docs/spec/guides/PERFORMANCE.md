@@ -17,6 +17,7 @@ Tracks source file hashes and compilation state to enable incremental compilatio
 **State file:** `generated/master/compiled/.compile-state.json`
 
 **Structure:**
+
 ```json
 {
   "version": "1.0",
@@ -56,6 +57,7 @@ The `SDDIntegrator.check_incremental_compilation()` method is called during the 
 ### Implementation
 
 **Files:**
+
 - `packages/core/sdd_runtime/src/sdd_runtime/cache.py` — LRU cache manager
 - `packages/core/sdd_runtime/src/sdd_runtime/context.py` — Integration into ContextLoader
 
@@ -107,6 +109,7 @@ The `@cached_load(cache)` decorator automatically caches results from `ContextLo
 Tests parsing and encoding of synthetic specs.
 
 **Scales:**
+
 - 1K mandates: 1,800 bytes spec → 1.8ms compile
 - 5K mandates: 1.8MB spec → 9.8ms compile
 - 10K mandates: 3.7MB spec → 20.2ms compile
@@ -118,6 +121,7 @@ Tests parsing and encoding of synthetic specs.
 Tests context loading with cache warming.
 
 **Metrics:**
+
 - **P50:** 0.003ms (median)
 - **P95:** 0.008ms (95th percentile)
 - **P99:** 0.057ms (99th percentile)
@@ -193,6 +197,7 @@ Response to user (<10ms p95)
 ## Related Documentation
 
 Future documentation:
+
 - Compilation System (planned)
 - Caching Strategy (planned)
 - Observability & Metrics (planned)

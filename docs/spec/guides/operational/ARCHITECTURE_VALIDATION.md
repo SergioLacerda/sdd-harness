@@ -11,6 +11,7 @@
 ## 🎯 Purpose
 
 Quick reference for writing architecture compliance tests that validate:
+
 - ✅ Layer isolation (domain ≠ infrastructure)
 - ✅ Port contract compliance
 - ✅ Thread isolation
@@ -33,6 +34,7 @@ Quick reference for writing architecture compliance tests that validate:
 **Why:** Domain must stay pure (fundamental clean architecture principle)
 
 **Tests Included:**
+
 - ✅ Domain never imports infrastructure
 - ✅ Domain never imports frameworks (FastAPI, Django, Flask, etc)
 - ✅ Application uses ports (abstract), not direct infrastructure
@@ -40,6 +42,7 @@ Quick reference for writing architecture compliance tests that validate:
 - ✅ Frameworks layer only wires adapters
 
 **Setup:**
+
 ```bash
 cp INTEGRATION/templates/tests/unit/specs_ia_units/test_layer_isolation_template.py \
    tests/unit/specs_ia_units/test_layer_isolation.py
@@ -50,6 +53,7 @@ pytest tests/unit/specs_ia_units/test_layer_isolation.py -v
 ```
 
 **Success Criteria:**
+
 - No domain imports to infrastructure/ ✅
 - No framework imports in domain/ ✅
 - All infrastructure access via ports ✅
@@ -66,12 +70,14 @@ pytest tests/unit/specs_ia_units/test_layer_isolation.py -v
 **Why:** Ports define contracts; implementations must satisfy them
 
 **Tests Included:**
+
 - ✅ All adapters implement ports from domain
 - ✅ Storage adapter implements StoragePort
 - ✅ Port methods are implemented
 - ✅ No domain code calls non-port methods
 
 **Setup:**
+
 ```bash
 cp INTEGRATION/templates/tests/unit/specs_ia_units/test_port_contracts_template.py \
    tests/unit/specs_ia_units/test_port_contracts.py
@@ -82,6 +88,7 @@ pytest tests/unit/specs_ia_units/test_port_contracts.py -v
 ```
 
 **Success Criteria:**
+
 - All adapters implement their ports ✅
 - All ports have required methods ✅
 - No domain code calls non-port methods ✅
@@ -98,6 +105,7 @@ pytest tests/unit/specs_ia_units/test_port_contracts.py -v
 **Why:** Concurrent development requires thread safety
 
 **Tests Included:**
+
 - ✅ Execution state tracks threads
 - ✅ No global mutable state at module level
 - ✅ No shared session variables
@@ -105,6 +113,7 @@ pytest tests/unit/specs_ia_units/test_port_contracts.py -v
 - ✅ Valid concurrency patterns
 
 **Setup:**
+
 ```bash
 cp INTEGRATION/templates/tests/unit/specs_ia_units/test_thread_isolation_template.py \
    tests/unit/specs_ia_units/test_thread_isolation.py
@@ -115,6 +124,7 @@ pytest tests/unit/specs_ia_units/test_thread_isolation.py -v
 ```
 
 **Success Criteria:**
+
 - Execution state documents threads ✅
 - No shared mutable module state ✅
 - Thread-safe synchronization if needed ✅
@@ -162,6 +172,7 @@ pytest tests/unit/specs_ia_units/ --tb=short
 ### Template Pattern
 
 All templates follow this structure:
+
 ```python
 def test_rule_X_specific_check(self):
     """RULE X: [Describe what's validated]."""

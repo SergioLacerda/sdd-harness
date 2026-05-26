@@ -62,5 +62,6 @@ Run a static analysis tool on your codebase. If it can't resolve all imports wit
 ---
 
 ## References
+
 - Anti-pattern (root cause): [`SYMPTOM_FIXING.md`](./SYMPTOM_FIXING.md)
 - Impact assessment: [`cognition/decision-models/IMPACT_ASSESSMENT.md`](../decision-models/IMPACT_ASSESSMENT.md)

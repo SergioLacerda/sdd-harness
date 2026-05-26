@@ -3,6 +3,7 @@
 **Overview:** Step-by-step guides for responding to common SDD framework incidents.
 
 Each playbook follows this structure:
+
 1. **Symptoms:** How to recognize the problem
 2. **Root Causes:** What can go wrong
 3. **Response Steps:** Numbered phases (Detect → Contain → Investigate → Recover → Learn)
@@ -47,12 +48,14 @@ Each playbook follows this structure:
 #### Phase 1: Detect & Alert (5 min)
 
 1. **Confirm corruption:**
+
    ```bash
    sha256sum generated/master/compiled/governance-core.compiled.msgpack
    # Compare with expected hash in SBOM or .compile-state.json
    ```
 
 2. **Check git status:**
+
    ```bash
    git log --oneline -5 docs/spec/canonical/
    git status generated/master/compiled/
@@ -66,11 +69,13 @@ Each playbook follows this structure:
 #### Phase 2: Containment (10 min)
 
 1. **Stop affected services:**
+
    ```bash
    systemctl stop sdd-runtime sdd-wizard  # if applicable
    ```
 
 2. **Block release:**
+
    ```bash
    git tag -d v$(cat packages/core/sdd_core/pyproject.toml | grep version | head -1)
    # Don't push to remote yet
@@ -83,6 +88,7 @@ Each playbook follows this structure:
 #### Phase 3: Investigation (30 min)
 
 1. **Verify source integrity:**
+
    ```bash
    python -m sdd_compiler  # Attempt recompile
    sha256sum generated/master/compiled/governance-core.compiled.msgpack
@@ -91,6 +97,7 @@ Each playbook follows this structure:
    ```
 
 2. **Check Sigstore attestation (Phase 5.1):**
+
    ```bash
    cosign verify-blob \
      --certificate-identity-regexp="" \
@@ -99,6 +106,7 @@ Each playbook follows this structure:
    ```
 
 3. **Review recent commits:**
+
    ```bash
    git log --oneline --all -- "docs/spec/canonical/" | head -20
    git diff HEAD~5 HEAD -- "docs/spec/canonical/"
@@ -111,6 +119,7 @@ Each playbook follows this structure:
 #### Phase 4: Recovery (15–60 min depending on cause)
 
 **Scenario A: Code Issue (Source Changed)**
+
 ```bash
 # Fix the source file
 vi docs/spec/canonical/core/mandate.spec
@@ -130,6 +139,7 @@ git push origin v0.2.1
 ```
 
 **Scenario B: Infrastructure Issue (Corruption During Build)**
+
 ```bash
 # Clean build artifacts
 rm -rf generated/master/compiled/*
@@ -145,6 +155,7 @@ sha256sum generated/master/compiled/governance-core.compiled.msgpack
 ```
 
 **Scenario C: Tampering (Sigstore Fails)**
+
 ```bash
 # ESCALATE IMMEDIATELY to security@...
 # Do NOT use or serve the artifact
@@ -227,27 +238,33 @@ print(f'Total: {time.perf_counter() - start:.2f}s')
 #### Phase 3: Fix (variable)
 
 **Option A: Increase timeout** (quick fix, band-aid)
+
 ```yaml
 # .github/workflows/health.yml
 - name: Compile specs
   run: timeout 30 python -m sdd_compiler
   # Changed from 15 to 30 seconds
 ```
+
 ✅ **When:** Temporary, while investigating root cause
 
 **Option B: Split large spec** (medium fix)
+
 ```bash
 # Split mandate.spec into mandate-core.spec + mandate-extensions.spec
 # Compile separately, merge results
 ```
+
 ✅ **When:** Spec legitimately >5K items
 
 **Option C: Optimize regex** (proper fix)
+
 ```python
 # Replace inefficient regex with state machine or tokenizer
 # Profile: which patterns are slow?
 # Optimize in-order
 ```
+
 ✅ **When:** Regex is inherently slow, even on small specs
 
 #### Phase 4: Recovery
@@ -315,6 +332,7 @@ sdd metrics summary --last-hours 24
 #### Phase 3: Fix (depends on cause)
 
 **Scenario A: User Misconfigured Budget (Most common)**
+
 ```bash
 # Reset runtime state and re-bootstrap
 sdd bootstrap
@@ -325,6 +343,7 @@ sdd bootstrap
 ```
 
 **Scenario B: Single Query Too Expensive**
+
 ```bash
 # Check recent events to identify expensive queries
 sdd metrics summary --last-hours 1
@@ -339,6 +358,7 @@ sdd ask "architecture" --skill "diagnose"  # route to lighter path
 ```
 
 **Scenario C: Budget Not Reset**
+
 ```bash
 # Between sessions, budget should reset automatically.
 # If not, it's a bug — file an issue.
@@ -350,6 +370,7 @@ sdd bootstrap
 ```
 
 **Scenario D: Token Accounting Bug**
+
 ```bash
 # Reproduce: sdd ask "<query>" N times
 # Check if tokens charged correctly via metrics
@@ -445,6 +466,7 @@ pytest packages/core/sdd_runtime/tests/test_*.py -k cache -v
 #### Phase 4: Fix (depends on cause)
 
 **Scenario A: Cache Key Collision**
+
 ```python
 # In packages/core/sdd_runtime/cache.py
 # Check _make_key() function
@@ -456,6 +478,7 @@ pytest packages/core/sdd_runtime/tests/test_*.py -k cache -v
 ```
 
 **Scenario B: TTL Not Enforced**
+
 ```python
 # Check: does cache.get() validate timestamp?
 if elapsed > entry.ttl_seconds:
@@ -465,6 +488,7 @@ if elapsed > entry.ttl_seconds:
 ```
 
 **Scenario C: Race Condition**
+
 ```python
 # Add thread-safe locking
 import threading
@@ -531,6 +555,7 @@ cat .sdd/compiled/sbom.spdx.json | jq '.packages[] | select(.name=="suspicious")
 #### Phase 2: Immediate Containment (5 min)
 
 **If CVE in dependency:**
+
 ```bash
 # DO NOT RELEASE
 git tag -d v0.2.1  # If already tagged
@@ -542,6 +567,7 @@ gh issue create --title "[SECURITY] CVE-XXXX in dependency YYY" \
 ```
 
 **If signature verification fails:**
+
 ```bash
 # DO NOT RELEASE
 # Investigate immediately
@@ -554,6 +580,7 @@ gh run view $(gh run list | head -1 | awk '{print $1}')
 ```
 
 **If PyPI compromise suspected:**
+
 ```bash
 # DO NOT UPDATE PyPI package
 # Contact PyPI security: security@pypi.org
@@ -563,6 +590,7 @@ gh run view $(gh run list | head -1 | awk '{print $1}')
 #### Phase 3: Investigation (30 min)
 
 **For CVE in dependency:**
+
 ```bash
 # Check which dependency
 pip-audit --desc | grep "CRITICAL\|HIGH"
@@ -579,6 +607,7 @@ pytest tests/ -q
 ```
 
 **For signature failure:**
+
 ```bash
 # Check artifact integrity
 sha256sum generated/master/compiled/governance-core.compiled.msgpack
@@ -597,6 +626,7 @@ gh repo view --json pushPermissions
 #### Phase 4: Recovery
 
 **For CVE (standard path):**
+
 ```bash
 # 1. Update dependency in pyproject.toml
 [project]
@@ -621,6 +651,7 @@ git push origin v0.2.2
 ```
 
 **For signature failure (escalation):**
+
 ```bash
 # 1. Security team investigates
 # 2. Audit CI/CD logs and access
@@ -695,16 +726,19 @@ df -h generated/
 #### Phase 3: Fix
 
 **Permission issue:**
+
 ```bash
 chmod 644 generated/master/compiled/*
 ```
 
 **Missing artifact:**
+
 ```bash
 python -m sdd_compiler  # Rebuild
 ```
 
 **Disk space:**
+
 ```bash
 rm -rf generated/master/compiled/*.backup
 python -m sdd_compiler  # Rebuild
@@ -761,12 +795,14 @@ tail -1 .sdd/runtime/compliance-events.jsonl | jq '.event'
 #### Phase 3: Fix
 
 **Option A: Check for disk space**
+
 ```bash
 df -h .sdd/
 # If full: free space and retry
 ```
 
 **Option B: Verify sink is running**
+
 ```bash
 # Telemetry sink should emit events automatically via sdd commands
 sdd ask "test"  # This should emit an event
@@ -776,6 +812,7 @@ tail -1 .sdd/runtime/compliance-events.jsonl | jq .
 ```
 
 **Option C: Reset telemetry (last resort)**
+
 ```bash
 # Backup current log
 mv .sdd/runtime/compliance-events.jsonl .sdd/runtime/compliance-events.jsonl.backup
@@ -799,6 +836,7 @@ sdd bootstrap
 ## Adding New Playbooks
 
 When a new incident occurs:
+
 1. Document what happened (timeline, root cause, resolution)
 2. Create a new playbook section with symptoms/root causes/steps
 3. PR review: team discusses to validate steps
@@ -806,6 +844,7 @@ When a new incident occurs:
 5. Next incident: use playbook instead of improvising
 
 **Playbook Template:**
+
 ```markdown
 ## [Incident Name]
 

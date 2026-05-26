@@ -63,6 +63,7 @@ mkdir -p .github .vscode .cursor scripts
 ```
 
 **Expected result:**
+
 ```
 your-project/
 ├── .github/
@@ -74,6 +75,7 @@ your-project/
 ```
 
 **Status check:**
+
 ```bash
 ls -la | grep "^\."
 # Should show: .github, .vscode, .cursor, scripts
@@ -96,6 +98,7 @@ cp -r INTEGRATION/templates/* /path/to/your-project/
 ```
 
 **Expected files copied:**
+
 ```
 .spec.config              → project root
 .github/copilot-instructions.md
@@ -108,6 +111,7 @@ cp -r INTEGRATION/templates/* /path/to/your-project/
 ```
 
 **Verify:**
+
 ```bash
 cd /path/to/your-project
 cat .spec.config | head -5
@@ -134,6 +138,7 @@ nano .spec.config  # or your favorite editor
 ```
 
 **Example .spec.config:**
+
 ```ini
 [spec]
 spec_path = ../sdd-harness
@@ -141,6 +146,7 @@ spec_path = ../sdd-harness
 ```
 
 **Verify:**
+
 ```bash
 cat .spec.config | grep spec_path
 # Should show: spec_path = ../sdd-harness
@@ -162,6 +168,7 @@ python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-a
 ```
 
 **Expected output:**
+
 ```
 ✅ Framework verified
 ✅ .sdd/context-aware/ created
@@ -170,6 +177,7 @@ VALIDATION_QUIZ: Pass 8/10 questions (≥80%)
 ```
 
 **After script:**
+
 ```bash
 ls -la .sdd/
 # Should show: context-aware/, runtime/
@@ -200,6 +208,7 @@ git commit -m "feat: Integrate SDD framework governance"
 ```
 
 **Expected result:**
+
 ```
 [main xxxxxxx] feat: Integrate SDD framework governance
  X files changed, XXX insertions(+)
@@ -209,6 +218,7 @@ git commit -m "feat: Integrate SDD framework governance"
 ```
 
 **Verify:**
+
 ```bash
 git log -1 --oneline
 # Should show your commit
@@ -221,7 +231,7 @@ git status
 
 ---
 
-## 🎉 Complete!
+## 🎉 Complete
 
 After all 5 steps:
 

@@ -7,6 +7,7 @@
 ## 📚 Guides
 
 ### [Intention Detection (STEP_6.md)](../../guides/integration/STEP_6.md)
+
 **How integration now works: Intention-Driven approach (V2)**
 
 - Technical setup vs Intention detection phases
@@ -15,6 +16,7 @@
 - Implementation details
 
 ### [Integration Flow Index](../../guides/integration/INTEG_INDEX.md)
+
 **Evolution of integration flow: V1 (Choose First) → V2 (Understand First)**
 
 - Problems with V1
