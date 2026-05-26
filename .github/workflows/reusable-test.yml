@@ -42,6 +42,11 @@ jobs:
           uv run pytest -q \
             tests/contract/test_governance_schema.py::TestGovernanceCoreGoldenFile::test_structure_matches_golden
 
+      - name: Enforce performance SLO baselines
+        shell: bash
+        run: |
+          uv run pytest -q tests/perf/test_baselines.py
+
       - name: Enforce golden snapshot policy matrix
         shell: bash
         run: |

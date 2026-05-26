@@ -121,3 +121,6 @@ _version.py
 !.devcontainer/devcontainer.json
 !.devcontainer/post-create.sh
 build/
+
+# Drift battery local state — not for commit
+examples/security/drift_battery_snapshot.json

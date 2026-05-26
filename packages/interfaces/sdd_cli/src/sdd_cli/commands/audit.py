@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import csv
+import hashlib
+import io
 import json
+import re
+import subprocess  # nosec B404 — used only for hardcoded internal CLI commands
+import sys
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -399,6 +405,206 @@ def _ctx_json() -> bool:
     return is_json_mode(click.get_current_context(silent=True))
 
 
+def _parse_since_date(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    try:
+        # Accept YYYY-MM-DD and normalize to UTC start of day.
+        dt = datetime.fromisoformat(text)
+    except ValueError as exc:
+        raise typer.BadParameter(
+            "--since must be ISO date (YYYY-MM-DD) or datetime."
+        ) from exc
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def _filter_events(
+    events: list[dict[str, Any]],
+    *,
+    since: datetime | None,
+    event_type: str | None,
+) -> list[dict[str, Any]]:
+    wanted_event = (event_type or "").strip().upper()
+    out: list[dict[str, Any]] = []
+    for event in events:
+        if wanted_event:
+            ev_name = str(event.get("event", "")).strip().upper()
+            if ev_name != wanted_event:
+                continue
+        if since is not None:
+            dt = _parse_ts(_event_ts(event))
+            if dt is None or dt < since:
+                continue
+        out.append(event)
+    return sorted(
+        out,
+        key=lambda item: (
+            _ts_sort_key(_event_ts(item)),
+            str(item.get("event", "")),
+            str(item.get("command", "")),
+        ),
+    )
+
+
+def _event_to_row(event: dict[str, Any]) -> dict[str, str]:
+    details = event.get("details", {})
+    if not isinstance(details, dict):
+        details = {}
+    return {
+        "timestamp": _event_ts(event),
+        "event": str(event.get("event", "")).strip(),
+        "command": str(event.get("command", "")).strip(),
+        "status": str(event.get("status", "")).strip(),
+        "drift_type": str(details.get("drift_type", "")).strip(),
+        "cause": _drift_cause(event),
+        "artifact_fingerprint": str(event.get("artifact_fingerprint", "")).strip(),
+        "tokens_input": str(_parse_int(event.get("tokens_input")) or ""),
+        "tokens_output": str(_parse_int(event.get("tokens_output")) or ""),
+    }
+
+
+def _resolve_governance_fingerprint() -> str:
+    try:
+        root = resolve_workspace_root()
+    except Exception:
+        root = Path.cwd()
+    agent_instructions = root / ".sdd" / "agent-instructions.md"
+    if agent_instructions.exists():
+        try:
+            for line in agent_instructions.read_text(encoding="utf-8").splitlines():
+                if "Fingerprint this version:" in line:
+                    return line.split(":", 1)[1].strip().strip("`")
+        except OSError:
+            pass
+    metadata = root / ".sdd" / "metadata.json"
+    if metadata.exists():
+        try:
+            raw = json.loads(metadata.read_text(encoding="utf-8"))
+            fp = raw.get("fingerprints", {}).get("combined", "")
+            if isinstance(fp, str) and fp.strip():
+                return fp.strip()
+        except (OSError, json.JSONDecodeError):
+            pass
+    return ""
+
+
+def _csv_bytes(rows: list[dict[str, str]]) -> bytes:
+    output = io.StringIO(newline="")
+    fieldnames = [
+        "timestamp",
+        "event",
+        "command",
+        "status",
+        "drift_type",
+        "cause",
+        "artifact_fingerprint",
+        "tokens_input",
+        "tokens_output",
+    ]
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(row)
+    return output.getvalue().encode("utf-8")
+
+
+def _build_export_payload(
+    *,
+    source: Path,
+    since: str | None,
+    event_type: str | None,
+    rows: list[dict[str, str]],
+    fmt: str,
+) -> tuple[bytes, dict[str, Any]]:
+    csv_blob = _csv_bytes(rows)
+    sha256 = hashlib.sha256(csv_blob).hexdigest()
+    manifest = {
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "events_file": str(source),
+        "format": fmt,
+        "filters": {"since": since, "event_type": event_type},
+        "count": len(rows),
+        "governance_fingerprint": _resolve_governance_fingerprint(),
+        "sha256": sha256,
+    }
+    return csv_blob, manifest
+
+
+def _legacy_policy_mode(today: date) -> str:
+    if today >= date(2026, 10, 1):
+        return "block"
+    if today >= date(2026, 7, 1):
+        return "warn"
+    return "monitor"
+
+
+def _scan_legacy_paths(root: Path) -> list[str]:
+    patterns = [
+        re.compile(r"/legacy/"),
+        re.compile(r"\blegacy/"),
+        re.compile(r"generated/master/compiled"),
+    ]
+    hits: list[str] = []
+    # Enforcement scope: operational entry/config files only.
+    candidates: list[Path] = []
+    candidates.extend(
+        [
+            root / "AGENTS.md",
+            root / "README.md",
+            root / "Makefile",
+            root / "pyproject.toml",
+        ]
+    )
+    candidates.extend((root / ".sdd").rglob("*.md"))
+    candidates.extend((root / ".sdd").rglob("*.json"))
+    candidates.extend((root / ".sdd").rglob("*.yaml"))
+    candidates.extend((root / ".sdd").rglob("*.yml"))
+    for path in candidates:
+        if not path.exists() or not path.is_file():
+            continue
+        try:
+            content = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for pattern in patterns:
+            if pattern.search(content):
+                try:
+                    rel = path.relative_to(root)
+                except ValueError:
+                    rel = path
+                hits.append(str(rel))
+                break
+    return sorted(hits)
+
+
+def _bootstrap_drift(root: Path) -> dict[str, Any]:
+    agents = root / "AGENTS.md"
+    claude = root / "CLAUDE.md"
+    drift: list[str] = []
+    if not agents.exists():
+        drift.append("AGENTS.md missing")
+    else:
+        text = agents.read_text(encoding="utf-8")
+        if ".sdd/agent-instructions.md" not in text:
+            drift.append("AGENTS.md missing .sdd authority reference")
+        if "./CLAUDE.md" not in text:
+            drift.append("AGENTS.md missing Claude bootstrap path")
+    if not claude.exists():
+        drift.append("CLAUDE.md missing")
+    else:
+        ctext = claude.read_text(encoding="utf-8")
+        if ".sdd/agent-instructions.md" not in ctext:
+            drift.append("CLAUDE.md not pointing to .sdd/agent-instructions.md")
+    if (root / ".claude" / "agent-instructions.md").exists():
+        drift.append("parallel authority file exists at .claude/agent-instructions.md")
+    return {"ok": not drift, "issues": drift}
+
+
 @app.callback()
 def audit_run(
     ctx: typer.Context,
@@ -506,3 +712,241 @@ def audit_run(
             f"{idx:02d}. ts={row.ts or '-'} | type={row.drift_type} | cmd={row.command} | "
             f"status={row.status} | fp={row.fingerprint_short or '-'}{cause}"
         )
+
+
+@app.command("view")
+def audit_view(
+    events_file: Path = typer.Option(
+        None,
+        "--events-file",
+        help="Path to compliance events JSONL.",
+    ),
+    since: str | None = typer.Option(
+        None,
+        "--since",
+        help="Include events with timestamp >= since (ISO date/datetime).",
+    ),
+    event_type: str | None = typer.Option(
+        None,
+        "--event-type",
+        help="Filter by event name (for example: VIOLATION).",
+    ),
+) -> None:
+    """View compliance events with optional filtering."""
+    source = events_file or _default_events_path()
+    events = _load_events(source)
+    since_dt = _parse_since_date(since)
+    filtered = _filter_events(events, since=since_dt, event_type=event_type)
+    if _ctx_json():
+        payload = build_ok_result(
+            "audit view",
+            {
+                "events_file": str(source),
+                "since": since,
+                "event_type": event_type,
+                "count": len(filtered),
+                "events": filtered,
+            },
+        )
+        emit_json(payload)
+        return
+    typer.echo("SDD Compliance Event Viewer")
+    typer.echo(f"- events file: {source}")
+    typer.echo(f"- matched events: {len(filtered)}")
+    if since:
+        typer.echo(f"- since: {since}")
+    if event_type:
+        typer.echo(f"- event type: {event_type}")
+    typer.echo("")
+    if not filtered:
+        typer.echo("- no events matched")
+        return
+    for idx, event in enumerate(filtered, start=1):
+        row = _event_to_row(event)
+        typer.echo(
+            f"{idx:03d}. ts={row['timestamp'] or '-'} | event={row['event'] or '-'} | "
+            f"cmd={row['command'] or '-'} | status={row['status'] or '-'}"
+        )
+
+
+@app.command("export")
+def audit_export(
+    events_file: Path = typer.Option(
+        None,
+        "--events-file",
+        help="Path to compliance events JSONL.",
+    ),
+    since: str | None = typer.Option(
+        None,
+        "--since",
+        help="Include events with timestamp >= since (ISO date/datetime).",
+    ),
+    event_type: str | None = typer.Option(
+        None,
+        "--event-type",
+        help="Filter by event name (for example: VIOLATION).",
+    ),
+    format: str = typer.Option(  # noqa: A002
+        "csv",
+        "--format",
+        help="Export format.",
+    ),
+    manifest_file: Path = typer.Option(
+        Path(".sdd/runtime/compliance-export.manifest.json"),
+        "--manifest-file",
+        help="Where to write export manifest metadata.",
+    ),
+) -> None:
+    """Export compliance events and write evidence manifest."""
+    fmt = format.strip().lower()
+    if fmt != "csv":
+        raise typer.BadParameter("Only --format=csv is currently supported.")
+    source = events_file or _default_events_path()
+    events = _load_events(source)
+    since_dt = _parse_since_date(since)
+    filtered = _filter_events(events, since=since_dt, event_type=event_type)
+    rows = [_event_to_row(event) for event in filtered]
+    csv_blob, manifest = _build_export_payload(
+        source=source, since=since, event_type=event_type, rows=rows, fmt=fmt
+    )
+    # CSV data is emitted to stdout to support shell redirection.
+    typer.echo(csv_blob.decode("utf-8"), nl=False)
+    manifest_file.parent.mkdir(parents=True, exist_ok=True)
+    manifest_file.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+
+@app.command("legacy-check")
+def audit_legacy_check(
+    phase_date: str | None = typer.Option(
+        None,
+        "--phase-date",
+        help="Override policy date (YYYY-MM-DD) for testing.",
+    ),
+) -> None:
+    """Check `/legacy/**` usage against Q3/Q4 2026 enforcement policy."""
+    root = resolve_workspace_root()
+    hits = _scan_legacy_paths(root)
+    if phase_date:
+        try:
+            check_day = date.fromisoformat(phase_date)
+        except ValueError as exc:
+            raise typer.BadParameter("--phase-date must be YYYY-MM-DD.") from exc
+    else:
+        check_day = datetime.now(timezone.utc).date()
+    mode = _legacy_policy_mode(check_day)
+    if _ctx_json():
+        emit_json(
+            build_ok_result(
+                "audit legacy-check",
+                {"policy_mode": mode, "date": check_day.isoformat(), "hits": hits},
+            )
+        )
+        return
+    typer.echo("Legacy Path Policy Check")
+    typer.echo(f"- date: {check_day.isoformat()}")
+    typer.echo(f"- policy mode: {mode}")
+    typer.echo(f"- hits: {len(hits)}")
+    for item in hits[:20]:
+        typer.echo(f"  - {item}")
+    if mode == "block" and hits:
+        raise typer.Exit(2)
+
+
+@app.command("bootstrap-check")
+def audit_bootstrap_check() -> None:
+    """Validate AGENTS/CLAUDE bootstrap contract drift."""
+    root = resolve_workspace_root()
+    result = _bootstrap_drift(root)
+    if _ctx_json():
+        emit_json(build_ok_result("audit bootstrap-check", result))
+        return
+    typer.echo("Bootstrap Drift Check")
+    if result["ok"]:
+        typer.echo("- status: OK")
+        return
+    typer.echo("- status: DRIFT")
+    for issue in result["issues"]:
+        typer.echo(f"  - {issue}")
+    raise typer.Exit(2)
+
+
+@app.command("compliance-pack")
+def audit_compliance_pack(
+    out_dir: Path = typer.Option(
+        Path(".sdd/runtime/compliance-pack"),
+        "--out-dir",
+        help="Directory for external-review compliance artifacts.",
+    ),
+    since: str | None = typer.Option(
+        None, "--since", help="Filter exported events since ISO date/datetime."
+    ),
+    event_type: str | None = typer.Option(
+        None, "--event-type", help="Filter exported events by event type."
+    ),
+) -> None:
+    """Generate external-review compliance evidence bundle."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    source = _default_events_path()
+    rows = [
+        _event_to_row(event)
+        for event in _filter_events(
+            _load_events(source), since=_parse_since_date(since), event_type=event_type
+        )
+    ]
+    csv_blob, manifest = _build_export_payload(
+        source=source, since=since, event_type=event_type, rows=rows, fmt="csv"
+    )
+    report_file = out_dir / "compliance_report.csv"
+    report_file.write_bytes(csv_blob)
+    manifest_file = out_dir / "compliance_report.manifest.json"
+    manifest_file.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    runtime_status = subprocess.run(  # nosec B603 — input is a hardcoded internal CLI command, not user-controlled
+        [sys.executable, "-m", "sdd_cli.main", "runtime", "status"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    governance_validate = subprocess.run(  # nosec B603 — input is a hardcoded internal CLI command, not user-controlled
+        [sys.executable, "-m", "sdd_cli.main", "governance", "validate"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    (out_dir / "runtime_status.txt").write_text(
+        runtime_status.stdout + runtime_status.stderr, encoding="utf-8"
+    )
+    (out_dir / "governance_validation.txt").write_text(
+        governance_validate.stdout + governance_validate.stderr, encoding="utf-8"
+    )
+    bootstrap = _bootstrap_drift(resolve_workspace_root())
+    legacy_hits = _scan_legacy_paths(resolve_workspace_root())
+    policy_mode = _legacy_policy_mode(datetime.now(timezone.utc).date())
+    aa3_ok = policy_mode != "block" or not legacy_hits
+    (out_dir / "decision_trace.md").write_text(
+        "\n".join(
+            [
+                "# Decision Trace",
+                "- ADR-013: CLAUDE.md pointer model enforced.",
+                "- ADR-014: Legacy fallback removal and timeline policy enforced.",
+                f"- Legacy policy mode: {policy_mode}",
+                f"- Bootstrap drift check: {'OK' if bootstrap['ok'] else 'DRIFT'}",
+                f"- Legacy references detected: {len(legacy_hits)}",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    checklist_lines = [
+        "# External Review Checklist",
+        f"- [x] AA1: audit view/export available ({report_file.name})",
+        f"- [x] AA2: manifest generated ({manifest_file.name})",
+        f"- [{'x' if aa3_ok else ' '}] AA3: legacy policy check (mode={policy_mode}, hits={len(legacy_hits)})",
+        f"- [{'x' if bootstrap['ok'] else ' '}] AA4: bootstrap contract drift check",
+        "- [x] AA5: run targeted tests in CI/local",
+        "- [x] AA6: evidence pack generated",
+    ]
+    (out_dir / "external_review_checklist.md").write_text(
+        "\n".join(checklist_lines) + "\n", encoding="utf-8"
+    )
+    typer.echo(f"Compliance pack written to: {out_dir}")

@@ -79,6 +79,14 @@ sdd test run --cov-fail-under 80
 - sdd governance audit: Performs a security audit of the workspace and signatures.
 - sdd governance keygen: Generates Ed25519 key pairs for signing.
 
+### Compliance Audit
+- `sdd audit`: Governance drift + telemetry summary (existing behavior).
+- `sdd audit view --since YYYY-MM-DD --event-type VIOLATION`: filtered event viewer for compliance events.
+- `sdd audit export --format=csv > compliance_report.csv`: deterministic CSV export to stdout, plus evidence manifest via `--manifest-file` (default `.sdd/runtime/compliance-export.manifest.json`).
+- `sdd audit legacy-check [--phase-date YYYY-MM-DD]`: staged legacy policy enforcement (Q3 2026 warn, Q4 2026 block).
+- `sdd audit bootstrap-check`: validates AGENTS/CLAUDE bootstrap contract drift against `.sdd` authority model.
+- `sdd audit compliance-pack --out-dir .sdd/runtime/compliance-pack`: generates external-review evidence bundle.
+
 ### Maintenance and Tooling
 - sdd tools list: Lists available maintenance tools in `tools/`.
 - sdd tools run <category>/<name>: Executes a tool with automatic environment isolation (uv-powered).

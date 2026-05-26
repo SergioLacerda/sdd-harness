@@ -218,6 +218,19 @@ Users with `sdd ask --old-format` should remove the flag:
 - Update tests
 - Update help text
 
+---
+
+## Active Timeline: Legacy Path Deprecation (ADR-014)
+
+This repository enforces an explicit timeline for `/legacy/**` references:
+
+- **Q3 2026 (2026-07-01 to 2026-09-30):** deprecation phase
+  - Legacy path usage may continue only with structured deprecation warning and migration guidance.
+- **Q4 2026 (from 2026-10-01):** removal phase
+  - Legacy path usage is treated as blocking error in runtime/CI validation paths.
+
+Any rollout or exception proposal that modifies this timeline must open an RFC issue and reference ADR-014.
+
 **Step 6:** Release v1.0.0 (first major version, triggered by breaking change)
 
 **Step 7:** Release notes clearly state removal
