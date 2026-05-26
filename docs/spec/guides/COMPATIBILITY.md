@@ -47,6 +47,7 @@ sdd-telemetry
 ```
 
 **Installation:**
+
 - **End-users:** `pip install sdd-harness` (installs sdd-cli + all dependencies)
 - **Developers:** `uv sync` in monorepo root (all 7 packages in editable mode)
 
@@ -63,33 +64,39 @@ sdd-telemetry
 ### What Counts as Each Type of Change
 
 #### MAJOR (X.0.0)
+
 - **CLI:** Removing a command, renaming a flag, changing command behavior
 - **API:** Removing a public function, changing function signature, removing a module
 - **Schema:** Removing fields from governance artifacts, changing event schema format
 - **Mandates:** Adding new mandatory compliance requirements
 
 Examples:
+
 - `sdd governance compile` → `sdd compile` (command rename)
 - Removing `--verbose` flag without replacement
 - Changing `RuntimeEvent` schema (removing fields)
 
 #### MINOR (1.X.0)
+
 - **CLI:** Adding a new command, adding optional flags, new output format (backward-compatible)
 - **API:** Adding new functions, adding optional parameters, new modules
 - **Schema:** Adding optional fields (default to `None` or empty)
 - **Features:** New governance features, new diagnostics
 
 Examples:
+
 - Adding `sdd ask` command
 - Adding `--format json` output option
 - Adding new `economy.*` event types
 
 #### PATCH (1.0.X)
+
 - **Fixes:** Bug fixes, security patches, performance improvements
 - **Docs:** Documentation updates, comment clarifications
 - **Tests:** Test additions (not behavior changes)
 
 Examples:
+
 - Fixing drift detection bug
 - Improving JSONL parsing performance
 - Updating README
@@ -113,6 +120,7 @@ When a feature must be removed, follow this process:
 **Minimum deprecation window:** 1 minor version (at least ~1 month before removal)
 
 Example:
+
 - v1.5.0: Deprecate `sdd governance --old-flag` with warning message
 - v1.6.0, v1.7.0, etc.: Flag still works with warning
 - v2.0.0: Remove `--old-flag` entirely
@@ -154,6 +162,7 @@ Before releasing version X.Y.Z, verify:
 ## Multi-Version Regression Testing
 
 Future enhancement (Phase 5.3): Add CI matrix to test:
+
 - Latest Python versions (3.10, 3.11, 3.12, 3.13)
 - Latest + previous minor versions (e.g., if 3.12.5 is latest, test 3.12.0, 3.12.5)
 - Artifact compatibility across versions (compile in 3.10, run in 3.12, etc.)

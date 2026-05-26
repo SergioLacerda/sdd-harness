@@ -1,6 +1,7 @@
 # ADR-010: Spec-to-Compiled Artifact Contract
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2026-05-05
 - Accepted: 2026-05-05
@@ -64,6 +65,7 @@ convention `<ID>_<SLUG>.md` where:
 | `metadata.criticality` | No | `MANDATORY` \| `RECOMMENDED` \| `OPTIONAL` |
 
 **Invariants:**
+
 - IDs must be unique across all source files in the same category (core vs. client)
 - IDs must be sorted before fingerprint calculation (deterministic ordering)
 - Emoji and Unicode in titles are allowed; they are preserved verbatim
@@ -84,6 +86,7 @@ convention `<ID>_<SLUG>.md` where:
 ```
 
 **Guarantees:**
+
 - `fingerprint` is SHA-256 of the sorted, canonical JSON serialisation of `items`
 - `items` are sorted by `id` ascending (lexicographic)
 - `version` matches `PipelineBuilder.SCHEMA_VERSION = "3.0"`
@@ -109,6 +112,7 @@ convention `<ID>_<SLUG>.md` where:
 ```
 
 **Guarantees:**
+
 - `fingerprint` matches the PHASE 1 build artifact fingerprint (not recomputed)
 - `items` contain all fields from source plus enriched `metadata`
 - No `generated_at` volatile timestamp in the core JSON (stable for golden-file comparison)
@@ -118,6 +122,7 @@ convention `<ID>_<SLUG>.md` where:
 `*.compiled.msgpack` files are binary serialisations of the compiled JSON.
 
 **Guarantees:**
+
 - Deserialises to the same structure as the compiled JSON
 - Used at runtime by `AgentHandshakeProtocol` Layer 1 and Layer 4
 - File integrity is verified by checking `fingerprint` against `.sdd/profile core_hash[:16]`
@@ -125,12 +130,14 @@ convention `<ID>_<SLUG>.md` where:
 ### 5. Compiler Invariants (breaking change definition)
 
 A change to the pipeline is **breaking** if it:
+
 - Removes or renames a top-level key (`category`, `version`, `fingerprint`, `items`)
 - Changes the `id` field format (currently `[A-Z]\d{3}`)
 - Changes the fingerprint algorithm (currently `sha256`, full 64-char hex)
 - Changes item sort order
 
 A change is **non-breaking** if it:
+
 - Adds new optional fields to items (`metadata.*`)
 - Adds new top-level optional keys
 - Changes emoji or whitespace in `title`
@@ -143,9 +150,11 @@ The formal executable validation of this contract lives in:
 - `.github/workflows/health.yml` — `Verify Fingerprint Determinism` step
 
 When the golden file diverges (intentional spec change), update:
+
 ```
 tests/contract/fixtures/governance_core.golden.json
 ```
+
 with the documented update command in the module docstring.
 
 ---
@@ -153,11 +162,13 @@ with the documented update command in the module docstring.
 ## Consequences
 
 **Positive:**
+
 - New compiler contributors have a single reference for what they can and cannot change
 - AHP integration tests have explicit invariants to verify against
 - Breaking changes are identifiable before merging (golden-file diff in CI)
 
 **Negative:**
+
 - Adding new mandatory fields requires updating this ADR, the golden file, and the contract tests
   (intended — this is the friction that surfaces breaking changes)
 

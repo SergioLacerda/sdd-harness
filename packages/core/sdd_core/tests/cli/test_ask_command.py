@@ -155,6 +155,7 @@ class TestAskCommand:
 
     def test_ask_emits_compliance_event(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}, {"id": "M002"}])
+        log_path = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
 
         with (
             patch(
@@ -169,6 +170,7 @@ class TestAskCommand:
                 "sdd_cli.commands._ask_backend._load_governance_via_runtime",
                 return_value=None,
             ),
+            patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log_path)}),
         ):
             runner.invoke(app, ["ask", "test query"])
 
@@ -401,6 +403,7 @@ class TestAskCommand:
             )
             + "\n",
         )
+        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
         with (
             patch(
                 "sdd_cli.commands._ask_backend._resolve_workspace_root",
@@ -414,10 +417,10 @@ class TestAskCommand:
                 "sdd_cli.commands._ask_backend._load_governance_via_runtime",
                 return_value=None,
             ),
+            patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
             runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
 
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         ask_events = [e for e in events if e.get("event") == "governance.ask"]
         assert ask_events
@@ -594,6 +597,7 @@ class TestAskFullCommand:
 
     def test_ask_full_event_contains_trace_id_and_steps(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
+        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
 
         with (
             patch(
@@ -608,10 +612,10 @@ class TestAskFullCommand:
                 "sdd_cli.commands._ask_backend._load_governance_via_runtime",
                 return_value=None,
             ),
+            patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
             runner.invoke(app, ["ask-full", "test"])
 
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
         assert log.exists()
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         full_events = [e for e in events if e.get("event") == "governance.ask.full"]
@@ -688,6 +692,7 @@ class TestAskFullCommand:
             {"validate": lambda self, **_: ("HEALTHY", object())},
         )()
 
+        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
         with (
             patch(
                 "sdd_cli.commands._ask_backend._resolve_workspace_root",
@@ -701,11 +706,11 @@ class TestAskFullCommand:
                 "sdd_cli.commands._ask_backend._load_governance_via_runtime",
                 return_value=None,
             ),
+            patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
             result = runner.invoke(app, ["ask-full", "runtime check"])
 
         assert result.exit_code == 0
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         full_events = [e for e in events if e.get("event") == "governance.ask.full"]
         assert len(full_events) == 1
@@ -719,6 +724,7 @@ class TestAskComplianceIntegration:
 
     def test_event_persisted_to_jsonl(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
+        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
 
         with (
             patch(
@@ -729,11 +735,11 @@ class TestAskComplianceIntegration:
                 "sdd_cli.commands._ask_backend._get_profile_state",
                 return_value=("master", "HEALTHY"),
             ),
+            patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
             result = runner.invoke(app, ["ask", "integration test query"])
 
         assert result.exit_code == 0
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
         assert log.exists(), "compliance-events.jsonl must be written"
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         assert any(e["event"] == "governance.ask" for e in events)
@@ -782,6 +788,7 @@ class TestCheckFingerprintDrift:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
         # State with a DIFFERENT fingerprint to trigger drift
         self._write_state(tmp_path, "deadbeef")
+        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
 
         with (
             patch(
@@ -796,10 +803,10 @@ class TestCheckFingerprintDrift:
                 "sdd_cli.commands._ask_backend._load_governance_via_runtime",
                 return_value=None,
             ),
+            patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
             runner.invoke(app, ["ask", "drift test"])
 
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
         assert log.exists()
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         ask_events = [e for e in events if e.get("event") == "governance.ask"]

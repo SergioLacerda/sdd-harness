@@ -204,6 +204,7 @@
 ## 🎯 Decision Points
 
 ### Point 1: "Where do I start?"
+
 ```
 README.md has decision tree
   ↓
@@ -213,6 +214,7 @@ Choose: Integration? Execution? Learning? AI?
 ```
 
 ### Point 2: "How does integration work?"
+
 ```
 INTEGRATION/README.md explains 2 phases:
   ↓
@@ -223,6 +225,7 @@ Phase 2 (STEP 6): Detect intention → LITE or FULL
 ```
 
 ### Point 3: "LITE or FULL?" (After Integration)
+
 ```
 INTEGRATION/STEP_6.md has 5 questions
   ↓
@@ -237,6 +240,7 @@ Answer honestly about:
 ```
 
 ### Point 4: "What workflow do I follow?" (During Execution)
+
 ```
 adoption/{LITE,FULL}-ADOPTION.md or AGENT_HARNESS.md
   ↓
@@ -250,6 +254,7 @@ Follow phases (3 for LITE, 7 for FULL)
 ## ✅ Validation Checklist at Each Point
 
 ### After "Technical Setup Complete" (STEP 5)
+
 - ✅ Project directories created
 - ✅ Templates copied
 - ✅ `.spec.config` points to SDD
@@ -258,6 +263,7 @@ Follow phases (3 for LITE, 7 for FULL)
 - ✅ Ready for STEP 6
 
 ### After "Intention Detected" (STEP 6)
+
 - ✅ Answered 5 questions honestly
 - ✅ Know if LITE or FULL
 - ✅ `.spec.config` includes `adoption_level`
@@ -266,12 +272,14 @@ Follow phases (3 for LITE, 7 for FULL)
 - ✅ Ready for EXECUTION
 
 ### After "Setup Complete" (EXECUTION: PHASE_0)
+
 - ✅ `.sdd/` fully configured for your level
 - ✅ Pre-commit hooks installed
 - ✅ Documentation available (LITE or FULL)
 - ✅ Developer can start implementing
 
 ### After "Feature Implemented"
+
 - ✅ Code follows layers (10 for LITE, 8 for FULL)
 - ✅ Tests passing (10 DoD for LITE, 45 for FULL)
 - ✅ Decisions documented (light for LITE, complete ADR for FULL)
@@ -343,22 +351,26 @@ Root
 ## 🎯 Next Actions Based on Your Scenario
 
 ### "I'm totally new to SDD"
+
 1. Read: [README.md](../../../README.md) (5 min)
 2. Choose: [adoption/INDEX.md](./INDEX.md) (5 min)
 3. Read: [adoption/LITE-ADOPTION.md](./LITE-ADOPTION.md) or [FULL-ADOPTION.md](./FULL-ADOPTION.md) (15-40 min)
 
 ### "I'm adding a new project"
+
 1. Read: [INTEGRATION/CHECKLIST.md](../integration/CHECKLIST.md) (5 min)
 2. Follow: [INTEGRATION/CHECKLIST.md](../integration/CHECKLIST.md) STEP 1-5 (20 min, technical)
 3. Follow: [INTEGRATION/STEP_6.md](../integration/STEP_6.md) (10 min, detect intention)
 4. Choose: LITE or FULL based on answers
 
 ### "I'm implementing now"
+
 1. Confirm: Your adoption level (check `.spec.config` adoption_level)
 2. Read: [CORE__START_HERE.md](../operational/CORE__START_HERE.md) (5 min)
 3. Follow: AGENT_HARNESS phases (1-8 hours)
 
 ### "I have questions"
+
 1. Search: [NAVIGATION.md](../operational/NAVIGATION.md)
 2. Read: [FAQ.md](../faq.md)
 3. Ask: Create an issue or discussion

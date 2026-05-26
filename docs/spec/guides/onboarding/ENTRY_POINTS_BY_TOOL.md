@@ -42,6 +42,7 @@ All paths lead to: **AGENT_HARNESS.md**
 ### How It Works
 
 1. **User starts Copilot Chat in VSCode**
+
    ```
    Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows)
    ```
@@ -87,6 +88,7 @@ When a user asks for work (bug fix, feature, etc.), respond:
 **User:** "I need to fix the session timeout bug"
 
 **Copilot:**
+
 ```
 Great! Before we start, let's make sure you're set up correctly.
 
@@ -149,6 +151,7 @@ Plus add:
 ### How It Works
 
 **New Cursor User:**
+
 ```
 1. Opens Cursor
 2. Sees: "Welcome to [PROJECT_NAME]"
@@ -163,6 +166,7 @@ Plus add:
 ### Cursor Configuration
 
 Create `.cursor/settings.md`:
+
 ```markdown
 # Cursor Settings for [PROJECT_NAME]
 
@@ -248,6 +252,7 @@ Done! Ready to code. 🚀
 ### Integration with CI/CD
 
 The wizard can also validate:
+
 ```bash
 $ python docs/ia/SCRIPTS/setup-wizard.py --validate
 
@@ -337,6 +342,7 @@ Developer updates checkpoint, retry, commit succeeds.
 ### How It Works
 
 **PR Opened:**
+
 ```yaml
 # .github/workflows/spec-enforcement.yml
 
@@ -372,6 +378,7 @@ jobs:
 ```
 
 **CI/CD Feedback:**
+
 ```
 ✅ Looks good! Your PR follows AGENT_HARNESS:
   ✅ execution-state updated
@@ -529,12 +536,14 @@ All three options same outcome:
 ## 🔄 MAINTENANCE
 
 **Review Quarterly:**
+
 - Which entry points get used most? (data)
 - Which PATH gets selected most? (PATH distribution)
 - Any entry points broken? (user feedback)
 - Improve weakest entry point
 
 **Update When:**
+
 - AGENT_HARNESS changes (update all entry points)
 - New tool becomes primary (add entry point)
 - Team feedback suggests improvement (implement)

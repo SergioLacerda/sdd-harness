@@ -10,6 +10,7 @@
 ## 📍 Where Are You?
 
 You have:
+
 - ✅ Project directories created (Step 1)
 - ✅ Template files copied (Step 2)
 - ✅ `.spec.config` configured (Step 3)
@@ -17,6 +18,7 @@ You have:
 - ❓ Need to commit everything to git
 
 You're about to:
+
 - Stage all SDD-related files
 - Create a git commit
 - Complete integration
@@ -36,6 +38,7 @@ git status
 ```
 
 **Expected output:**
+
 ```
 On branch main
 
@@ -66,6 +69,7 @@ git status
 ```
 
 **Expected output:**
+
 ```
 On branch main
 
@@ -97,6 +101,7 @@ git commit -m "feat: Integrate SDD framework governance"
 ```
 
 **Expected output:**
+
 ```
 [main a1b2c3d] feat: Integrate SDD framework governance
  45 files changed, 5234 insertions(+)
@@ -224,7 +229,7 @@ git commit -m "feat: Integrate SDD framework governance"
 
 ---
 
-## 🎉 Integration Complete!
+## 🎉 Integration Complete
 
 After committing, your project is now:
 

@@ -55,10 +55,11 @@ D) Only if Thread B is inactive
 
 A) Just commit the code, documentation updates are optional
 B) Update `docs/spec/DEVELOPMENT/execution-state/_current.md` with:
-   - Decisions taken
-   - Open questions
-   - Risks identified
-   - Thread status
+
+- Decisions taken
+- Open questions
+- Risks identified
+- Thread status
 C) Run the test suite
 D) Notify the team via Slack
 
@@ -105,6 +106,7 @@ D) Trust the documentation, don't question it
 ## ✅ How to Validate Yourself
 
 **For Claude agents** (automatic):
+
 ```
 Score tracking is logged to:
   → docs/spec/REALITY/current-system-state/_quiz_tracking.json
@@ -114,6 +116,7 @@ Your score appears in:
 ```
 
 **For humans** (manual):
+
 ```
 Count correct answers: ___/5
 
@@ -129,11 +132,13 @@ If < 4 correct (< 80%):
 ## 🔄 Next Steps
 
 **If you PASSED (4+ correct)**:
+
 1. Continue with FIRST_SESSION_SETUP.md (minute 9+)
 2. Read `docs/spec/guides/QUICK_START.md` to choose your PATH
 3. Proceed to work ✓
 
 **If you FAILED (< 4 correct)**:
+
 1. ❌ Stop here
 2. 📖 Re-read `/EXECUTION/spec/CANONICAL/rules/ia-rules.md` (full, 10 min)
 3. Wait 30 minutes (memory consolidation)
@@ -145,11 +150,13 @@ If < 4 correct (< 80%):
 ## 📊 Scoring & Tracking
 
 **This quiz measures**:
+
 - Understanding of core protocols ✓
 - Ability to follow mandatory rules ✓
 - Risk awareness (ports, isolation, etc.) ✓
 
 **Tracked metrics** (in `_quiz_tracking.json`):
+
 - Total agents taking quiz
 - % passing on first try
 - Average score
@@ -157,6 +164,7 @@ If < 4 correct (< 80%):
 - Time spent per attempt
 
 **Used to**:
+
 - Identify which rules need clearer docs
 - Track onboarding effectiveness
 - Improve ia-rules.md clarity over time
@@ -166,6 +174,7 @@ If < 4 correct (< 80%):
 ## 🎓 Learning Outcomes
 
 After this quiz you will understand:
+
 - ✅ Why ia-rules.md cannot be broken
 - ✅ What thread isolation means (and why it matters)
 - ✅ When to checkpoint and what to document

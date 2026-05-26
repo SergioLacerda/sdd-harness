@@ -34,6 +34,7 @@ tracestate: <vendor-specific>
 ```
 
 Example:
+
 ```http
 traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
 tracestate: dd=s:1
@@ -67,6 +68,7 @@ sdd.compression_ratio
 ## 🔒 Validation
 
 Before operation:
+
 - [ ] `trace_id` is present and valid UUID format
 - [ ] `span_id` is present and valid UUID format
 - [ ] Parent span reference is correct (if not root trace)
@@ -74,6 +76,7 @@ Before operation:
 - [ ] OTEL exporter is reachable (if configured)
 
 **Failure Mode:**
+
 - If validation fails and OTEL is mandatory → BLOCK operation and escalate
 - If OTEL is optional → WARN and proceed with local telemetry only
 
@@ -94,11 +97,13 @@ Before operation:
 ## 🔧 Implementation
 
 **Runtime:**
+
 - `OtelBridge` class translates SDD events to OTEL spans
 - `OtlpHttpExporter` sends spans to configured OTLP receiver
 - `TelemetrySink` enriches events with trace context before persistence
 
 **Configuration:**
+
 ```bash
 # Via environment
 SDD_OTEL_ENABLED=true
@@ -107,6 +112,7 @@ SDD_OTEL_SERVICE_NAME=sdd-agent
 ```
 
 **Code Pattern:**
+
 ```python
 from sdd_runtime.otel import OtelBridge
 

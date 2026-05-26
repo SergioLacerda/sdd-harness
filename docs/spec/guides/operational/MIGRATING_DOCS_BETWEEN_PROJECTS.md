@@ -10,11 +10,13 @@
 ## 🎯 Quick Overview
 
 **When to migrate:**
+
 - Custom doc proven stable across 2+ projects → Move to CANONICAL
 - CANONICAL rule too specific to one project → Move to custom/PROJECT/
 - Policy change requires all projects to adopt new rule → Move to CANONICAL
 
 **When NOT to migrate:**
+
 - Doc not yet tested with multiple projects → Keep in custom/
 - Project-specific constraint (campaign size, etc.) → Keep in custom/
 - Temporary/experimental → Keep in development/
@@ -350,22 +352,27 @@ In CANONICAL, update to:
 ## 🚨 What NOT to Do
 
 ❌ **Mistake 1:** Move doc without generalizing it
+
 - Result: CANONICAL has project-specific rules (breaks isolation)
 - Fix: Remove project references first
 
 ❌ **Mistake 2:** Delete old location without redirect
+
 - Result: Broken links in history, comments, external refs
 - Fix: Keep redirect for 6+ months
 
 ❌ **Mistake 3:** Update references but not all projects
+
 - Result: Some projects still reference old location
 - Fix: Search all custom/ folders before committing
 
 ❌ **Mistake 4:** Forget to run validation after migration
+
 - Result: SPEC compliance broken, CI/CD fails
 - Fix: Run validate-ia-first + generate-specializations before commit
 
 ❌ **Mistake 5:** Migrate without team approval
+
 - Result: Teams confused, breaking changes in their flow
 - Fix: Get sign-off from architecture team + project leads
 

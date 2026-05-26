@@ -1,6 +1,8 @@
+import asyncio
 import builtins
 import contextlib
 import hashlib
+import inspect
 import io
 import os
 import shutil
@@ -232,6 +234,38 @@ def pytest_sessionstart(session: object) -> None:  # noqa: ARG001
         )
 
     _SDD_SNAPSHOT_START = _snapshot_repo_sdd_tree()
+
+
+def _has_pytest_asyncio() -> bool:
+    """Return True when pytest-asyncio is importable in current environment."""
+    try:
+        import pytest_asyncio  # noqa: F401
+
+        return True
+    except Exception:
+        return False
+
+
+def pytest_pyfunc_call(pyfuncitem: pytest.Function) -> bool | None:
+    """Fallback async test runner when pytest-asyncio plugin is unavailable.
+
+    This keeps `async def` tests executable in constrained environments
+    (e.g. shadow repos) without changing test code.
+    """
+    if _has_pytest_asyncio():
+        return None
+
+    testfunction = pyfuncitem.obj
+    if not inspect.iscoroutinefunction(testfunction):
+        return None
+
+    kwargs = {
+        name: pyfuncitem.funcargs[name]
+        for name in pyfuncitem._fixtureinfo.argnames
+        if name in pyfuncitem.funcargs
+    }
+    asyncio.run(testfunction(**kwargs))
+    return True
 
 
 def pytest_sessionfinish(session: object, exitstatus: int) -> None:  # noqa: ARG001

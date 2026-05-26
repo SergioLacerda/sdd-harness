@@ -46,6 +46,7 @@ Use this to verify CONFIDENCE in the workflow:
 ### PHASE 1: READ DOCS ✅
 
 **Expected Actions:**
+
 ```
 Developer opens:
   1. /EXECUTION/spec/CANONICAL/rules/constitution.md
@@ -64,6 +65,7 @@ Developer opens:
 ```
 
 **Validation Questions (ask developer):**
+
 ```
 Q1: "What's the source of truth when documents conflict?"
 A:  "constitution.md is immutable and takes precedence"
@@ -87,6 +89,7 @@ A:  "Document the gap with evidence, update docs, timestamp it"
 ```
 
 **Red Flags:**
+
 ```
 ❌ Developer skips constitution.md (says "just rules")
 ❌ Developer skips ia-rules.md (says "just documentation")
@@ -96,6 +99,7 @@ A:  "Document the gap with evidence, update docs, timestamp it"
 ```
 
 **Remediation:**
+
 ```
 If ANY red flag:
   1. Have developer re-read that section (with time limit)
@@ -109,6 +113,7 @@ If ANY red flag:
 ### PHASE 2: PREPARE CONTEXT ✅
 
 **Expected Actions:**
+
 ```
 Developer:
   1. Reads: /EXECUTION/spec/CANONICAL/rules/conventions.md
@@ -127,6 +132,7 @@ Developer:
 ```
 
 **Validation Questions:**
+
 ```
 Q1: "What's your PATH?"
 A:  "A (bug fix)" or "B (simple feature)" etc.
@@ -150,6 +156,7 @@ A:  Can name 3 constraints from docs (from limitations/ or architecture.md)
 ```
 
 **Red Flags:**
+
 ```
 ❌ Developer loads ALL docs ("I'll read everything")
 ❌ Developer doesn't check execution-state
@@ -160,6 +167,7 @@ A:  Can name 3 constraints from docs (from limitations/ or architecture.md)
 ```
 
 **Remediation:**
+
 ```
 If ANY red flag:
   1. Have developer check execution-state NOW
@@ -173,6 +181,7 @@ If ANY red flag:
 ### PHASE 3: IMPLEMENT ✅
 
 **Expected Behavior:**
+
 ```
 Developer:
   1. Opens feature-checklist.md for their PATH
@@ -197,6 +206,7 @@ Developer:
 ```
 
 **Validation Questions (ongoing):**
+
 ```
 Q1: "Show me feature-checklist.md. Are you following it?"
 A:  Developer can point to specific checklist items + show code for each
@@ -220,6 +230,7 @@ A:  Developer proactively checks (doesn't wait for code review)
 ```
 
 **Red Flags:**
+
 ```
 ❌ Developer writes all code, then all tests (anti-pattern)
 ❌ Developer imports infrastructure directly (violates ports rule)
@@ -231,6 +242,7 @@ A:  Developer proactively checks (doesn't wait for code review)
 ```
 
 **Remediation:**
+
 ```
 If ANY red flag DURING implementation:
   1. Stop and fix it NOW (don't wait for PR review)
@@ -245,6 +257,7 @@ If ANY red flag DURING implementation:
 ### PHASE 4: VALIDATE ✅
 
 **Expected Behavior:**
+
 ```
 Developer:
   1. Runs: pytest tests/ -k "my_feature" (or pytest)
@@ -263,6 +276,7 @@ Developer:
 ```
 
 **Validation Questions:**
+
 ```
 Q1: "Do all tests pass?"
 A:  "Yes, pytest shows 100% pass"
@@ -278,6 +292,7 @@ A:  Developer can explain: "I checked for [violation X], found none"
 ```
 
 **Red Flags:**
+
 ```
 ❌ Tests fail but developer says "I'll fix later"
 ❌ definition_of_done.md has unchecked boxes
@@ -286,6 +301,7 @@ A:  Developer can explain: "I checked for [violation X], found none"
 ```
 
 **Remediation:**
+
 ```
 If ANY red flag:
   1. Developer must fix NOW
@@ -299,6 +315,7 @@ If ANY red flag:
 ### PHASE 5: TEST & CHECKPOINT ✅
 
 **Expected Behavior:**
+
 ```
 Developer:
   1. Final pytest run:
@@ -322,6 +339,7 @@ Developer:
 ```
 
 **Validation Questions:**
+
 ```
 Q1: "Does pytest show 100% pass + coverage met?"
 A:  Yes, shows report
@@ -341,6 +359,7 @@ A:  Developer lists them (if none, says "None identified")
 ```
 
 **Red Flags:**
+
 ```
 ❌ Tests don't pass but PR is created anyway
 ❌ execution-state/_current.md not updated
@@ -350,6 +369,7 @@ A:  Developer lists them (if none, says "None identified")
 ```
 
 **Remediation:**
+
 ```
 If ANY red flag:
   1. Block PR creation (don't push yet)
@@ -367,6 +387,7 @@ Use these to measure if developers are confident in workflow:
 ### Metric 1: Time Per Phase
 
 **Expected Times (PATH B - Simple Feature):**
+
 ```
 Phase 1 (Read docs):        5 min  (goal: 3-5 min)
 Phase 2 (Prepare context): 15 min  (goal: 10-15 min)
@@ -381,6 +402,7 @@ If developer takes 45 min → quality issue (skipped phases)
 ```
 
 **How to Measure:**
+
 ```
 Ask developer: "From start to PR creation, how much time?"
 - < 45 min → Skipping phases (investigate)
@@ -395,6 +417,7 @@ Ask developer: "From start to PR creation, how much time?"
 **Current State:** Unknown (needs measurement)
 
 **Causes of PR Rejection:**
+
 ```
 ❌ ia-rules.md violations (architecture issues)
    └─ Indicates: Phase 1 not understood
@@ -413,6 +436,7 @@ Ask developer: "From start to PR creation, how much time?"
 ```
 
 **Improvement Path:**
+
 ```
 PR rejection → Identify which phase failed → Re-train on that phase → 2nd PR should pass
 ```
@@ -422,6 +446,7 @@ PR rejection → Identify which phase failed → Re-train on that phase → 2nd 
 **Target:** 100% of developers check BEFORE committing
 
 **Validation Signs:**
+
 ```
 ✅ Developer runs: pytest tests/ (before PR)
 ✅ Developer checks: definition_of_done.md (before PR)
@@ -436,6 +461,7 @@ If ANY missing → developer might skip later too → coach on Phase 4
 **Target:** Developers ask questions AFTER checking docs
 
 **Good Pattern:**
+
 ```
 Developer: "I looked at architecture.md section X, but it doesn't explain Y. Where should I find this?"
 → Shows: Docs-first thinking, specific question
@@ -443,9 +469,11 @@ Developer: "I looked at architecture.md section X, but it doesn't explain Y. Whe
 
 Bad Pattern:**
 ```
+
 Developer: "How do I do X?"
 → Shows: No docs check, lazy thinking
 → Answer: "Check [file.md] first, then come back"
+
 ```
 
 ---
@@ -457,6 +485,7 @@ Every 2 weeks, validate TEAM workflow confidence:
 ### Week 1-2 Audit
 
 ```
+
 1. Pick 2-3 recent PRs
 2. Trace each PR back through the 5 phases:
    - Did they read constitution.md + ia-rules.md? (check their checkpoint)
@@ -474,6 +503,7 @@ Every 2 weeks, validate TEAM workflow confidence:
    - X% of PRs follow complete workflow
    - Phase Y is most commonly skipped
    - Recommendation: [action]
+
 ```
 
 ---
@@ -483,49 +513,61 @@ Every 2 weeks, validate TEAM workflow confidence:
 **Scenario 1: Developer Keeps Violating ia-rules.md**
 
 ```
+
 Symptom: PR rejected 3x for direct infrastructure imports
 Root cause: Developer didn't understand ports concept in Phase 1
 Fix:
+
   1. Have developer re-read: ADR-003-ports-adapters-pattern.md
   2. Ask: "Why are ports needed?" (get correct answer)
   3. Next PR: Have reviewer specifically check port usage
   4. Follow up: Was fix successful?
+
 ```
 
 **Scenario 2: Developer Skips Tests**
 
 ```
+
 Symptom: PR has code but no tests
 Root cause: Developer thought tests were "polish" (Phase 3 not followed)
 Fix:
+
   1. Have developer read: testing.md (your layer)
   2. Ask: "Why write tests as you go?" (get correct answer)
   3. Next PR: Require tests BEFORE committing
   4. Follow up: Did developer implement tests?
+
 ```
 
 **Scenario 3: Developer Doesn't Update Checkpoint**
 
 ```
+
 Symptom: PR merged but execution-state/_current.md still old
 Root cause: Developer didn't understand checkpointing (Phase 5 not followed)
 Fix:
+
   1. Have developer re-read: ia-rules.md "Checkpointing Protocol"
   2. Ask: "Why update checkpoint?" (get correct answer)
   3. Next PR: Block merge until checkpoint updated
   4. Follow up: Did developer remember?
+
 ```
 
 **Scenario 4: Developer Takes 5+ Hours Per PR**
 
 ```
+
 Symptom: Developer seems productive but very slow
 Root cause: Over-analysis in Phases 2 or 4
 Fix:
+
   1. Ask: "Which phase takes longest?"
   2. If Phase 2: "You're loading too much context. Use ONLY your PATH."
   3. If Phase 4: "You're second-guessing yourself. Tests pass? Done."
   4. Set time limits: Phase 2 = 15 min max, Phase 4 = 10 min max
+
 ```
 
 ---
@@ -535,6 +577,7 @@ Fix:
 Use this monthly to validate TEAM workflow confidence:
 
 ```
+
 PHASE 1 (Read Docs) - CONFIDENCE: __/10
   ✅ All new devs take VALIDATION_QUIZ
   ✅ 80%+ pass rate on first try
@@ -566,6 +609,7 @@ PHASE 5 (Test & Checkpoint) - CONFIDENCE: __/10
   ✅ Risks/questions documented proactively
 
 OVERALL CONFIDENCE: ___/50 (or __/10 averaged)
+
 ```
 
 ---
@@ -573,6 +617,7 @@ OVERALL CONFIDENCE: ___/50 (or __/10 averaged)
 ## 🎓 INTERPRETATION GUIDE
 
 ```
+
 50/50 points (10/10):
   → Perfect workflow adherence
   → Team is highly confident
@@ -596,6 +641,7 @@ OVERALL CONFIDENCE: ___/50 (or __/10 averaged)
   → Team lacks confidence
   → High PR rejection rate
   → Need to restart training
+
 ```
 
 ---

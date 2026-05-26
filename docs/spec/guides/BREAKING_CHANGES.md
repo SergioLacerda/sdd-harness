@@ -7,6 +7,7 @@ Any change that could require users to update their code or governance artifacts
 ## What Constitutes a Breaking Change?
 
 ### CLI/Commands
+
 - Removing a command (e.g., `sdd governance compile` deleted)
 - Renaming a command (e.g., `sdd ask` → `sdd query`)
 - Removing a required flag
@@ -14,6 +15,7 @@ Any change that could require users to update their code or governance artifacts
 - Changing exit code behavior
 
 ### Governance/Schema
+
 - Removing a field from `RuntimeEvent` (telemetry schema)
 - Removing a field from compiled governance artifacts
 - Adding a new mandatory field without default value
@@ -21,17 +23,20 @@ Any change that could require users to update their code or governance artifacts
 - Changing event names (e.g., `governance.ask` → `governance.query`)
 
 ### API/Packages
+
 - Removing a public function or class
 - Changing a function signature (parameter name, type, order)
 - Removing an import/module
 - Changing return type of a public function
 
 ### Mandates/Governance
+
 - Adding a new mandatory compliance requirement (e.g., M006)
 - Making a soft policy enforcement strict
 - Changing the definition of a breach condition
 
 ### Policies
+
 - Changing storage paths (e.g., `.sdd/` directory moved to `.sdd/runtime/`)
 - Changing artifact serialization format (e.g., JSON → msgpack without backwards compat)
 
@@ -55,6 +60,7 @@ Any change that could require users to update their code or governance artifacts
 ### Step 1: Open RFC Issue
 
 **Before coding**, open a GitHub issue titled:
+
 ```
 [RFC] Breaking Change: <short description>
 
@@ -90,14 +96,18 @@ sdd runtime status --verbose  # use the new command instead
 ```
 
 ## Deprecation Window
+
 If applicable, propose deprecation timeline:
+
 - v0.2.0 (next minor): Add deprecation warning, keep feature working
 - v1.0.0 (next major): Remove feature
 
 ## Alternatives Considered
+
 What other approaches were considered? Why is this the best option?
 
 Example: Could we add a `--legacy` flag instead? (No, because...)
+
 ```
 
 ### Step 2: Community Discussion (7-14 Days)
@@ -135,6 +145,7 @@ Add to CHANGELOG.md under `[Unreleased]` → `Breaking Changes` section:
 ### Step 5: Implement & Test
 
 Create PR that:
+
 1. References the RFC issue: `Closes #<issue_number>`
 2. Includes deprecation warning (if applicable)
 3. Updates `CHANGELOG.md` with migration instructions
@@ -148,6 +159,7 @@ Breaking changes **always** trigger a **major version bump** (X.0.0):
 - v1.2.3 → v2.0.0 (subsequent breaking changes)
 
 Update `CHANGELOG.md`:
+
 - Rename `[Unreleased]` to `[X.0.0] — YYYY-MM-DD`
 - List all breaking changes in dedicated section
 - Include migration instructions for each
@@ -155,6 +167,7 @@ Update `CHANGELOG.md`:
 ### Step 7: Document in Release Notes
 
 GitHub Release notes must include:
+
 ```markdown
 ## ⚠️ Breaking Changes
 
@@ -170,6 +183,7 @@ sdd governance compile --verbose
 sdd governance compile
 sdd runtime status --verbose
 ```
+
 ```
 
 ---
@@ -183,30 +197,39 @@ sdd runtime status --verbose
 **Step 1:** Open issue
 
 ```
+
 Title: [RFC] Breaking Change: Remove --old-format flag from sdd ask
 
 Body:
+
 ## Summary
+
 Remove --old-format flag. Output will always be JSON.
 
 ## Motivation
+
 Simplify CLI; JSON is now the standard. The flag is undocumented.
 
 ## Impact Analysis
+
 - Affected: CLI (sdd ask command)
 - Users likely impacted: ~10% (flag is undocumented)
 - Migration effort: Low (1 line change in scripts)
 
 ## Migration Path
+
 Users with `sdd ask --old-format` should remove the flag:
+
 ```bash
 # Old: sdd ask --old-format <query>
 # New: sdd ask <query>
 ```
 
 ## Deprecation Window
+
 - v0.2.0: Add warning "Flag --old-format is deprecated"
 - v1.0.0: Remove flag entirely
+
 ```
 
 **Step 2–3:** 10-day discussion, approved by 2 reviewers
@@ -217,6 +240,19 @@ Users with `sdd ask --old-format` should remove the flag:
 - Remove `--old-format` handling in `ask.py`
 - Update tests
 - Update help text
+
+---
+
+## Active Timeline: Legacy Path Deprecation (ADR-014)
+
+This repository enforces an explicit timeline for `/legacy/**` references:
+
+- **Q3 2026 (2026-07-01 to 2026-09-30):** deprecation phase
+  - Legacy path usage may continue only with structured deprecation warning and migration guidance.
+- **Q4 2026 (from 2026-10-01):** removal phase
+  - Legacy path usage is treated as blocking error in runtime/CI validation paths.
+
+Any rollout or exception proposal that modifies this timeline must open an RFC issue and reference ADR-014.
 
 **Step 6:** Release v1.0.0 (first major version, triggered by breaking change)
 

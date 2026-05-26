@@ -1,6 +1,7 @@
 # ADR-008: Code Review Governance - Agent Never Auto-Commits
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2026-04-21
 - Accepted: 2026-04-21
@@ -12,6 +13,7 @@
 
 **Problem**:
 In previous sessions, automatic commits by agents led to:
+
 - Important files removed without explicit review
 - Architectural gaps not caught
 - Difficult rollbacks of problematic changes
@@ -21,6 +23,7 @@ In previous sessions, automatic commits by agents led to:
 **Risk**: With multiple agents and distributed work, auto-commits can mask issues until production.
 
 **Stakeholders**:
+
 - **Architects** (owner/decision-maker): Must approve changes
 - **Agents**: Implement according to spec
 - **Code Owners**: Per-domain responsibility
@@ -152,39 +155,49 @@ Step 3: Agent creates PR to main
 
   Example PR:
   ```
-  # [REVIEW] Feature: RTK Telemetry Deduplication
+
+# [REVIEW] Feature: RTK Telemetry Deduplication
 
   Implements ADR-007 guardrails: design first, code follows.
 
-  ## Design
+## Design
+
   See: FEATURE_DESIGN_rtk_telemetry.md (APPROVED by @user)
 
-  ## Specification
+## Specification
+
   See: COMPONENT_rtk_deduplication.md
-  - 50+ patterns implemented
-  - O(1) dedup with LRU cache
-  - 72.9% compression on test data
 
-  ## Testing
-  - Local: 111/111 passing ✅
-  - Coverage: 92% on new code
-  - No performance regression
+- 50+ patterns implemented
+- O(1) dedup with LRU cache
+- 72.9% compression on test data
 
-  ## Documentation
-  - [x] Design doc (referenced above)
-  - [x] Code comments (cross-referenced)
-  - [x] RTK.md updated with patterns
-  - [x] CHANGELOG.md updated
-  - [x] Tests document behavior
+## Testing
 
-  ## Risk Assessment
+- Local: 111/111 passing ✅
+- Coverage: 92% on new code
+- No performance regression
+
+## Documentation
+
+- [x] Design doc (referenced above)
+- [x] Code comments (cross-referenced)
+- [x] RTK.md updated with patterns
+- [x] CHANGELOG.md updated
+- [x] Tests document behavior
+
+## Risk Assessment
+
   **Low Risk**: New module, no changes to existing APIs
 
-  ## Rollback Plan
+## Rollback Plan
+
   If issues arise:
+
   1. Revert to commit abc123
   2. Run tests (should still pass)
   3. Notify team
+
   ```
 
 Step 4: Agent requests architect review
@@ -339,13 +352,13 @@ Both gates = high confidence
 ### Step 1: Create WIP Branch (Agent)
 
 ```bash
-$ git checkout -b wip/feature-<name>
+git checkout -b wip/feature-<name>
 ```
 
 ### Step 2: Push to Origin (Agent)
 
 ```bash
-$ git push origin wip/feature-<name>
+git push origin wip/feature-<name>
 ```
 
 ### Step 3: Make Changes (Agent)
@@ -380,6 +393,7 @@ $ git push origin wip/feature-<name>
 ### Step 4: Create PR (Agent)
 
 In GitHub/GitLab:
+
 ```
 Title: [REVIEW] Feature: <name>
 Description: [Use template from workflow section]
@@ -389,27 +403,31 @@ Assignee: @architect
 ### Step 5: Architect Reviews
 
 Architect runs checklist:
+
 ```bash
-$ git checkout wip/feature-<name>
-$ pytest tests/ -v  # Verify tests pass
-$ git diff main..HEAD  # Review changes
+git checkout wip/feature-<name>
+pytest tests/ -v  # Verify tests pass
+git diff main..HEAD  # Review changes
 ```
 
 Then in PR:
+
 - Approve with comment: "✅ Approved - LGTM"
 - Or request changes: "⚠️ Please address: ..."
 
 ### Step 6: Architect Merges (or Agent Revises)
 
 If approved:
+
 ```bash
-$ git checkout main
-$ git pull origin main
-$ git merge --no-ff wip/feature-<name> -m "Merge: Feature X (Approved by architect)"
-$ git push origin main
+git checkout main
+git pull origin main
+git merge --no-ff wip/feature-<name> -m "Merge: Feature X (Approved by architect)"
+git push origin main
 ```
 
 If changes needed:
+
 - Agent makes changes on WIP branch
 - Pushes new commits
 - Requests re-review
@@ -419,6 +437,7 @@ If changes needed:
 ## Consequences
 
 ### Positive ✅
+
 - Clear accountability (architect owns commits to main)
 - Prevention of architectural drift
 - Early catch of design issues
@@ -429,12 +448,14 @@ If changes needed:
 - Reversibility guaranteed
 
 ### Negative ⚠️
+
 - Slower merge velocity (need review)
 - More communication overhead
 - Architect bottleneck (if too many PRs)
 - Initial setup of review processes
 
 ### Mitigation ⚡
+
 - Async reviews (architect reviews when available)
 - SLA for review (24 hours for non-critical)
 - SLA for urgent (4 hours for critical fixes)
@@ -484,6 +505,7 @@ When review can be skipped:
 ## Migration Note
 
 **Applying Retroactively:**
+
 - v3.0 migration already completed (DECISIONS.md approved by architect)
 - v3.1-beta.1 will use this from day 1
 - Past commits: use best judgment for audit trail

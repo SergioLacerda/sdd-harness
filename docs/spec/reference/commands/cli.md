@@ -47,9 +47,11 @@ sdd --verbose runtime status
 ```
 
 ### Project Setup
+
 - sdd setup run: Initializes workspace dependencies and local tooling.
 
 ### Testing and Validation
+
 - sdd test run: Runs the full test pipeline and shows project coverage summary by default.
 - sdd test ci-validate: Runs CI-oriented validations.
 - sdd lint run: Runs static quality checks.
@@ -71,6 +73,7 @@ sdd test run --cov-fail-under 80
 ```
 
 ### Governance Management
+
 - sdd governance load: Shows loaded governance summary.
 - sdd governance validate: Validates structure, file access, and fingerprints.
 - sdd governance generate: Generates agent seeds from governance rules.
@@ -79,7 +82,17 @@ sdd test run --cov-fail-under 80
 - sdd governance audit: Performs a security audit of the workspace and signatures.
 - sdd governance keygen: Generates Ed25519 key pairs for signing.
 
+### Compliance Audit
+
+- `sdd audit`: Governance drift + telemetry summary (existing behavior).
+- `sdd audit view --since YYYY-MM-DD --event-type VIOLATION`: filtered event viewer for compliance events.
+- `sdd audit export --format=csv > compliance_report.csv`: deterministic CSV export to stdout, plus evidence manifest via `--manifest-file` (default `.sdd/runtime/compliance-export.manifest.json`).
+- `sdd audit legacy-check [--phase-date YYYY-MM-DD]`: staged legacy policy enforcement (Q3 2026 warn, Q4 2026 block).
+- `sdd audit bootstrap-check`: validates AGENTS/CLAUDE bootstrap contract drift against `.sdd` authority model.
+- `sdd audit compliance-pack --out-dir .sdd/runtime/compliance-pack`: generates external-review evidence bundle.
+
 ### Maintenance and Tooling
+
 - sdd tools list: Lists available maintenance tools in `tools/`.
 - sdd tools run <category>/<name>: Executes a tool with automatic environment isolation (uv-powered).
 
@@ -144,9 +157,11 @@ Built-in skills (registry `schema_version: 1.1.0`):
 | `sdd-compress-context` | economy | low | yes | — |
 
 JSON minimum contract for skills:
+
 - `state`, `profile`, `skill`, `policy_result`, `exit_code`, `reason`, `governance_footer`.
 
 Canonical envelope (contract-first, preferred for new consumers):
+
 - `status`: `ok | error`
 - `command`: canonical command id (e.g. `runtime status`, `skills run`)
 - `ok`: boolean success flag
@@ -154,12 +169,14 @@ Canonical envelope (contract-first, preferred for new consumers):
 - `data`: command payload (authoritative fields)
 
 Skill output schema (`skill_output.schema.yaml`):
+
 - `status`: `ok | error | degraded`
 - `confidence.overall`: float `[0.0, 1.0]`
 - `error.category`: taxonomy key (see `.sdd/skills/contracts/skill_output.schema.yaml`)
 - `next_skill`: id of recommended next skill, or `null`
 
 Governance footer contract:
+
 - `SDD GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
 
 JSON automation examples:
@@ -232,11 +249,13 @@ sdd scaffold command my-skill --routes-to my-skill
 Templates live in `.sdd/templates/` (deployed by wizard from `sdd_integration`). To add a skill to the canonical registry so it survives `--full-bootstrap`, add a `SkillDefinition` entry to `packages/core/sdd_runtime/src/sdd_runtime/skills.py`.
 
 ### Wizard
+
 - `sdd wizard run` — Runs interactive setup wizard phases (7-phase pipeline). _(client primary; warns in master)_
 
 The wizard now deploys `.sdd/templates/` to the target project, enabling `sdd scaffold skill` in generated workspaces.
 
 ### Documentation Artifacts
+
 - sdd docs update: Discovers all markdown in /docs, synthesizes `mandate.spec`, `guidelines.dsl`, and `discovery-index.json` under `generated/client/build/docs-meta/`.
 - sdd docs deploy: Deploys MkDocs static site (requires mkdocs installed). Aliases: `sdd docs`, `sdd documentation`.
 
@@ -258,12 +277,15 @@ sdd docs deploy --no-force
 ```
 
 ### Release
+
 - sdd release build: Builds release artifacts into `dist/`. _(master only — blocked in client)_
 
 ### Version
+
 - sdd version: Shows the installed SDD CLI version.
 
 ### Diagnostics
+
 - sdd doctor run: Executes protocol-based diagnostics using integration flow steps.
 
 Runtime JSON example:

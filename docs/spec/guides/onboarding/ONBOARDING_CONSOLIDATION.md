@@ -82,6 +82,7 @@ NEW: "AGENT_HARNESS Phase 3 will guide you through PATH selection"
 ```
 
 **Files to Update:**
+
 - [ ] .github/copilot-instructions.md
 - [ ] docs/spec/_INDEX.md (master index)
 - [ ] docs/spec/guides/onboarding/README.md (if exists)
@@ -92,6 +93,7 @@ NEW: "AGENT_HARNESS Phase 3 will guide you through PATH selection"
 ### Step 2: Mark Old Guides as Deprecated (1 hour)
 
 Add to top of FIRST_SESSION_SETUP.md:
+
 ```markdown
 # ⚠️ DEPRECATED — Use AGENT_HARNESS Instead
 
@@ -106,6 +108,7 @@ If you found this helpful and want the old guide: You can still read it below.
 ```
 
 Add to top of ULTRA_QUICK_ONBOARDING.md:
+
 ```markdown
 # ⚠️ ARCHIVED — Use setup-wizard.py Instead
 
@@ -136,6 +139,7 @@ When starting work in this project, you MUST:
 1. **Direct user to AGENT_HARNESS first**
 
    ```
+
    User: "Help me fix the session timeout bug"
 
    Copilot Response:
@@ -152,11 +156,13 @@ When starting work in this project, you MUST:
      - Phase 5-7: Implement + validate + update checkpoint
 
      Have you completed AGENT_HARNESS? (If yes → I'll help you code)"
+
    ```
 
 2. **Verify VALIDATION_QUIZ completion**
 
    ```
+
    If user says NO to AGENT_HARNESS:
      "Please complete it first. It only takes 30-40 min and includes:
       - Understanding of 16 mandatory execution protocols
@@ -171,11 +177,13 @@ When starting work in this project, you MUST:
      (Answer: "constitution.md is immutable")
 
      If wrong → "Let me explain. Read: /EXECUTION/spec/CANONICAL/rules/constitution.md"
+
    ```
 
 3. **Use ENTRY_POINTS_BY_TOOL to guide tool-specific setup**
 
    ```
+
    Copilot user: "I'm confused about how to start"
 
    Response:
@@ -184,6 +192,7 @@ When starting work in this project, you MUST:
       → Section: 'ENTRY POINT #1: GITHUB COPILOT'
 
      But first: Have you completed AGENT_HARNESS?"
+
    ```
 
 ---
@@ -193,17 +202,20 @@ When starting work in this project, you MUST:
 ### Rule #1: Ports Mandatory (ADR-003)
 
 ```
+
 If you suggest code that imports infrastructure directly:
   ❌ Remove it. Replace with port.
 
 Example:
   ❌ from src.infrastructure.storage.json_adapter import JSONAdapter
   ✅ from src.domain.ports import StoragePort
+
 ```
 
 ### Rule #2: Tests Before/During Implementation
 
 ```
+
 If user asks how to implement X:
 
 ✅ DO: "First, understand what tests you need for X.
@@ -211,11 +223,13 @@ If user asks how to implement X:
         Then let's write tests first, implement second."
 
 ❌ DON'T: "Here's the implementation code. Tests come later."
+
 ```
 
 ### Rule #3: Thread Isolation (ADR-005)
 
 ```
+
 If user wants to modify code outside their thread:
   ❌ Block it.
 
@@ -224,32 +238,40 @@ If user wants to modify code outside their thread:
  /EXECUTION/spec/custom/_TEMPLATE/development/execution-state/threads/
 
  What you CAN do:
+
  1. Modify only Thread A code
  2. Update CANONICAL/ only if universally applicable
  3. Document conflicts in execution-state/_current.md"
+
 ```
 
 ### Rule #4: Checkpointing Mandatory
 
 ```
+
 After implementation, you MUST:
   "Update checkpoint: /EXECUTION/spec/custom/_TEMPLATE/development/execution-state/_current.md
 
   Include:
-  - What you implemented
-  - Decisions made
-  - Open questions
-  - Risks
-  - Timestamp + your name"
+
+- What you implemented
+- Decisions made
+- Open questions
+- Risks
+- Timestamp + your name"
+
 ```
 
 ### Rule #5: Conventions First
 
 ```
+
 Before suggesting code:
+
   1. Check: /EXECUTION/spec/CANONICAL/rules/conventions.md (naming, structure)
   2. Follow patterns from existing code
   3. If uncertain: Ask user to check conventions.md first
+
 ```
 
 ---
@@ -260,7 +282,9 @@ Before suggesting code:
 
 ✅ **DO suggest PATH-specific:**
 ```
+
 "For a bug fix (PATH A), you need:
+
   1. conventions.md (naming)
   2. architecture.md (affected layer only)
   3. testing.md (layer tests)
@@ -268,17 +292,21 @@ Before suggesting code:
   5. services.md (affected service)
 
   Total: ~40KB, 5-15 min read"
+
 ```
 
 ❌ **DON'T suggest everything:**
 ```
+
 "Here's all 85KB of docs..."
+
 ```
 
 ### When Loading Context
 
 ✅ **DO ask first:**
 ```
+
 "What's your PATH?
   A. Bug fix (1-1.5h)
   B. Simple feature (2h)
@@ -286,11 +314,14 @@ Before suggesting code:
   D. Multi-thread work (variable)
 
 I'll load ONLY the relevant docs for that PATH."
+
 ```
 
 ❌ **DON'T assume:**
 ```
+
 "Let me load everything just in case..."
+
 ```
 
 ---
@@ -300,38 +331,47 @@ I'll load ONLY the relevant docs for that PATH."
 ### If User Violates ia-rules.md
 
 ```
+
 Pattern: User's code violates a protocol (e.g., direct infrastructure import)
 
 Response:
+
   1. Show the violation: "Line X: This imports infrastructure directly"
   2. Explain the rule: "Ports are mandatory per ADR-003"
   3. Provide fix: "Replace with [PortName] from contracts.md"
   4. Link to docs: "/EXECUTION/spec/CANONICAL/decisions/ADR-003-ports-adapters-pattern.md"
   5. Prevent: "Going forward, always use ports"
+
 ```
 
 ### If User Is Confused
 
 ```
+
 Pattern: User asks vague question like "How do I test this?"
 
 Response:
+
   1. Clarify: "What component are you testing?"
   2. Guide: "Read testing.md for [component] patterns"
   3. Then: "Try writing a test following this pattern, show me"
   4. Support: "Need help understanding the pattern?"
+
 ```
 
 ### If User Blocked by Execution State Conflict
 
 ```
+
 Pattern: execution-state/_current.md shows active thread conflict
 
 Response:
+
   1. Identify conflict: "Thread B is currently active on [subsystem]"
   2. Prevent damage: "Don't modify Thread B code"
   3. Escalate: "Slack team: 'I want to work on X, but Thread B is active on Y'"
   4. Wait: "Team will clarify next steps"
+
 ```
 
 ---
@@ -341,33 +381,39 @@ Response:
 ### For New Developers (First Day)
 
 ```
+
 1. Complete AGENT_HARNESS (30-40 min)
 2. Ask: "What's your first task?"
 3. Guide them through PATH selection
 4. Load ONLY their PATH docs
 5. Pair program on first commit
 6. Review their execution-state checkpoint
+
 ```
 
 ### For Experienced Developers (Jumping to Code)
 
 ```
+
 1. Ask: "Have you taken the QUIZ in AGENT_HARNESS?"
 2. If YES: "Great! What's your PATH?"
 3. If NO: "Even for experienced devs, 5 min to pass QUIZ. Worth it."
 4. Load PATH docs quickly
 5. Implement with familiar patterns
 6. Checkpoint + PR
+
 ```
 
 ### For Multi-Thread Work
 
 ```
+
 1. Have them read: /EXECUTION/spec/custom/_TEMPLATE/development/execution-state/threads/
 2. Identify their thread: "You're in [Thread Name]"
 3. Read thread requirements
 4. Enforce isolation: "Only modify code in your thread"
 5. Update thread checkpoint in execution-state
+
 ```
 
 ---
@@ -377,6 +423,7 @@ Response:
 Before user creates PR, validate:
 
 ```
+
 ✅ QUIZ passed (≥80%)
 ✅ execution-state checked (no conflicts)
 ✅ PATH selected (A/B/C/D)
@@ -390,6 +437,7 @@ Before user creates PR, validate:
 
 If ANY unchecked:
   "Can't create PR yet. Here's what's missing: [list]"
+
 ```
 
 ---
@@ -399,6 +447,7 @@ If ANY unchecked:
 After user's first PR:
 
 ```
+
 1. PR approved?
    YES: "Congratulations! You followed AGENT_HARNESS correctly."
    NO: "Let's debug together. Which phase went wrong?"
@@ -411,6 +460,7 @@ After user's first PR:
 
 4. Ready for next task?
    "Great! Your PATH is [A/B/C/D]. Use same approach."
+
 ```
 
 ---

@@ -11,6 +11,7 @@
 ### Problem
 
 **One paragraph** describing the problem or limitation you're trying to solve. Examples:
+
 - "The current artifact format is JSON, which is 3x slower to parse than MessagePack and takes 2x more disk space."
 - "The runtime policy evaluator runs synchronously, blocking all concurrent queries if one policy takes >100ms."
 - "The CLI has no way to filter results by type, forcing users to pipe output to jq."
@@ -22,6 +23,7 @@ Describe the **status quo**: What is the existing design? What are its limitatio
 ### Why This Matters
 
 Why should the team care? What is the impact if we don't fix this?
+
 - Performance impact? (e.g., "Queries timeout in production")
 - Scaling limitation? (e.g., "Can't support >1000 concurrent users")
 - Developer experience? (e.g., "New contributors struggle to onboard")
@@ -32,6 +34,7 @@ Why should the team care? What is the impact if we don't fix this?
 Which packages or components are affected? How many users would see the change?
 
 Example:
+
 - Affects: sdd_compiler (artifact generation), sdd_runtime (artifact loading), sdd_cli (output)
 - Scope: All users who run `sdd ask` or `sdd compile`
 
@@ -51,6 +54,7 @@ Explain the **rationale** in 2-3 sentences. Address the problem statement above.
 
 Example:
 > MessagePack is a binary serialization format that is:
+>
 > - 3x faster to parse than JSON (benchmarked at 1000-item artifacts)
 > - 50% smaller on disk (saves ~150KB per artifact)
 > - Backward compatible with Python 3.10+ (via the `msgpack` library)
@@ -85,6 +89,7 @@ Example:
 - <Benefit or improvement>
 
 Example:
+
 - Artifact load time reduces from 15ms to 5ms (benchmark shows 3x speedup)
 - Artifact file size reduces by 50%, saving disk space on long-lived deployments
 - No public API change; artifact loading is internal to sdd_runtime
@@ -95,6 +100,7 @@ Example:
 - <Trade-off or drawback>
 
 Example:
+
 - Users cannot directly inspect artifacts with `cat` or text editors (must use `sdd runtime inspect`)
 - New dependency on `msgpack` library adds ~50KB to the wheel
 
@@ -103,6 +109,7 @@ Example:
 - <Risk statement — include mitigation>
 
 Example:
+
 - **Risk**: Artifact format change could break old deployments if clients expect JSON.
   - **Mitigation**: Implement version detection in artifact loading; if old format detected, convert or prompt user to regenerate.
 - **Risk**: MessagePack library could have security vulnerabilities.
@@ -115,6 +122,7 @@ Example:
 How will we know this decision is correctly implemented? List measurable criteria.
 
 Example:
+
 - [ ] Benchmark shows artifact load time <5ms for 1000-item artifacts
 - [ ] All existing tests pass (no behavior change)
 - [ ] New test case verifies MessagePack deserialization
@@ -128,6 +136,7 @@ Example:
 If you have a clear implementation strategy, outline it here. This can help reviewers understand the scope.
 
 Example:
+
 1. Create `sdd_compiler/serialization.py` with `serialize_to_msgpack()` and `deserialize_from_msgpack()`
 2. Modify `sdd_compiler/integrate.py` to call the new serialization functions
 3. Modify `sdd_runtime/context.py` to deserialize MessagePack instead of JSON
@@ -140,6 +149,7 @@ Example:
 ## Review Checklist
 
 Before submitting:
+
 - [ ] All sections above are completed
 - [ ] No placeholder text remains (remove examples)
 - [ ] Alternatives section has at least 2 alternatives

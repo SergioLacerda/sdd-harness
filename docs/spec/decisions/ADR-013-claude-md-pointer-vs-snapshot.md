@@ -31,12 +31,14 @@ that originates from compiled governance artifacts.
 ## Consequences
 
 **Positive:**
+
 - Zero drift between `CLAUDE.md` and compiled governance — they cannot diverge
 - Single source of truth: all behavioral rules live in `.sdd/`
 - `CLAUDE.md` never becomes stale after `sdd governance compile`
 - Reduces maintenance overhead: governance updates do not require manual CLAUDE.md edits
 
 **Negative:**
+
 - Agent must read `.sdd/agent-instructions.md` at session bootstrap (one additional read)
 - Agents that skip `.sdd/agent-instructions.md` operate with incomplete context
 

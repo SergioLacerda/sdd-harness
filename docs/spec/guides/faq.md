@@ -15,6 +15,7 @@ O problema que ele resolve é simples de enunciar e difícil de ignorar: **agent
 ## Com o que o SDD compete?
 
 O SDD **não compete** com:
+
 - Frameworks de gerenciamento de estado (Redux, RTK, Zustand)
 - Ferramentas de scaffolding de CRUD (Rails, Django, CAVEMAN)
 - Orquestradores de fluxo de agente (LangChain, AutoGen, CAMEL)
@@ -38,9 +39,11 @@ O SDD compete em um espaço específico e distinto:
 O SDD opera **entre as iterações internas do agente** — entre input e output — em quatro eixos:
 
 ### 1. Governança forte
+
 Mandates, guardrails, guidelines e ADRs são compilados em artefatos validáveis. O sistema detecta drift automaticamente e registra cada evento com `trace_id`, `timestamp` e estado (`HEALTHY`, `MISCONFIGURED`, `VIOLATION`). Nenhuma decisão do agente passa sem rastro auditável.
 
 ### 2. Qualidade de contexto
+
 - **Handshake de inicialização** — o agente confirma que carregou o contexto correto antes de executar tarefas
 - **Quiz interno de confiança** — mecanismo de auto-validação que reduz alucinação arquitetural
 - **Detecção de drift** — o sistema compara o estado atual com o estado compilado e sinaliza divergências
@@ -53,6 +56,7 @@ Mandates, guardrails, guidelines e ADRs são compilados em artefatos validáveis
 - **Camada IV — ADRs no contexto interno:** decisões arquiteturais já tomadas ficam disponíveis inline, evitando que o agente repita discussões resolvidas ou reverta escolhas consolidadas
 
 ### 4. CLI de abstração
+
 A CLI automatiza configurações que exigiriam conhecimento técnico profundo da estrutura interna, tornando o SDD acessível sem acoplamento ao detalhe de implementação.
 
 ---
@@ -62,6 +66,7 @@ A CLI automatiza configurações que exigiriam conhecimento técnico profundo da
 A similaridade está em um único ponto: **ambos abstraem conhecimento técnico de configuração de ambiente através de CLI**.
 
 A diferença fundamental é o escopo:
+
 - CAVEMAN e similares entregam o **setup inicial** — scaffolding, estrutura de projeto, boilerplate configurado
 - O SDD entrega setup inicial **e** **conformidade contínua em runtime** — o ambiente valida sua própria arquitetura a cada operação
 

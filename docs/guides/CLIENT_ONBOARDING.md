@@ -86,4 +86,4 @@ sdd governance validate
 sdd ask-full "<your question>"
 ```
 
-3. Capture the `request_id` from the 500 response and report it for incident triage.
+1. Capture the `request_id` from the 500 response and report it for incident triage.

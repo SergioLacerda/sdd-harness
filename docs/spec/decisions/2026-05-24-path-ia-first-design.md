@@ -67,20 +67,24 @@ This order is fixed. Agents parse by section header; order determines load prior
 **Scope:** Root cause of the regression. Nothing outside the failure boundary.
 
 **Entry Checklist:**
+
 - Reproduce the failure with a failing test or log evidence.
 - Identify the smallest change that restores correct behavior.
 
 **MUST:**
+
 - Fix the root cause, not the symptom.
 - Add or update a regression test covering the fixed path.
 - Stay within the declared failure boundary.
 
 **MUST NOT:**
+
 - Refactor while fixing.
 - Expand scope to "nearby" issues found during investigation.
 - Mark done without a passing regression test.
 
 **Escalation:**
+
 - Root cause is architectural → reclassify to PATH C.
 - Fix requires touching 3+ modules → reclassify to PATH C.
 
@@ -93,20 +97,24 @@ This order is fixed. Agents parse by section header; order determines load prior
 **Scope:** Bounded to 1-2 files. No public API contract changes. No architectural decisions.
 
 **Entry Checklist:**
+
 - Confirm scope fits 1-2 files.
 - Confirm no API surface changes.
 - Confirm no cross-domain side effects.
 
 **MUST:**
+
 - Write tests for the new behavior.
 - Keep changes within declared file boundary.
 
 **MUST NOT:**
+
 - Touch unrelated files "while you're in there."
 - Make API contract changes (escalate to PATH C instead).
 - Mix refactoring with the feature (run PATH F separately).
 
 **Escalation:**
+
 - Scope exceeds 2 files → reclassify to PATH C.
 - API contract changes needed → reclassify to PATH C.
 
@@ -119,21 +127,25 @@ This order is fixed. Agents parse by section header; order determines load prior
 **Scope:** Multi-layer changes or architectural decisions. Full design cycle required.
 
 **Entry Checklist:**
+
 - Brainstorming + spec written and approved before any code.
 - ADR created if an architectural decision is made.
 - Impacted contracts and interfaces identified upfront.
 
 **MUST:**
+
 - Complete spec before implementation (ADR-007).
 - Document every architectural decision in an ADR.
 - Full test coverage across all touched layers.
 
 **MUST NOT:**
+
 - Start coding before spec is approved.
 - Combine with PATH F (refactor) in the same delivery.
 - Understate scope to avoid the spec requirement.
 
 **Escalation:**
+
 - Scope splits into independent streams → spawn PATH D.
 - Production emergency discovered mid-execution → pause, switch to PATH E.
 
@@ -146,21 +158,25 @@ This order is fixed. Agents parse by section header; order determines load prior
 **Scope:** 2+ independent work streams with no shared mutable state.
 
 **Entry Checklist:**
+
 - Enumerate all streams and confirm they share no state.
 - Classify each stream independently (PATH A, B, C, or F).
 - Define merge strategy before starting any stream.
 
 **MUST:**
+
 - Treat each stream as its own PATH execution.
 - Define integration point and merge order upfront.
 - Validate isolation — streams must not introduce shared side effects.
 
 **MUST NOT:**
+
 - Let streams share mutable state.
 - Merge before each stream has passed its own PATH validation.
 - Add a stream mid-execution without reclassifying.
 
 **Escalation:**
+
 - Streams discovered to share state → stop, redesign as PATH C.
 - One stream becomes a production emergency → that stream switches to PATH E.
 
@@ -173,21 +189,25 @@ This order is fixed. Agents parse by section header; order determines load prior
 **Scope:** Minimum viable fix to restore production. Zero scope addition permitted.
 
 **Entry Checklist:**
+
 - Confirm production is broken right now.
 - Identify the smallest change that restores service.
 - Document the technical debt this fix creates.
 
 **MUST:**
+
 - Apply minimum viable fix only.
 - Document debt created (file a PATH A follow-up immediately).
 - Confirm fix does not introduce new failure modes.
 
 **MUST NOT:**
+
 - Add features, refactors, or "improvements" under hotfix cover.
 - Skip debt documentation.
 - Treat PATH E as a permanent fix — it is always followed by PATH A.
 
 **Escalation:**
+
 - Fix requires multi-layer changes → PATH E still applies, but coordinate with PATH C post-stabilization.
 - Production stabilized → immediately open PATH A for root cause work.
 
@@ -200,21 +220,25 @@ This order is fixed. Agents parse by section header; order determines load prior
 **Scope:** Zero behavior change. Code quality improvement only.
 
 **Entry Checklist:**
+
 - Full test suite passes before any change.
 - Declared scope: list of modules being refactored.
 - Confirm no new features are included.
 
 **MUST:**
+
 - Test suite passes before and after with identical behavior.
 - Stay within declared module scope.
 - Commit refactor separately from any feature work.
 
 **MUST NOT:**
+
 - Change observable behavior (inputs → outputs must be identical).
 - Mix with PATH B or PATH C in the same delivery.
 - Expand scope based on findings during refactor.
 
 **Escalation:**
+
 - Behavior change required to improve the code → reclassify to PATH B or PATH C.
 - Scope exceeds declared modules → stop, re-declare scope, restart.
 

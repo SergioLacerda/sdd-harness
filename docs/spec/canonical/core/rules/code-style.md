@@ -110,6 +110,7 @@ class MyClass:
 ## Validation
 
 Enforced via:
+
 - ✅ `ruff check` — Linting and style violations
 - ✅ `mypy` — Type checking
 - ✅ `black --check` — Line length and formatting (if configured)

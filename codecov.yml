@@ -1,0 +1,21 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 2%
+
+  flags:
+    core:
+      paths:
+        - packages/core/
+    features:
+      paths:
+        - packages/features/
+    interfaces:
+      paths:
+        - packages/interfaces/
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default

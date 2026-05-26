@@ -48,6 +48,7 @@ echo "✅ Environment ready"
 ```
 
 **Requirements:**
+
 - ✅ OS: Linux, macOS, or Windows
 - ✅ Python: 3.11+ (if installing from source)
 - ✅ Disk: 100MB available
@@ -565,6 +566,7 @@ cat CHANGELOG.md | grep -i "fingerprint\|35efc54"
 ## 📚 Related Documentation
 
 **See also:**
+
 - [OPERATIONS.md](./OPERATIONS.md) — Daily operational procedures
 - [MONITORING.md](./MONITORING.md) — Deployment monitoring
 - [MAINTENANCE.md](./MAINTENANCE.md) — Ongoing maintenance

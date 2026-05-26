@@ -1,6 +1,7 @@
 # ADR-004: Vector Index Strategy (ChromaDB with IVF)
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2025-09-01
 - Accepted: 2025-09-10
@@ -12,6 +13,7 @@
 
 **Problem**:
 System needs semantic search over narrative documents.
+
 - 10-50 documents per campaign
 - 50-200 campaigns active
 - Sub-second query latency required
@@ -19,6 +21,7 @@ System needs semantic search over narrative documents.
 - Future: May need distributed search
 
 **Scale constraints**:
+
 - ~5,000-10,000 total vectors across all campaigns
 - Queries per second: 10-50 peak
 - Accuracy: Better than keyword search
@@ -36,12 +39,14 @@ System needs semantic search over narrative documents.
 - **Persistence**: Campaign-specific (recreate on startup)
 
 **Why ChromaDB?**
+
 - Python-native, easy integration
 - Multiple index types available
 - Built-in support for metadata filtering
 - Good performance for our scale
 
 **Why IVF?**
+
 - Better than flat indexing at 5K+ vectors
 - Configurable accuracy/speed trade-off
 - Good for our scale (10-50 docs per campaign)
@@ -51,18 +56,21 @@ System needs semantic search over narrative documents.
 ## Consequences
 
 ### Positive ✅
+
 - Sub-100ms query latency
 - Easy to deploy (in-memory)
 - No external service dependency
 - Good enough for current scale
 
 ### Negative ⚠️
+
 - Index rebuilt on startup (~5-10s)
 - Can't share index across instances
 - In-memory only (limited to available RAM)
 - IVF has approximate results (can miss documents)
 
 ### Risk 🚨
+
 - Index rebuild is slow at scale (> 1000 docs per campaign)
 - IVF sometimes returns wrong results (false negatives)
 - Concurrency issues with index updates
@@ -73,15 +81,19 @@ System needs semantic search over narrative documents.
 ## Alternatives Considered
 
 ### 1. Elasticsearch
+
 **Rejected because**: Overkill for current scale, additional deployment complexity, cost.
 
 ### 2. Pinecone
+
 **Rejected because**: External dependency, monthly cost, adds network latency.
 
 ### 3. FAISS
+
 **Rejected because**: Lower-level, more setup required, ChromaDB wraps it anyway.
 
 ### 4. Flat Indexing (no IVF)
+
 **Rejected because**: Linear search too slow at 5K vectors, latency > 500ms.
 
 ---
@@ -91,6 +103,7 @@ System needs semantic search over narrative documents.
 **Status**: ✅ In Production (local deployments), 🟡 Monitoring (scale 5k-50k)
 
 ### Implementation Checklist
+
 - [x] ChromaDB 0.4.24+ integrated with IVF + HNSW fallback
 - [x] JSON persistence layer (vector_index/persistence/json_adapter.py)
 - [x] Pydantic-compatible serialization (NDArray → List[float])
@@ -101,11 +114,13 @@ System needs semantic search over narrative documents.
 - [ ] Distributed index coordination (Ray/Celery consideration)
 
 ### Known Limitations
+
 - IVF degradation observed at 40k+ vectors (requires nprobe tuning)
 - No distributed lock mechanism (single-writer assumption)
 - Memory usage: ~2.5GB per 50k vectors (+ embedding model)
 
 ### Next Checkpoint
+
 - Evaluate at 50k events (Q3 2026)
 - Benchmark against Pinecone cost/performance
 - Prototype PostgreSQL adapter
@@ -113,6 +128,7 @@ System needs semantic search over narrative documents.
 ---
 
 ## Related ADRs
+
 - ADR-003: Ports & Adapters (VectorStorePort)
 - ADR-002: Async-First (queries must be async)
 
@@ -131,14 +147,17 @@ See: [vector-search-down.md](../canonical/specifications/runbooks/vector-search-
 ## Scaling Path
 
 **Current tier** (5-10K vectors):
+
 - ChromaDB IVF = sufficient
 
 **Next tier** (100K vectors):
+
 - Shard by campaign
 - OR migrate to Pinecone
 - OR Elasticsearch + fallback search
 
 **Enterprise tier** (1M+ vectors):
+
 - Distributed Pinecone/Qdrant
 - Metadata-based pre-filtering
 - Caching layer
@@ -150,6 +169,7 @@ See: [vector-search-down.md](../canonical/specifications/runbooks/vector-search-
 See: [observability.md](../canonical/specifications/observability.md)
 
 8-component RAG pipeline:
+
 1. Query expansion
 2. Embedding stage
 3. ANN pre-filter
@@ -214,17 +234,20 @@ time python scripts/rebuild_vector_index.py
 ### Success Criteria
 
 ✅ Performance targets met:
+
 - Query latency P99 < 100ms
 - Index rebuild < 10s
 - Supports 50k+ vectors
 - 50+ concurrent queries/sec
 
 ✅ Accuracy targets met:
+
 - Recall > 95% (finds 95% of relevant docs)
 - Precision > 90% (90% of results relevant)
 - False negatives < 1%
 
 ✅ Scaling plan in place:
+
 - Current tier (5-10k): ChromaDB IVF ✅
 - Next tier (50-100k): Evaluate Pinecone/Qdrant
 - Enterprise tier (1M+): Distributed solution
@@ -234,6 +257,7 @@ time python scripts/rebuild_vector_index.py
 ## Next Review: September 1, 2027
 
 Consider:
+
 - How many vectors in largest campaign?
 - Query latency? (< 100ms desired)
 - Any false negative issues?

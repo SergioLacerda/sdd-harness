@@ -29,6 +29,7 @@ Write an RFC when the decision:
 - **Requires cross-team coordination** (CLI team + runtime team)
 
 **Skip the RFC** for:
+
 - Single-package internal refactors
 - Bug fixes with no behavior change
 - Adding optional flags or fields (backward compatible)
@@ -77,6 +78,7 @@ Use the next available number after the highest existing ADR (currently ADR-010,
 ### Step 2 — Fill in the Template
 
 Complete all required sections:
+
 - **Context**: What problem are you solving? What is the current state?
 - **Proposed Decision**: What are you proposing, in one sentence?
 - **Alternatives Considered**: At least 2 alternatives with rejection reasons
@@ -86,6 +88,7 @@ Complete all required sections:
 ### Step 3 — Open for Review
 
 Submit a Pull Request with the RFC file. Add the label `rfc` to the PR. Tag reviewers:
+
 - Package owner(s) for affected packages
 - At least 1 core maintainer
 
@@ -99,6 +102,7 @@ All objections must be addressed in the RFC text (update Alternatives or add a R
 ### Step 5 — Decision
 
 After the comment period, the core maintainer makes the call:
+
 - **Accept**: Rename file from `RFC-NNN-*` to `ADR-NNN-*`, update status to `Accepted`
 - **Reject**: Keep as `ADR-NNN-*`, update status to `Rejected`, document reason
 - **Defer**: Extend comment period by 7 days
@@ -181,6 +185,7 @@ All ADRs follow this format (consistent with existing ADR-001 through ADR-010):
 ## Relationship to BREAKING_CHANGES.md
 
 All **breaking changes** require:
+
 1. This RFC process (Steps 1–7 above)
 2. Following the steps in [BREAKING_CHANGES.md](BREAKING_CHANGES.md):
    - CHANGELOG entry

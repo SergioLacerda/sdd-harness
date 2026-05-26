@@ -43,6 +43,15 @@ dev = [
     "hatchling>=1.21.0",
     "hatch-vcs>=0.4.0",
 ]
+examples-langgraph = [
+    "langgraph>=0.2",
+    "langchain-core>=0.2",
+]
+examples-crewai = [
+    "crewai==0.80.0",
+    "onnxruntime<1.24",
+    "setuptools",
+]
 
 [project.urls]
 Repository = "https://github.com/SergioLacerda/sdd-harness"
@@ -100,6 +109,7 @@ test = [
     "pytest-cov>=5.0.0",
     "pytest-timeout>=2.4.0",
     "pytest-xdist>=3.5.0",
+    "pytest-asyncio>=0.23.0",
     "msgpack>=1.0.0",
     "PyYAML>=6.0.0",
     "typer>=0.9.0",
@@ -170,6 +180,7 @@ ignore = ["B008", "E501", "D105", "D107"]
 "**/tests/**" = ["D1", "T201"]
 "tests/**" = ["D1", "T201"]
 "tools/**" = ["D1", "T201"]
+"examples/**" = ["D1", "T201"]
 "packages/interfaces/sdd_wizard/src/**" = ["T201"]
 
 [tool.ruff.lint.pydocstyle]
@@ -285,7 +296,7 @@ exclude_lines = [
 # source_root is a sub-path of [tool.sdd.paths].spec_root ("docs/spec").
 # If spec_root changes, update source_root accordingly.
 source_root = "docs/spec/canonical/core/policies"
-compiled_output = "generated/master/compiled"
+compiled_output = ".sdd/compiled"
 
 [tool.sdd.codegen]
 # generated_paths mirrors [tool.sdd.paths].generated_root for tool-exclusion contexts (ruff, mypy).
@@ -301,6 +312,12 @@ context_compression_target = 50
 # "test" → generated/tmp/build/final-template  (sandbox — default)
 # "production" → generated/client/build/final-template  (wizard output)
 runtime_env = "test"
+
+[tool.sdd.performance]
+runtime_bootstrap_ms = 500
+governance_compile_ms = 1000
+skill_routing_p99_ms = 100
+concurrent_agents_min = 50
 
 [tool.sdd.paths]
 spec_root = "docs/spec"

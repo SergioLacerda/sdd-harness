@@ -13,6 +13,7 @@
 **Location:** `/home/sergio/dev/spec-architecture/`
 
 **Verification:**
+
 ```bash
 ✅ /EXECUTION/spec/CANONICAL/
    ├── constitution.md
@@ -79,6 +80,7 @@
 ```
 
 **Last Commit:**
+
 ```
 690cb01: 📚 Add PHASE 0: Complete agent-driven workspace initialization
          (7 files, 1248 insertions)
@@ -91,6 +93,7 @@
 **Location:** `/home/sergio/dev/[PROJECT_NAME]/`
 
 **Verification:**
+
 ```bash
 ✅ .spec.config
    ├── [spec]
@@ -127,6 +130,7 @@
 ```
 
 **Commit History:**
+
 ```
 e7e3d2c: Refactor: Move infrastructure creation to PHASE 0 (agent-driven)
          - Deleted .sdd/context-aware/
@@ -347,6 +351,7 @@ Conclusion: ✅ FULLY PORTABLE (no symlink issues)
 **SPEC v2.1 Architecture is COMPLETE and PRODUCTION READY.**
 
 **What was delivered:**
+
 1. ✅ Autonomous source of truth (spec-architecture)
 2. ✅ Minimal project seed (.spec.config)
 3. ✅ Agent-driven PHASE 0 onboarding
@@ -356,6 +361,7 @@ Conclusion: ✅ FULLY PORTABLE (no symlink issues)
 7. ✅ Automation and templates
 
 **How it works:**
+
 - Projects start minimal (only .spec.config)
 - Agents discover SPEC framework via .spec.config
 - Agents execute PHASE 0 (create infrastructure, validate knowledge)

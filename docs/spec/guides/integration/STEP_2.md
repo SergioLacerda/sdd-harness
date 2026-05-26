@@ -10,11 +10,13 @@
 ## 📍 Where Are You?
 
 You have:
+
 - ✅ Project directories created (Step 1)
 - ✅ Git initialized
 - ❓ Need to copy SDD template files
 
 You're about to:
+
 - Copy files from sdd-harness/INTEGRATION/templates/
 - Populate your project with SDD configuration
 - Move to Step 3
@@ -101,36 +103,43 @@ done
 ## 📝 What Each File Does
 
 ### `.spec.config`
+
 - **Purpose:** Tells your project where SDD framework is located
 - **Edit in:** Step 3
 - **Used by:** PHASE 0 setup script
 
 ### `.github/copilot-instructions.md`
+
 - **Purpose:** Copilot/Claude instructions for your project
 - **Used by:** GitHub Copilot Chat, AI agents
 - **Don't edit yet:** References will be updated after PHASE 0
 
 ### `.vscode/ai-rules.md`
+
 - **Purpose:** VS Code AI governance rules
 - **Used by:** VS Code settings
 - **Can edit:** After understanding PHASE 0 output
 
 ### `.cursor/rules/spec.mdc`
+
 - **Purpose:** Cursor IDE rules
 - **Used by:** Cursor IDE
 - **Don't edit yet:** Will be consistent with GitHub Copilot
 
 ### `.pre-commit-config.yaml`
+
 - **Purpose:** Git pre-commit hooks (auto-checks before commit)
 - **Used by:** Git hook system
 - **Install in:** Step 4 or Step 5
 
 ### `.github/setup-precommit-hook.sh`
+
 - **Purpose:** Installs pre-commit hooks
 - **Run:** After copying (optional) or during Step 4
 - **Usage:** `bash .github/setup-precommit-hook.sh`
 
 ### `.sdd/README.md`
+
 - **Purpose:** Explains .sdd/ directory structure
 - **Used by:** Developers during PHASE 0
 - **Don't edit yet:** PHASE 0 will create infrastructure

@@ -13,12 +13,14 @@ The indices layer provides template indices that projects copy and customize dur
 ## 📂 Available Indices
 
 ### 1. Search Keywords Index
+
 **File:** `search-keywords.md`
 **Purpose:** Keyword-to-document mapping for on-demand discovery
 **Use When:** You know WHAT you're looking for, but not WHERE
 **Copy To:** `.sdd/context-aware/search-keywords.md` (project-local)
 
 **Contents:**
+
 - Framework concepts
 - Constitutional foundation
 - Architecture decisions
@@ -31,12 +33,14 @@ The indices layer provides template indices that projects copy and customize dur
 ---
 
 ### 2. CANONICAL Layer Index
+
 **File:** `spec-canonical-index.md`
 **Purpose:** Complete reference to immutable authority layer
 **Use When:** Need to understand rules, decisions, and specifications
 **Copy To:** `.sdd/context-aware/spec-canonical-index.md` (project-local)
 
 **Contents:**
+
 - Authority hierarchy
 - Rules (constitution, mandatory, conventions)
 - Architecture decisions (6 ADRs)
@@ -48,12 +52,14 @@ The indices layer provides template indices that projects copy and customize dur
 ---
 
 ### 3. Guides Layer Index
+
 **File:** `spec-guides-index.md`
 **Purpose:** Complete reference to operational guides
 **Use When:** Need step-by-step help for specific scenarios
 **Copy To:** `.sdd/context-aware/spec-guides-index.md` (project-local)
 
 **Contents:**
+
 - Onboarding guides (9 files)
 - Operational guides (5 files)
 - Emergency guides (6 files)
@@ -67,17 +73,20 @@ The indices layer provides template indices that projects copy and customize dur
 ## 🔄 Two-Tier Index System
 
 **Framework Tier (here, docs/indices/):**
+
 - ✅ Templates for all projects
 - ✅ Updated quarterly (when framework changes)
 - ✅ Canonical reference
 
 **Project Tier (.sdd/context-aware/ in each project):**
+
 - ✅ Project-specific copies
 - ✅ Can diverge from framework
 - ✅ Updated as needed by projects
 - ✅ Fast local reference
 
 **Workflow:**
+
 ```
 1. Framework provides templates → docs/indices/
 2. During setup, templates copied → .sdd/context-aware/

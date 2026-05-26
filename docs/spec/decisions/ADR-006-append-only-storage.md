@@ -1,6 +1,7 @@
 # ADR-006: Append-Only JSON Storage
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2025-11-01
 - Accepted: 2025-11-08
@@ -12,11 +13,13 @@
 
 **Problem**:
 Need persistent storage for campaigns. Options:
+
 - Relational database (overkill for MVP)
 - Document database (external dependency)
 - Simple JSON files (low deployment complexity)
 
 **Scale constraints**:
+
 - 50-200 campaigns concurrent
 - ~20-100 events per campaign per day
 - MVP phase (rapid iteration > perfect storage)
@@ -39,12 +42,14 @@ Need persistent storage for campaigns. Options:
 - **Consistency**: Eventually consistent
 
 **Why append-only?**
+
 - No corruption risk from partial writes
 - Easy recovery (replay events)
 - No locking needed (concurrent writes append)
 - Simple to implement
 
 **Why JSON files?**
+
 - No external dependencies
 - Easy to inspect (git-friendly)
 - Python dict ↔ JSON trivial
@@ -55,6 +60,7 @@ Need persistent storage for campaigns. Options:
 ## Consequences
 
 ### Positive ✅
+
 - Simple, works out of the box
 - Easy to backup (copy files)
 - Easy to inspect (JSON text format)
@@ -62,6 +68,7 @@ Need persistent storage for campaigns. Options:
 - No database administration
 
 ### Negative ⚠️
+
 - Full read on every query (O(n))
 - File size grows continuously
 - Concurrent writes can lose data
@@ -69,6 +76,7 @@ Need persistent storage for campaigns. Options:
 - No indexing support
 
 ### Risk 🚨
+
 - Race conditions: Multiple writes = data loss
 - Performance degrades at scale (> 50k events per campaign)
 - Corrupted JSON breaks everything
@@ -79,20 +87,25 @@ Need persistent storage for campaigns. Options:
 ## Alternatives Considered
 
 ### 1. PostgreSQL/SQLite
+
 **Rejected because**: Overkill for MVP, adds deployment complexity.
 
 ### 2. MongoDB
+
 **Rejected because**: External dependency, higher operational cost.
 
 ### 3. In-memory only
+
 **Rejected because**: Loss on restart, not practical.
 
 ### 4. Event sourcing (proper)
+
 **Rejected because**: Too much complexity for MVP, append-only is good enough.
 
 ---
 
 ## Related ADRs
+
 - ADR-002: Async-First (all I/O must be async)
 - ADR-003: Ports & Adapters (DocumentStorePort abstraction)
 
@@ -109,6 +122,7 @@ See: [performance.md](../canonical/specifications/performance.md)
 - Campaign isolation (no cross-campaign queries)
 
 **Performance**:
+
 - Read: O(n) - full scan needed
 - Append: O(1) - just add to file
 - Search: O(n) - linear search
@@ -120,15 +134,18 @@ See: [performance.md](../canonical/specifications/performance.md)
 ## Migration Path
 
 **Phase 1** (now): Append-only JSON (MVP)
+
 - Works for 50-200 campaigns
 - Single machine deployment
 
 **Phase 2** (2027): PostgreSQL migration
+
 - Replace DocumentStorePort adapter
 - Batch migration of JSON → DB
 - Add indexing
 
 **Phase 3** (future): Distributed storage
+
 - Sharding by campaign
 - Read replicas
 - Multi-region support
@@ -140,6 +157,7 @@ See: [performance.md](../canonical/specifications/performance.md)
 See: [contracts.md](../canonical/specifications/contracts.md)
 
 Storage format per campaign:
+
 ```
 campaigns/{id}/
   ├─ events.json (array of PlayerActionEvent)
@@ -205,6 +223,7 @@ pytest tests/integration/test_backup_restore.py -v
    - [ ] Timestamps always increasing
 
 2. **Data Integrity Checks**
+
    ```python
    # Verify events can be replayed
    events = load_events(campaign_id)
@@ -228,23 +247,27 @@ pytest tests/integration/test_backup_restore.py -v
 ### Success Criteria
 
 ✅ Consistency validation:
+
 - All events append-only
 - No data corruption
 - Replay produces same state
 - Timestamps monotonically increasing
 
 ✅ Performance targets:
+
 - Campaign read < 500ms for 10k events
 - File size < 100MB for reasonable history
 - Startup time < 5s (including index rebuild)
 
 ✅ Backup/Recovery:
+
 - Weekly backups automated
 - Recovery tested monthly
 - 0% data loss on restore
 - RTO < 1 hour
 
 **Migration Checkpoint:**
+
 - At 50k+ events per campaign → Evaluate PostgreSQL
 - Current (5-10k): JSON sufficient ✅
 - Future: Plan migration path
@@ -254,6 +277,7 @@ pytest tests/integration/test_backup_restore.py -v
 ## Next Review: November 1, 2027
 
 Consider:
+
 - Largest campaign now has how many events?
 - Query performance acceptable?
 - Any data loss incidents?

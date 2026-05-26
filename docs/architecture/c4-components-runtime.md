@@ -71,6 +71,7 @@ graph TB
 ## Key Flows
 
 ### Skill execution (`sdd ask "..."`)
+
 ```
 sdd_cli → SkillEngine.run_skill("sdd-ask", context)
   → SkillRegistry.get_skill("sdd-ask")
@@ -81,6 +82,7 @@ sdd_cli → SkillEngine.run_skill("sdd-ask", context)
 ```
 
 ### Correction with gate (`sdd correct`)
+
 ```
 sdd_cli → SkillEngine.run_skill("sdd-correct", context)
   → CorrectHandler.pre_run()
@@ -93,6 +95,7 @@ sdd_cli → SkillEngine.run_skill("sdd-correct", context)
 ```
 
 ### Handler discovery (`_get_skill_handler`)
+
 ```
 name = "sdd-correct"
 suffix = "correct"

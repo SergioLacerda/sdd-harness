@@ -9,7 +9,9 @@
 **Have you picked LITE or FULL?**
 
 ### If NO → Do this NOW (5 min)
+
 Go to: **[adoption/INDEX.md](../adoption/INDEX.md)**
+
 - Read the comparison table
 - Choose LITE (15 min, learning) or FULL (40 min, production)
 - Come back here once decided
@@ -17,6 +19,7 @@ Go to: **[adoption/INDEX.md](../adoption/INDEX.md)**
 ### If YES → Continue below ✅
 
 Your choice affects:
+
 - ✅ Which principles you follow (10 vs 15)
 - ✅ Which rules you enforce (5 vs 16)
 - ✅ Setup time (15 vs 40 min)
@@ -39,6 +42,7 @@ You need to set up your development environment with SDD governance.
 → **Then read:** [PHASE_0_SETUP.md](.docs/spec/guides/onboarding/PHASE-0-AGENT-ONBOARDING.md)
 
 → **Your setup will use:**
+
 - LITE: 5 essential rules + 10 DoD
 - FULL: 16 mandatory rules + 45 DoD
 
@@ -53,6 +57,7 @@ You need to set up your development environment with SDD governance.
 → **Then:** Choose your PATH (A=bug, B=simple feature, C=complex, D=multithread)
 
 → **Your workflow will have:**
+
 - LITE: Simplified checklist (easier, faster)
 - FULL: Complete checklist (thorough, auditable
 
@@ -75,6 +80,7 @@ Production emergency? Test failure? Governance violation?
 → **Read:** [Emergency Procedures](.docs/spec/guides/emergency/README.md)
 
 Pick from:
+
 - `PRE_COMMIT_HOOK_FAILURE.md` — Hook is blocking commits
 - `TEST_FAILURE_GUIDE.md` — Tests failing unexpectedly
 - `RULES_VIOLATION_DETECTED.md` — CI blocked for rule violation

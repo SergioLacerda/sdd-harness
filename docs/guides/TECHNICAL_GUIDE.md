@@ -101,6 +101,7 @@ SDD_BUDGET_UTILIZATION_PCT=105 sdd ask-full "query"
 ### Compression Mechanics
 
 When budget utilization is 70–90% (YELLOW zone), `ContextLoader` automatically:
+
 1. Computes target budget to bring utilization down to 70%
 2. Tries providers in order: Http → Ast → Tfidf → Local
 3. Uses the first provider that succeeds
@@ -139,6 +140,7 @@ sdd runtime status
 ```
 
 Emitted events in `.sdd/runtime/compliance-events.jsonl`:
+
 - `runtime.session.start` — session loaded
 - `runtime.drift.detected` — drift classified (if detected)
 
@@ -150,6 +152,7 @@ Emitted events in `.sdd/runtime/compliance-events.jsonl`:
 2. **Semantic:** `DriftDetector.classify(session, artifact, profile)` — full type classification
 
 Code modules:
+
 - `sdd_runtime/drift.py` — `DriftDetector` + `DriftReport` + remediation mapping
 - `sdd_runtime/session.py` — `SessionState` persistence
 - `packages/interfaces/sdd_cli/commands/runtime.py` — `sdd runtime status` integration

@@ -9,6 +9,7 @@
 ## 🎯 Purpose
 
 Standardize how projects manage context to ensure:
+
 - ✅ Consistent structure across all projects
 - ✅ Token efficiency (agents read only what they need)
 - ✅ Scalability (works from small to enterprise)
@@ -40,6 +41,7 @@ All context directories MUST follow this pattern:
 **Purpose:** Answer "What's the status NOW?"
 **Length:** 50-75 lines
 **Content:**
+
 - Status matrix (table format)
 - Essential links (organized by role/use case)
 - Key metrics summary
@@ -53,6 +55,7 @@ All context directories MUST follow this pattern:
 **Purpose:** Provide summary for specific topic/phase
 **Length:** 40-60 lines
 **Content:**
+
 - Topic headline
 - Key accomplishments (3-5 bullets)
 - Status metrics (compact table)
@@ -67,6 +70,7 @@ All context directories MUST follow this pattern:
 **Purpose:** Complete reference documentation
 **Length:** 100+ lines
 **Content:**
+
 - Full narrative
 - Complete metrics
 - All decisions documented
@@ -79,12 +83,14 @@ All context directories MUST follow this pattern:
 ## 🚀 Token Efficiency Gains
 
 **Before (monolithic single README):**
+
 ```
 Single 400-500 line file = 5,600-7,000 tokens
 Every query requires reading entire document
 ```
 
 **After (3-tier structure):**
+
 ```
 QUICK_REFERENCE:    ~300 tokens (status checks)
 summaries/topic:    ~250 tokens (specific questions)
@@ -99,11 +105,13 @@ SAVINGS: 66-87% token reduction
 ## 📦 Two Context Types
 
 ### TYPE A: Documentation Context
+
 **Examples:** `/context/` (framework phases), project documentation
 **Use 3-tier structure for:** PHASES, GUIDES, ARCHITECTURE
 **Update cadence:** Infrequent (per phase/milestone)
 
 **Template:**
+
 ```
 doc-context/
 ├── README.md
@@ -121,11 +129,13 @@ doc-context/
 ---
 
 ### TYPE B: Runtime Context
+
 **Examples:** `.sdd/context-aware/` (agent work tracking)
 **Use 3-tier structure for:** TASK-PROGRESS, ANALYSIS, METRICS
 **Update cadence:** Frequent (per task/session)
 
 **Template:**
+
 ```
 .sdd/context-aware/
 ├── README.md
@@ -173,12 +183,14 @@ doc-context/
 ## 🎯 File Naming Conventions
 
 **QUICK_REFERENCE.md:**
+
 ```
 Always named: QUICK_REFERENCE.md (or QUICK_STATUS.md for runtime)
 Never: Quick_Ref.md, STATUS.md, summary.md
 ```
 
 **Summaries:**
+
 ```
 Format: {TOPIC}_SUMMARY.md
 Examples: PHASE_1_SUMMARY.md, RECENT_TASKS.md, OPEN_ISSUES.md
@@ -187,6 +199,7 @@ Token budget: ~250 per file
 ```
 
 **Detailed:**
+
 ```
 Format: {TOPIC}_FULL.md
 Examples: PHASE_1_FULL.md, ARCHITECTURE_FULL.md
@@ -199,14 +212,17 @@ Token budget: ~700 per file
 ## 📐 Directory Structure Rules
 
 **Immutable:**
+
 - README.md (top level, always)
 - QUICK_REFERENCE.md or QUICK_STATUS.md (top level, always)
 
 **Required:**
+
 - summaries/ (folder, must exist)
 - detailed/ (folder, must exist)
 
 **Optional (context-specific):**
+
 - task-progress/, analysis/, runtime-state/ (for .sdd/context-aware/ only)
 - Other topic-specific folders per project needs
 
@@ -225,6 +241,7 @@ In README.md, always include a table like:
 ```
 
 In summaries, always end with:
+
 ```markdown
 **See full details:** [Template Source](./CONTEXT_MANAGEMENT_STANDARDS.md)
 ```
@@ -283,6 +300,7 @@ cat context/detailed/TOPIC_FULL.md     # ~700 tokens, 15 min
 ### When Creating/Updating Context
 
 **For documentation:**
+
 ```
 1. Create QUICK_REFERENCE.md first (status matrix)
 2. Create summaries/ (compact per-topic)
@@ -290,6 +308,7 @@ cat context/detailed/TOPIC_FULL.md     # ~700 tokens, 15 min
 ```
 
 **For runtime:**
+
 ```
 1. Keep task-progress/_current.md (active work)
 2. Update QUICK_STATUS.md weekly (sprint snapshot)
@@ -349,7 +368,7 @@ All context README.md must include:
 ✅ **Do:** Link between tiers, maintain single source of truth
 
 ❌ **Don't:** Use inconsistent naming (status.md, summary.md, etc.)
-✅ **Do:** Follow naming conventions (QUICK_REFERENCE, *_SUMMARY, *_FULL)
+✅ **Do:** Follow naming conventions (QUICK_REFERENCE, *_SUMMARY,*_FULL)
 
 ❌ **Don't:** Forget to update cross-references when adding new sections
 ✅ **Do:** Update README table and links immediately
@@ -362,14 +381,17 @@ All context README.md must include:
 ## 🔄 Maintenance Policy
 
 **Weekly:**
+
 - Update QUICK_REFERENCE or QUICK_STATUS.md
 - Archive completed items from summaries/
 
 **Per Phase/Milestone:**
+
 - Create new summary files as work completes
 - Move summaries to detailed/ if historical
 
 **Quarterly:**
+
 - Audit context structure for consistency
 - Refactor if any files exceed 1,000 lines
 - Update this standards document if needed
@@ -381,6 +403,7 @@ All context README.md must include:
 See: `EXECUTION/spec/guides/runtime/CONTEXT_AWARE_USAGE.md`
 
 For deep guidance on:
+
 - How to structure specific context types
 - Agent workflows with context
 - Troubleshooting context issues

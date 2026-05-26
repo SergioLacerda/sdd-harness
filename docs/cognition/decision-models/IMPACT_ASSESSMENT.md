@@ -15,6 +15,7 @@ For every change, score each dimension from 1 (low) to 3 (high):
 | **Reversibility** | Easy git revert | Requires migration | Data mutation / irreversible |
 
 **Total Score:**
+
 - 3–4: Proceed with PATH A or B
 - 5–6: Proceed with PATH C, write ADR if score = 6
 - 7–9: **STOP. Escalate. Re-scope or get architecture review.**
@@ -35,16 +36,20 @@ Before implementing, answer:
 ## 🛡️ Safe Change Principles
 
 ### Expand-Contract Pattern (for API changes)
+
 Never remove or modify a public interface in a single step:
+
 1. **Expand**: Add the new version alongside the old
 2. **Migrate**: Move all consumers to the new version
 3. **Contract**: Remove the old version
 
 ### Feature Flags (for risky features)
+
 If impact score ≥ 6, wrap in a feature flag before deploying to production.
 
 ---
 
 ## References
+
 - Classification: [`TASK_CLASSIFICATION.md`](./TASK_CLASSIFICATION.md)
 - Complex PATH: [`runtime/paths/PATH_C_COMPLEX_FEATURE.md`](../../runtime/paths/PATH_C_COMPLEX_FEATURE.md)

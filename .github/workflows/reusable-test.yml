@@ -1,5 +1,10 @@
 name: Reusable Tests
 
+# Framework demos (examples/) are NOT part of this suite.
+# Run them manually with optional extras:
+#   uv run --extra examples-langgraph python examples/langgraph/demo_tool_guardrail.py
+#   uv run --extra examples-crewai    python examples/crewai/demo_spec_drift.py
+
 on:
   workflow_call:
 
@@ -36,6 +41,11 @@ jobs:
         run: |
           uv run pytest -q \
             tests/contract/test_governance_schema.py::TestGovernanceCoreGoldenFile::test_structure_matches_golden
+
+      - name: Enforce performance SLO baselines
+        shell: bash
+        run: |
+          uv run pytest -q tests/perf/test_baselines.py
 
       - name: Enforce golden snapshot policy matrix
         shell: bash
@@ -423,3 +433,41 @@ jobs:
         shell: bash
         run: |
           uv run python tools/ci/environment_gates.py runtime-seed-drift-check --context test --mode enforce
+
+  coverage-upload:
+    name: Coverage Upload (Codecov)
+    runs-on: ubuntu-latest
+    needs: coverage-strict
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v5
+        with:
+          version: "latest"
+
+      - name: Bootstrap SDD CLI
+        uses: ./.github/actions/bootstrap-sdd-cli
+
+      - name: Environment boundary preflight (tests)
+        shell: bash
+        run: |
+          uv run python tools/ci/environment_gates.py test-isolation-preflight --context test --mode warn
+          uv run python tools/ci/environment_gates.py telemetry-path-scope-check --context test --mode enforce
+
+      - name: Generate unified coverage report
+        shell: bash
+        run: |
+          uv run pytest packages tests --cov=packages --cov-report=xml -q
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

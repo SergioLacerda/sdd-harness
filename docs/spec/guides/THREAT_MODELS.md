@@ -18,6 +18,7 @@ Each threat model follows this structure:
 6. **Mitigations Pending** — Future hardening opportunities
 
 **STRIDE Categories:**
+
 - **S** = Spoofing (identity/authentication)
 - **T** = Tampering (data modification)
 - **R** = Repudiation (deny actions)
@@ -32,11 +33,13 @@ Each threat model follows this structure:
 ### Trust Boundary
 
 **Accepts (must validate):**
+
 - File system paths from environment (`$HOME`, `$PWD`, `$GITHUB_WORKSPACE`)
 - `.sdd/profile` configuration file (user-modifiable)
 - Package import paths (`sys.path` entries)
 
 **Must not trust:**
+
 - User-supplied workspace paths (without validation)
 - Symlinks without following policies
 - Environment variable values without type checking
@@ -61,6 +64,7 @@ Each threat model follows this structure:
 ### Attack Scenarios
 
 **Scenario 1: Path Traversal**
+
 ```
 Attacker sets $PWD=/tmp/malicious
 Client code calls sdd.environment.get_sdd_paths()
@@ -69,6 +73,7 @@ Mitigation: Validate that resolved path stays within project workspace
 ```
 
 **Scenario 2: Symlink Attack**
+
 ```
 Attacker creates symlink: /tmp/project/.sdd/compiled -> /etc/secret-data
 Governance loader follows symlink, leaks contents
@@ -94,11 +99,13 @@ Mitigation: Follow symlinks with bounds check; log when symlink points outside w
 ### Trust Boundary
 
 **Accepts (must validate):**
+
 - Specification files (`mandate.spec`, `guidelines.dsl`) — user-provided Markdown/DSL
 - Regex patterns from parsing rules (high risk for DoS)
 - Output file paths where artifacts are written
 
 **Must not trust:**
+
 - Malformed spec files (may cause parsing errors, timeouts, or regex DoS)
 - User-supplied output paths without validation
 - Temporary files created during compilation (race condition risk)
@@ -124,6 +131,7 @@ Mitigation: Follow symlinks with bounds check; log when symlink points outside w
 ### Attack Scenarios
 
 **Scenario 1: Regex DoS**
+
 ```
 Attacker provides malicious mandate spec with 1000-char regex (e.g., (a|a)*b)
 Compiler regex engine hangs for >15s
@@ -131,6 +139,7 @@ Mitigation: Timeout enforced; compilation fails with clear error message
 ```
 
 **Scenario 2: Artifact Substitution**
+
 ```
 Attacker modifies governance-core.msgpack after compilation
 Runtime loads corrupted artifact (e.g., wrong policy decisions)
@@ -138,6 +147,7 @@ Mitigation: Runtime validates artifact hash (SHA256 from metadata.json); rejects
 ```
 
 **Scenario 3: Compile State Poisoning**
+
 ```
 Attacker edits .compile-state.json to falsify source hashes
 Compiler thinks source unchanged, skips recompilation
@@ -165,11 +175,13 @@ Mitigation: Validate compile state structure; use deterministic hash comparison
 ### Trust Boundary
 
 **Accepts (must validate):**
+
 - Compiled artifacts (governance-core.msgpack) — should be validated by hash
 - Query strings from users (search terms)
 - Budget and configuration parameters
 
 **Must not trust:**
+
 - Artifact integrity (must validate hash); artifact may be corrupted or substituted
 - Cache contents (may be stale or poisoned); must expire with TTL
 - User queries (may be designed to consume excessive budget)
@@ -196,6 +208,7 @@ Mitigation: Validate compile state structure; use deterministic hash comparison
 ### Attack Scenarios
 
 **Scenario 1: Artifact Substitution**
+
 ```
 Attacker replaces governance-core.msgpack with modified version
 Modified version relaxes policy requirements (e.g., removes security mandates)
@@ -204,6 +217,7 @@ Mitigation: Hash validation on load; mismatch detected immediately
 ```
 
 **Scenario 2: Budget Bypass**
+
 ```
 Attacker modifies runtime memory to bypass budget check
 Exhausts token quota without triggering BudgetBreachError
@@ -211,6 +225,7 @@ Mitigation: Budget check on every load_result() call; error raised before policy
 ```
 
 **Scenario 3: Cache Poisoning**
+
 ```
 Attacker injects stale/wrong result into cache (e.g., via race condition)
 User queries and receives wrong guidance (cached result)
@@ -236,10 +251,12 @@ Mitigation: TTL = 5min; cache key is deterministic (no collisions); cache evicti
 ### Trust Boundary
 
 **Accepts (must validate):**
+
 - Event data from all components (query results, token counts, error messages)
 - File system write operations (telemetry.jsonl path)
 
 **Must not trust:**
+
 - User-supplied event field values (may contain PII or injection)
 - Log file permissions (may be modified post-write)
 - Timestamp accuracy (clock skew possible)
@@ -265,6 +282,7 @@ Mitigation: TTL = 5min; cache key is deterministic (no collisions); cache evicti
 ### Attack Scenarios
 
 **Scenario 1: PII Leakage**
+
 ```
 Developer logs query text: "Find me security guidance for OAuth2 in AWS"
 Log file is backed up to unencrypted cloud storage
@@ -273,6 +291,7 @@ Mitigation: Never log query content, only query type (e.g., "context_load")
 ```
 
 **Scenario 2: Log Injection**
+
 ```
 Attacker crafts event with fake fields: {"type":"budget_update","tokens_delta":-999999}
 Event is appended to telemetry.jsonl
@@ -281,6 +300,7 @@ Mitigation: Validate event structure on write; reject unknown fields
 ```
 
 **Scenario 3: Log File Tampering**
+
 ```
 Attacker gains shell access, edits telemetry.jsonl to remove evidence of activity
 Audit trail is compromised
@@ -308,11 +328,13 @@ Mitigation: Use append-only semantics; file permissions prevent owner modificati
 ### Trust Boundary
 
 **Accepts (must validate):**
+
 - Compiled artifacts from sdd_compiler (via file path)
 - Backup and manifest file paths
 - Deployment state from previous runs
 
 **Must not trust:**
+
 - Artifact file contents (must validate hash, format)
 - Backup files (may be corrupted)
 - Manifest metadata (may be stale or falsified)
@@ -339,6 +361,7 @@ Mitigation: Use append-only semantics; file permissions prevent owner modificati
 ### Attack Scenarios
 
 **Scenario 1: Backup Substitution**
+
 ```
 Attacker replaces generated/master/compiled/backup/governance-core.msgpack with poisoned version
 Operator runs rollback assuming backup is clean
@@ -347,6 +370,7 @@ Mitigation: Backup hash stored in manifest; validation detects mismatch
 ```
 
 **Scenario 2: Manifest Forgery**
+
 ```
 Attacker edits DEPLOYMENT_MANIFEST.json to claim artifact was deployed 6 months ago
 Audit trail falsified
@@ -354,6 +378,7 @@ Mitigation: Manifest includes source hashes + timestamps; can cross-check with g
 ```
 
 **Scenario 3: Concurrent Deployment**
+
 ```
 Two CI jobs deploy simultaneously; first backs up old artifact, second overwrites backup before it's validated
 Result: No safe rollback path
@@ -381,11 +406,13 @@ Mitigation: Atomic operations (rename); backup to separate directory; manifest l
 ### Trust Boundary
 
 **Accepts (must validate):**
+
 - Command-line arguments (`--profile`, `--output`, query strings)
 - Environment variables (`$SDD_PROFILE`, `$HOME`)
 - File system paths provided by user
 
 **Must not trust:**
+
 - User-supplied arguments without type checking
 - Environment variables (may be injected)
 - Workspace path (may be symlink or path traversal attempt)
@@ -412,6 +439,7 @@ Mitigation: Atomic operations (rename); backup to separate directory; manifest l
 ### Attack Scenarios
 
 **Scenario 1: $SDD_PROFILE Injection**
+
 ```
 Attacker sets SDD_PROFILE=master in CI pipeline
 Client-only CLI reads master artifacts (confidential governance)
@@ -419,6 +447,7 @@ Mitigation: Whitelist profile values; reject unknown values
 ```
 
 **Scenario 2: Workspace Confusion**
+
 ```
 Attacker creates symlink: /home/user/project/.sdd -> /etc/sensitive-data
 User runs sdd ask from project directory
@@ -427,6 +456,7 @@ Mitigation: Validate symlink destination; reject if outside workspace bounds
 ```
 
 **Scenario 3: Output Injection**
+
 ```
 Query result contains HTML/JavaScript: "<img src=x onerror=alert('XSS')>"
 Output piped to web tool without escaping
@@ -453,11 +483,13 @@ Mitigation: Rich auto-escapes terminal output; --json uses json.dumps() (safe)
 ### Trust Boundary
 
 **Accepts (must validate):**
+
 - Artifact files from integration (governance-core.msgpack)
 - Wizard state file (wizard-state.json — user preferences)
 - User interactions (theme, layout selections)
 
 **Must not trust:**
+
 - Artifact file integrity (must validate hash)
 - Wizard state file (may be corrupted or edited)
 - CLAUDE.md generation (template-based; must escape values)
@@ -483,6 +515,7 @@ Mitigation: Rich auto-escapes terminal output; --json uses json.dumps() (safe)
 ### Attack Scenarios
 
 **Scenario 1: Artifact Load from Wrong Path**
+
 ```
 Attacker modifies DEPLOYMENT_MANIFEST.json to point to /etc/passwd
 Wizard loads and parses /etc/passwd as governance artifact
@@ -491,6 +524,7 @@ Mitigation: Manifest path validation; ensure path is in expected directory
 ```
 
 **Scenario 2: CLAUDE.md Code Injection**
+
 ```
 Attacker crafts artifact with field value: `${DANGEROUS_CODE}`
 Wizard generates CLAUDE.md using template: "# {{artifact.field}}"
@@ -499,6 +533,7 @@ Mitigation: Template rendering escapes all variables; safe substitution
 ```
 
 **Scenario 3: Corrupted Artifact**
+
 ```
 Artifact file is truncated or has invalid msgpack format
 Wizard attempts to parse and crashes
@@ -527,18 +562,21 @@ Mitigation: Error handling; display "Artifact corrupted, rebuild with sdd compil
 **Attack:** Attacker compromises the sdd-harness GitHub account or PyPI account.
 
 **Threat Path:**
+
 1. Attacker publishes poisoned wheel (sdd-core 1.0.1) to PyPI
 2. Users install poisoned version
 3. Poisoned code loads artifacts from attacker's server instead of local
 4. Attacker gains visibility into all governance contexts
 
 **Mitigations Implemented:**
+
 - ✅ Sigstore/Cosign artifact attestation (release.yml §5.1.A) — proves artifact comes from GitHub Actions
 - ✅ SBOM generation (release.yml §5.1.A) — enables SCA tools to detect compromised dependencies
 - ✅ Dependabot alerts on CVEs (§5.1.D) — catches malicious dependency updates
 - ✅ pip-audit in CI (§5.1.C) — detects published CVEs before release
 
 **Mitigations Pending:**
+
 - ⏳ **Phase 6** — PyPI 2FA enforcement (account takeover prevention)
 - ⏳ **Phase 6** — Binary reproducibility (verify wheel contents match source)
 
@@ -547,16 +585,19 @@ Mitigation: Error handling; display "Artifact corrupted, rebuild with sdd compil
 **Attack:** Attacker intercepts wheel file during download or installation.
 
 **Threat Path:**
+
 1. User runs `pip install sdd-core==1.0.0`
 2. Attacker performs MITM attack, serves poisoned wheel
 3. Poisoned code is installed and executed
 
 **Mitigations Implemented:**
+
 - ✅ TLS 1.2+ in transit (PyPI enforces HTTPS)
 - ✅ Wheel hash validation by pip (wheel includes RECORD with hashes)
 - ✅ Sigstore attestation (release.yml) — proves authenticity of source wheel
 
 **Mitigations Pending:**
+
 - ⏳ **Phase 6** — PEP 740 signature support (direct wheel signatures)
 
 ### Scenario 3: Artifact Upgrade Path (Version Confusion)
@@ -564,17 +605,20 @@ Mitigation: Error handling; display "Artifact corrupted, rebuild with sdd compil
 **Attack:** Attacker crafts artifact compatible with old version but incompatible with new version.
 
 **Threat Path:**
+
 1. System running sdd-core 1.0.0, sdd-runtime 0.1.0 (unsynced versions)
 2. User upgrades only sdd-core to 1.0.1
 3. New version has incompatible artifact format
 4. Runtime fails to load artifact; system degraded
 
 **Mitigations Implemented:**
+
 - ✅ §5.2.A Version sync script (sync_versions.py) — ensures all packages release at same version
 - ✅ §5.2.B Release workflow verification (checks all packages match tag)
 - ✅ COMPATIBILITY.md (§5.2.C) — documents version matrix and breaking changes
 
 **Mitigations Pending:**
+
 - ⏳ **Phase 6** — Runtime version checking (artifact includes min/max compatible versions)
 
 ### Scenario 4: Governance Drift (Stale Artifacts)
@@ -582,17 +626,20 @@ Mitigation: Error handling; display "Artifact corrupted, rebuild with sdd compil
 **Attack:** Attacker prevents compilation, forcing system to use stale governance.
 
 **Threat Path:**
+
 1. Attacker modifies mandate.spec but blocks compilation (DoS on compiler)
 2. System continues using old governance artifact
 3. Security policies are not updated
 4. Attacker exploits gaps in stale policy
 
 **Mitigations Implemented:**
+
 - ✅ §5.3.A Incremental compilation state (.compile-state.json) — tracks source hashes
 - ✅ §5.3.B Runtime caching (5-min TTL) — prevents unbounded staleness
 - ✅ SDD validation workflow (sdd-validation.yml §5.1.E) — runs on every commit
 
 **Mitigations Pending:**
+
 - ⏳ **Phase 6** — Artifact age limit enforcement (fail if artifact >7 days old)
 - ⏳ **Phase 6** — Freshness check before policy decision (verify artifact is current)
 

@@ -19,6 +19,7 @@ Agents MUST record every interaction with the SDD framework and every governance
 ### Mandatory Events
 
 Every agent session MUST emit the following events at a minimum:
+
 - `runtime.session.start`: Emitted when the agent initializes.
 - `governance.ask`: Emitted when querying the context loader.
 - `governance.violation`: Emitted when a mandate breach is detected.
@@ -27,6 +28,7 @@ Every agent session MUST emit the following events at a minimum:
 ### OTEL Traceability
 
 If OpenTelemetry is enabled, agents MUST:
+
 1. Provide a unique `trace_id` for each root task.
 2. Provide a unique `span_id` for each sub-task or framework call.
 3. Map all governance metadata to the `sdd.*` attribute namespace.

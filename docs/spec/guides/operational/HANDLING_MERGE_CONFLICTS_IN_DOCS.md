@@ -1,4 +1,5 @@
 # 🔀 HANDLING_MERGE_CONFLICTS_IN_DOCS — Safe Resolution Guide
+
 **For:** Teams resolving git merge conflicts in docs
 **Time:** 5-20 minutes per conflict
 **Complexity:** Medium (high stakes if done wrong)
@@ -7,6 +8,7 @@
 ---
 
 ## 🎯 Quick Diagnosis
+
 **When you get a merge conflict in docs:**
 
 ```bash
@@ -24,6 +26,7 @@
 ---
 
 ## 🚨 Emergency Response (0-2 min)
+
 **If you're blocked and can't resolve:**
 
 ```bash
@@ -62,6 +65,7 @@ Keeping THEIRS:
 ---
 
 ## 🔍 Understanding the Conflict (3-5 min)
+
 **Read the conflict markers:**
 
 ```markdown
@@ -108,7 +112,9 @@ git log --author="Them" /EXECUTION/spec/CANONICAL/rules/ia-rules.md | head -1
 ---
 
 ## 🛠️ Resolution Patterns
+
 ### Pattern 1: One Side Is Clearly Better (2 min fix)
+
 **Example:**
 
 ```
@@ -139,6 +145,7 @@ git commit -m "Resolve: Keep HEAD version (complete vs. incomplete)"
 ```
 
 ### Pattern 2: Both Sides Have Good Changes (5-10 min fix)
+
 **Example:**
 
 ```
@@ -190,6 +197,7 @@ git commit -m "Resolve: Merge improvements (HEAD 1.2 + feature 1.1 → 1.3)"
 ```
 
 ### Pattern 3: Conflicting Priorities (team discussion)
+
 **Example:**
 
 ```
@@ -235,11 +243,13 @@ For ANY conflict, verify after resolving:
   ```bash
   python docs/ia/SCRIPTS/validate-ia-first.py --audit docs/ia/
   ```
+
 - [ ] IA-FIRST section still present
 - [ ] Status field still valid (Complete/WIP/Deprecated)
 - [ ] No dangling links (all paths exist)
 - [ ] Version number updated if both sides merged
 - [ ] Run specializations validation for affected projects
+
   ```bash
   python docs/ia/SCRIPTS/generate-specializations.py --project [PROJECT_NAME] --force
   ```
@@ -247,7 +257,9 @@ For ANY conflict, verify after resolving:
 ---
 
 ## 🚨 Conflict Location Matters
+
 ### CANONICAL Conflicts (🔴 CRITICAL)
+
 **Location:** `/EXECUTION/spec/CANONICAL/rules/ia-rules.md`, `ADR-*.md`, etc.
 
 **Risk:** Affects ALL projects
@@ -309,6 +321,7 @@ For ANY conflict, verify after resolving:
 ---
 
 ## 📊 Resolution Decision Matrix
+
 **Use this to decide how to resolve:**
 
 ```
@@ -335,6 +348,7 @@ Question 4: Can you merge both versions?
 ---
 
 ## 🔗 Related Docs
+
 - [architecture.md](../../canonical/specifications/architecture.md)
 - [ADR-005: Thread Isolation Mandatory](../../decisions/ADR-005-thread-isolation-mandatory.md)
 - [MIGRATING_DOCS_BETWEEN_PROJECTS.md](MIGRATING_DOCS_BETWEEN_PROJECTS.md)

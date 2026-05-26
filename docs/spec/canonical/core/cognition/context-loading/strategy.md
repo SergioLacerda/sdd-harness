@@ -17,6 +17,7 @@ Never load documentation "to be safe" — load strategically based on task class
 ## 🔁 Context Loading Process
 
 ### 1. Environment Detection
+
 ```bash
 # Find governance config
 cat .spec.config  # Workspace configuration
@@ -24,18 +25,23 @@ cat .sdd/profile  # Workspace identity
 ```
 
 ### 2. Load Runtime Indices (ALWAYS)
+
 ```
 .sdd/source/search-keywords.md          # 5–10KB
 .sdd/source/spec-canonical-index.md     # 10–15KB
 .sdd/source/spec-guides-index.md        # 5–10KB
 ```
+
 **Reason:** Indices are small and enable targeted lookups
 
 ### 3. Task Classification
+
 Use [TASK_CLASSIFICATION.md](../decision-models/TASK_CLASSIFICATION.md) → Select PATH A–F
 
 ### 4. PATH-Specific Context Selection
+
 Each PATH has a budget. Load ONLY what applies to your task:
+
 - **PATH A (bug fix):** Single file + affected callers
 - **PATH B (simple feature):** 1–2 modules + their dependencies
 - **PATH C (complex):** Full cross-module graph
@@ -44,6 +50,7 @@ Each PATH has a budget. Load ONLY what applies to your task:
 - **PATH F (refactor):** Code structure + related tests
 
 ### 5. Load Canonical (if needed for task)
+
 ```
 docs/spec/canonical/core/mandates/       # Understand constraints
 docs/spec/canonical/core/policies/       # Understand approval gates
@@ -51,16 +58,19 @@ docs/spec/canonical/core/rules/          # Understand style/testing
 ```
 
 ### 6. Load Guides (if you need HOW-TO)
+
 ```
 docs/spec/canonical/specifications/      # If unsure how to implement
 docs/guides/                              # If step-by-step help needed
 ```
 
 ### 7. Load Reality (ONLY if needed)
+
 ```
 src/                                      # Read actual code
 tests/                                    # Review existing tests
 ```
+
 **When to load:** If indices/guides don't answer your question
 
 ---
@@ -113,6 +123,7 @@ Never exceed 70% documentation utilization.
 ## 📊 Typical Context Loads
 
 ### PATH A — Bug Fix
+
 ```
 ~40KB total:
 - Indices (5KB)
@@ -124,6 +135,7 @@ Never exceed 70% documentation utilization.
 ```
 
 ### PATH C — Complex Feature
+
 ```
 ~85KB total:
 - Indices (10KB)
@@ -139,6 +151,7 @@ Never exceed 70% documentation utilization.
 ## 🔧 Implementation
 
 Load context via:
+
 ```bash
 # Automated
 sdd ask "how do I implement a custom port?"  # Queries compiled governance

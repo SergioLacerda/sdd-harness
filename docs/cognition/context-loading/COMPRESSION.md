@@ -53,6 +53,7 @@ Failures are logged at debug level; the next provider is tried automatically.
 **Strategy:** Rank items by relevance to the query using TF-IDF cosine similarity.
 
 **Algorithm:**
+
 1. Tokenize query and each item (lowercase, split on whitespace)
 2. Compute cosine similarity between query tokens and item tokens using `Counter`
 3. Score items by relevance
@@ -62,6 +63,7 @@ Failures are logged at debug level; the next provider is tried automatically.
 **Compression ratio:** `compressed_bytes / original_bytes`
 
 **Example:**
+
 ```python
 from sdd_runtime.providers import TfidfProvider
 from sdd_runtime.intelligence import ContextBundle
@@ -87,6 +89,7 @@ print(f"Compressed: {result.compression_ratio:.2f}")  # e.g., 0.67 → 67% reduc
 **Strategy:** Parse Python code, identify structurally-equivalent items, deduplicate + truncate.
 
 **Algorithm:**
+
 1. Parse items as Python AST (fails gracefully for non-Python input)
 2. Extract **structural signature** from each item (class/function definitions, imports)
 3. Remove exact-duplicate items (first occurrence wins)
@@ -95,6 +98,7 @@ print(f"Compressed: {result.compression_ratio:.2f}")  # e.g., 0.67 → 67% reduc
 **Available only for Python code.** For non-Python input, gracefully degrades (returns all items, `compression_ratio=1.0`).
 
 **Example:**
+
 ```python
 from sdd_runtime.providers import AstProvider
 from sdd_runtime.intelligence import ContextBundle
@@ -123,6 +127,7 @@ print(f"Items: {len(result.items)}")  # 1 or 2, ratio ≤ 1.0
 **Always available.** Guaranteed fallback when all other providers fail.
 
 **Algorithm:**
+
 1. Remove exact-duplicate items (first occurrence wins)
 2. Maintain original item order (longest items first, to preserve relevance)
 3. Greedily select items until accumulated bytes ≤ `budget_bytes`
@@ -131,6 +136,7 @@ print(f"Items: {len(result.items)}")  # 1 or 2, ratio ≤ 1.0
 **Compression ratio:** `compressed_bytes / original_bytes`
 
 **Example:**
+
 ```python
 from sdd_runtime.intelligence import LocalIntelligenceProvider, ContextBundle
 
@@ -154,6 +160,7 @@ print(f"Ratio: {result.compression_ratio:.2f}")  # < 1.0 (duplicates removed)
 **When available:** Only when environment variable `SDD_INTELLIGENCE_URL` is set AND the endpoint responds 200.
 
 **API contract:**
+
 ```bash
 POST {SDD_INTELLIGENCE_URL}/compress
 Content-Type: application/json
@@ -192,6 +199,7 @@ Response (200 OK):
 **All built-in providers follow this convention.** External HTTP providers MUST comply.
 
 **In code:**
+
 ```python
 if compressed.compression_ratio < 1.0:
     # Compression was effective
@@ -315,6 +323,7 @@ result = loader.load_result(request)
 ```
 
 **Key requirements:**
+
 - All methods must be safe to call unconditionally — never raise exceptions
 - `available` property allows the registry to skip unavailable providers
 - `compression_ratio` MUST be `compressed_bytes / original_bytes`

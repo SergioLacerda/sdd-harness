@@ -10,6 +10,7 @@ Status: **IA-FIRST DESIGNED & SYNCHRONIZED WITH CODE** (April 19, 2026)
 > **This specification is written for both machine-parsing and human reading.**
 >
 > **Guarantees for automation:**
+>
 > - H1: Title, H2: Major sections, H3: Subsections (predictable hierarchy)
 > - Code blocks use fence markers (```language)
 > - Constraints use structured markers: ✅ MUST, ❌ NEVER, ⚠️ WHEN
@@ -27,6 +28,7 @@ Status: **IA-FIRST DESIGNED & SYNCHRONIZED WITH CODE** (April 19, 2026)
 This document formalizes the system architecture as a **normative specification** (not guidance).
 
 It is binding for:
+
 - Developers implementing features
 - AI agents generating code
 - Code generators and tools
@@ -55,6 +57,7 @@ All code MUST conform to this specification. Specification is synchronized with 
 | DI Modules | ✅ Active | `src/modules/` |
 
 **Latest Changes (April 18, 2026):**
+
 - ✅ UseCases consolidated in `application/usecases/`
 - ✅ Runtime consolidated in `application/runtime`
 - ✅ Discord moved from `frameworks/discord/` to `interfaces/discord/`
@@ -67,6 +70,7 @@ For detailed implementation history: see [Architecture Decisions](../../decision
 # 📜 SOURCE OF TRUTH HIERARCHY
 
 This spec extends and enforces:
+
 1. [Mandates & Policies](../core/mandates/INDEX.md) — immutable principles (M001-M007)
 2. [Rules](../core/rules/) — execution protocols (code-style, tests, dependencies)
 3. [Testing](./testing.md) — testing strategies per layer
@@ -220,6 +224,7 @@ flowchart LR
 ## Definition
 
 Vector Index is a **semantic search system** used for retrieval. It is:
+
 - ✅ Useful for finding similar data
 - ✅ Fast for large datasets
 - ❌ NOT a source of truth
@@ -260,6 +265,7 @@ service = VectorReaderService(vector_db)
 ```
 
 **[MARKER: Vector Implementation Rule]** FACTORY PATTERN IS MANDATORY
+
 - Reason: Implements black-box principle - application never knows actual backend
 - Implementation: `bootstrap/vector/factory.py` creates ports
 - Phase 1 Requirement: This prevents ChromaDB coupling in container_builder.py
@@ -284,12 +290,12 @@ service = VectorReaderService(vector_db)
    - Rationale: Enables read-only cache layers, disabled-write deployments
    - **[MARKER: Port Separation]** Confirmed intentional design (not to be merged)
 
-3. **Never use for authority**
+4. **Never use for authority**
    - Always validate results against KV storage
    - Use as "suggestion" only
    - Cross-check critical data
 
-4. **Fallback handling is mandatory**
+5. **Fallback handling is mandatory**
    - Code must work if vector fails
    - Have graceful degradation
    - Log retrieval issues
@@ -362,6 +368,7 @@ flowchart TB
 **Decision:** Keep all UseCases in single `application/usecases/` folder (not per-feature subfolders)
 
 **Rationale:**
+
 - Single import location for all use cases
 - Easy to discover all capabilities
 - Per-feature separation at port/adapter level (not usecase level)
@@ -376,11 +383,13 @@ flowchart TB
 **Decision:** Consolidate all runtime execution logic in `application/runtime` (not at root `src/runtime`)
 
 **Rationale:**
+
 - Runtime is application-level concern (orchestration)
 - Removes redundancy between root-level and application-level runtime
 - Single source of truth for campaign/app state management
 
 **Structure:**
+
 - `app_runtime.py` — Global app state & DI container
 - `campaign_manager.py` — Multi-campaign orchestration
 - `campaign_runtime.py` — Per-campaign execution context
@@ -394,6 +403,7 @@ flowchart TB
 **Decision:** All entry points (API, Discord, CLI) in `interfaces/` (not mixed with frameworks/)
 
 **Rationale:**
+
 - Clear separation: business logic vs. entry points
 - Frameworks only used for HTTP framework selection (FastAPI), not as organizational principle
 - Discord bot is interface, not framework
@@ -407,11 +417,13 @@ flowchart TB
 **Decision:** All Ports MUST have async methods (even for local operations)
 
 **Rationale:**
+
 - Consistent async model throughout application
 - Allows adapters to switch between sync/async backends seamlessly
 - Future-proof for non-blocking I/O
 
 **Example:**
+
 ```python
 class NarrativeRepositoryPort(Protocol):
     async def get(self, id: str) -> Narrative: ...
@@ -427,6 +439,7 @@ class NarrativeRepositoryPort(Protocol):
 **Decision:** Vector Index treated as non-authoritative retrieval only
 
 **Rationale:**
+
 - Semantic search is best-effort (ranking is opaque)
 - Storage (KV) is source of truth
 - Retrieval failure must not break application
@@ -442,6 +455,7 @@ class NarrativeRepositoryPort(Protocol):
 **Decision:** Production code MUST NOT have test-specific branches (e.g., `if TEST_MODE`)
 
 **Rationale:**
+
 - Tests should validate actual behavior, not modified behavior
 - Production code stays clean
 - Dependencies should be injected, not detected
@@ -457,6 +471,7 @@ class NarrativeRepositoryPort(Protocol):
 **Decision:** Separate AppRuntime and RuntimeModule for lifecycle management
 
 ### AppRuntime (Layer 5: Composition)
+
 - **Purpose:** Orchestrates application startup, shutdown, health checks
 - **Responsibilities:**
   - Coordinates component lifecycle (start/shutdown in correct order)
@@ -467,6 +482,7 @@ class NarrativeRepositoryPort(Protocol):
 - **Usage:** Called from bootstrap during startup/shutdown
 
 ### RuntimeModule (Layer 5: Composition)
+
 - **Purpose:** DI module that configures runtime components
 - **Responsibilities:**
   - Registers ExecutorPort implementation
@@ -477,6 +493,7 @@ class NarrativeRepositoryPort(Protocol):
 - **Usage:** Container invokes during initialization
 
 **[MARKER: Component Layers]** Clarification needed:
+
 - AppRuntime: Application layer component (orchestration)
 - RuntimeModule: Bootstrap/DI composition layer
 - EventBusPort: Port (application layer)
@@ -491,17 +508,20 @@ class NarrativeRepositoryPort(Protocol):
 **Decision:** Thread-local per-campaign container isolation (ADR-005 Level 2)
 
 **Components:**
+
 - **CampaignScopedContainer:** Singleton managing campaign containers
 - **Thread-Local Storage:** Prevents concurrent campaign state leakage
 - **Factory Pattern:** Creates isolated containers per campaign
 
 **Rules:**
+
 - Each campaign gets isolated container with campaign-specific stores
 - No cross-campaign state sharing (except via Ports)
 - Context manager handles automatic cleanup
 - Enables true concurrent campaign execution
 
 **Example:**
+
 ```python
 # Automatic isolation and cleanup
 with CampaignScopedContainer.instance().campaign_scope("campaign_123"):
@@ -511,6 +531,7 @@ with CampaignScopedContainer.instance().campaign_scope("campaign_123"):
 ```
 
 **[MARKER: Nesting Support]** Decision needed:
+
 - Should nested campaign_scope() calls be allowed?
 - Recommendation: No nesting (simpler, prevents confusion)
 - Alternative: Support nesting with stack-based context
@@ -524,6 +545,7 @@ with CampaignScopedContainer.instance().campaign_scope("campaign_123"):
 **Decision:** Support hierarchical scoping for world → genre → campaign memory levels
 
 **Rationale:**
+
 - World baseline (canonical) shared across all campaigns
 - Genre cache (shared) reusable across campaigns in same genre
 - Campaign memory (dynamic) isolated to specific campaign
@@ -595,6 +617,7 @@ data/
 ```
 
 **[MARKER: Business Rules Integration]**
+
 - See business-rules.md for memory hierarchy semantics
 - Campaign isolation + echo system requires this scoping model
 - Direct impact on CampaignScopedContainer design
@@ -608,7 +631,6 @@ data/
 👉 Architecture is NOT negotiable
 👉 All components MUST conform to this specification
 
-
 ## 🧠 Runtime Awareness
 
 Architecture is guided by dynamic state located at:
@@ -616,6 +638,7 @@ Architecture is guided by dynamic state located at:
 .sdd/source/execution-state/_current.md
 
 Rules:
+
 - Specs define INTENTION
 - Runtime defines CURRENT REALITY
 - In case of conflict → runtime wins
@@ -629,6 +652,7 @@ Each critical domain can have its own thread:
 .sdd/source/threads/*.md
 
 Objective:
+
 - Cognitive isolation
 - Parallel execution with AI
 

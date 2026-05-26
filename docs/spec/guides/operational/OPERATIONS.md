@@ -101,6 +101,7 @@ sdd governance validate
 ```
 
 **What to do if artifacts are missing:**
+
 1. Recompile: `cd .sdd-wizard && python compile_artifacts.py`
 2. Verify: `ls .sdd-wizard/compiled/`
 3. If still missing: See [Troubleshooting](#troubleshooting)
@@ -120,6 +121,7 @@ sdd governance load
 ```
 
 **Expected output pattern:**
+
 ```
 ✅ Core Governance Loaded
    - M001: Specification-Driven Development
@@ -166,6 +168,7 @@ sdd new --project-name "my-project" --language python
 ```
 
 **What to verify:**
+
 - ✅ All 7 phases completed successfully
 - ✅ Project directory structure created
 - ✅ Governance files in place
@@ -252,16 +255,19 @@ time sdd governance load
 ### Monitoring Checklist
 
 **Daily (Morning):**
+
 - [ ] Artifacts exist and match deployment manifest
 - [ ] `sdd governance validate` returns all checks passing
 - [ ] CLI responds in <1 second
 
 **Weekly (Monday morning):**
+
 - [ ] Verify no fingerprint mismatches
 - [ ] Check performance hasn't degraded
 - [ ] Review any violation reports
 
 **Monthly (First of month):**
+
 - [ ] Audit all modifications to core rules
 - [ ] Review governance compliance metrics
 - [ ] Plan any needed updates
@@ -275,12 +281,14 @@ time sdd governance load
 #### ❌ Issue: "ModuleNotFoundError: No module named 'sdd'"
 
 **Symptoms:**
+
 ```
 $ sdd --help
 ModuleNotFoundError: No module named 'sdd'
 ```
 
 **Solution:**
+
 ```bash
 # Option 1: Use pre-built binary
 chmod +x ./dist/sdd
@@ -298,6 +306,7 @@ python -m cli --help
 #### ❌ Issue: "Fingerprint mismatch detected"
 
 **Symptoms:**
+
 ```
 ✗ Fingerprint validation failed
   Expected: 35efc54d3e353daaf633fad531562f1da97ec17814193b7ac44b2e9ef12daddd
@@ -305,11 +314,13 @@ python -m cli --help
 ```
 
 **Causes:**
+
 - Governance files modified externally
 - Artifact compilation failed
 - Tampering detected (SALT strategy working)
 
 **Solution:**
+
 ```bash
 # Step 1: Check if source files were modified
 git diff .sdd-core/CANONICAL/
@@ -330,12 +341,14 @@ python compile_artifacts.py
 #### ❌ Issue: "Compiled artifacts missing"
 
 **Symptoms:**
+
 ```
 $ ls .sdd-wizard/compiled/
 # Returns empty or file not found
 ```
 
 **Solution:**
+
 ```bash
 # Step 1: Create compiled directory
 mkdir -p .sdd-wizard/compiled
@@ -354,12 +367,14 @@ cat compiled/DEPLOYMENT_MANIFEST.json
 #### ❌ Issue: "Wizard Phase X failed"
 
 **Symptoms:**
+
 ```
 ❌ PHASE_5_APPLY_TEMPLATE failed
 Error: Language not recognized: 'cpp'
 ```
 
 **Diagnosis:**
+
 ```bash
 # Run with verbose output
 python .sdd-wizard/src/wizard.py --test-phases 1-7 --verbose
@@ -378,6 +393,7 @@ python .sdd-wizard/src/wizard.py --test-phases 1-7 --verbose
 ```
 
 **Solution by phase:**
+
 ```bash
 # Phase 1 failure: Validate source
 python .sdd-core/scripts/validate_source.py
@@ -574,6 +590,7 @@ du -sh .sdd-*
 ## 📚 Related Documentation
 
 **See also:**
+
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — Production deployment checklist
 - [MONITORING.md](./MONITORING.md) — Detailed monitoring procedures
 - [MAINTENANCE.md](./MAINTENANCE.md) — Advanced maintenance tasks
@@ -592,6 +609,7 @@ du -sh .sdd-*
 4. **Escalate:** Contact SDD framework maintainers
 
 **Provide when reporting issues:**
+
 - Command run: `sdd version` output
 - Error message: Full stack trace if available
 - Environment: OS, Python version

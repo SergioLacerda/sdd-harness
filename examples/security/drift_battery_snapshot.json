@@ -1,0 +1,14 @@
+{
+  "label": "after-new-feature",
+  "timestamp": "2026-05-26T17:54:32.185376+00:00",
+  "artifact_fp": "a1b2c3d4e5f60001",
+  "schema_version": "3.0",
+  "total": 100,
+  "true_positives": 30,
+  "false_positives": 0,
+  "stale_drifted": 15,
+  "detection_rate": 1.0,
+  "false_pos_rate": 0.0,
+  "drift_rate": 0.3,
+  "artifact_changed": true
+}

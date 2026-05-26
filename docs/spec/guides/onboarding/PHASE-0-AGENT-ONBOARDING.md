@@ -10,6 +10,7 @@
 ## 📋 PHASE 0 Overview
 
 **What happens here:**
+
 1. Agent discovers spec-architecture via `.spec.config`
 2. Agent creates `.sdd/context-aware/` infrastructure
 3. Agent takes SDD validation quiz (≥80% required)
@@ -30,6 +31,7 @@ cat .spec.config
 ```
 
 **Expected output:**
+
 ```ini
 [spec]
 spec_path = ../spec-architecture
@@ -37,6 +39,7 @@ min_version = 2.1
 ```
 
 **Agent validates:**
+
 - ✅ `.spec.config` exists
 - ✅ `spec_path` points to valid directory
 - ✅ Framework version matches
@@ -55,6 +58,7 @@ ls templates/
 ```
 
 **Agent validates:**
+
 - ✅ `/EXECUTION/spec/CANONICAL/` exists
 - ✅ `EXECUTION/spec/indices/` exists (framework index templates)
 - ✅ `templates/` exists (to copy from)
@@ -114,6 +118,7 @@ cat .sdd/context-aware/README.md | head -20
 ```
 
 **Agent validates:**
+
 - ✅ All directories created
 - ✅ All template files copied
 - ✅ Files are readable
@@ -135,6 +140,7 @@ cat $SPEC_PATH/EXECUTION/spec/CANONICAL/rules/ia-rules.md | head -100
 ```
 
 **Key concepts to understand:**
+
 1. **Source of Truth Priority** — constitution.md > ia-rules.md
 2. **Thread Isolation** — Never modify other threads
 3. **Checkpointing** — Update execution-state after features
@@ -142,6 +148,7 @@ cat $SPEC_PATH/EXECUTION/spec/CANONICAL/rules/ia-rules.md | head -100
 5. **Gap Documentation** — Real ≠ Docs is normal
 
 **Agent validates:**
+
 - ✅ Can read ia-rules.md from SPEC
 - ✅ Understands 5 core concepts above
 
@@ -153,6 +160,7 @@ cat $SPEC_PATH/EXECUTION/spec/CANONICAL/specifications/context-aware-agent-patte
 ```
 
 **Agent validates:**
+
 - ✅ Understands context-aware pattern
 - ✅ Knows how to track task-progress
 - ✅ Knows how to document analysis
@@ -173,6 +181,7 @@ cat $SPEC_PATHdocs/spec/guides/onboarding/VALIDATION_QUIZ.md
 ```
 
 **Quiz structure (5 questions):**
+
 1. What is source of truth priority?
 2. What is thread isolation?
 3. What is checkpointing?
@@ -188,11 +197,13 @@ Score: ___ / 5 (need ≥ 4 to pass, 80%)
 ### 4.3 Conditional Proceed
 
 **If Score ≥ 4 (80%):**
+
 ```bash
 echo "✅ QUIZ PASSED - Proceeding to workspace validation"
 ```
 
 **If Score < 4:**
+
 ```bash
 echo "❌ QUIZ FAILED - Review ia-rules.md again and retry"
 # Re-read ia-rules.md

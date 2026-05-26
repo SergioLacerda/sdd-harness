@@ -44,6 +44,7 @@ sdd skills learning-status --window-days 7           # summary health for superv
 ```
 
 Operational policy:
+
 - Rule activation is human-approved only.
 - TTL expiration deactivates stale rules automatically.
 - Negative learning (`--rollback-flag`) marks rule rollback in registry.

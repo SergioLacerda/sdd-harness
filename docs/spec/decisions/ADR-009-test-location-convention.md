@@ -1,6 +1,7 @@
 # ADR-009: Test Location Convention
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2026-05-05
 - Accepted: 2026-05-05
@@ -57,12 +58,14 @@ verification), not domain logic tests. Domain logic tests live under `tests/`.
 ## Consequences
 
 **Positive:**
+
 - Single lookup rule: "where is the test for `sdd_core.governance.handshake`?"
   → `tests/unit/governance/`
 - `packages/` can be scanned for smoke tests without noise from domain logic
 - New test categories (e2e, performance) have a clear home
 
 **Negative:**
+
 - Existing tests in `packages/` that are not smoke tests need to be migrated
   (low priority; none found as of 2026-05-05)
 

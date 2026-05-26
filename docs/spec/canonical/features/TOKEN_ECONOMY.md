@@ -3,6 +3,7 @@
 ## 🎯 Purpose
 
 Implement a comprehensive token economy system that:
+
 1. Captures and tracks LLM token consumption (input + output)
 2. Monitors context budget utilization across 4 execution PATHs
 3. Automatically compresses context when budget usage exceeds safe thresholds
@@ -55,6 +56,7 @@ SDD_TOKENS_INPUT=150 SDD_TOKENS_OUTPUT=50 sdd ask-full "query"
 ```
 
 **Integration:**
+
 - `ask-full` command wires token capture into `_emit_ask_telemetry()`
 - Tokens populate `RuntimeEvent.tokens_input`, `tokens_output`, `tokens_total`
 - Token ceilings per PATH enforced in `efficiency-policy.md`
@@ -66,6 +68,7 @@ SDD_TOKENS_INPUT=150 SDD_TOKENS_OUTPUT=50 sdd ask-full "query"
 **Purpose:** Reduce redundant context loads via in-memory LRU caching with TTL.
 
 **Design:**
+
 - **Capacity:** 128 entries
 - **TTL:** 5 minutes (300 seconds)
 - **Key:** SHA-256 hash of `(artifact_id, query, max_items, item_types)`
@@ -82,6 +85,7 @@ stats = cache.stats()  # hit_count, miss_count, hit_rate_pct, entries, max_size
 ```
 
 **Economy Implications:**
+
 - Cache hit returns stale `context_bytes_loaded` from previous computation
 - If cached during GREEN zone, returned as-is even if now in YELLOW zone
 - Compression not re-attempted on cache hit
@@ -147,6 +151,7 @@ class BudgetEstimate:
 ```
 
 **Compression Ratio Convention:**
+
 - `compression_ratio = compressed_bytes / original_bytes`
 - Value 1.0 → no compression
 - Value < 1.0 → compression successful (e.g., 0.5 = 50% reduction)
@@ -163,6 +168,7 @@ class BudgetEstimate:
 **Environment:** `SDD_INTELLIGENCE_URL` (e.g., `http://localhost:8000`)
 
 **Endpoints expected:**
+
 - `POST /analyze` — task analysis
 - `POST /compress` — context compression
 - `POST /estimate` — budget estimation
@@ -210,6 +216,7 @@ class BudgetEstimate:
 **Always available:** Guaranteed fallback when all other providers fail.
 
 **Compression:**
+
 1. Deduplicate identical items
 2. Sort by length (longest first, preserve relevance-ordered items)
 3. Truncate to fit budget
@@ -224,12 +231,14 @@ class BudgetEstimate:
 **Purpose:** Automatic provider selection and fallback.
 
 **Default priority:**
+
 1. `HttpProvider` — if env var set and available
 2. `AstProvider` — always available
 3. `TfidfProvider` — always available
 4. `LocalIntelligenceProvider` — final fallback (always)
 
 **Contract:**
+
 - Tries providers in order; uses first that is `available`
 - If provider fails (exception), logs and tries next
 - Compression ALWAYS succeeds (degradation guaranteed)
@@ -256,12 +265,14 @@ result = loader.load_result(request)
 ```
 
 **YELLOW Zone Behavior (70–90% utilization):**
+
 - Computes target budget: `original_bytes * (70 / utilization_pct)`
 - Calls `registry.compress_context(bundle)` with target budget
 - If `compression_ratio < 1.0`, uses compressed result
 - If `compression_ratio >= 1.0` (no compression), emits `economy.compression.skip` event
 
 **BREACH Behavior (≥100% utilization):**
+
 - Raises `BudgetBreachError` (exception, not just event)
 - No further context loading permitted
 - Caller must catch and escalate to human checkpoint
@@ -275,6 +286,7 @@ result = loader.load_result(request)
 **When raised:** `ContextLoader.load_result()` when `budget_utilization_pct >= 100`
 
 **Caller responsibility:**
+
 1. Catch the exception
 2. Log `error.utilization_pct` and `error.path_id` for audit
 3. Escalate to human checkpoint

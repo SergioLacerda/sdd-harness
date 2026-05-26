@@ -7,8 +7,10 @@
 ## 🚀 Choose Your Path
 
 ### ⚡ [ULTRA-LITE Adoption](./ULTRA-LITE-ADOPTION.md) — 5 Minutes
+
 **For:** Solo developers, prototypes, MVPs, 2-person teams
 **What You Get:**
+
 - 5 core principles
 - 3 essential rules
 - 5 DoD checkpoints
@@ -22,8 +24,10 @@
 ---
 
 ### 🟢 [LITE Adoption](./LITE-ADOPTION.md) — 15 Minutes
+
 **For:** Experimenting, small teams, learning
 **What You Get:**
+
 - 10 core principles
 - 5 essential rules
 - 10 DoD criteria
@@ -37,8 +41,10 @@
 ---
 
 ### 🔵 [FULL Adoption](./FULL-ADOPTION.md) — 40 Minutes
+
 **For:** Production teams, regulatory requirements
 **What You Get:**
+
 - 15 complete principles
 - 16 mandatory rules
 - 45 DoD criteria (comprehensive)
@@ -53,8 +59,10 @@
 ---
 
 ### 🔄 [LITE → FULL Migration](./LITE-TO-FULL-MIGRATION.md) — 30 Minutes
+
 **For:** Teams outgrowing LITE
 **What It Covers:**
+
 - When to upgrade
 - Step-by-step migration
 - Configuration changes
@@ -69,8 +77,10 @@
 ---
 
 ### 🌍 [Multi-Language Exploration](./MULTI-LANGUAGE-EXPLORATION.md) — Read
+
 **For:** Planning future multi-language support
 **What It Covers:**
+
 - v3.0 Roadmap (Q4 2026)
 - Node.js + Go + Rust implementations (planned)
 - Language-agnostic principles
@@ -89,11 +99,13 @@
 **Before you choose adoption, you need to understand your project's intention.**
 
 → **[INTEGRATION/STEP_6.md](../integration/STEP_6.md)** — Intention Detection Guide
+
 - Answer 5 questions about your project
 - Questions reveal whether you need LITE or FULL
 - Determines adoption level for your project
 
 **Typical Flow:**
+
 1. Integrate your project (STEP 1-5, same for everyone)
 2. Detect your intention (STEP 6, 5 questions)
 3. Choose LITE or FULL based on answers
@@ -149,18 +161,21 @@
 ## 📋 Implementation Timeline
 
 ### Now (v2.1)
+
 - ✅ LITE Adoption ready (15 min setup)
 - ✅ FULL Adoption ready (40 min setup)
 - ✅ Migration path documented
 - ✅ Python + FastAPI focus
 
 ### Soon (v2.2 — Q2 2026)
+
 - ⏳ Real metrics published
 - ⏳ Case studies available
 - ⏳ Community feedback incorporated
 - ⏳ v3.0 planning complete
 
 ### Future (v3.0 — Q4 2026)
+
 - ⏳ Node.js support (sdd-nodejs)
 - ⏳ Go support (sdd-go)
 - ⏳ Rust support (sdd-rust)
@@ -181,16 +196,19 @@
 ## 💡 Pro Tips
 
 ### For Team Leads
+
 → Start with **LITE** to validate buy-in
 → Migrate to **FULL** when team is ready
 → Use metrics to prove value to stakeholders
 
 ### For Individual Developers
+
 → **LITE** if learning on your own
 → **FULL** if building production code
 → Ask if unsure → [FAQ](../faq.md)
 
 ### For AI Agents
+
 → Both LITE and FULL supported
 → All rules explicit in constitution
 → Autonomous execution possible
@@ -248,6 +266,7 @@ Framework under active development.
 Your experience → shapes v2.2 → shapes v3.0.
 
 Share:
+
 - What works well
 - What's confusing
 - What you'd change

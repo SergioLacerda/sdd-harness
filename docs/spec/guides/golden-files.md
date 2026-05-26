@@ -72,6 +72,7 @@ make update-golden-snapshots
 ```
 
 Outputs:
+
 ```
 ✓ Updated: tests/contract/fixtures/governance_core.golden.json
 ```
@@ -83,6 +84,7 @@ git diff tests/contract/fixtures/
 ```
 
 Look for:
+
 - ✅ Expected changes (new items, updated metadata, version bumps)
 - ❌ Unexpected changes (dropped fields, broken structure)
 
@@ -109,12 +111,14 @@ Golden file updated to reflect new schema."
 ### Why "No Auto-Update in CI"
 
 ❌ **Bad (hides failures):**
+
 ```yaml
 - Run: make update-golden-snapshots  # In CI ← NEVER DO THIS
 - Run: make check                    # Always passes (useless)
 ```
 
 ✅ **Good (detects issues):**
+
 ```yaml
 - Run: make check  # Fails if divergence → forces local action
 ```
@@ -122,6 +126,7 @@ Golden file updated to reflect new schema."
 ### Audit Trail
 
 Every golden file change is:
+
 1. **Visible in git** — full diff of what changed
 2. **Tied to code** — same commit as logic change
 3. **Code-reviewed** — PR must approve both logic + fixtures
@@ -172,6 +177,7 @@ git push origin fix/golden-sync
 ### "I changed something small, why did golden change so much?"
 
 Check:
+
 - Did you update `docs/spec/canonical/` (mandates, policies)?
 - Did you touch compiler logic?
 - Did you change version scheme?

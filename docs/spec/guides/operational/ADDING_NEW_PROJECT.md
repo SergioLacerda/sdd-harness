@@ -74,6 +74,7 @@ tree docs/ia/custom/PROJECT_NAME/
 ## Project Parameters
 
 ```
+
 PROJECT_NAME=my-project
 LANGUAGE=python
 ASYNC_FRAMEWORK=fastapi
@@ -81,6 +82,7 @@ MAX_CONCURRENT_ENTITIES=100
 PRIMARY_DOMAIN_OBJECTS=entity1,entity2,entity3
 TEAM_SIZE=3
 MATURITY_LEVEL=alpha
+
 ```
 
 ---
@@ -129,6 +131,7 @@ Document how this project differs from other projects:
 
 **Generated:** 2026-04-19
 **Status:** Configuration template
+
 ```
 
 **Key fields to define:**
@@ -153,6 +156,7 @@ python docs/ia/SCRIPTS/generate-specializations.py --project PROJECT_NAME
 ```
 
 **Expected output:**
+
 ```
 ✅ Generated: docs/ia/custom/PROJECT_NAME/SPECIALIZATIONS/constitution-PROJECT_NAME-specific.md
 ✅ Generated: docs/ia/custom/PROJECT_NAME/SPECIALIZATIONS/ia-rules-PROJECT_NAME-specific.md
@@ -263,20 +267,25 @@ All threads must update this file after each feature:
 **Template for checkpoints:**
 
 ```
+
 [2026-04-20 @ developer-name]
 **TASK:** Implement campaign domain entity
 
 **DECISIONS:**
+
 - Used immutable dataclass (vs Pydantic model)
 - Campaign state machine: Draft → Active → Archived
 
 **QUESTIONS OPEN:**
+
 - Concurrent session handling (needs TBD)
 
 **RISKS:**
+
 - State transitions need validation rules
 
 **STATUS:** Complete, ready for review
+
 ```
 ```
 
@@ -377,6 +386,7 @@ Read: docs/ia/guides/onboarding/AGENT_HARNESS.md
 ✅ CI/CD validates all projects on every commit
 
 **If any of these fail:**
+
 - Document issue in docs/ia/custom/PROJECT_NAME/reality/limitations/known_issues.md
 - Escalate to architecture team
 - Consider CANONICAL changes if >3 projects have same issue
@@ -386,18 +396,22 @@ Read: docs/ia/guides/onboarding/AGENT_HARNESS.md
 ## 🚨 Common Mistakes
 
 ❌ **Mistake 1:** Not defining domain clearly in SPECIALIZATIONS_CONFIG.md
+
 - Result: generate-specializations fails or generates wrong constraints
 - Fix: Be explicit about what project does + key entities
 
 ❌ **Mistake 2:** Forgetting to update CI/CD
+
 - Result: Project specializations not validated on commits
 - Fix: Add to generate-specializations job in spec-enforcement.yml
 
 ❌ **Mistake 3:** Not creating thread tracking
+
 - Result: Team doesn't know who's working on what
 - Fix: Create execution-state/_current.md with thread assignments
 
 ❌ **Mistake 4:** Modifying CANONICAL directly for project-specific needs
+
 - Result: Changes affect all projects (breaks isolation)
 - Fix: Use SPECIALIZATIONS instead; CANONICAL stays generic
 

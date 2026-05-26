@@ -3,6 +3,7 @@
 **Status:** ✅ FINAL (8 functional decisions, all ADRs mapped, ready for Phase 1)
 
 **Source Consolidation:**
+
 - DECISIONS_EXPLAINED_PRACTICAL.md
 - DECISIONS_REFACTORED_FUNCTIONAL.md
 - DECISION_POINTS_CONSOLIDATED.md
@@ -33,6 +34,7 @@
 ### DECISION #1: Campaign Isolation
 
 **Functional Requirement:**
+
 - Multiple campaigns (Thread A + Thread B) must NOT contaminate each other
 - Context must be isolated at thread level
 - Cleanup must be automatic
@@ -40,12 +42,14 @@
 **Pattern:** Thread-local storage + Simple lock (threading.Lock)
 
 **Why Simple Lock?**
+
 - 5-10 concurrent campaigns typical (Discord RPG)
 - Lock only held during creation (~10ms)
 - Can upgrade to RWLock if benchmarks show bottleneck
 - Single lock = no deadlock risk
 
 **ADR Mapping:**
+
 - ✅ ADR-005 (Thread isolation Level 2: Campaign runtime)
 - ✅ ADR-001 (Layer 5: Application Composition - DI container)
 
@@ -54,6 +58,7 @@
 ### DECISION #2: Resource Lifecycle
 
 **Functional Requirement:**
+
 - All campaign resources must be cleaned up (connections, cache, memory)
 - Cleanup must happen even on exception
 - Async cleanup (no blocking I/O during shutdown)
@@ -61,6 +66,7 @@
 **Pattern:** RAII (Resource Acquisition Is Initialization) + Finalizer + Async
 
 **Async Cleanup Sequence (Order Critical - ADR-006):**
+
 1. Stop accepting new events (pause event bus)
 2. Wait for in-flight operations (executor.wait_all())
 3. Persist accumulated events (append-only commit)
@@ -71,6 +77,7 @@
 8. Release container reference
 
 **ADR Mapping:**
+
 - ✅ ADR-002 (Async-first, no blocking I/O)
 - ✅ ADR-006 (Event sourcing - persist before cleanup)
 
@@ -79,6 +86,7 @@
 ### DECISION #3: Concurrency Safety
 
 **Functional Requirement:**
+
 - No race conditions on shared _containers dict
 - Fast path (read) should not use lock
 - Slow path (write) protected by lock
@@ -94,6 +102,7 @@
 ```
 
 **ADR Mapping:**
+
 - ✅ ADR-005 (Thread isolation safe)
 - ✅ ADR-002 (Lock held minimal time, no blocking)
 
@@ -102,12 +111,14 @@
 ### DECISION #4: Memory Hierarchy
 
 **Functional Requirement:**
+
 - Echo system: Campaign 2 can access Campaign 1 memories
 - World baseline is immutable source of truth
 - Genre cache is shared between similar campaigns
 - Clear priority: Campaign > Genre > World > Global
 
 **Storage Structure:**
+
 ```
 data/world_id/
 ├── canonical/              (World baseline - immutable)
@@ -121,12 +132,14 @@ data/world_id/
 ```
 
 **Retrieval Cascade:**
+
 1. Check campaign-specific memory
 2. Check genre shared cache
 3. Check world canonical facts
 4. Check global templates
 
 **ADR Mapping:**
+
 - ✅ ADR-001 (Layer 2 Domain models - hierarchy concept)
 - ✅ ADR-006 (Event sourcing - versioned retrieval)
 - ✅ ADR-003 (VectorReaderPort - cascading search)
@@ -136,6 +149,7 @@ data/world_id/
 ### DECISION #5: Cache Invalidation
 
 **Functional Requirement:**
+
 - Genre cache must stay fresh when world changes
 - No stale cache (if data changed → cache invalid)
 - No false invalidations (if nothing changed → cache valid)
@@ -144,16 +158,19 @@ data/world_id/
 **Pattern:** Event-driven invalidation (not TTL)
 
 **How it works:**
+
 1. When world changes → emit WorldChangedEvent
 2. Genre cache listens
 3. If event affects this genre → invalidate cache
 4. Next access rebuilds from fresh data
 
 **vs TTL-based:**
+
 - ❌ TTL: 90 days is arbitrary, stale data after 1 day if changed
 - ✅ Event: Only invalidates when it SHOULD
 
 **ADR Mapping:**
+
 - ✅ ADR-006 (Changes are events)
 - ✅ ADR-002 (Async event listeners)
 - ✅ ADR-003 (EventBusPort)
@@ -163,6 +180,7 @@ data/world_id/
 ### DECISION #6: Memory Versioning
 
 **Functional Requirement:**
+
 - Echo system needs temporal queries ("what was state at time T?")
 - Full audit trail (who changed, when, why)
 - Can reconstruct narrative exactly as it was
@@ -170,6 +188,7 @@ data/world_id/
 **Pattern:** Event sourcing (full history, immutable events)
 
 **Version Structure:**
+
 ```json
 {
   "id": "memory_001",
@@ -195,11 +214,13 @@ data/world_id/
 ```
 
 **Enables:**
+
 - ✅ `get_state_at_timestamp(T)` → Reconstruct as it was at time T
 - ✅ `get_history_since(T)` → All changes since T (for echo system)
 - ✅ Full audit trail → Verify AI decisions against history
 
 **ADR Mapping:**
+
 - ✅ ADR-006 (Event sourcing mandate)
 - ✅ ADR-003 (NarrativeGraphPort versioned queries)
 
@@ -208,6 +229,7 @@ data/world_id/
 ### DECISION #7: Canonical Immutability
 
 **Functional Requirement:**
+
 - World baseline (canonical) NEVER changes after creation
 - Ensures echo system consistency
 - Prevents accidental corruption
@@ -216,6 +238,7 @@ data/world_id/
 **Pattern:** Write-once immutable (strict enforcement)
 
 **How it works:**
+
 ```python
 if memory.level == CANONICAL:
     raise ImmutableCanonicalError(
@@ -228,12 +251,14 @@ if memory.level == CANONICAL:
 ```
 
 **Why strict?**
+
 - ✅ Prevents silent corruption
 - ✅ Thread-safe (immutable = no sync)
 - ✅ Distributed-safe (no conflict resolution)
 - ✅ Echo system safe (echoes point to stable facts)
 
 **ADR Mapping:**
+
 - ✅ ADR-006 (Immutable events)
 - ✅ ADR-001 (Domain rule Layer 2)
 
@@ -242,6 +267,7 @@ if memory.level == CANONICAL:
 ### DECISION #8: Port Isolation
 
 **Functional Requirement:**
+
 - Must swap LLM provider without affecting rest of system
 - Must swap vector DB without affecting rest of system
 - Different setups need different port combinations
@@ -251,6 +277,7 @@ if memory.level == CANONICAL:
 **Decision:** KEEP SEPARATE (Interface Segregation Principle)
 
 **ExecutorPort (CPU-bound task execution):**
+
 ```python
 async def run_sync(func: Callable) -> Any
 async def run_async(coro: Coroutine) -> Any
@@ -259,6 +286,7 @@ async def shutdown() -> None
 ```
 
 **EventBusPort (Event dispatch + messaging):**
+
 ```python
 async def publish(event: object) -> None
 async def subscribe(event_type: type, handler) -> None
@@ -267,17 +295,20 @@ async def shutdown() -> None
 ```
 
 **Why Separate?**
+
 - ✅ Single responsibility (each does one thing)
 - ✅ Testability (mock each independently)
 - ✅ Flexibility (mix and match for setups)
 - ✅ Easy to evolve (one doesn't affect other)
 
 **Setup Examples:**
+
 - Local: BlinkerEventBus + ThreadPoolExecutor
 - Hybrid: BlinkerWithWebhook + ThreadPoolExecutor
 - Remote: RabbitMQEventBus + RemoteExecutor
 
 **ADR Mapping:**
+
 - ✅ ADR-003 (Ports & Adapters - 18 independent ports)
 - ✅ ADR-001 (SOLID principles)
 
@@ -301,6 +332,7 @@ async def shutdown() -> None
 ## ✅ VALIDATION CHECKLIST
 
 **Functional Requirements Met:**
+
 - [x] Campaign isolation (no contamination)
 - [x] Resource cleanup (no leaks)
 - [x] Echo system (temporal queries)
@@ -310,12 +342,14 @@ async def shutdown() -> None
 - [x] Flexible deployments (port separation)
 
 **SPEC Mandates Met:**
+
 - [x] All 6 ADRs respected
 - [x] No mandate violations
 - [x] Setup-agnostic (works local/hybrid/remote)
 - [x] World-class patterns used
 
 **Ready for Implementation:**
+
 - ✅ 8 decisions are final
 - ✅ All ADRs mapped
 - ✅ No ambiguities remain
@@ -326,6 +360,7 @@ async def shutdown() -> None
 ## 📍 REFERENCES
 
 **Original Analysis Files (Now Archived):**
+
 - DECISIONS_EXPLAINED_PRACTICAL.md (context, problem scenarios)
 - DECISIONS_REFACTORED_FUNCTIONAL.md (functional specs)
 - DECISION_POINTS_CONSOLIDATED.md (decision matrix)
@@ -335,6 +370,7 @@ async def shutdown() -> None
 **These are consolidated into this file. Original files archived in docs/spec/ARCHIVE/ for reference.**
 
 **Detailed Specs:**
+
 - For full context, see: `docs/spec/specs/_shared/business-rules.md`
 - For architecture details: `docs/spec/specs/_shared/architecture.md`
 - For contracts: `docs/spec/specs/_shared/contracts.md`

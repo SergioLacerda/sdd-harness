@@ -7,6 +7,7 @@
 ---
 
 ## 🎯 Goal
+
 Ensure absolute continuity of state and logic across parallel agents, long-running tasks, and multi-repository environments by maintaining a persistent, project-isolated "Context Cache".
 
 ---
@@ -25,6 +26,7 @@ Ensure absolute continuity of state and logic across parallel agents, long-runni
 ### The Cache Structure (World-Class)
 
 The cache must contain:
+
 - **Current Objective**: The high-level goal being pursued.
 - **Active Sub-task**: What is being worked on *right now*.
 - **Completed Milestones**: List of what is 100% verified.
@@ -32,6 +34,7 @@ The cache must contain:
 - **Pending Risks**: Blockers or "Gotchas" discovered during execution.
 
 ### Example Update Workflow
+
 ```bash
 # At the end of a subtask:
 1. Validate subtask completion (tests pass).
@@ -42,6 +45,7 @@ The cache must contain:
 ---
 
 ## ⚖️ Rationale
+
 - **Parallelism**: Prevents Agent A from breaking assumptions made by Agent B.
 - **Context Longevity**: Prevents "forgetting" the main goal when the token window fills up with implementation details.
 - **Multi-Repo Safety**: Ensures the agent doesn't mix up rules between two different projects open in the same workspace.
@@ -49,6 +53,7 @@ The cache must contain:
 ---
 
 ## ✅ Validation
+
 - [ ] Presence of `.sdd-cache.md` in root.
 - [ ] Git history shows cache updates synchronized with logical feature commits.
 - [ ] Cache content reflects the actual current state of the implementation.
@@ -64,6 +69,7 @@ The cache must contain:
 ---
 
 ## References
+
 - Agent Entry Point: [`core/INDEX.md`](../INDEX.md)
 - Context Budgeting: [`cognition/context-loading/context-budget.md`](../cognition/context-loading/context-budget.md)
 - Onboarding Metrics: [`onboarding/metrics.md`](../onboarding/metrics.md)

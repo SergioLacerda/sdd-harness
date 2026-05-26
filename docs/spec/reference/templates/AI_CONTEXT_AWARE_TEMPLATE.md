@@ -9,6 +9,7 @@
 ## 📋 What This Is
 
 When you create a new project with SDD INTEGRATION, copy this template to:
+
 ```
 your-project/.sdd/context-aware/
 ```
@@ -201,6 +202,7 @@ For new projects:
 ## 💡 Token Budget
 
 Typical agent session:
+
 - QUICK_STATUS: ~300 tokens (2 min read)
 - summaries/ (2 files): ~500 tokens (5 min read)
 - task-progress: ~400 tokens (5 min read)

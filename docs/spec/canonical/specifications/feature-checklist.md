@@ -65,6 +65,7 @@ class Narrative:
 ```
 
 **Checklist:**
+
 - [ ] No imports from `application`, `infrastructure`, `interfaces`
 - [ ] Only domain logic (business rules)
 - [ ] Testable in isolation (no mocks)
@@ -89,6 +90,7 @@ class NarrativeRepositoryPort(Protocol):
 ```
 
 **Checklist:**
+
 - [ ] No implementation (only interface)
 - [ ] Returns domain entities (or DTOs)
 - [ ] All methods are `async`
@@ -119,6 +121,7 @@ class RetrieveNarrativeUseCase:
 ```
 
 **Checklist:**
+
 - [ ] Named `<Verb><Entity>UseCase`
 - [ ] Depends on Ports, NOT Adapters
 - [ ] Single responsibility (one use case per class)
@@ -151,6 +154,7 @@ class JsonNarrativeAdapter(NarrativeRepositoryPort):
 ```
 
 **Checklist:**
+
 - [ ] Named `<Technology><Entity>Adapter`
 - [ ] Implements Port protocol
 - [ ] No domain logic (mapping only)
@@ -166,6 +170,7 @@ class JsonNarrativeAdapter(NarrativeRepositoryPort):
 **Key Rule:** Map errors DOWN the stack, NOT UP
 
 **Error Flow:**
+
 ```
 Infrastructure (ChromaDB error, File error, API error)
     ↓ [Map to Domain Error]
@@ -189,6 +194,7 @@ class InvalidNarrativeError(Exception):
 ```
 
 **Checklist:**
+
 - [ ] Errors named `<Noun>Error`
 - [ ] Inherit from `Exception` or specific base
 - [ ] Have docstrings explaining when thrown
@@ -210,6 +216,7 @@ class RetrieveNarrativeUseCase:
 ```
 
 **Checklist:**
+
 - [ ] Adapter methods may throw technical errors
 - [ ] UseCase catches technical errors
 - [ ] UseCase maps to domain errors
@@ -231,6 +238,7 @@ async def get_narrative(id: str):
 ```
 
 **Checklist:**
+
 - [ ] Catches domain errors
 - [ ] Converts to HTTP status codes (or Discord responses)
 - [ ] Returns clear error messages
@@ -262,6 +270,7 @@ class JsonNarrativeAdapter:
 ```
 
 **Checklist:**
+
 - [ ] Docstring lists failure modes
 - [ ] Technical errors propagate as-is
 - [ ] No catching and hiding errors
@@ -284,6 +293,7 @@ class JsonNarrativeAdapter:
 **File naming:** Depends on interface type
 
 ### HTTP API (`interfaces/api/routes/`)
+
 ```python
 # ✅ FastAPI route
 router = APIRouter(prefix="/narratives")
@@ -299,6 +309,7 @@ async def get_narrative(id: str,
 ```
 
 **Checklist:**
+
 - [ ] Input validated (Pydantic schema)
 - [ ] Calls application layer only (never direct adapter)
 - [ ] Maps to UseCase
@@ -306,6 +317,7 @@ async def get_narrative(id: str,
 - [ ] Error responses conform to spec
 
 ### Discord (`interfaces/discord/handlers/`)
+
 ```python
 # ✅ Discord event handler
 @bot.event
@@ -321,6 +333,7 @@ async def on_message(message):
 ```
 
 **Checklist:**
+
 - [ ] Async message handling
 - [ ] Calls application layer
 - [ ] Error responses to user
@@ -343,6 +356,7 @@ class RetrieveNarrativeCommand:
 ```
 
 **Checklist:**
+
 - [ ] All fields typed
 - [ ] Validates constraints
 - [ ] From interface layer inputs
@@ -373,6 +387,7 @@ class NarrativeModule:
 ```
 
 **Checklist:**
+
 - [ ] One module per feature domain
 - [ ] Builds complete usecase with dependencies
 - [ ] Adapters resolved from container

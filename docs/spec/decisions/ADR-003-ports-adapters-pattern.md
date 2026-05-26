@@ -1,6 +1,7 @@
 # ADR-003: Ports & Adapters Pattern (Hexagonal Architecture)
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2025-08-01
 - Accepted: 2025-08-08
@@ -12,6 +13,7 @@
 
 **Problem**:
 System needs to support multiple implementations:
+
 - Storage: JSON file today, but need PostgreSQL tomorrow
 - Vector index: ChromaDB today, but Pinecone/Qdrant possible
 - LLM: OpenAI today, but local LLMs possible tomorrow
@@ -37,12 +39,14 @@ Changing implementations shouldn't require rewriting business logic.
 10. **EventBusPort** - Async event dispatch & lifecycle (NEW - April 2026)
 
 **Why ports?**
+
 - Business logic never knows which implementation is used
 - Easy to test (mock implementations)
 - Easy to swap implementations
 - Clear responsibility boundaries
 
 **Why 10? (Changed from 9)**
+
 - More specific ports = better separation
 - Each port has one responsibility
 - Future implementations can implement only needed ports
@@ -50,6 +54,7 @@ Changing implementations shouldn't require rewriting business logic.
 - **[MARKER: EventBusPort]** Added for independent lifecycle management from ExecutorPort
 
 **DECISION POINTS DOCUMENTED:**
+
 - See section "Current Implementation Status" below for implementation notes
 - See architecture.md "Vector Index" section for factory pattern requirements
 
@@ -58,18 +63,21 @@ Changing implementations shouldn't require rewriting business logic.
 ## Consequences
 
 ### Positive ✅
+
 - Easy to test business logic (mock ports)
 - Easy to add new implementations (new adapter)
 - No infrastructure leakage into business logic
 - Multiple adapters can be chained (caching, retrying)
 
 ### Negative ⚠️
+
 - More boilerplate (need port + adapter for each operation)
 - Learning curve (need to understand abstraction)
 - Abstraction can leak (exceptions, timeouts)
 - Performance cost if not designed well
 
 ### Risk 🚨
+
 - Ports can become too coarse (lose benefits)
 - Ports can become too fine (too many ports)
 - Breaking port changes affect multiple adapters
@@ -80,17 +88,21 @@ Changing implementations shouldn't require rewriting business logic.
 ## Alternatives Considered
 
 ### 1. Dependency Injection only (no explicit ports)
+
 **Rejected because**: Unclear what implementations are possible, hard to understand dependencies.
 
 ### 2. Single monolithic port
+
 **Rejected because**: Would require all adapters to implement everything, loses separation benefits.
 
 ### 3. Mix of ports and direct imports
+
 **Rejected because**: Inconsistent, infrastructure can still leak in some places.
 
 ---
 
 ## Related ADRs
+
 - ADR-001: Clean Architecture (Layer 3 is ports)
 - ADR-002: Async-First (all ports must be async)
 
@@ -101,6 +113,7 @@ Changing implementations shouldn't require rewriting business logic.
 See: [contracts.md](../canonical/specifications/contracts.md)
 
 Each port has:
+
 - Interface definition
 - Guaranteed behavior
 - What can change
@@ -126,6 +139,7 @@ Each port has:
 - ✅ EventBusPort (Event dispatch + async lifecycle) [NEW: April 2026]
 
 **[MARKER: Implementation Gap]** EventBusPort added April 2026:
+
 - Reason: Phase 1 implementation requires async lifecycle methods (start(), shutdown(), run_async())
 - Note: Was not in original 9 ports spec
 - Consider: ADR may need clarification on whether EventBusPort should be distinct or part of ExecutorPort
@@ -136,6 +150,7 @@ Each port has:
 ## Future Implementations
 
 Possible future adapters:
+
 - PostgreSQL for KeyValueStore
 - Qdrant for VectorStore
 - S3 for DocumentStore
@@ -198,16 +213,19 @@ pytest tests/integration/test_adapter_swaps.py -v
 ### Success Criteria
 
 ✅ Architecture compliance:
+
 - All infrastructure access via ports
 - Zero direct adapter access in usecases
 - All adapters pass contract tests
 
 ✅ Integration testing:
+
 - Adapter swaps work seamlessly
 - Behavior identical between adapters
 - Error handling consistent
 
 ✅ Runtime behavior:
+
 - No "adapter not found" errors
 - Clean dependency injection
 - Fast adapter startup
@@ -217,6 +235,7 @@ pytest tests/integration/test_adapter_swaps.py -v
 ## Next Review: August 1, 2027
 
 Consider:
+
 - Are ports being used correctly?
 - Any port being bypassed?
 - Any new infrastructure needs that need new port?

@@ -1,6 +1,7 @@
 # ADR-001: Clean Architecture 8-Layer Pattern
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2025-06-15 (Retrofit, original decision earlier)
 - Accepted: 2025-06-20
@@ -12,6 +13,7 @@
 
 **Problem**:
 The system needed clear separation between business logic, adaptation, and infrastructure to support:
+
 - Multiple storage backends (JSON file, future DB)
 - Multiple vector index backends (ChromaDB, future Pinecone)
 - Easy testing at each layer
@@ -38,12 +40,14 @@ Layer 1: Entities (Domain models)
 ```
 
 **Why 8 layers?**
+
 - 4 layers (clean arch classic) wasn't enough for our infrastructure needs
 - 8 layers gives us explicit error mapping layer (Layer 5)
 - 8 layers gives us explicit DTO layer (Layer 7)
 - Prevents mixing of concerns
 
 **Why mandatory?**
+
 - Consistency across all features
 - New agents can understand code structure immediately
 - Easy to spot violations (code in wrong layer)
@@ -53,6 +57,7 @@ Layer 1: Entities (Domain models)
 ## Consequences
 
 ### Positive ✅
+
 - Infrastructure changes don't affect business logic
 - Easy to test each layer independently
 - Clear responsibility boundaries
@@ -60,12 +65,14 @@ Layer 1: Entities (Domain models)
 - Future database migration only needs new Adapter
 
 ### Negative ⚠️
+
 - More boilerplate (need to follow all 8 layers)
 - Steeper learning curve for new contributors
 - Can feel "over-engineered" for simple features
 - Requires discipline to not skip layers
 
 ### Risk 🚨
+
 - Teams can skip layers and "just make it work"
 - Need linting/validation to enforce
 - Refactoring is harder across layers
@@ -76,20 +83,25 @@ Layer 1: Entities (Domain models)
 ## Alternatives Considered
 
 ### 1. 4-Layer Classic Clean Architecture
+
 **Rejected because**: Doesn't handle infrastructure abstraction cleanly, error mapping gets mixed with adapters.
 
 ### 2. Layered Hexagonal (3 layers)
+
 **Rejected because**: Too simple, no clear separation between ports and adapters.
 
 ### 3. Vertical Slicing (Feature-based)
+
 **Rejected because**: Makes it hard to share domain logic across features, each slice would duplicate ports/adapters.
 
 ### 4. No enforced layers (organic structure)
+
 **Rejected because**: Led to infrastructure leakage, hard for new agents to understand structure.
 
 ---
 
 ## Related ADRs
+
 - ADR-003: Ports & Adapters Pattern (implements abstraction)
 - ADR-002: Async-First (affects each layer)
 
@@ -98,6 +110,7 @@ Layer 1: Entities (Domain models)
 ## How to Implement
 
 When adding a feature, follow all 8 layers:
+
 - See: [feature-checklist.md](../canonical/specifications/feature-checklist.md)
 - See: [architecture.md](../canonical/specifications/architecture.md)
 
@@ -168,16 +181,19 @@ grep -r "class.*Port" src/ | wc -l
 ### Success Criteria
 
 ✅ All tests pass:
+
 - `pytest tests/architecture/` (no violations)
 - `pytest tests/unit/` (per-layer unit tests)
 - `pytest tests/integration/` (layer interactions)
 
 ✅ Code review gates:
+
 - Zero layer violations in PRs
 - 100% of new features follow pattern
 - All adapters implement ports correctly
 
 ✅ Runtime behavior:
+
 - Application loads without import errors
 - Errors properly mapped at Layer 5
 - Business logic remains testable in isolation
@@ -187,6 +203,7 @@ grep -r "class.*Port" src/ | wc -l
 ## Next Review: June 15, 2027
 
 Consider:
+
 - Are new features easily following all 8 layers?
 - Should we enforce with linting?
 - Any layers that could be combined/removed?

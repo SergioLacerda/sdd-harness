@@ -1,6 +1,7 @@
 # ADR-002: Async-First, No Blocking Operations
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2025-07-01
 - Accepted: 2025-07-05
@@ -14,6 +15,7 @@
 System needs to handle 50-200 concurrent users, each with their own campaign state. A traditional threaded approach would require 50-200 threads, each blocking.
 
 **Scale Requirements**:
+
 - 50-200 campaigns running simultaneously
 - 10-50 requests/second during peak
 - Sub-second response times required
@@ -26,6 +28,7 @@ System needs to handle 50-200 concurrent users, each with their own campaign sta
 **All I/O must be async (asyncio). No blocking operations.**
 
 Rules:
+
 - ✅ Use `async def`, `await`
 - ✅ Use asyncio primitives (locks, queues, events)
 - ✅ Delegate CPU-bound work to ExecutorPort (thread pool)
@@ -34,6 +37,7 @@ Rules:
 - ❌ No blocking calls from libraries
 
 **Why async-first?**
+
 - Single event loop can handle 100+ concurrent tasks
 - Memory usage is lower (tasks, not threads)
 - Context switching is faster (no OS scheduler)
@@ -44,18 +48,21 @@ Rules:
 ## Consequences
 
 ### Positive ✅
+
 - Can handle 50-200 concurrent campaigns on single machine
 - Low memory footprint
 - Fast context switching between tasks
 - Easier to reason about (single-threaded event loop)
 
 ### Negative ⚠️
+
 - Learning curve (async/await is different mental model)
 - Blocking calls can crash entire system (one blocked task blocks all)
 - Debugging is harder (stack traces less clear)
 - Libraries must support async (or we wrap them)
 
 ### Risk 🚨
+
 - One blocking call kills performance for all users
 - No true parallelism (CPU-bound tasks will be slow)
 - Race conditions from shared state
@@ -66,20 +73,25 @@ Rules:
 ## Alternatives Considered
 
 ### 1. Threaded (Thread Pool + Locks)
+
 **Rejected because**: 50-200 threads would use too much memory, context switching overhead, GIL limits Python parallelism.
 
 ### 2. ProcessPool (Multi-processing)
+
 **Rejected because**: Inter-process communication is complex, state sharing is hard, startup time is slow.
 
 ### 3. Hybrid (Async + Threads for CPU work)
+
 **Chosen partly**: We do use ThreadPoolExecutor for CPU-bound work via ExecutorPort, but I/O stays async.
 
 ### 4. Sync with Queue (Old approach)
+
 **Rejected because**: Queue-based sync is slower than async events, hard to scale.
 
 ---
 
 ## Related ADRs
+
 - ADR-001: Clean Architecture (affects all layers)
 - ADR-003: Ports & Adapters (ExecutorPort for CPU work)
 
@@ -88,6 +100,7 @@ Rules:
 ## Rules for Implementation
 
 When implementing:
+
 - **I/O**: Always async/await
 - **Waiting**: Use asyncio primitives (Event, Lock, Queue)
 - **CPU-bound**: Delegate to ExecutorPort
@@ -164,16 +177,19 @@ grep -r "time.sleep" src/ | wc -l  # Should be 0
 ### Success Criteria
 
 ✅ Code passes automated checks:
+
 - No `time.sleep()` found
 - No sync I/O found
 - All `await` keywords where needed
 
 ✅ Performance targets met:
+
 - 200+ concurrent campaigns
 - < 10ms event loop lag
 - Response times < 1s at 200 concurrency
 
 ✅ Runtime behavior:
+
 - Each campaign responsive independently
 - No task starvation detected
 - CPU < 80% at max concurrency
@@ -183,6 +199,7 @@ grep -r "time.sleep" src/ | wc -l  # Should be 0
 ## Next Review: July 1, 2027
 
 Consider:
+
 - Are new features consistently async?
 - Have we found any blocking calls that hurt performance?
 - Should we enforce with linting?

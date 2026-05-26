@@ -10,12 +10,14 @@
 ## 📍 Where Are You?
 
 You have:
+
 - ✅ Project directories created (Step 1)
 - ✅ Template files copied (Step 2)
 - ✅ `.spec.config` configured (Step 3)
 - ❓ Need to validate everything works
 
 You're about to:
+
 - Run PHASE 0 validation script
 - Create `.sdd/` infrastructure
 - Pass VALIDATION_QUIZ (basic knowledge check)
@@ -35,6 +37,7 @@ python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-a
 ```
 
 **Breaking down the command:**
+
 ```bash
 # Part 1: Get the spec_path from .spec.config
 $(grep spec_path .spec.config | cut -d' ' -f3)
@@ -64,6 +67,7 @@ python /path/to/sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 The script will:
 
 1. **Verify Framework**
+
    ```
    ✅ Found sdd-harness at: [path]
    ✅ CANONICAL/ structure verified
@@ -71,6 +75,7 @@ The script will:
    ```
 
 2. **Create Infrastructure**
+
    ```
    ✅ Creating .sdd/context-aware/
    ✅ Creating .sdd/runtime/
@@ -78,6 +83,7 @@ The script will:
    ```
 
 3. **Run VALIDATION_QUIZ**
+
    ```
    VALIDATION_QUIZ: SDD Framework Knowledge (8 questions)
    Question 1/8: What is the main purpose of ports?
@@ -85,6 +91,7 @@ The script will:
    ```
 
 4. **Result**
+
    ```
    ✅ Quiz passed (6/8 = 75%)
    ✅ Infrastructure ready
@@ -98,6 +105,7 @@ The script will:
 The quiz tests your understanding of SDD principles.
 
 **Example questions:**
+
 - What is a PORT in hexagonal architecture?
 - Name one of the 16 mandatory rules
 - What does AGENT_HARNESS stand for?
@@ -105,12 +113,14 @@ The quiz tests your understanding of SDD principles.
 - What is thread isolation?
 
 **How to answer:**
+
 - Just type your answer and press `Enter`
 - Short answers are fine (doesn't need to be perfect)
 - Aim for ≥80% to pass (6 out of 8)
 - If you fail, you can run again
 
 **Tips:**
+
 - Read `constitution.md` and `ia-rules.md` if stuck
 - The framework is about governance and autonomy
 - Tests are written during implementation (TDD)

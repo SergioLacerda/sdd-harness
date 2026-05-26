@@ -401,22 +401,27 @@ Deprecated Rule 5 (2026-04-19) → Removed (2026-06-19)
 ## 🛑 What NOT to Do
 
 ❌ **Mistake 1:** Revoke without deprecation period
+
 - Result: Projects break suddenly
 - Fix: Always 30-day deprecation notice
 
 ❌ **Mistake 2:** Revoke without migration guide
+
 - Result: Confusion, incorrect migrations
 - Fix: Create step-by-step migration docs
 
 ❌ **Mistake 3:** Revoke without all projects adapted
+
 - Result: Some projects still use old rule (breaks enforcement)
 - Fix: Don't revoke until 100% migrated
 
 ❌ **Mistake 4:** Delete old rule content entirely
+
 - Result: Can't understand why rule existed
 - Fix: Keep in git history (archive in docs)
 
 ❌ **Mistake 5:** Revoke unilaterally (without team)
+
 - Result: Projects surprised, angry
 - Fix: Announce 30 days early, get sign-off
 

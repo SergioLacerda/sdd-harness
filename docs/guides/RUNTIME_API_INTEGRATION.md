@@ -100,6 +100,7 @@ sdd skills run sdd-validate-governance
 ```
 
 Contract:
+
 - returns policy-oriented result (`policy_result`, `reason`, `exit_code`)
 - emits skill runtime telemetry (`runtime.skill.run`) when telemetry sink is configured
 - keeps fallback command references for governed escalation
@@ -160,7 +161,7 @@ Recommended insertion points:
 1. Before `Crew.kickoff()`: run health gate
 2. In agent tool wrapper: route policy/spec questions to `sdd ask-full`
 3. For intent-level actions, prefer `sdd skills run <skill>`
-3. After task completion: persist/ship compliance log artifact
+4. After task completion: persist/ship compliance log artifact
 
 OTel mapping adapter:
 
@@ -185,7 +186,7 @@ Recommended insertion points:
 1. Before starting chat loop: run health gate
 2. In custom tool/function bridge: map governance questions to `sdd ask` or `sdd ask-full`
 3. Use `sdd skills run` for capability-oriented tasks before low-level command fallback
-3. In termination callback: run drift check and archive logs
+4. In termination callback: run drift check and archive logs
 
 OTel mapping adapter:
 

@@ -78,6 +78,7 @@ ORPHAN: docs/spec/guides/operational/MONITORING.md:142
 ```
 
 A human reviews the report and decides per entry. Execution options:
+
 - **Remove**: delete the link and add a `> Note: runbook not yet written.` inline.
 - **Create**: add the file to the `needs-creation` list.
 
@@ -109,6 +110,7 @@ A new step added to the existing `reusable-test.yml` (runs on every PR):
 ```
 
 Exit behavior:
+
 - Exit 0: all internal links resolve to existing files.
 - Exit 1: one or more broken links found; output lists file, line, and broken target.
 

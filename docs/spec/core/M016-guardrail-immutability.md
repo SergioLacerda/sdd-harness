@@ -1,6 +1,7 @@
 # M016: Guardrail Non-Regression
 
 ## Status
+
 - **Accepted** ✅
 - Proposed: 2026-05-20
 - Accepted: 2026-05-20
@@ -88,12 +89,14 @@ The asymmetry is the key: a guardrail that got stronger is invisible (no inciden
 ## Consequences
 
 ### Positive ✅
+
 - Guardrails can evolve and improve over time
 - Regressions are caught at CI, not in production
 - Hacks and code smells are blocked at review, not accumulated
 - Human owner is informed before any coverage reduction
 
 ### Negative ⚠️
+
 - Legitimate coverage reduction (e.g., removing an obsolete check) requires RFC overhead
 
 ---

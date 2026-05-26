@@ -11,6 +11,7 @@
 The DSL Compiler converts human-readable SDD v3.0 DSL files (`.spec`, `.dsl`) into optimized MessagePack binary format (`.bin`) for 65% size reduction and 3-4x faster parsing performance.
 
 **Key Metrics:**
+
 - Input: 28 KB (guidelines.dsl + mandate.spec)
 - Output: <10 KB (compiled .bin)
 - Compression: 65% reduction
@@ -176,6 +177,7 @@ categories:
 ## 4. String Deduplication
 
 ### Strategy
+
 - Build string pool during parsing
 - Replace duplicates with integer references
 - Saves 30-40% on typical DSL files
@@ -183,6 +185,7 @@ categories:
 ### Example
 
 **Before Deduplication:**
+
 ```
 "Clean Architecture as Foundation"
 "Clean Architecture as Foundation"  (duplicate)
@@ -190,6 +193,7 @@ categories:
 ```
 
 **After Deduplication:**
+
 ```
 String Pool:
   [0]: "Clean Architecture as Foundation"
@@ -577,14 +581,17 @@ def parse_binary(binary_data: bytes) -> Dict[str, Any]:
 ## 9. Rollout Plan
 
 ### v3.1.0-beta.1
+
 - [ ] Release compiler (optional)
 - [ ] Feature flag for binary format
 
 ### v3.1.0-rc1
+
 - [ ] Compiler required for v3.1
 - [ ] Binary format as default
 
 ### v3.1.0
+
 - [ ] All v3.1 files compiled by default
 - [ ] Text DSL source maintained for reference
 

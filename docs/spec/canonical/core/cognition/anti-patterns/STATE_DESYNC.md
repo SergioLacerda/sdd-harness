@@ -63,6 +63,7 @@ Operating on stale, incomplete, or contradictory execution state, leading to dec
 ## Cure
 
 **Immediate (if detected during execution):**
+
 1. **Stop.** Do not proceed with current assumptions.
 2. **Synchronize:** Read `.sdd-cache.md` and run `sdd runtime status`
 3. **Detect drift:** Check for `governance.drift.detected` events
@@ -71,6 +72,7 @@ Operating on stale, incomplete, or contradictory execution state, leading to dec
 6. **Resume** with accurate state
 
 **After detection:**
+
 1. Commit any partial work with clear checkpoint comment
 2. Update `.sdd-cache.md` with current state
 3. Run full validation: `sdd governance validate`

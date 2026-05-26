@@ -5,6 +5,7 @@
 Define the interfaces (Ports) that connect the application to infrastructure.
 
 All contracts MUST comply with:
+
 - [Architecture Specification](./architecture.md)
 - [Core Rules](../core/rules/)
 

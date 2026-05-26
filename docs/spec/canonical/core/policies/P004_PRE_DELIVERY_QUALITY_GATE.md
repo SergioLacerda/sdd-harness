@@ -44,20 +44,25 @@ Before declaring work done, scan the project for available quality tooling:
 Based on detection, classify the project:
 
 ### ✅ EQUIPPED
+
 **Condition:** 2 or more quality tools detected.
 **Action:** All detected tools are **MANDATORY**. Run all of them. Do not skip.
 
 ### ⚠️ PARTIAL
+
 **Condition:** Exactly 1 quality tool detected.
 **Action:** That tool is **MANDATORY**. In the delivery message, signal the gap:
+
 ```
 [PDQG] ⚠️ PARTIAL infrastructure — only [tool] detected.
 Recommend: Add [missing tools] to strengthen quality gates.
 ```
 
 ### 🚧 LEGACY
+
 **Condition:** Zero quality tools detected.
 **Action:** This project lacks quality infrastructure. The agent MUST:
+
 1. Signal this explicitly in the delivery
 2. NOT silently skip quality validation
 3. Recommend tooling to the architect (cost-benefit decision is theirs)
@@ -80,11 +85,13 @@ For each **mandatory** tool:
 3. **If FAIL** → **DO NOT DELIVER**:
    - Fix the issues, OR
    - If pre-existing failures unrelated to this change, signal explicitly:
+
      ```
      [PDQG] ⛔ BLOCKED — pre-existing failure in [file/tool].
      This failure is NOT caused by this change.
      Options: (a) fix now, (b) accept and note in delivery.
      ```
+
    - Never silently ignore failures
 
 ### Remediation-First Pipeline (Strict)
@@ -106,7 +113,8 @@ The agent MUST provide evidence of a re-run after auto-fix.
 
 Every agent handoff message MUST include a PDQG status block:
 
-### Example — EQUIPPED, all passing:
+### Example — EQUIPPED, all passing
+
 ```
 [PDQG STATUS] ✅ Pre-Delivery Quality Gate PASSED
   Auto-fix:  ✅ ruff check --fix .
@@ -117,7 +125,8 @@ Every agent handoff message MUST include a PDQG status block:
   Coverage:  ✅ 87% overall
 ```
 
-### Example — PARTIAL infrastructure:
+### Example — PARTIAL infrastructure
+
 ```
 [PDQG STATUS] ⚠️ PARTIAL
   Auto-fix:  ✅ ruff check --fix .
@@ -126,7 +135,8 @@ Every agent handoff message MUST include a PDQG status block:
   Recommend: Add pytest to pyproject.toml
 ```
 
-### Example — EQUIPPED, blocked:
+### Example — EQUIPPED, blocked
+
 ```
 [PDQG STATUS] ⛔ BLOCKED — delivery withheld
   Auto-fix:  ✅ ruff check --fix .
@@ -152,7 +162,9 @@ Detected tooling class: **EQUIPPED**
 - [ ] Included `[PDQG STATUS]` block in handoff message
 
 ### 🚩 The Agentic Boundary
+
 The completion and reporting of the **PDQG Status** marks the absolute boundary of AI Agent autonomy.
+
 - No Git mutations (commits, pushes, merges) are permitted after this point.
 - The agent must hand over control to the human reviewer immediately after delivering the status block.
 

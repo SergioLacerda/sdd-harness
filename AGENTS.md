@@ -39,6 +39,9 @@ Objective: standardize where each agent must load local instructions, commands, 
 
 - Codex: `./.codex/`
 - Claude: `./CLAUDE.md`, `./.claude/commands/`
+  - Bootstrap authority rule: `CLAUDE.md` is a pointer entrypoint (ADR-013), not a governance snapshot.
+  - Do not create a parallel authority file at `./.claude/agent-instructions.md`.
+  - If any Claude-local instruction conflicts with `.sdd/agent-instructions.md`, `.sdd` is authoritative.
 - Gemini: `./.gemini/`
 - GitHub Copilot: `./.github/copilot-instructions.md`, `./.github/prompts/`
 - Cursor: `./.cursor/rules/`

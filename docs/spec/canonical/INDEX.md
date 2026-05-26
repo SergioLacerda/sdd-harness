@@ -4,6 +4,7 @@
 > **Navigation:** For AI agents, see the [Semantic Map](./SEMANTIC_MAP.md) for deep knowledge graph navigation.
 
 ## 🏗️ Core (Immutable Governance Kernel)
+
 *Non-negotiable rules and mandates that govern all agent behavior.*
 
 - **Mandates**: [core/mandates/INDEX.md](./core/mandates/INDEX.md) — Primary execution mandates.
@@ -12,6 +13,7 @@
 - **Invariants**: [core/INDEX.md](./core/INDEX.md) — Architectural lock-in rules.
 
 ## 🧩 Specifications (Technical Guardrails)
+
 *Technical standards for implementing features and maintaining code quality.*
 
 - **Definition of Done**: [specifications/definition_of_done.md](./specifications/definition_of_done.md) — 45+ criteria for task completion.
@@ -20,6 +22,7 @@
 - **Architecture**: [specifications/architecture.md](./specifications/architecture.md) — Ports & Adapters (Hexagonal) alignment.
 
 ## 🚀 Key Features
+
 *Specific framework capabilities and their governing rules.*
 
 - **Clean Architecture**: [features/CLEAN_ARCHITECTURE.md](./features/CLEAN_ARCHITECTURE.md)

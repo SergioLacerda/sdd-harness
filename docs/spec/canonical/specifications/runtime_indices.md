@@ -22,6 +22,7 @@ Specify the 3 runtime indices that agents create during PHASE 0 to enable effici
 
 **Location:** `docs/indices/`
 **Files:**
+
 - `spec-canonical-index.md` — Reference to all CANONICAL docs
 - `spec-guides-index.md` — Reference to all operational guides
 - `search-keywords.md` — Keyword-to-document mapping
@@ -61,6 +62,7 @@ Specify the 3 runtime indices that agents create during PHASE 0 to enable effici
 **Updated:** Quarterly (when CANONICAL changes)
 
 **Contents:**
+
 - Authority hierarchy (constitution → rules → decisions → specs)
 - Constitution overview (15 immutable principles)
 - Mandatory Rules (16 total with descriptions)
@@ -71,6 +73,7 @@ Specify the 3 runtime indices that agents create during PHASE 0 to enable effici
 - Emergency quick links
 
 **Key Sections:**
+
 1. Introduction (purpose + links)
 2. Rules layer (constitution, rules, conventions)
 3. Decisions layer (ADR-001 through ADR-006)
@@ -91,6 +94,7 @@ Specify the 3 runtime indices that agents create during PHASE 0 to enable effici
 **Updated:** Monthly (when guides added/changed)
 
 **Contents:**
+
 - Onboarding guides (AGENT_HARNESS, PHASE-0, validation, etc.)
 - Operational guides (adding projects, conflicts, migration, etc.)
 - Emergency guides (6 runbooks for failures)
@@ -100,6 +104,7 @@ Specify the 3 runtime indices that agents create during PHASE 0 to enable effici
 - Guide relationships and dependencies
 
 **Key Sections:**
+
 1. Onboarding guides (9 files)
 2. Operational guides (5 files)
 3. Emergency guides (6 files)
@@ -120,6 +125,7 @@ Specify the 3 runtime indices that agents create during PHASE 0 to enable effici
 **Updated:** As new patterns emerge
 
 **Contents:**
+
 - Framework concepts table
 - Constitutional foundation table
 - Architecture decisions table
@@ -132,6 +138,7 @@ Specify the 3 runtime indices that agents create during PHASE 0 to enable effici
 - By-task-type scenarios
 
 **Key Sections:**
+
 1. Keyword mappings (organized by topic)
 2. Common scenarios (keyword → solution)
 3. By task type (implementing, help, broken, projects, learning)
@@ -264,14 +271,17 @@ head -20 .sdd/source/search-keywords.md && echo "✅"
 ## 📈 Maintenance
 
 ### Weekly
+
 No maintenance needed. Indices are read-only after creation.
 
 ### Monthly
+
 - Check if new guides added to SPEC → update .sdd/source/ copies
 - Check if new patterns discovered → add keywords
 - Commit updates in regular checkpoints
 
 ### Quarterly
+
 - Re-generate indices from framework templates if SPEC changed
 - Verify all links still valid
 - Update reading paths if documentation changed

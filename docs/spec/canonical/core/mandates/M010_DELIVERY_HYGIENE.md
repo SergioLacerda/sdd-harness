@@ -41,6 +41,7 @@ State-modifying git commands include but are not limited to:
 ### Rule: Suggest — Never Execute
 
 When a commit would be appropriate, the agent MUST:
+
 1. Prepare the complete, ready-to-run command block (staged files + commit message).
 2. Present it to the human in a code block.
 3. Stop and wait. Do NOT execute.

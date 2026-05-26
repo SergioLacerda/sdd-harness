@@ -8,7 +8,9 @@
 ## 🏗️ Stability Levels
 
 ### ✅ Immutable Core (DO NOT CHANGE)
+
 These 5 principles must remain in every SDD implementation to maintain framework integrity:
+
 1. **Clean Separation of Concerns**: Business logic isolated from infrastructure.
 2. **Explicit Governance**: Rules documented and enforced, not implicit.
 3. **Traceability**: Decisions linked to implementation via ADRs.
@@ -18,7 +20,9 @@ These 5 principles must remain in every SDD implementation to maintain framework
 ---
 
 ## 🚀 Flexible Customizations (The User Choice)
+
 Users may customize the following based on project needs:
+
 - **Number of Layers**: 4, 6, or 8 layers depending on complexity.
 - **Async Strategy**: Waive "Async-First" for embedded or sequential CLI tools.
 - **Testing Depth**: Adjust thresholds based on project risk.
@@ -36,6 +40,7 @@ Users may customize the following based on project needs:
 ---
 
 ## 🚨 Red Flags
+
 - ❌ Skipping tests because they are "inconvenient".
 - ❌ Removing all validation steps.
 - ❌ Hiding technical debt to make a status look green.

@@ -260,6 +260,7 @@ Week 2+ (Ongoing)
 4. **Escalate** — Contact SDD framework team
 
 **When escalating, provide:**
+
 - OS and environment info
 - Exact command run
 - Full error message

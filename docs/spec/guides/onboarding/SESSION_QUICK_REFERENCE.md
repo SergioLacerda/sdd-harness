@@ -7,6 +7,7 @@
 ## 🏗️ TWO LAYERS OF DOCUMENTATION
 
 ### 🔒 GOVERNANCE (Immutable — Stable)
+
 **See**: [IA_FIRST.md](../../../runtime/IA_FIRST.md)
 
 ```
@@ -20,6 +21,7 @@ These RARELY change. They're the stable foundation.
 ```
 
 ### 🔄 RUNTIME (Mutable — Changing)
+
 **See**: [AGENT_RUNTIME_PROTOCOL.md](../../../runtime/protocols/AGENT_RUNTIME_PROTOCOL.md)
 
 ```
@@ -32,6 +34,7 @@ These CHANGE constantly. Update as you work.
 ```
 
 **Key**: Gap between governance and runtime is NORMAL.
+
 - Governance = ideal ("What should be?")
 - Runtime = reality ("What actually is?")
 - Document gaps, don't assume governance is wrong
@@ -89,6 +92,7 @@ RESULT: Ready to implement ✓
 ## 📚 ESSENTIAL DOCUMENTS
 
 **Phase 1 - Always (non-negotiable)**
+
 ```
 ✓ /EXECUTION/spec/CANONICAL/rules/ia-rules.md (16 rules)
 ✓ /EXECUTION/spec/CANONICAL/rules/constitution.md (principles)
@@ -96,6 +100,7 @@ RESULT: Ready to implement ✓
 ```
 
 **Phase 2 - Your PATH (choose one)**
+
 ```
 PATH A: feature-checklist.md (Layer 5+, affected layer only)
 PATH B: feature-checklist.md (Layers 1-3)
@@ -104,6 +109,7 @@ PATH D: runtime/threads/TEMPLATE.md (thread format)
 ```
 
 **Phase 3 - Before Merge (mandatory)**
+
 ```
 ✓ /EXECUTION/spec/CANONICAL/specifications/definition_of_done.md
 ✓ docs/spec/DEVELOPMENT/execution-state/_current.md (update checkpoint)
@@ -165,6 +171,7 @@ docs/spec/
 ## ⚡ QUICK CHECKLIST FOR IMPLEMENTATION
 
 Before writing code:
+
 ```
 [ ] Identified which port(s) I'll use
 [ ] Read port contract in contracts.md
@@ -175,6 +182,7 @@ Before writing code:
 ```
 
 During implementation:
+
 ```
 [ ] Following feature-checklist.md layer process
 [ ] Using test patterns from testing.md
@@ -184,6 +192,7 @@ During implementation:
 ```
 
 After implementation:
+
 ```
 [ ] All tests pass (testing.md patterns)
 [ ] Code review against definition_of_done.md
@@ -197,6 +206,7 @@ After implementation:
 ## 📞 WHEN TO ASK VS WHEN NOT TO ASK
 
 **ASK if:**
+
 ```
 [ ] Rules conflict (two ia-rules contradict)
 [ ] Unclear which PATH applies
@@ -208,6 +218,7 @@ After implementation:
 ```
 
 **DO NOT ASK if:**
+
 ```
 [ ] Answer is in ia-rules.md
 [ ] Answer is in QUICK_START.md
@@ -221,6 +232,7 @@ After implementation:
 ## 🎯 SESSION END CHECKLIST
 
 Before finishing session:
+
 ```
 [ ] Updated docs/spec/DEVELOPMENT/execution-state/_current.md
     - Documented what you did
@@ -245,6 +257,7 @@ Before finishing session:
 ## 🔗 IMPORTANT LINKS
 
 **One-stop shortcuts:**
+
 - Start: `docs/spec/MASTER_INDEX.md`
 - Rules: `/EXECUTION/spec/CANONICAL/rules/ia-rules.md` ← LOCK HERE
 - Setup: `docs/spec/guides/FIRST_SESSION_SETUP.md`

@@ -8,7 +8,8 @@
 
 ## When to Upgrade
 
-### ✅ Ready for FULL if:
+### ✅ Ready for FULL if
+
 - Team is comfortable with 10 LITE principles
 - Built 1-2 features using LITE successfully
 - Project growing (code > 500 lines)
@@ -17,7 +18,8 @@
 - Need comprehensive compliance
 - Team wants CI/CD to enforce all rules
 
-### ⏳ Not yet ready if:
+### ⏳ Not yet ready if
+
 - Still learning SDD concepts (stay LITE)
 - Project is experimental/temporary
 - Team < 2 people
@@ -54,6 +56,7 @@ git checkout -b upgrade/lite-to-full
 ```
 
 **Constitution now covers:**
+
 - Core: Clean Architecture, Async, Ports, ADRs, Governance ✅
 - Quality: Framework Bleed, Types, Tests, Docs, Autonomy ✅
 - Enterprise: Tech Stack, Data, Security, Performance, Ops 🆕
@@ -74,6 +77,7 @@ git checkout -b upgrade/lite-to-full
 ```
 
 Update `.sdd/constitution.yaml`:
+
 ```yaml
 # Old LITE rules (keep)
 rules:
@@ -164,6 +168,7 @@ git push origin upgrade/lite-to-full
 ## What Changes
 
 ### Constitution
+
 ```diff
 - 10 core principles
 + 5 enterprise principles
@@ -171,6 +176,7 @@ git push origin upgrade/lite-to-full
 ```
 
 ### Rules
+
 ```diff
 - 5 essential rules (layer, async, ports, types, ADR)
 + 11 additional rules (stack, circular, print, errors, security, etc.)
@@ -178,6 +184,7 @@ git push origin upgrade/lite-to-full
 ```
 
 ### Tests
+
 ```diff
 - 10 DoD criteria (architecture + testing basics)
 + 35 additional criteria (security, performance, operations, process)
@@ -185,6 +192,7 @@ git push origin upgrade/lite-to-full
 ```
 
 ### Workflow
+
 ```diff
 - 3 phases (Domain, Adapter, UseCase)
 + 4 additional phases (Integration, API, Compliance, Deployment)
@@ -192,6 +200,7 @@ git push origin upgrade/lite-to-full
 ```
 
 ### Pre-commit
+
 ```diff
 - 5 hooks (layer, async, types, adr, imports)
 + 7 additional hooks (security, performance, lint, format, etc.)
@@ -276,6 +285,7 @@ pre-commit install
 ## After Migration
 
 ### What's Better
+
 ✅ Stronger architecture enforcement
 ✅ Fewer bugs in production
 ✅ Clearer process for everyone
@@ -283,11 +293,13 @@ pre-commit install
 ✅ Easier onboarding with explicit rules
 
 ### What's Different
+
 ⚠️ More pre-commit checks (slower local commits, but faster CI)
 ⚠️ More DoD criteria (fewer "almost done" PRs)
 ⚠️ Stricter rules (less ambiguity = better, but less flexibility)
 
 ### New Capabilities
+
 🎯 Full AI agent autonomy (all rules explicit)
 🎯 Audit trail (every decision documented)
 🎯 Performance tracking (metrics in v2.2)

@@ -45,10 +45,12 @@ Remove all three fallbacks. Misconfigured workspaces now fail loudly:
 ## Consequences
 
 **Positive:**
+
 - Misconfigured workspaces fail loudly with actionable error messages
 - Codebase has no hidden state transitions based on which legacy files happen to exist
 - Reduces attack surface: no alternative trust anchor paths can be silently activated
 
 **Negative:**
+
 - Any workspace still using a legacy layout will break with a HIGH integrity error or
   missing-file error — acceptable given the migration timeline and prior warnings
