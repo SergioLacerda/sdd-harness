@@ -65,6 +65,8 @@ sdd-runtime/*.bin
 sdd-runtime/metadata.json
 !sdd-runtime/.gitkeep
 generated/
+!docs/spec/canonical/core/generated/
+!docs/spec/canonical/core/generated/*.md
 .sergioL
 scratch/
 

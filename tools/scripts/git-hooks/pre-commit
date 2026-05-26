@@ -121,6 +121,10 @@ done
 # ── 7. Orphan document check ─────────────────────────────────────────────────
 new_docs=$(git diff --cached --name-only --diff-filter=A docs/ 2>/dev/null || true)
 for doc in $new_docs; do
+    # INDEX.md is the container file for directory entries and must not require self-listing.
+    if [ "$(basename "$doc")" = "INDEX.md" ]; then
+        continue
+    fi
     dir=$(dirname "$doc")
     index="$dir/INDEX.md"
     if [ -f "$REPO_ROOT/$index" ] && ! grep -q "$(basename "$doc")" "$REPO_ROOT/$index" 2>/dev/null; then
