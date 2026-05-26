@@ -7,7 +7,6 @@ import hashlib
 import io
 import json
 import re
-import subprocess  # nosec B404 — used only for hardcoded internal CLI commands
 import sys
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -20,6 +19,7 @@ import typer
 from sdd_cli.shared.contracts import build_ok_result
 from sdd_cli.utils.output import emit_json, is_json_mode
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
+from sdd_core.utils.process import SafeProcessRunner
 
 app = typer.Typer(
     help="Governance audit and drift analytics", invoke_without_command=True
@@ -901,16 +901,15 @@ def audit_compliance_pack(
     manifest_file = out_dir / "compliance_report.manifest.json"
     manifest_file.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
-    runtime_status = subprocess.run(  # nosec B603 — input is a hardcoded internal CLI command, not user-controlled
+    runner = SafeProcessRunner()
+    runtime_status = runner.run(
         [sys.executable, "-m", "sdd_cli.main", "runtime", "status"],
         capture_output=True,
-        text=True,
         check=False,
     )
-    governance_validate = subprocess.run(  # nosec B603 — input is a hardcoded internal CLI command, not user-controlled
+    governance_validate = runner.run(
         [sys.executable, "-m", "sdd_cli.main", "governance", "validate"],
         capture_output=True,
-        text=True,
         check=False,
     )
     (out_dir / "runtime_status.txt").write_text(

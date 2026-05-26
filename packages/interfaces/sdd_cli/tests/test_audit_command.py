@@ -278,7 +278,7 @@ def test_audit_compliance_pack_generates_files(tmp_path: Path) -> None:
     with (
         patch("sdd_cli.commands.audit.resolve_workspace_root", return_value=tmp_path),
         patch(
-            "sdd_cli.commands.audit.subprocess.run",
+            "sdd_cli.commands.audit.SafeProcessRunner.run",
             side_effect=[
                 SimpleNamespace(stdout="runtime ok\n", stderr="", returncode=0),
                 SimpleNamespace(stdout="governance ok\n", stderr="", returncode=0),
