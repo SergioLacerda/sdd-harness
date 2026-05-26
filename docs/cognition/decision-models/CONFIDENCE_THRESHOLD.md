@@ -54,4 +54,4 @@ A fast wrong answer is more expensive than a slow right one.
 
 - Anti-pattern: [`anti-patterns/PREMATURE_EXECUTION.md`](../anti-patterns/PREMATURE_EXECUTION.md)
 - ADR process: [`spec/decisions/`](../../spec/decisions/)
-- SDD Governance Gate: [`.sdd/agent-instructions.md`](../../../.sdd/agent-instructions.md) — contém o bloco `SELF-EVALUATION` com o mesmo modelo de confiança aplicado à governança do projeto.
+- SDD Governance Gate: [`AGENT_ENTRYPOINT.md`](../../spec/canonical/core/generated/AGENT_ENTRYPOINT.md) — includes the governed bootstrap flow and confidence-aligned execution protocol.

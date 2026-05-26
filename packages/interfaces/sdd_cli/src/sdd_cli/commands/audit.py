@@ -480,7 +480,7 @@ def _resolve_governance_fingerprint() -> str:
                 if "Fingerprint this version:" in line:
                     return line.split(":", 1)[1].strip().strip("`")
         except OSError:
-            pass
+            pass  # best-effort; fingerprint unavailable if file is unreadable
     metadata = root / ".sdd" / "metadata.json"
     if metadata.exists():
         try:
