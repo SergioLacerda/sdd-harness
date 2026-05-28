@@ -4654,6 +4654,7 @@ name = "sdd-cli"
 version = "1.0.0"
 source = { editable = "packages/interfaces/sdd_cli" }
 dependencies = [
+    { name = "click" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "rich" },
@@ -4665,6 +4666,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rich", specifier = ">=13.0.0" },
