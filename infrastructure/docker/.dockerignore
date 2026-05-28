@@ -20,7 +20,9 @@ build/
 
 # Generated runtime state (compiled fresh inside builder stage)
 generated/
-.sdd/
+.sdd/compiled/
+.sdd/runtime/
+.sdd/scratch/
 .sdd-local/
 
 # Local dev config
@@ -28,7 +30,7 @@ generated/
 *.local
 erro_esteira*.txt
 .sdd/.spec.config
-.sdd/trust/*.key
+.sdd/trust/
 
 # Docs build output
 docs/archive/

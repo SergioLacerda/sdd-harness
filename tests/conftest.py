@@ -303,12 +303,25 @@ def pytest_sessionfinish(session: object, exitstatus: int) -> None:  # noqa: ARG
         )
 
 
+_SDD_RUNTIME_DIR = (_REPO_SDD_ROOT / "runtime").resolve()
+
+
 def _snapshot_repo_sdd_tree() -> dict[str, str]:
-    """Return deterministic snapshot of repository .sdd content."""
+    """Return deterministic snapshot of repository .sdd content.
+
+    .sdd/runtime/ is excluded — it holds session-scoped state files
+    (governance-state.json, compliance-events.jsonl, etc.) that are
+    gitignored and expected to be created/modified at runtime.
+    """
     if not _REPO_SDD_ROOT.exists():
         return {}
     snapshot: dict[str, str] = {}
     for path in sorted(_REPO_SDD_ROOT.rglob("*")):
+        try:
+            if path.resolve().is_relative_to(_SDD_RUNTIME_DIR):
+                continue
+        except ValueError:
+            pass
         rel = str(path.relative_to(_REPO_ROOT))
         if path.is_dir():
             snapshot[rel + "/"] = "dir"
