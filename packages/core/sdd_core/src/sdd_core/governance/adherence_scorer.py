@@ -142,8 +142,7 @@ class GovernanceAdherenceScorer:
         if root is None:
             return ""
         candidates = [
-            root / "generated" / "client" / "compiled" / "governance-core.json",
-            root / "generated" / "master" / "compiled" / "governance-core.json",
+            root / ".sdd" / "compiled" / "governance-core.json",
         ]
         for path in candidates:
             if path.exists():

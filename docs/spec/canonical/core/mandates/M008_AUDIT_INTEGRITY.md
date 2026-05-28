@@ -89,6 +89,16 @@ Before merge:
 
 ---
 
+## Enforcement Steps
+
+- Verify `.sdd/audit-trail/compliance-events.jsonl` exists and has not been modified (only appended)
+- Confirm no events have been deleted, reordered, or had timestamps altered
+- Confirm all new governance events were appended (never overwritten) to the log
+- Confirm log format is valid JSONL with no corrupted entries
+- Verify log file is backed up per the data retention policy
+
+---
+
 ## 🔗 Related
 
 - [M007: Telemetry](M007_TELEMETRY.md) — Mandatory event emission

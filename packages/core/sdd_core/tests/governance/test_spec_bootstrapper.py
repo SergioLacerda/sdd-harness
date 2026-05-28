@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -86,81 +86,6 @@ class TestBootstrapMain:
 
         # Directory should be created
         assert spec_dir.exists()
-
-    def test_bootstrap_tries_docs_update_first(self, tmp_path: Path) -> None:
-        """Should try docs update before falling back to markdown scan."""
-        spec_dir = tmp_path / "spec"
-
-        with patch(
-            "sdd_core.governance.spec_bootstrapper.SourceSpecBootstrapper._bootstrap_via_docs_update",
-            return_value=True,
-        ) as mock_docs_update:
-            bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
-            bootstrapper.bootstrap()
-
-            mock_docs_update.assert_called_once()
-
-
-class TestBootstrapViaCdosUpdate:
-    """Tests for _bootstrap_via_docs_update() method."""
-
-    def test_bootstrap_via_docs_update_success(self, tmp_path: Path) -> None:
-        """Should return True when docs update succeeds and creates specs."""
-        spec_dir = tmp_path / "spec"
-        spec_dir.mkdir()
-
-        bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
-
-        with (
-            patch(
-                "sdd_core.governance.spec_bootstrapper.SafeProcessRunner"
-            ) as mock_runner_class,
-        ):
-            mock_runner = MagicMock()
-            mock_runner_class.return_value = mock_runner
-            mock_runner.run.return_value.returncode = 0
-
-            # Create the spec file so has_source_specs returns True
-            (spec_dir / "mandate.spec").write_text("generated", encoding="utf-8")
-
-            result = bootstrapper._bootstrap_via_docs_update()
-            assert result is True
-
-    def test_bootstrap_via_docs_update_failure_on_nonzero_returncode(
-        self, tmp_path: Path
-    ) -> None:
-        """Should return False when docs update returns non-zero."""
-        spec_dir = tmp_path / "spec"
-        spec_dir.mkdir()
-
-        bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
-
-        with patch(
-            "sdd_core.governance.spec_bootstrapper.SafeProcessRunner"
-        ) as mock_runner_class:
-            mock_runner = MagicMock()
-            mock_runner_class.return_value = mock_runner
-            mock_runner.run.return_value.returncode = 1
-
-            result = bootstrapper._bootstrap_via_docs_update()
-            assert result is False
-
-    def test_bootstrap_via_docs_update_failure_on_exception(
-        self, tmp_path: Path
-    ) -> None:
-        """Should return False when docs update raises exception."""
-        spec_dir = tmp_path / "spec"
-        spec_dir.mkdir()
-
-        bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
-
-        with patch(
-            "sdd_core.governance.spec_bootstrapper.SafeProcessRunner"
-        ) as mock_runner_class:
-            mock_runner_class.side_effect = RuntimeError("Process error")
-
-            result = bootstrapper._bootstrap_via_docs_update()
-            assert result is False
 
 
 class TestBootstrapFromMarkdown:

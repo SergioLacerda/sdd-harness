@@ -209,65 +209,6 @@ class TestRunPhase1:
         assert result["success"] is False
 
 
-class TestBootstrapSourceSpecsViaDocsUpdate:
-    def test_returns_false_when_command_raises(self, tmp_path: Path) -> None:
-        from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
-
-        orch = _make_orchestrator(tmp_path)
-
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner.run",
-            side_effect=RuntimeError("subprocess unavailable"),
-        ):
-            bootstrapper = SourceSpecBootstrapper(
-                spec_path=orch.spec, repo_root=tmp_path
-            )
-            result = bootstrapper._bootstrap_via_docs_update()
-        assert result is False
-
-    def test_returns_true_when_update_creates_spec(self, tmp_path: Path) -> None:
-        from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
-
-        orch = _make_orchestrator(tmp_path)
-
-        def fake_run(*_args: object, **_kwargs: object) -> MagicMock:
-            orch.spec.mkdir(parents=True, exist_ok=True)
-            (orch.spec / "mandate.spec").write_text("mandate M001 {}", encoding="utf-8")
-            process = MagicMock()
-            process.returncode = 0
-            return process
-
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner.run",
-            side_effect=fake_run,
-        ):
-            bootstrapper = SourceSpecBootstrapper(
-                spec_path=orch.spec, repo_root=tmp_path
-            )
-            result = bootstrapper._bootstrap_via_docs_update()
-        assert result is True
-
-    def test_returns_false_when_update_does_not_create_spec(
-        self, tmp_path: Path
-    ) -> None:
-        from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
-
-        orch = _make_orchestrator(tmp_path)
-
-        process = MagicMock()
-        process.returncode = 0
-
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner.run",
-            return_value=process,
-        ):
-            bootstrapper = SourceSpecBootstrapper(
-                spec_path=orch.spec, repo_root=tmp_path
-            )
-            result = bootstrapper._bootstrap_via_docs_update()
-        assert result is False
-
-
 class TestBootstrapSourceSpecsFromMarkdown2:
     def test_creates_spec_from_markdown_ids(self, tmp_path: Path) -> None:
         from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
@@ -416,19 +357,3 @@ class TestRunFullPipeline:
 
         assert result["full_pipeline_success"] is False
         assert result["phase_2"] == phase2_fail
-
-    def test_bootstrap_source_specs_calls_docs_update_first(
-        self, tmp_path: Path
-    ) -> None:
-        from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
-
-        orch = _make_orchestrator(tmp_path)
-
-        with patch.object(
-            SourceSpecBootstrapper, "_bootstrap_via_docs_update", return_value=True
-        ) as mock_bootstrap:
-            bootstrapper = SourceSpecBootstrapper(
-                spec_path=orch.spec, repo_root=tmp_path
-            )
-            bootstrapper.bootstrap()
-        mock_bootstrap.assert_called_once()

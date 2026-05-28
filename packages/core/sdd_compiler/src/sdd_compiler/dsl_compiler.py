@@ -825,8 +825,6 @@ class ValidationIssue(TypedDict):
 if __name__ == "__main__":
     import argparse
 
-    from sdd_core.utils.environment import get_sdd_paths
-
     parser = argparse.ArgumentParser(description="SDD DSL Compiler")
     parser.add_argument("input", help="Input .spec or .dsl file")
     parser.add_argument("output", nargs="?", help="Output file path")
@@ -841,24 +839,15 @@ if __name__ == "__main__":
         print(f"❌ File not found: {args.input}")  # noqa: T201
         sys.exit(1)
 
-    # Smart default output path
+    # Output path is required — no implicit inference into /generated
     output_path = args.output
     if output_path is None:
-        try:
-            paths = get_sdd_paths()
-            # If in repo, default to /generated/client/build/
-            suffix = ".compiled.json" if args.format == "json" else ".compiled.msgpack"
-            output_path = str(paths["client_build"] / (input_path.name + suffix))
-
-            # Ensure build directory exists
-            paths["client_build"].mkdir(parents=True, exist_ok=True)
-        except Exception:
-            # Fallback to current directory suffix
-            output_path = str(
-                input_path.with_suffix(
-                    ".compiled.json" if args.format == "json" else ".compiled.msgpack"
-                )
-            )
+        suffix = ".compiled.json" if args.format == "json" else ".compiled.msgpack"
+        print(  # noqa: T201
+            f"❌ --output is required.\n"
+            f"Hint: python -m sdd_compiler {args.input} <output{suffix}>"
+        )
+        sys.exit(1)
 
     if args.format == "msgpack":
         compile_to_binary_and_print(str(input_path), output_path)

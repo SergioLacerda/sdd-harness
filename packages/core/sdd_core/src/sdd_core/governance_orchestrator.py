@@ -195,7 +195,13 @@ class GovernanceOrchestrator:
         """
         try:
             self._spec_bootstrapper.bootstrap()
-            builder = PipelineBuilder(str(self.spec))
+            spec_mandates_path = self.repo_root / ".sdd" / "spec" / "mandates.json"
+            builder = PipelineBuilder(
+                str(self.spec),
+                spec_mandates_path=spec_mandates_path
+                if spec_mandates_path.exists()
+                else None,
+            )
             result = builder.build()
 
             # Save intermediate JSON outputs to build directory

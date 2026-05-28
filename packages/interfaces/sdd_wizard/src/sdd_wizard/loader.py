@@ -58,7 +58,7 @@ class ArtifactLoader:
 
         raise FileNotFoundError(
             "Compiled governance core not found in standardized hierarchy.\n"
-            "Run: sdd-compiler (via CLI) or check /generated/master/compiled/\n"
+            "Run: sdd governance compile to regenerate. Expected at .sdd/compiled/\n"
         )
 
     def load_compiled_guidelines(self) -> dict[str, Any]:

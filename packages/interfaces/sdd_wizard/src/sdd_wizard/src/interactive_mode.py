@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Any
 
 from sdd_core.utils.environment import get_sdd_paths
-from sdd_core.utils.process import ProcessSpawnError, SafeProcessRunner
 from sdd_wizard.orchestration.wizard.final_template_bundle import (
     consolidate_final_template,
 )
@@ -71,6 +70,7 @@ class InteractiveWizard:
         repo_root: Path,
         emitter: Callable[[str], None] | None = None,
         prompter: Prompter | Callable[[str], str] | None = None,
+        output_dir: Path | None = None,
     ):
         paths = get_sdd_paths()
         self.repo_root = repo_root or paths["root"]
@@ -82,7 +82,11 @@ class InteractiveWizard:
         self.client_compiled_dir = self.paths["client_compiled"]
         self.phase1_choices_dir = self.client_build_dir / self.PHASE1_CHOICES_DIRNAME
         self.phase2_input_dir = self.client_build_dir / self.PHASE2_INPUT_DIRNAME
-        self.final_template_dir = self.client_build_dir / self.FINAL_TEMPLATE_DIRNAME
+        self.final_template_dir = (
+            output_dir
+            if output_dir is not None
+            else self.client_build_dir / self.FINAL_TEMPLATE_DIRNAME
+        )
         self.wizard_config_path = self.client_build_dir / "wizard-config.json"
 
     def _consolidate_final_template(self) -> FinalTemplateConsolidationResult:
@@ -184,38 +188,12 @@ class InteractiveWizard:
         """Ensure docs-meta inputs exist for Phase 1 in clean environments."""
         if self._docs_meta_ready():
             return True, ""
-
-        self._emit("  ℹ️  docs-meta missing; running bootstrap: sdd docs update")
-        try:
-            completed = SafeProcessRunner().run(
-                ["sdd", "docs", "update"],
-                cwd=self.paths["root"],
-                capture_output=True,
-                check=False,
-            )
-        except (OSError, ProcessSpawnError) as exc:
-            return False, (
-                "Failed to execute 'sdd docs update'. "
-                f"Reason: {exc}. Ensure sdd CLI is installed and available."
-            )
-
-        if completed.returncode != 0:
-            stderr = (completed.stderr or "").strip()
-            stdout = (completed.stdout or "").strip()
-            details = stderr or stdout or "unknown error"
-            return False, (
-                "Bootstrap failed while running 'sdd docs update'. "
-                f"Exit code: {completed.returncode}. Details: {details}"
-            )
-
-        if not self._docs_meta_ready():
-            docs_meta = self.client_build_dir / "docs-meta"
-            return (
-                False,
-                "Bootstrap completed but docs-meta artifacts are still missing at "
-                f"{docs_meta}. Expected mandate/spec and guidelines artifacts.",
-            )
-        return True, ""
+        docs_meta = self.client_build_dir / "docs-meta"
+        return (
+            False,
+            f"docs-meta artifacts are missing at {docs_meta}. "
+            "Run 'sdd governance compile' to regenerate governance artifacts.",
+        )
 
     def phase_1_generate_templates(self) -> Phase1GenerateResult:
         """Execute Phase 1: Generate templates with user preferences"""
@@ -611,7 +589,7 @@ Next steps:
             return False
 
 
-def run_interactive_wizard(repo_root: Path) -> bool:
+def run_interactive_wizard(repo_root: Path, output_dir: Path | None = None) -> bool:
     """Entry point for interactive wizard"""
-    wizard = InteractiveWizard(repo_root)
+    wizard = InteractiveWizard(repo_root, output_dir=output_dir)
     return wizard.run()

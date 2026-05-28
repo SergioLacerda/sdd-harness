@@ -58,16 +58,7 @@ class HandshakeCache:
     def extract_governance_core(self) -> dict[str, Any] | None:
         """Load governance-core.json to extract mandates and fingerprint."""
         candidates = [
-            self.project_root
-            / "generated"
-            / "client"
-            / "compiled"
-            / "governance-core.json",
-            self.project_root
-            / "generated"
-            / "master"
-            / "compiled"
-            / "governance-core.json",
+            self.project_root / ".sdd" / "compiled" / "governance-core.json",
         ]
         for candidate in candidates:
             if candidate.exists():

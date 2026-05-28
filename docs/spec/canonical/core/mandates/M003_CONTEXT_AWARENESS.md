@@ -68,6 +68,16 @@ The cache must contain:
 
 ---
 
+## Enforcement Steps
+
+- Verify `.sdd-cache.md` exists in the project root before starting any task
+- Read `.sdd-cache.md` (pre-flight sync) and confirm understanding of current state before acting
+- Update `.sdd-cache.md` at the end of every sub-task or significant logical block
+- Confirm cache content is project-scoped and does not reference state from other repositories
+- Confirm cache was committed alongside the last code change
+
+---
+
 ## References
 
 - Agent Entry Point: [`core/INDEX.md`](../INDEX.md)

@@ -10,8 +10,6 @@ import re
 from collections.abc import Callable
 from pathlib import Path
 
-from sdd_core.utils.process import SafeProcessRunner
-
 logger = logging.getLogger(__name__)
 
 
@@ -50,37 +48,16 @@ class SourceSpecBootstrapper:
 
     def bootstrap(self) -> None:
         """
-        Best-effort bootstrap for docs-meta sources in clean environments.
+        Best-effort bootstrap for source specs in clean environments.
 
-        Order:
-        1) Reuse `sdd docs update` implementation if available.
-        2) Fallback to lightweight extraction from docs markdown.
+        Falls back to lightweight extraction from docs markdown when source
+        specs are missing (e.g., CI, Docker, fresh clone).
         """
         if self.has_source_specs():
             return
 
         self.spec.mkdir(parents=True, exist_ok=True)
-
-        if self._bootstrap_via_docs_update():
-            return
-
         self._bootstrap_from_markdown()
-
-    def _bootstrap_via_docs_update(self) -> bool:
-        """Try to generate docs-meta artifacts by invoking `sdd docs update` internals."""
-        try:
-            result = SafeProcessRunner().run(
-                ["sdd", "docs", "update"],
-                cwd=self.repo_root,
-                check=False,
-                capture_output=True,
-            )
-            if result.returncode == 0 and self.has_source_specs():
-                self._out("  ℹ️  Bootstrapped docs-meta via `sdd docs update`")
-                return True
-        except Exception as exc:
-            logger.debug("Docs update bootstrap failed: %s", exc)
-        return False
 
     def _bootstrap_from_markdown(self) -> None:
         """Generate minimal mandate.spec / guidelines.dsl from docs markdown IDs."""

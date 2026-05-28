@@ -46,6 +46,9 @@ class GovernanceItem:
     summary_runtime: str | None = None
     summary_full: str | None = None
     criticality: str = "medium"
+    enforcement_steps: list[str] | None = None
+    requirements: list[str] | None = None
+    rationale: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """To Dict."""
@@ -63,6 +66,9 @@ class GovernanceItem:
             summary_runtime=data.get("summary_runtime"),
             summary_full=data.get("summary_full"),
             criticality=str(data.get("criticality", "medium")),
+            enforcement_steps=data.get("enforcement_steps"),
+            requirements=data.get("requirements"),
+            rationale=data.get("rationale"),
         )
 
 
@@ -344,6 +350,9 @@ def _extract_items(raw: dict[str, Any]) -> list[GovernanceItem]:
                 summary_runtime=entry.get("summary_runtime"),
                 summary_full=entry.get("summary_full"),
                 criticality=str(entry.get("criticality", "medium")),
+                enforcement_steps=entry.get("enforcement_steps"),
+                requirements=entry.get("requirements"),
+                rationale=entry.get("rationale"),
             )
         )
     return result

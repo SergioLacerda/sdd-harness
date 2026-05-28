@@ -44,8 +44,20 @@ def status(
     force: bool = typer.Option(
         False, "--force", "-f", help="Skip cache and run fresh validation."
     ),
+    update_cache: bool = typer.Option(
+        False,
+        "--update-cache",
+        help="Print M003 compliance quiz and refresh .sdd-cache.md.",
+    ),
 ) -> None:
     """Show current workspace governance state (AHP + GAP + runtime drift)."""
+
+    root = resolve_workspace_root()
+    root = enforce_path_policy(root, workspace_root=root, mode="normal")
+
+    if update_cache:
+        _do_update_cache(root)
+        raise typer.Exit(0)
 
     try:
         from sdd_runtime import format_governance_footer
@@ -54,9 +66,6 @@ def status(
     except ImportError as exc:
         typer.echo(f"ERROR: sdd_core not installed — {exc}", err=True)
         raise typer.Exit(2) from exc
-
-    root = resolve_workspace_root()
-    root = enforce_path_policy(root, workspace_root=root, mode="normal")
 
     effective_verbose = bool(verbose or is_verbose_mode(ctx))
     output_json = is_json_mode(ctx)
@@ -101,7 +110,8 @@ def status(
     if not output_json and cache_staleness["stale"]:
         typer.echo(
             f"\nWARNING L2: .sdd-cache.md is stale ({cache_staleness['age_min']} min ago)."
-            " Update it before committing to a protected branch.",
+            " Update it before committing to a protected branch."
+            "\n  → Run: sdd runtime status --update-cache",
             err=False,
         )
 
@@ -136,6 +146,57 @@ def status(
 
     if code != 0:
         raise typer.Exit(code)
+
+
+def _do_update_cache(root: Path) -> None:
+    """Print M003 compliance quiz from compiled governance and refresh .sdd-cache.md."""
+    import os as _os
+    import time as _time
+
+    gov_path = root / ".sdd" / "compiled" / "governance-core.json"
+    if not gov_path.exists():
+        typer.echo(
+            "ERROR: governance-core.json not found. Run: sdd governance compile",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    try:
+        from sdd_compiler.ast import GovernanceAST
+    except ImportError as exc:
+        typer.echo(f"ERROR: sdd_compiler not installed — {exc}", err=True)
+        raise typer.Exit(2) from exc
+
+    ast = GovernanceAST.from_compiled_json(gov_path)
+    m003 = ast.item_by_id("M003")
+
+    if m003 is None or not m003.enforcement_steps:
+        typer.echo(
+            "ERROR: M003 enforcement_steps not compiled.\n"
+            "Run: sdd governance compile  (requires mandate-pipeline-enrichment)",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    typer.echo("# M003 — Context Awareness & Task Caching\n")
+    typer.echo("Confirm the following before the cache is refreshed:\n")
+    for i, step in enumerate(m003.enforcement_steps, 1):
+        typer.echo(f"{i}. {step}")
+    typer.echo("\n---")
+    typer.echo("Refreshing .sdd-cache.md...")
+
+    cache_file = root / ".sdd" / "runtime" / ".sdd-cache.md"
+    cache_file.parent.mkdir(parents=True, exist_ok=True)
+    if cache_file.exists():
+        now = _time.time()
+        _os.utime(cache_file, (now, now))
+    else:
+        cache_file.write_text(
+            "# SDD Cache\n\nInitialized by: sdd runtime status --update-cache\n",
+            encoding="utf-8",
+        )
+
+    typer.echo("✓ .sdd-cache.md refreshed.")
 
 
 def _check_cache_staleness(root: Path) -> dict[str, Any]:

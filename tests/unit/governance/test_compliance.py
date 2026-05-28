@@ -328,7 +328,7 @@ class TestComputeGovernanceAdherence:
 
     def test_structural_true_when_fingerprints_match(self, tmp_path: Path) -> None:
         # Create a fake compiled governance-core.json with a fingerprint
-        artifact_dir = tmp_path / "generated" / "master" / "compiled"
+        artifact_dir = tmp_path / ".sdd" / "compiled"
         artifact_dir.mkdir(parents=True)
         fp = "499f7ce0da5ec85f"
         (artifact_dir / "governance-core.json").write_text(
@@ -482,7 +482,7 @@ class TestGetCompiledFingerprint:
     def test_returns_fingerprint_from_artifact(self, tmp_path: Path) -> None:
         from sdd_core.governance.adherence_scorer import GovernanceAdherenceScorer
 
-        artifact_dir = tmp_path / "generated" / "master" / "compiled"
+        artifact_dir = tmp_path / ".sdd" / "compiled"
         artifact_dir.mkdir(parents=True)
         fp = "abc123def456"
         (artifact_dir / "governance-core.json").write_text(
@@ -498,7 +498,7 @@ class TestGetCompiledFingerprint:
     ) -> None:
         from sdd_core.governance.adherence_scorer import GovernanceAdherenceScorer
 
-        artifact_dir = tmp_path / "generated" / "master" / "compiled"
+        artifact_dir = tmp_path / ".sdd" / "compiled"
         artifact_dir.mkdir(parents=True)
         (artifact_dir / "governance-core.json").write_text(
             json.dumps({"items": [{"id": "M001"}]}),
@@ -600,7 +600,7 @@ class TestGetCompiledFingerprintNoRoot:
     def test_returns_empty_when_artifact_raises(self, tmp_path: Path) -> None:
         from sdd_core.governance.adherence_scorer import GovernanceAdherenceScorer
 
-        artifact_dir = tmp_path / "generated" / "master" / "compiled"
+        artifact_dir = tmp_path / ".sdd" / "compiled"
         artifact_dir.mkdir(parents=True)
         # Write a binary file that can't be parsed as JSON
         (artifact_dir / "governance-core.json").write_bytes(b"\xff\xfe bad")

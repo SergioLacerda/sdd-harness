@@ -68,6 +68,17 @@ Unrecorded governance decisions are a security risk. Telemetry provides the "bla
 
 ---
 
+## Enforcement Steps
+
+- Confirm `runtime.session.start` event was emitted at agent initialization
+- Confirm `governance.ask` event is emitted on every SDD context query
+- Confirm `governance.violation` event is emitted when any mandate breach is detected
+- Confirm `economy.budget.breach` event is emitted when context budget is exhausted
+- If OpenTelemetry is active, verify each root task has a unique `trace_id` and each sub-task has a unique `span_id`
+- Verify all governance metadata is mapped under the `sdd.*` OTEL attribute namespace
+
+---
+
 ## References
 
 - Envelope definition: [`telemetry/INDEX.md`](../telemetry/INDEX.md)

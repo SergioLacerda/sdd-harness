@@ -33,7 +33,7 @@ def _write_profile(tmp_path: Path, profile_type: str = "client") -> None:
 
 
 def _write_governance_core(tmp_path: Path, items: list[Any] | None = None) -> Path:
-    compiled_dir = tmp_path / "generated" / "client" / "compiled"
+    compiled_dir = tmp_path / ".sdd" / "compiled"
     compiled_dir.mkdir(parents=True, exist_ok=True)
     data = {"items": items or [], "fingerprint": "abc123"}
     path = compiled_dir / "governance-core.json"
@@ -251,7 +251,7 @@ class TestLayer4GovernanceHealth:
         assert state in ("HEALTHY", "DEGRADED")
 
     def test_invalid_governance_json_governance_not_valid(self, tmp_path: Path) -> None:
-        compiled_dir = tmp_path / "generated" / "client" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
         (compiled_dir / "governance-core.json").write_text("not json", encoding="utf-8")
         ahp = _make_ahp(tmp_path)

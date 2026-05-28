@@ -12,26 +12,7 @@ import os
 import tempfile
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Artifact root constants — explicit names document intent (Decision Log D3)
-# ---------------------------------------------------------------------------
-
-#: Sandbox for tests and CI — never the shipped product.
-ARTIFACT_ROOT_TEST = Path("generated") / "tmp" / "build" / "final-template"
-
-#: Product built by sdd_wizard — what the end-user installs.
-ARTIFACT_ROOT_PRODUCTION = Path("generated") / "client" / "build" / "final-template"
-
-# Internal alias kept for callers that relied on the old name.
-# Resolves to the *test* root to preserve the existing default behavior.
-DEFAULT_ARTIFACT_ROOT = ARTIFACT_ROOT_TEST
-
 POLICY_ERR_CODE = "PATH_POLICY_VIOLATION"
-
-# Valid values for SDD_RUNTIME_ENV
-_RUNTIME_ENV_TEST = "test"
-_RUNTIME_ENV_PRODUCTION = "production"
-_VALID_RUNTIME_ENVS = {_RUNTIME_ENV_TEST, _RUNTIME_ENV_PRODUCTION}
 
 
 class PathPolicyViolation(ValueError):
@@ -63,104 +44,37 @@ def _repo_root() -> Path:
     return detect_repo_root()
 
 
-def _artifact_root_from_env(repo_root: Path) -> Path | None:  # noqa: ARG001
-    """Check SDD_WORKSPACE_ROOT (highest priority explicit override)."""
+def _workspace_root_from_env() -> Path | None:
+    """Return SDD_WORKSPACE_ROOT if set (highest-priority explicit override)."""
     raw = os.environ.get("SDD_WORKSPACE_ROOT", "").strip()
     if not raw:
         return None
     return Path(raw).expanduser().resolve()
 
 
-def _read_toml_runtime_env() -> str:
-    """Read runtime_env from [tool.sdd.runtime] in pyproject.toml.
-
-    Returns empty string when the key is absent or the file cannot be parsed.
-    """
-    try:
-        repo = _repo_root()
-        toml_path = repo / "pyproject.toml"
-        if not toml_path.exists():
-            return ""
-        try:
-            import tomllib
-        except ImportError:
-            import tomli as tomllib
-
-        data = tomllib.loads(toml_path.read_text(encoding="utf-8"))
-        return str(
-            data.get("tool", {})
-            .get("sdd", {})
-            .get("runtime", {})
-            .get("runtime_env", "")
-        )
-    except Exception:  # nosec B110
-        return ""
-
-
-def _runtime_env_artifact_root() -> Path:
-    """Resolve artifact root from SDD_RUNTIME_ENV with pyproject.toml fallback.
-
-    Resolution order:
-    1. ``SDD_RUNTIME_ENV`` environment variable  (``test`` | ``production``)
-    2. ``[tool.sdd.runtime] runtime_env`` in pyproject.toml
-    3. Default: ``test`` (sandbox — never the shipped product)
-    """
-    # 1. Env var override
-    env_val = os.environ.get("SDD_RUNTIME_ENV", "").strip().lower()
-
-    # 2. pyproject.toml fallback
-    if not env_val:
-        env_val = _read_toml_runtime_env()
-
-    # 3. Normalise and resolve
-    if env_val not in _VALID_RUNTIME_ENVS:
-        if env_val:
-            import warnings
-
-            warnings.warn(
-                f"SDD_RUNTIME_ENV='{env_val}' is not a valid value "
-                f"({', '.join(sorted(_VALID_RUNTIME_ENVS))}). "
-                "Falling back to 'test'.",
-                stacklevel=3,
-            )
-        env_val = _RUNTIME_ENV_TEST
-
-    return (
-        ARTIFACT_ROOT_PRODUCTION
-        if env_val == _RUNTIME_ENV_PRODUCTION
-        else ARTIFACT_ROOT_TEST
-    )
-
-
 def resolve_workspace_root(explicit_root: Path | None = None) -> Path:
-    """Resolve artifact workspace root for operational commands/tests.
+    """Resolve workspace root for operational commands.
 
     Resolution order:
     1. ``explicit_root`` argument (``--workspace-root`` CLI flag)
     2. ``SDD_WORKSPACE_ROOT`` environment variable
-    3. ``SDD_RUNTIME_ENV`` environment variable / ``pyproject.toml``
-    4. Default: test sandbox (``generated/tmp/build/final-template``)
+    3. Detected workspace with ``.sdd/profile``
+    4. Repository root fallback
     """
-    repo_root = _repo_root().resolve()
     if explicit_root is not None:
         return explicit_root.expanduser().resolve()
 
-    # 2. Highest priority: explicit override via environment
-    from_env = _artifact_root_from_env(repo_root)
+    from_env = _workspace_root_from_env()
     if from_env is not None:
         return from_env
 
-    # 3. Mid priority: actual initialized workspace (.sdd/profile)
-    # But ONLY if we are not explicitly in 'test' mode (which wants isolation)
-    if os.environ.get("SDD_RUNTIME_ENV") != "test":
-        from sdd_core.utils.environment import find_workspace_root
+    from sdd_core.utils.environment import find_workspace_root
 
-        ws_root = find_workspace_root()
-        if ws_root is not None:
-            return ws_root.resolve()
+    ws_root = find_workspace_root()
+    if ws_root is not None:
+        return ws_root.resolve()
 
-    # 4. Fallback: isolated sandbox for development (generated/tmp/...)
-    return (repo_root / _runtime_env_artifact_root()).resolve()
+    return _repo_root().resolve()
 
 
 def _is_relative_to(path: Path, base: Path) -> bool:
@@ -219,16 +133,13 @@ def enforce_path_policy(
         raise PathPolicyViolation(
             requested_path=ws,
             reason="workspace root must be under repository 'generated/' (or /tmp for ephemeral tests), or within repo root",
-            hint=(
-                "set SDD_RUNTIME_ENV=test (default) or SDD_RUNTIME_ENV=production, "
-                "or use SDD_WORKSPACE_ROOT for a custom path"
-            ),
+            hint="use SDD_WORKSPACE_ROOT for a custom path",
         )
     if ws_in_generated and not _is_relative_to(req, generated_root):
         raise PathPolicyViolation(
             requested_path=req,
             reason="normal mode only permits reads under repository 'generated/'",
-            hint="set SDD_RUNTIME_ENV=production or enable extraordinary audit mode",
+            hint="enable extraordinary audit mode to read outside generated/",
         )
     if not _is_relative_to(req, ws):
         raise PathPolicyViolation(

@@ -85,7 +85,7 @@ def test_any_source_changed(tmp_path: Path) -> None:
 
 def test_update_artifact_and_getters(tmp_path: Path) -> None:
     state_file = tmp_path / ".sdd" / "runtime" / ".compile-state.json"
-    artifact = tmp_path / "generated" / "master" / "compiled" / "out.msgpack"
+    artifact = tmp_path / ".sdd" / "compiled" / "out.msgpack"
     artifact.parent.mkdir(parents=True, exist_ok=True)
     artifact.write_bytes(b"\x01\x02\x03")
 

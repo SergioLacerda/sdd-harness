@@ -41,7 +41,7 @@ def test_phase1_missing_source_has_canonical_error(
     assert resolved is None
     assert generator.last_error is not None
     assert str(docs_meta_dir / "mandate.spec") in generator.last_error
-    assert "sdd docs update" in generator.last_error
+    assert "sdd governance compile" in generator.last_error
 
 
 def test_phase1_run_returns_root_cause_when_missing_source(

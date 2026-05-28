@@ -63,18 +63,9 @@ class GovernanceValidator:
             )
         )
 
-        # Check governance-core.json (A1 fix: correct paths)
+        # Check governance-core.json at canonical .sdd location
         governance_candidates = [
-            self.project_root
-            / "generated"
-            / "client"
-            / "compiled"
-            / "governance-core.json",
-            self.project_root
-            / "generated"
-            / "master"
-            / "compiled"
-            / "governance-core.json",
+            self.project_root / ".sdd" / "compiled" / "governance-core.json",
         ]
         governance_exists = any(p.exists() for p in governance_candidates)
         results.append(
@@ -221,20 +212,13 @@ class GovernanceValidator:
         """
         results = []
 
-        # A1 fix: correct candidates pointing to generated/*/compiled/
-        governance_candidates = [
-            self.project_root
-            / "generated"
-            / "client"
-            / "compiled"
-            / "governance-core.json",
-            self.project_root
-            / "generated"
-            / "master"
-            / "compiled"
-            / "governance-core.json",
-        ]
-        governance_path = next((p for p in governance_candidates if p.exists()), None)
+        # Canonical .sdd location — single source of truth
+        _gov_candidate = (
+            self.project_root / ".sdd" / "compiled" / "governance-core.json"
+        )
+        governance_path: Path | None = (
+            _gov_candidate if _gov_candidate.exists() else None
+        )
         governance_valid = False
         governance_items = 0
 
@@ -260,19 +244,15 @@ class GovernanceValidator:
             )
         )
 
-        # A4 fix: check compiled artifacts, not package directories
-        artifact_checks = [
-            self.project_root / "generated" / "client" / "compiled",
-            self.project_root / "generated" / "master" / "compiled",
-        ]
-        artifacts_present = sum(1 for p in artifact_checks if p.exists())
-        artifacts_ok = artifacts_present >= 1
+        # A4 fix: check compiled artifacts at canonical .sdd location
+        compiled_dir = self.project_root / ".sdd" / "compiled"
+        artifacts_ok = compiled_dir.exists()
         results.append(
             ValidationResult(
                 name="compiled artifacts",
                 passed=artifacts_ok,
                 message=(
-                    f"Present ({artifacts_present}/{len(artifact_checks)} dirs)"
+                    "Present"
                     if artifacts_ok
                     else "No compiled artifacts found — run 'sdd governance compile'"
                 ),

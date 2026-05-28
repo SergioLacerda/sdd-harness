@@ -59,9 +59,7 @@ def _invoke(
     tmp_path: Path, extra_args: list[str], artifact_items: list[dict] | None = None
 ):
     runner = CliRunner()
-    artifact_path = (
-        tmp_path / "generated" / "client" / "compiled" / "governance-core.json"
-    )
+    artifact_path = tmp_path / ".sdd" / "compiled" / "governance-core.json"
     golden_path = tmp_path / ".sdd" / "runtime" / "golden-ast.json"
 
     if artifact_items is not None:
