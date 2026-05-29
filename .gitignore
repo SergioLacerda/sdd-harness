@@ -51,6 +51,7 @@ env/
 .github/prompts/
 .github/copilot-instructions.md
 CLAUDE.md
+AGENTS.md
 .hypothesis
 .analysis
 

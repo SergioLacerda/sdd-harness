@@ -64,3 +64,94 @@ class MarkdownParser:
                 first_line = lines[0]
                 return first_line[:197] + "..." if len(first_line) > 200 else first_line
         return None
+
+    # ------------------------------------------------------------------
+    # Individual canonical file extraction (for .sdd/spec generation)
+    # These methods operate on single-mandate files (# Mandate: Title format)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def extract_canonical_title(content: str) -> str | None:
+        """Extract title from an individual canonical mandate/guideline file.
+
+        Reads the top-level heading and strips the 'Mandate:' / 'Guideline:' prefix.
+        """
+        match = re.search(
+            r"^#\s+(?:Mandate:|Guideline:)?\s*(.+)$", content, re.MULTILINE
+        )
+        return match.group(1).strip() if match else None
+
+    @staticmethod
+    def extract_section_text(content: str, section_heading: str) -> str | None:
+        """Extract the full text body of a named section from a canonical file.
+
+        Matches headings like '## Goal', '## 🎯 Goal', '## Enforcement Steps', etc.
+        Returns None if the section is absent or empty.
+        """
+        # Strip leading emoji/symbols for flexible matching
+        escaped = re.escape(section_heading)
+        pattern = rf"^#{{1,3}}\s+(?:[^\w\s]*\s*)?{escaped}\s*$\n(.*?)(?=^#{{1,3}}\s|\Z)"
+        match = re.search(pattern, content, re.MULTILINE | re.DOTALL)
+        if not match:
+            return None
+        return match.group(1).strip() or None
+
+    @staticmethod
+    def extract_bullet_list(content: str, section_heading: str) -> list[str] | None:
+        """Extract bullet items from a named section.
+
+        Handles '-', '*', '•', and checkbox '- [ ]' / '- [x]' prefixes.
+        """
+        section = MarkdownParser.extract_section_text(content, section_heading)
+        if not section:
+            return None
+        items = []
+        for line in section.splitlines():
+            if re.match(r"^\s*[-*•]\s+", line):
+                # Strip checkbox markers and bullet prefix
+                cleaned = re.sub(r"^\s*[-*•]\s+\[.\]\s*", "", line)
+                cleaned = re.sub(r"^\s*[-*•]\s+", "", cleaned).strip()
+                if cleaned:
+                    items.append(cleaned)
+        return items if items else None
+
+    @staticmethod
+    def extract_numbered_list(content: str, section_heading: str) -> list[str] | None:
+        """Extract numbered items from a named section."""
+        section = MarkdownParser.extract_section_text(content, section_heading)
+        if not section:
+            return None
+        items = []
+        for line in section.splitlines():
+            m = re.match(r"^\s*\d+\.\s+\*{0,2}(.+?)\*{0,2}:\s*(.*)", line)
+            if m:
+                # "1. **Label**: description" → "Label: description"
+                label, desc = m.group(1).strip(), m.group(2).strip()
+                items.append(f"{label}: {desc}" if desc else label)
+                continue
+            m2 = re.match(r"^\s*\d+\.\s+(.+)", line)
+            if m2:
+                items.append(m2.group(1).strip())
+        return items if items else None
+
+    @staticmethod
+    def extract_canonical_category(content: str) -> str | None:
+        """Extract category from **Category:** field in canonical file."""
+        match = re.search(r"^\*\*Category:\*\*\s*(.+)$", content, re.MULTILINE)
+        return match.group(1).strip() if match else None
+
+    @staticmethod
+    def extract_canonical_summary_runtime(content: str) -> str | None:
+        """Extract a runtime summary from a canonical individual file.
+
+        Uses the Goal section's first non-empty line (≤200 chars).
+        Falls back to Objective section for mandates that use that heading.
+        """
+        for heading in ("Goal", "Objective"):
+            section = MarkdownParser.extract_section_text(content, heading)
+            if section:
+                lines = [ln.strip() for ln in section.splitlines() if ln.strip()]
+                if lines:
+                    first = lines[0]
+                    return first[:197] + "..." if len(first) > 200 else first
+        return None

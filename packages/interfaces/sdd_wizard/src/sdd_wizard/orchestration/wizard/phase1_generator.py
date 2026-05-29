@@ -111,7 +111,7 @@ class Phase1Generator:
         searched = ", ".join(str(p) for p in candidates)
         self.last_error = (
             f"{filename} not found. Searched: {searched}. "
-            "Run 'sdd docs update' to generate docs-meta artifacts first."
+            "Run 'sdd governance compile' to regenerate governance artifacts."
         )
         self._emit(f"  ❌ {self.last_error}")
         return None

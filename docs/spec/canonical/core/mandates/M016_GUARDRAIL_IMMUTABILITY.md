@@ -78,6 +78,17 @@ indistinguishable from no regression — until a violation slips through.
 
 ---
 
+## Enforcement Steps
+
+- Verify no guardrail check was removed or narrowed in this change set
+- Verify new capabilities extend existing guardrail behavior (composition over replacement)
+- Confirm guardrail code contains no dead branches, commented-out checks, ad-hoc bypasses, or unreachable conditions
+- Confirm a `GovernanceEvent` with `event_type=GUARDRAIL_MODIFIED` was emitted for any guardrail code change
+- Confirm every modified guardrail has at least one test asserting it blocks its target violation
+- Confirm CI non-regression gate verifies no guardrail surface was reduced relative to the base branch
+
+---
+
 ## Related
 
 - ADR-007: Implementation Guardrails — Design First

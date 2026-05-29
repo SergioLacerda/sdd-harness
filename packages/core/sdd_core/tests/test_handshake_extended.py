@@ -19,7 +19,7 @@ class TestLayer4GovernanceHealth:
 
     def test_layer_4_detects_governance_integrity(self, tmp_path: Path) -> None:
         """Layer 4 should validate governance-core.json integrity."""
-        compiled_dir = tmp_path / "generated" / "master" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
         governance_file = compiled_dir / "governance-core.json"
         governance_file.write_text(
@@ -33,7 +33,7 @@ class TestLayer4GovernanceHealth:
 
     def test_layer_4_checks_compiled_artifacts(self, tmp_path: Path) -> None:
         """Layer 4 should detect compiled artifact directories."""
-        compiled_dir = tmp_path / "generated" / "master" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
 
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
@@ -47,7 +47,7 @@ class TestMandateExtraction:
 
     def test_extract_mandates_from_governance_core(self, tmp_path: Path) -> None:
         """Should extract MANDATE IDs from governance-core.json."""
-        compiled_dir = tmp_path / "generated" / "master" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
         governance_file = compiled_dir / "governance-core.json"
         governance_file.write_text(
@@ -72,7 +72,7 @@ class TestMandateExtraction:
 
     def test_extract_mandates_new_schema(self, tmp_path: Path) -> None:
         """Should extract mandates using new schema with metadata.type."""
-        compiled_dir = tmp_path / "generated" / "master" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
         governance_file = compiled_dir / "governance-core.json"
         governance_file.write_text(
@@ -93,7 +93,7 @@ class TestMandateExtraction:
 
     def test_compute_spec_fingerprint(self, tmp_path: Path) -> None:
         """Should compute SHA-256 fingerprint of governance spec."""
-        compiled_dir = tmp_path / "generated" / "master" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
         governance_file = compiled_dir / "governance-core.json"
         governance_file.write_text(
@@ -114,7 +114,7 @@ class TestMandateExtraction:
 
     def test_fingerprint_ignores_signature_fields(self, tmp_path: Path) -> None:
         """Should exclude _signature and fingerprint from compute."""
-        compiled_dir = tmp_path / "generated" / "master" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
         governance_file = compiled_dir / "governance-core.json"
 
@@ -469,7 +469,7 @@ class TestSaveCacheStateSync:
 
     def test_save_cache_syncs_mandates_loaded(self, tmp_path: Path) -> None:
         """_save_cache() should sync mandates_loaded to self."""
-        compiled_dir = tmp_path / "generated" / "master" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
         governance_file = compiled_dir / "governance-core.json"
         governance_file.write_text(
@@ -501,7 +501,7 @@ class TestSaveCacheStateSync:
 
     def test_save_cache_syncs_spec_fingerprint(self, tmp_path: Path) -> None:
         """_save_cache() should sync spec_fingerprint to self."""
-        compiled_dir = tmp_path / "generated" / "master" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
         governance_file = compiled_dir / "governance-core.json"
         governance_file.write_text(

@@ -88,19 +88,6 @@ def compile_governance() -> bool:
     sdd_bin = Path(sys.executable).with_name("sdd")
     sdd_cmd = [str(sdd_bin)] if sdd_bin.exists() else [sys.executable, "-m", "sdd_cli"]
 
-    print("Updating documentation metadata (docs-meta)...")
-    result_docs = SafeProcessRunner().run(
-        sdd_cmd + ["docs", "update"],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        env=env,
-    )
-    if result_docs.returncode != 0:
-        print("ERROR: sdd docs update failed:")
-        print(result_docs.stdout)
-        print(result_docs.stderr)
-        return False
-
     print("Compiling governance artifacts...")
     result_comp = SafeProcessRunner().run(
         sdd_cmd + ["governance", "compile"],

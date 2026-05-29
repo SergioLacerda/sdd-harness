@@ -425,9 +425,10 @@ These constraints are non-negotiable. Violation requires human escalation, not a
 ## 6. Fallback & Escalation
 
 **If `.sdd/` is incomplete or inconsistent:**
-- Do not guess or interpolate
+- **STOP EXECUTION IMMEDIATELY. Do not guess or interpolate.**
 - Escalate to human: "`.sdd/` is broken: [specific problem]"
 - Example: "`.sdd/source/governance-core.json` has only 1 mandate but `.sdd/metadata.json` claims 4"
+- You must refuse to bypass the governance gate.
 
 **This is not a blocker — it's a signal that the human should regenerate the workspace.**
 
@@ -791,8 +792,9 @@ Verify bootstrap integrity:
 ## 6. Fallback & Escalation
 
 If `.sdd/` is incomplete or inconsistent:
-- Do not guess or interpolate
+- **STOP EXECUTION IMMEDIATELY. Do not guess or interpolate.**
 - Escalate to human with specific problem description
+- You must refuse to bypass the governance gate.
 """
         with open(instructions_file, "w", encoding="utf-8") as f:
             f.write(content)

@@ -1,5 +1,7 @@
 """Wizard."""
 
+from pathlib import Path
+
 import click
 import typer
 
@@ -12,7 +14,14 @@ def _() -> None:
 
 
 @app.command()
-def run() -> None:
+def run(
+    output_dir: Path | None = typer.Option(
+        None,
+        "--output-dir",
+        help="Directory for the final generated project template. Defaults to ./generated/client/build/final-template/.",
+        show_default=False,
+    ),
+) -> None:
     """Run SDD wizard"""
     from sdd_cli.utils.profile import enforce_profile_policy
 
@@ -25,8 +34,12 @@ def run() -> None:
         typer.echo("Run: sdd setup run")
         raise typer.Exit(1) from err
 
+    resolved_output = (
+        output_dir.expanduser().resolve() if output_dir is not None else None
+    )  # noqa: E501
+
     try:
-        run_wizard()
+        run_wizard(output_dir=resolved_output)
     except RuntimeError as err:
         message = str(err)
         if "SDD Project root not found" in message:

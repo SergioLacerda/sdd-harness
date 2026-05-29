@@ -60,7 +60,7 @@ class TestHasSourceSpecs:
 
         orch = _make_orchestrator(tmp_path)
         orch.spec.mkdir(parents=True, exist_ok=True)
-        (orch.spec / "mandate.spec").write_text("mandate M001 {}", encoding="utf-8")
+        (orch.spec / "mandate.md").write_text("mandate M001 {}", encoding="utf-8")
         bootstrapper = SourceSpecBootstrapper(spec_path=orch.spec, repo_root=tmp_path)
         assert bootstrapper.has_source_specs() is True
 
@@ -90,15 +90,19 @@ class TestBootstrapSourceSpecsFromMarkdown:
         orch = _make_orchestrator(tmp_path)
         orch.spec.mkdir(parents=True, exist_ok=True)
 
-        docs_dir = tmp_path / "docs"
-        docs_dir.mkdir()
-        (docs_dir / "spec.md").write_text(
-            "See M001 and M002 for details", encoding="utf-8"
+        # Canonical files with **ID:** declarations are the authoritative source
+        canonical_dir = tmp_path / "docs" / "spec" / "canonical" / "core" / "mandates"
+        canonical_dir.mkdir(parents=True)
+        (canonical_dir / "M001_ARCH.md").write_text(
+            "# Mandate: Clean Architecture\n\n**ID:** M001\n", encoding="utf-8"
+        )
+        (canonical_dir / "M002_TDD.md").write_text(
+            "# Mandate: Test-Driven Development\n\n**ID:** M002\n", encoding="utf-8"
         )
 
         bootstrapper = SourceSpecBootstrapper(spec_path=orch.spec, repo_root=tmp_path)
         bootstrapper._bootstrap_from_markdown()
-        mandate_file = orch.spec / "mandate.spec"
+        mandate_file = orch.spec / "mandate.md"
         assert mandate_file.exists()
         content = mandate_file.read_text(encoding="utf-8")
         assert "M001" in content
@@ -112,7 +116,7 @@ class TestBootstrapSourceSpecsFromMarkdown:
 
         # Pre-existing mandate spec
         existing_content = "mandate M999 {}"
-        (orch.spec / "mandate.spec").write_text(existing_content, encoding="utf-8")
+        (orch.spec / "mandate.md").write_text(existing_content, encoding="utf-8")
 
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
@@ -121,7 +125,7 @@ class TestBootstrapSourceSpecsFromMarkdown:
         bootstrapper = SourceSpecBootstrapper(spec_path=orch.spec, repo_root=tmp_path)
         bootstrapper._bootstrap_from_markdown()
         # Should not be overwritten
-        assert (orch.spec / "mandate.spec").read_text(
+        assert (orch.spec / "mandate.md").read_text(
             encoding="utf-8"
         ) == existing_content
 
@@ -209,65 +213,6 @@ class TestRunPhase1:
         assert result["success"] is False
 
 
-class TestBootstrapSourceSpecsViaDocsUpdate:
-    def test_returns_false_when_command_raises(self, tmp_path: Path) -> None:
-        from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
-
-        orch = _make_orchestrator(tmp_path)
-
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner.run",
-            side_effect=RuntimeError("subprocess unavailable"),
-        ):
-            bootstrapper = SourceSpecBootstrapper(
-                spec_path=orch.spec, repo_root=tmp_path
-            )
-            result = bootstrapper._bootstrap_via_docs_update()
-        assert result is False
-
-    def test_returns_true_when_update_creates_spec(self, tmp_path: Path) -> None:
-        from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
-
-        orch = _make_orchestrator(tmp_path)
-
-        def fake_run(*_args: object, **_kwargs: object) -> MagicMock:
-            orch.spec.mkdir(parents=True, exist_ok=True)
-            (orch.spec / "mandate.spec").write_text("mandate M001 {}", encoding="utf-8")
-            process = MagicMock()
-            process.returncode = 0
-            return process
-
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner.run",
-            side_effect=fake_run,
-        ):
-            bootstrapper = SourceSpecBootstrapper(
-                spec_path=orch.spec, repo_root=tmp_path
-            )
-            result = bootstrapper._bootstrap_via_docs_update()
-        assert result is True
-
-    def test_returns_false_when_update_does_not_create_spec(
-        self, tmp_path: Path
-    ) -> None:
-        from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
-
-        orch = _make_orchestrator(tmp_path)
-
-        process = MagicMock()
-        process.returncode = 0
-
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner.run",
-            return_value=process,
-        ):
-            bootstrapper = SourceSpecBootstrapper(
-                spec_path=orch.spec, repo_root=tmp_path
-            )
-            result = bootstrapper._bootstrap_via_docs_update()
-        assert result is False
-
-
 class TestBootstrapSourceSpecsFromMarkdown2:
     def test_creates_spec_from_markdown_ids(self, tmp_path: Path) -> None:
         from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
@@ -275,16 +220,19 @@ class TestBootstrapSourceSpecsFromMarkdown2:
         orch = _make_orchestrator(tmp_path)
         # orch.spec points to tmp_path / "docs_meta" — create it
         orch.spec.mkdir(parents=True, exist_ok=True)
-        docs_dir = tmp_path / "docs"
-        docs_dir.mkdir()
-        (docs_dir / "overview.md").write_text(
-            "See M001 and M002 for mandates. G001 is a guideline.",
-            encoding="utf-8",
+        # Canonical files drive mandate discovery
+        canonical_dir = tmp_path / "docs" / "spec" / "canonical" / "core" / "mandates"
+        canonical_dir.mkdir(parents=True)
+        (canonical_dir / "M001_ARCH.md").write_text(
+            "# Mandate: Architecture\n\n**ID:** M001\n", encoding="utf-8"
+        )
+        (canonical_dir / "M002_TDD.md").write_text(
+            "# Mandate: TDD\n\n**ID:** M002\n", encoding="utf-8"
         )
 
         bootstrapper = SourceSpecBootstrapper(spec_path=orch.spec, repo_root=tmp_path)
         bootstrapper._bootstrap_from_markdown()
-        assert (orch.spec / "mandate.spec").exists()
+        assert (orch.spec / "mandate.md").exists()
 
     def test_skips_when_no_docs_dir(self, tmp_path: Path) -> None:
         from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
@@ -293,7 +241,7 @@ class TestBootstrapSourceSpecsFromMarkdown2:
         # No docs/ dir → should return without error
         bootstrapper = SourceSpecBootstrapper(spec_path=orch.spec, repo_root=tmp_path)
         bootstrapper._bootstrap_from_markdown()
-        assert not (orch.spec / "mandate.spec").exists()
+        assert not (orch.spec / "mandate.md").exists()
 
     def test_skips_when_no_mandate_ids_found(self, tmp_path: Path) -> None:
         from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
@@ -308,7 +256,7 @@ class TestBootstrapSourceSpecsFromMarkdown2:
 
         bootstrapper = SourceSpecBootstrapper(spec_path=orch.spec, repo_root=tmp_path)
         bootstrapper._bootstrap_from_markdown()
-        assert not (orch.spec / "mandate.spec").exists()
+        assert not (orch.spec / "mandate.md").exists()
 
 
 class TestRunPhase2:
@@ -416,19 +364,3 @@ class TestRunFullPipeline:
 
         assert result["full_pipeline_success"] is False
         assert result["phase_2"] == phase2_fail
-
-    def test_bootstrap_source_specs_calls_docs_update_first(
-        self, tmp_path: Path
-    ) -> None:
-        from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
-
-        orch = _make_orchestrator(tmp_path)
-
-        with patch.object(
-            SourceSpecBootstrapper, "_bootstrap_via_docs_update", return_value=True
-        ) as mock_bootstrap:
-            bootstrapper = SourceSpecBootstrapper(
-                spec_path=orch.spec, repo_root=tmp_path
-            )
-            bootstrapper.bootstrap()
-        mock_bootstrap.assert_called_once()

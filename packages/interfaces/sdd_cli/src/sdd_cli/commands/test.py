@@ -200,10 +200,6 @@ def ci_validate(  # noqa: C901
 
     if governance:
         typer.echo("\n=== Governance compliance ===")
-        typer.echo("  Running docs update...")
-        if _run_cli(["docs", "update"], str(root)) != 0:
-            failed = True
-
         typer.echo("  Running governance compile...")
         if _run_cli(["governance", "compile"], str(root)) != 0:
             failed = True
@@ -272,12 +268,9 @@ def _resolve_golden_path(root: Path) -> Path:
 
 
 def _find_artifact(root: Path) -> Path | None:
-    """Return the first available compiled governance-core.json artifact."""
-    candidates = [
-        root / "generated" / "client" / "compiled" / "governance-core.json",
-        root / "generated" / "master" / "compiled" / "governance-core.json",
-    ]
-    return next((p for p in candidates if p.exists()), None)
+    """Return the compiled governance-core.json from canonical .sdd location."""
+    candidate = root / ".sdd" / "compiled" / "governance-core.json"
+    return candidate if candidate.exists() else None
 
 
 def _save_golden(golden_path: Path, current_ast: Any) -> None:

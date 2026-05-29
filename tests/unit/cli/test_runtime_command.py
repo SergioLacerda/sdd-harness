@@ -43,7 +43,7 @@ class TestRuntimeStatusCommand:
             patch("sdd_runtime.format_governance_footer", return_value=""),
         ):
             # HEALTHY → should not raise typer.Exit (exits 0 implicitly)
-            status(ctx=MagicMock(), verbose=False, force=False)
+            status(ctx=MagicMock(), verbose=False, force=False, update_cache=False)
 
     def test_partial_exits_0(self, tmp_path: Path) -> None:
         ahp_instance = _make_ahp_patch("PARTIAL")
@@ -59,7 +59,7 @@ class TestRuntimeStatusCommand:
             patch("sdd_cli.commands.runtime._show_ask_confidence", return_value=""),
             patch("sdd_runtime.format_governance_footer", return_value=""),
         ):
-            status(ctx=MagicMock(), verbose=False, force=False)
+            status(ctx=MagicMock(), verbose=False, force=False, update_cache=False)
 
     def test_not_initialized_exits_1(self, tmp_path: Path) -> None:
         ahp_instance = _make_ahp_patch("NOT_INITIALIZED")
@@ -76,7 +76,7 @@ class TestRuntimeStatusCommand:
             patch("sdd_cli.commands.runtime._show_ask_confidence", return_value=""),
             patch("sdd_runtime.format_governance_footer", return_value=""),
         ):
-            status(ctx=MagicMock(), verbose=False, force=False)
+            status(ctx=MagicMock(), verbose=False, force=False, update_cache=False)
         assert exc_info.value.exit_code == 1
 
     def test_misconfigured_exits_2(self, tmp_path: Path) -> None:
@@ -94,7 +94,7 @@ class TestRuntimeStatusCommand:
             patch("sdd_cli.commands.runtime._show_ask_confidence", return_value=""),
             patch("sdd_runtime.format_governance_footer", return_value=""),
         ):
-            status(ctx=MagicMock(), verbose=False, force=False)
+            status(ctx=MagicMock(), verbose=False, force=False, update_cache=False)
         assert exc_info.value.exit_code == 2
 
     def test_no_workspace_exits_3(self) -> None:
@@ -113,7 +113,7 @@ class TestRuntimeStatusCommand:
             patch("sdd_cli.commands.runtime._show_ask_confidence", return_value=""),
             patch("sdd_runtime.format_governance_footer", return_value=""),
         ):
-            status(ctx=MagicMock(), verbose=False, force=False)
+            status(ctx=MagicMock(), verbose=False, force=False, update_cache=False)
         assert exc_info.value.exit_code == 3
 
 
@@ -202,3 +202,84 @@ class TestShowAskConfidence:
 
         # Should not raise
         _show_ask_confidence(tmp_path)
+
+
+class TestDoUpdateCache:
+    """Tests for _do_update_cache() helper."""
+
+    def _write_gov_json(
+        self, tmp_path: Path, enforcement_steps: list[str] | None
+    ) -> Path:
+        import json
+
+        gov_dir = tmp_path / ".sdd" / "compiled"
+        gov_dir.mkdir(parents=True)
+        item: dict = {
+            "id": "M003",
+            "type": "MANDATE",
+            "title": "Context Awareness",
+            "status": "active",
+            "criticality": "high",
+            "summary_minimal": "Context Awareness",
+            "summary_runtime": None,
+        }
+        if enforcement_steps is not None:
+            item["enforcement_steps"] = enforcement_steps
+        payload = {
+            "schema_version": "3.0",
+            "fingerprint": "abc123",
+            "generated_at": "2026-01-01T00:00:00",
+            "items": [item],
+        }
+        gov_path = gov_dir / "governance-core.json"
+        gov_path.write_text(json.dumps(payload), encoding="utf-8")
+        return gov_path
+
+    def test_happy_path_prints_quiz_and_touches_cache(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        from sdd_cli.commands.runtime import _do_update_cache
+
+        self._write_gov_json(tmp_path, ["Read .sdd-cache.md", "Confirm mandate list"])
+        cache_file = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
+        cache_file.write_text("old", encoding="utf-8")
+        old_mtime = cache_file.stat().st_mtime
+
+        import time
+
+        time.sleep(0.01)
+
+        _do_update_cache(tmp_path)
+
+        out = capsys.readouterr().out
+        assert "M003" in out
+        assert "Read .sdd-cache.md" in out
+        assert "Confirm mandate list" in out
+        assert cache_file.stat().st_mtime > old_mtime
+
+    def test_creates_cache_file_when_absent(self, tmp_path: Path) -> None:
+        from sdd_cli.commands.runtime import _do_update_cache
+
+        self._write_gov_json(tmp_path, ["step one"])
+        cache_file = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
+        assert not cache_file.exists()
+
+        _do_update_cache(tmp_path)
+
+        assert cache_file.exists()
+
+    def test_missing_compiled_file_exits_1(self, tmp_path: Path) -> None:
+        from sdd_cli.commands.runtime import _do_update_cache
+
+        with pytest.raises(typer.Exit) as exc_info:
+            _do_update_cache(tmp_path)
+        assert exc_info.value.exit_code == 1
+
+    def test_missing_enforcement_steps_exits_1(self, tmp_path: Path) -> None:
+        from sdd_cli.commands.runtime import _do_update_cache
+
+        self._write_gov_json(tmp_path, None)
+        with pytest.raises(typer.Exit) as exc_info:
+            _do_update_cache(tmp_path)
+        assert exc_info.value.exit_code == 1

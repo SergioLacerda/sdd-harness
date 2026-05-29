@@ -77,6 +77,17 @@ compression at YELLOW, explicit warning at RED, hard block at BREACH.
 
 ---
 
+## Enforcement Steps
+
+- Verify current token budget zone before loading any additional context (GREEN < 70%, YELLOW 70–90%, RED > 90%, BREACH ≥ 100%)
+- Apply compression before loading context when in YELLOW or RED zone
+- Emit `economy.budget.warn` when `budget_utilization_pct > 90`
+- Emit `economy.budget.breach` and block all further context loading when `budget_utilization_pct >= 100`
+- Confirm retry count never exceeds 3 per task; emit `economy.retry.cap.reached` if ceiling is hit
+- Confirm reflection count never exceeds 2 per decision
+
+---
+
 ## References
 
 - Normative KPI contract: [`economy/metrics.md`](../economy/metrics.md)

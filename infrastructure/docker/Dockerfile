@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Pre-compile governance artifacts so tests don't rebuild from a different source path
 ENV PATH="/app/.venv/bin:${PATH}"
-RUN sdd docs update && sdd governance compile
+RUN sdd governance compile
 
 # Stage 2: Runtime
 FROM python:3.14-slim
@@ -59,11 +59,10 @@ COPY --from=builder /app/.venv /app/.venv
 COPY --chown=sdd:sdd . /app
 
 # Overlay pre-compiled governance artifacts from builder (not in git)
-COPY --from=builder --chown=sdd:sdd /app/generated /app/generated
+COPY --from=builder --chown=sdd:sdd /app/.sdd/compiled /app/.sdd/compiled
 
 COPY --chown=sdd:sdd infrastructure/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh && \
-    chown -R sdd:sdd /app/generated && \
     chown sdd:sdd /app && \
     ln -s /app/.venv /venv
 

@@ -137,6 +137,16 @@ with bridge.start_span("task.execute") as span:
 
 ---
 
+## Enforcement Steps
+
+- Verify every agentic operation includes a valid `trace_id` (32 hex chars) and `span_id` (16 hex chars)
+- Confirm `traceparent` header follows the format `00-<trace_id>-<span_id>-<flags>`
+- Confirm parent span references are correct for non-root operations
+- Verify all SDD-specific attributes use the `sdd.*` namespace
+- If OTEL export is mandatory and exporter is unreachable, confirm operation is blocked and escalated
+
+---
+
 ## 🔗 Related
 
 - [M007: Telemetry](M007_TELEMETRY.md) — Mandatory event emission

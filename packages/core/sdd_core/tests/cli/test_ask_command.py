@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import typing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -25,6 +26,27 @@ from sdd_core.utils.text_io import read_text_utf8, write_text_utf8
 pytestmark = pytest.mark.unit
 
 runner = CliRunner()
+
+
+@pytest.fixture(autouse=True)
+def _mock_should_use_organize(tmp_path: Path) -> typing.Iterator[None]:
+    dummy_artifact: dict[str, object] = {
+        "intake_index_mode": "multi",
+        "chunks": [],
+        "retrieval_policy": "indexed_only",
+    }
+    dummy_path = tmp_path / ".sdd" / "runtime" / "ask-intake" / "dummy.json"
+    with (
+        patch(
+            "sdd_cli.commands._ask_backend._should_use_organize",
+            return_value=(True, "test"),
+        ),
+        patch(
+            "sdd_cli.commands._ask_backend.run_sdd_organize",
+            return_value=(dummy_artifact, dummy_path),
+        ),
+    ):
+        yield
 
 
 def _load_json_output(raw: str) -> dict[str, object]:

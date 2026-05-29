@@ -90,40 +90,14 @@ class TestDocsMetaBootstrap:
         (docs_meta / "guidelines.dsl").write_text("guidelines", encoding="utf-8")
         assert wizard._docs_meta_ready() is True
 
-    def test_ensure_docs_meta_runs_bootstrap_when_missing(self, tmp_path: Path) -> None:
-        wizard = _make_wizard(tmp_path)
-        docs_meta = wizard.client_build_dir / "docs-meta"
-        docs_meta.mkdir(parents=True, exist_ok=True)
-
-        def _fake_run(*args: Any, **kwargs: Any) -> Any:
-            (docs_meta / "mandate.spec").write_text("mandate", encoding="utf-8")
-            (docs_meta / "guidelines.dsl").write_text("guidelines", encoding="utf-8")
-            mock = MagicMock()
-            mock.returncode = 0
-            mock.stdout = ""
-            mock.stderr = ""
-            return mock
-
-        with patch("sdd_wizard.src.interactive_mode.SafeProcessRunner") as MockRunner:
-            MockRunner.return_value.run.side_effect = _fake_run
-            ok, reason = wizard._ensure_docs_meta_ready()
-
-        assert ok is True
-        assert reason == ""
-
-    def test_ensure_docs_meta_returns_error_on_bootstrap_failure(
+    def test_ensure_docs_meta_returns_false_when_docs_meta_missing(
         self, tmp_path: Path
     ) -> None:
         wizard = _make_wizard(tmp_path)
-        failed = MagicMock()
-        failed.returncode = 1
-        failed.stdout = ""
-        failed.stderr = "boom"
-        with patch("sdd_wizard.src.interactive_mode.SafeProcessRunner") as MockRunner:
-            MockRunner.return_value.run.return_value = failed
-            ok, reason = wizard._ensure_docs_meta_ready()
+        # docs-meta directory does not exist — no files to detect
+        ok, reason = wizard._ensure_docs_meta_ready()
         assert ok is False
-        assert "sdd docs update" in reason
+        assert reason != ""
 
 
 class TestConsolidateFinalTemplate:

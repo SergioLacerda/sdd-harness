@@ -97,6 +97,17 @@ If any required step fails, delivery is `BLOCKED`.
 
 ---
 
+## Enforcement Steps
+
+- Confirm tests were created or updated for every code change in this session
+- Confirm `ruff check --fix .` was executed (if ruff is available)
+- Confirm formatter was executed (`ruff format .` or `black .` if configured)
+- Confirm `mypy .` was executed and passes (if mypy is detected)
+- Confirm `pytest` was executed and passes (if pytest is detected)
+- Confirm no git state-modifying command (`add`, `commit`, `push`, `reset`, `rebase`, `merge`) was executed without explicit human authorization in the current message
+
+---
+
 ## Rationale
 
 `ruff check` alone verifies but does not remediate. Strict hygiene requires

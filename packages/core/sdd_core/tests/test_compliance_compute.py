@@ -183,7 +183,7 @@ class TestGetCompiledFingerprint:
 
     def test_get_fingerprint_from_embedded(self, tmp_path: Path) -> None:
         """Should extract embedded fingerprint field."""
-        compiled = tmp_path / "generated" / "master" / "compiled"
+        compiled = tmp_path / ".sdd" / "compiled"
         compiled.mkdir(parents=True)
         gov_file = compiled / "governance-core.json"
         gov_file.write_text(

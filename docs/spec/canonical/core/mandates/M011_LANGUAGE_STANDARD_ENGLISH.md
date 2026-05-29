@@ -54,3 +54,13 @@ mixed-language drift, and communication inconsistency across humans and agents.
 
 If a change introduces non-English technical content outside allowed exceptions,
 delivery is `BLOCKED` until corrected.
+
+---
+
+## Enforcement Steps
+
+- Verify all new or updated source code identifiers and comments are in English
+- Verify all new or updated technical documentation and governance artifacts are in English
+- Verify all CLI help text and examples introduced by new changes are in English
+- Confirm no mixed-language sections were introduced in the same technical artifact
+- Confirm no new Portuguese-only (or other non-English) code comments, docs, or operational instructions were added

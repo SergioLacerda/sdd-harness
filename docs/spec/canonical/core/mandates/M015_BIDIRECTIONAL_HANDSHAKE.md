@@ -44,6 +44,16 @@ begins.
 
 ---
 
+## Enforcement Steps
+
+- Confirm a `HandshakeRequest` was issued to the agent before any skill or tool execution began
+- Confirm the agent responded with its `agent_id`, declared `skills_to_use`, and acknowledged active mandate IDs
+- Verify the `SkillEngine` blocks any skill not explicitly authorized in the handshake response
+- If `SDD_SIGNATURE_MODE=strict`, confirm execution is blocked when handshake is missing or artifact signatures are unacknowledged
+- Confirm the handshake response is stored under `.sdd/runtime/` as an auditable contract
+
+---
+
 ## Reference
 
 See [ADR-012](../../../decisions/ADR-012-handshake-enforcement-m015.md) for

@@ -47,22 +47,11 @@ class HandshakeChallenge:
         if signature_mode not in {"warn", "strict"}:
             return "none"
 
-        # Check if at least one core artifact is signed
-        gov_path = next(
-            (
-                p
-                for p in [
-                    self.project_root / ".sdd" / "compiled" / "governance-core.json",
-                    self.project_root
-                    / "generated"
-                    / "master"
-                    / "compiled"
-                    / "governance-core.json",
-                ]
-                if p.exists()
-            ),
-            None,
+        # Check if the canonical artifact is signed
+        _gov_candidate = (
+            self.project_root / ".sdd" / "compiled" / "governance-core.json"
         )
+        gov_path = _gov_candidate if _gov_candidate.exists() else None
         if gov_path and gov_path.with_suffix(gov_path.suffix + ".sig").exists():
             return "verified"
         return "none"

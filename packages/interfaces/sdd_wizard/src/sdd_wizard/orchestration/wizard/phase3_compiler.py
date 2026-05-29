@@ -641,6 +641,36 @@ For optimal performance when using these with agents:
             traceback.print_exc()
             return False
 
+    def _generate_spec_file(self) -> None:
+        """Write .sdd/spec/mandates.json to the template from canonical mandate files."""
+        try:
+            from sdd_integration.builders.governance.pipeline_builder import (
+                PipelineBuilder,
+            )
+
+            canonical_dir = (
+                self.repo_root / "docs" / "spec" / "canonical" / "core" / "mandates"
+            )
+            if not canonical_dir.is_dir() or not list(canonical_dir.glob("M*.md")):
+                self.log("No canonical mandate files found; skipping spec generation")
+                return
+
+            spec_output = self.output_path / "spec" / "mandates.json"
+            result = PipelineBuilder.generate_spec_file(
+                canonical_mandates_dir=canonical_dir,
+                output_path=spec_output,
+                generated_by="sdd-wizard",
+            )
+            self.log(
+                f"Generated .sdd/spec/mandates.json "
+                f"({result['mandates_written']} mandates)"
+            )
+            self._emit(
+                f"  ✅ Spec file: {result['mandates_written']} mandates → {spec_output}"
+            )
+        except Exception as e:
+            self._emit(f"  ⚠️  Spec file generation skipped: {e}")
+
     def _generate_source_files(
         self,
         mandates: list[dict[str, Any]],
@@ -685,6 +715,8 @@ For optimal performance when using these with agents:
 
         if not self.compile_with_pipeline_builder(items):
             return {"success": False, "error": "Failed to compile"}
+
+        self._generate_spec_file()
 
         if not self.copy_language_templates():
             return {"success": False, "error": "Failed to copy language templates"}

@@ -30,9 +30,11 @@ class PipelineBuilder:
         self,
         spec_path: str,
         parsed_items: dict[str, list[dict[str, Any]]] | None = None,
+        spec_mandates_path: Path | None = None,
     ):
         self.spec_path = Path(spec_path)
         self.parsed_items = parsed_items or {"mandates": [], "guidelines": []}
+        self.spec_mandates_path = spec_mandates_path
         self.core_items: list[dict[str, Any]] = []
         self.client_items: list[dict[str, Any]] = []
         self.result: dict[str, Any] = {}
@@ -144,7 +146,7 @@ class PipelineBuilder:
             abs_path = (spec_root / "mandate.md").resolve()
             raise FileNotFoundError(
                 f"mandate.spec not found at {abs_path}. "
-                "Run 'sdd docs update' to generate docs-meta artifacts."
+                "Run 'sdd governance compile' to regenerate governance artifacts."
             )
 
         # Guidelines: prefer guidelines.md, fall back to guidelines.dsl
@@ -212,6 +214,9 @@ class PipelineBuilder:
         else:
             self.client_items = []
 
+        # Enrich core_items with rich spec content from .sdd/spec/mandates.json
+        self._merge_spec_content()
+
         # Phase 2: Deterministic Fingerprinting
         core_fingerprint = GovernanceFingerprinter.generate(self.core_items)
         # Client fingerprint uses core hash as salt to maintain referential integrity
@@ -233,6 +238,110 @@ class PipelineBuilder:
             "client_items": self.client_items,
         }
         return self.result
+
+    def _merge_spec_content(self) -> None:
+        """Merge rich spec fields from .sdd/spec/mandates.json into core_items."""
+        if not self.spec_mandates_path or not self.spec_mandates_path.exists():
+            return
+        try:
+            spec_data = json.loads(self.spec_mandates_path.read_text(encoding="utf-8"))
+        except Exception:
+            return
+        spec_by_id: dict[str, dict[str, Any]] = {
+            m["id"]: m for m in spec_data.get("mandates", []) if m.get("id")
+        }
+        for item in self.core_items:
+            spec = spec_by_id.get(item.get("id", ""), {})
+            if not spec:
+                continue
+            item.setdefault("enforcement_steps", spec.get("enforcement_steps"))
+            item.setdefault("requirements", spec.get("requirements"))
+            item.setdefault("rationale", spec.get("rationale"))
+            if not item.get("summary_runtime"):
+                item["summary_runtime"] = spec.get("summary_runtime")
+
+    @classmethod
+    def generate_spec_file(
+        cls,
+        canonical_mandates_dir: Path,
+        output_path: Path,
+        generated_by: str = "sdd-wizard",
+    ) -> dict[str, Any]:
+        """Extract rich content from individual canonical M*.md files and write mandates.json.
+
+        This is called by the wizard when generating a client template. The output is
+        written to .sdd/spec/mandates.json in the template and later consumed by
+        _merge_spec_content() during sdd governance compile on the client.
+
+        Returns a summary dict with counts.
+        """
+        from datetime import datetime, timezone
+
+        mandate_files = sorted(canonical_mandates_dir.glob("M*.md"))
+        mandates = []
+        for mf in mandate_files:
+            content = mf.read_text(encoding="utf-8")
+            item_id = mf.stem.split("_")[0]
+            if not item_id.startswith("M"):
+                continue
+
+            title = MarkdownParser.extract_canonical_title(content) or item_id
+            category = MarkdownParser.extract_canonical_category(content)
+            summary_runtime = MarkdownParser.extract_canonical_summary_runtime(content)
+
+            # Requirements: numbered list from Requirement section, fallback to Requirements
+            requirements = (
+                MarkdownParser.extract_numbered_list(content, "Requirement")
+                or MarkdownParser.extract_numbered_list(content, "Requirements")
+                or MarkdownParser.extract_bullet_list(content, "Requirements (MUST)")
+            )
+
+            # Rationale: full text of Rationale section
+            rationale = MarkdownParser.extract_section_text(content, "Rationale")
+
+            # Implementation pattern: first paragraph of Implementation section
+            impl = MarkdownParser.extract_section_text(
+                content, "Implementation Pattern"
+            ) or MarkdownParser.extract_section_text(content, "Implementation")
+
+            # Enforcement steps: bullets from Enforcement Steps section
+            enforcement_steps = MarkdownParser.extract_bullet_list(
+                content, "Enforcement Steps"
+            )
+
+            # Validation: checklist items from Validation section
+            validation = MarkdownParser.extract_bullet_list(
+                content, "Validation"
+            ) or MarkdownParser.extract_bullet_list(content, "Validation Checklist")
+
+            mandates.append(
+                {
+                    "id": item_id,
+                    "title": title,
+                    "category": category,
+                    "summary_runtime": summary_runtime,
+                    "requirements": requirements,
+                    "rationale": rationale,
+                    "implementation_pattern": impl,
+                    "enforcement_steps": enforcement_steps,
+                    "validation": validation,
+                }
+            )
+
+        payload = {
+            "schema": "1.0",
+            "generated_by": generated_by,
+            "generated_at": datetime.now(tz=timezone.utc).isoformat(timespec="seconds"),
+            "mandates": mandates,
+        }
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+        return {"mandates_written": len(mandates), "output": str(output_path)}
 
     def save_outputs(self, output_dir: str) -> dict[str, Any]:
         """Saves the built JSON artifacts for Phase 2 (Compiler)."""

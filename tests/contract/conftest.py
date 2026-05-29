@@ -13,7 +13,6 @@ that could fail due to env differences (e.g. missing .sdd/source/).
 from __future__ import annotations
 
 import contextlib
-import json
 import os
 import time
 from pathlib import Path
@@ -23,16 +22,28 @@ import pytest
 
 def _artifacts_valid(repo_root: Path) -> bool:
     """Return True if compiled artifacts exist and contain a viable mandate set."""
+    import json as _json
+
     from sdd_core.utils.environment import get_sdd_paths
 
+    # Canonical .sdd/compiled/ path (CI bootstrap path via `sdd governance compile`).
+    canonical = repo_root / ".sdd" / "compiled" / "governance-core.json"
+    for candidate in [canonical]:
+        if candidate.exists():
+            try:
+                data = _json.loads(candidate.read_text(encoding="utf-8"))
+                items = data.get("items", [])
+                if len(items) >= 4 and all("id" in item for item in items):
+                    return True
+            except Exception:
+                pass
+
+    # Fallback: legacy generated/ paths for local dev environments.
     try:
         paths = get_sdd_paths()
     except Exception:
         return False
 
-    # Prefer client_compiled for item count: in single-profile environments,
-    # master_compiled may have a reduced subset (e.g. 1 item) while client has
-    # the full set. This mirrors the logic in tests/conftest.py.
     for candidate in (
         paths["client_compiled"] / "governance-core.json",
         paths["master_compiled"] / "governance-core.json",
@@ -40,7 +51,7 @@ def _artifacts_valid(repo_root: Path) -> bool:
         if not candidate.exists():
             continue
         try:
-            data = json.loads(candidate.read_text(encoding="utf-8"))
+            data = _json.loads(candidate.read_text(encoding="utf-8"))
             items = data.get("items", [])
             if len(items) >= 4 and all("id" in item for item in items):
                 return True

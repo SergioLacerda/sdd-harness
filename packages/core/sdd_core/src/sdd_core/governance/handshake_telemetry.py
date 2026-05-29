@@ -39,27 +39,9 @@ class HandshakeTelemetry:
         try:
             from sdd_runtime.telemetry import RuntimeEvent, TelemetrySink
 
-            # Determine context_source from what governance-core files exist
-            gov_path = next(
-                (
-                    p
-                    for p in [
-                        project_root
-                        / "generated"
-                        / "client"
-                        / "compiled"
-                        / "governance-core.json",
-                        project_root
-                        / "generated"
-                        / "master"
-                        / "compiled"
-                        / "governance-core.json",
-                    ]
-                    if p.exists()
-                ),
-                None,
-            )
-            context_source = "json" if gov_path is not None else "none"
+            # Determine context_source from canonical .sdd governance artifact
+            gov_path = project_root / ".sdd" / "compiled" / "governance-core.json"
+            context_source = "json" if gov_path.exists() else "none"
 
             sink = TelemetrySink()
             sink.emit(

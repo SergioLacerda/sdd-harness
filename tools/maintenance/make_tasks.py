@@ -36,7 +36,7 @@ def _read_project_version() -> str:
     try:
         import tomllib  # py310+
     except ImportError:  # pragma: no cover
-        import tomli as tomllib
+        import tomli as tomllib  # type: ignore[import-not-found]
     data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
     return str(data.get("project", {}).get("version", "(dynamic via VCS)"))
 

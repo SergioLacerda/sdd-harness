@@ -64,7 +64,7 @@ if sys.version_info >= (3, 11):
     import tomllib as _tomllib_mod  # type: ignore[no-redef]
 else:
     try:
-        import tomli as _tomllib_mod
+        import tomli as _tomllib_mod  # type: ignore[import-not-found, no-redef]
     except ImportError:
         _tomllib_mod = None
 tomllib = _tomllib_mod

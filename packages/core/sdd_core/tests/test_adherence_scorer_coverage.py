@@ -98,7 +98,7 @@ class TestGetCompiledFingerprint:
 
     def test_fingerprint_computes_from_artifact_without_embedded_fp(self, tmp_path):
         """Verify _get_compiled_fingerprint computes SHA256 when artifact lacks fingerprint key."""
-        compiled_dir = tmp_path / "generated" / "client" / "compiled"
+        compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
 
         artifact_data = {

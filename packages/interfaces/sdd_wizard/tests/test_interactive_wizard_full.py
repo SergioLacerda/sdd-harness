@@ -188,37 +188,10 @@ class TestEnsureDocsMeta:
         assert ok is True
         assert reason == ""
 
-    def test_returns_false_on_sdd_exit_error(self, tmp_path: Path) -> None:
-        mock_r = MagicMock()
-        mock_r.returncode = 1
-        mock_r.stderr = "not found"
-        mock_r.stdout = ""
-        with patch("sdd_wizard.src.interactive_mode.SafeProcessRunner") as cls:
-            cls.return_value.run.return_value = mock_r
-            ok, reason = _make_wizard(tmp_path)._ensure_docs_meta_ready()
+    def test_returns_false_when_docs_meta_missing(self, tmp_path: Path) -> None:
+        ok, reason = _make_wizard(tmp_path)._ensure_docs_meta_ready()
         assert ok is False
-        assert "sdd docs update" in reason
-
-    def test_returns_false_on_process_spawn_error(self, tmp_path: Path) -> None:
-        from sdd_core.utils.process import ProcessSpawnError
-
-        with patch("sdd_wizard.src.interactive_mode.SafeProcessRunner") as cls:
-            cls.return_value.run.side_effect = ProcessSpawnError("sdd", "not found")
-            ok, reason = _make_wizard(tmp_path)._ensure_docs_meta_ready()
-        assert ok is False
-
-    def test_returns_false_when_bootstrap_ok_but_files_missing(
-        self, tmp_path: Path
-    ) -> None:
-        mock_r = MagicMock()
-        mock_r.returncode = 0
-        mock_r.stderr = ""
-        mock_r.stdout = ""
-        with patch("sdd_wizard.src.interactive_mode.SafeProcessRunner") as cls:
-            cls.return_value.run.return_value = mock_r
-            ok, reason = _make_wizard(tmp_path)._ensure_docs_meta_ready()
-        assert ok is False
-        assert "Bootstrap completed" in reason
+        assert "sdd governance compile" in reason
 
 
 class TestPhase1Generate:
@@ -242,15 +215,10 @@ class TestPhase1Generate:
         assert result["success"] is True
 
     def test_failure_docs_meta_not_ready(self, tmp_path: Path) -> None:
+        # docs-meta artifacts are absent → _ensure_docs_meta_ready returns False
         responses = iter(["2", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
-        mock_r = MagicMock()
-        mock_r.returncode = 1
-        mock_r.stderr = "err"
-        mock_r.stdout = ""
-        with patch("sdd_wizard.src.interactive_mode.SafeProcessRunner") as cls:
-            cls.return_value.run.return_value = mock_r
-            result = wizard.phase_1_generate_templates()
+        result = wizard.phase_1_generate_templates()
         assert result["success"] is False
 
     def test_exception_returns_failure(self, tmp_path: Path) -> None:

@@ -58,16 +58,7 @@ class HandshakeCache:
     def extract_governance_core(self) -> dict[str, Any] | None:
         """Load governance-core.json to extract mandates and fingerprint."""
         candidates = [
-            self.project_root
-            / "generated"
-            / "client"
-            / "compiled"
-            / "governance-core.json",
-            self.project_root
-            / "generated"
-            / "master"
-            / "compiled"
-            / "governance-core.json",
+            self.project_root / ".sdd" / "compiled" / "governance-core.json",
         ]
         for candidate in candidates:
             if candidate.exists():
@@ -204,13 +195,13 @@ class HandshakeCache:
                 try:
                     import tomllib
                 except ImportError:
-                    import tomli as tomllib
+                    import tomli as tomllib  # type: ignore[import-not-found]
                 with open(pyproject_path, "rb") as f:
                     config = tomllib.load(f)
                 sdd_runtime = config.get("tool", {}).get("sdd", {}).get("runtime", {})
                 if "handshake_ttl_minutes" in sdd_runtime:
                     return int(sdd_runtime["handshake_ttl_minutes"])
-        except (OSError, ValueError, KeyError, TypeError):  # nosec B110 — best-effort config parsing
+        except (OSError, ValueError, KeyError, TypeError, ImportError):  # nosec B110 — best-effort config parsing
             logger.debug(
                 "Could not parse handshake_ttl_minutes from pyproject.toml",
                 exc_info=True,

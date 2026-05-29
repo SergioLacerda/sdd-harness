@@ -108,16 +108,25 @@ def _governance_artifacts_valid(paths: dict[str, Path]) -> bool:
     return False
 
 
-def _try_docs_update() -> None:
-    try:
-        import importlib
+def _canonical_compiled_valid(root: Path) -> bool:
+    """Return True if .sdd/compiled/governance-core.json is present and valid.
 
-        docs_module = importlib.import_module("sdd_cli.commands.docs")
-        docs_update = getattr(docs_module, "update", None)
-        if callable(docs_update):
-            docs_update(dry_run=False)
-    except Exception as exc:  # noqa: BLE001
-        print(f"[conftest] docs update skipped: {exc}")
+    Used to skip the legacy GovernanceOrchestrator rebuild when the CI bootstrap
+    action has already produced artifacts at the canonical .sdd/compiled/ path.
+    """
+    import json as _json
+
+    from sdd_cli.utils.sdd_authority import compiled_active_dir
+
+    canonical = compiled_active_dir(root) / "governance-core.json"
+    if not canonical.exists():
+        return False
+    try:
+        data = _json.loads(read_text_utf8(canonical))
+        items = data.get("items", [])
+        return len(items) >= 4 and all("id" in i for i in items)
+    except Exception:
+        return False
 
 
 def _count_governance_items(compiled_dir: Path) -> int:
@@ -169,8 +178,6 @@ def _bootstrap_governance(root: Path, paths: dict[str, Path]) -> None:
     from sdd_core.deployment_manager import DeploymentManager
     from sdd_core.governance_orchestrator import GovernanceOrchestrator
 
-    _try_docs_update()
-
     orchestrator = GovernanceOrchestrator(repo_root=str(root))
     result = orchestrator.run_full_pipeline()
     if not result.get("full_pipeline_success"):
@@ -218,8 +225,9 @@ def pytest_sessionstart(session: object) -> None:  # noqa: ARG001
     ]
     global _SDD_SNAPSHOT_START
 
-    if _governance_artifacts_valid(paths):
-        # Artifacts already valid — take baseline snapshot and exit without rebuilding.
+    if _canonical_compiled_valid(root) or _governance_artifacts_valid(paths):
+        # .sdd/compiled/ populated by `sdd governance compile` (CI bootstrap path),
+        # or legacy generated/ artifacts present — skip rebuild.
         _SDD_SNAPSHOT_START = _snapshot_repo_sdd_tree()
         return
 
@@ -295,12 +303,25 @@ def pytest_sessionfinish(session: object, exitstatus: int) -> None:  # noqa: ARG
         )
 
 
+_SDD_RUNTIME_DIR = (_REPO_SDD_ROOT / "runtime").resolve()
+
+
 def _snapshot_repo_sdd_tree() -> dict[str, str]:
-    """Return deterministic snapshot of repository .sdd content."""
+    """Return deterministic snapshot of repository .sdd content.
+
+    .sdd/runtime/ is excluded — it holds session-scoped state files
+    (governance-state.json, compliance-events.jsonl, etc.) that are
+    gitignored and expected to be created/modified at runtime.
+    """
     if not _REPO_SDD_ROOT.exists():
         return {}
     snapshot: dict[str, str] = {}
     for path in sorted(_REPO_SDD_ROOT.rglob("*")):
+        try:
+            if path.resolve().is_relative_to(_SDD_RUNTIME_DIR):
+                continue
+        except ValueError:
+            pass
         rel = str(path.relative_to(_REPO_ROOT))
         if path.is_dir():
             snapshot[rel + "/"] = "dir"
