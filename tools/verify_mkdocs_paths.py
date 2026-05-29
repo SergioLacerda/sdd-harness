@@ -39,7 +39,7 @@ try:
     tomllib = _tomllib
 except ImportError:
     try:
-        import tomli as _tomllib  # backport for 3.10
+        import tomli as _tomllib  # type: ignore[import-not-found]
 
         tomllib = _tomllib
     except ImportError:

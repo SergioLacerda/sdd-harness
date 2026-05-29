@@ -36,10 +36,10 @@ class TestHasSourceSpecs:
     """Tests for has_source_specs() method."""
 
     def test_has_source_specs_detects_mandate_spec(self, tmp_path: Path) -> None:
-        """Should detect mandate.spec file."""
+        """Should detect mandate.md file."""
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
-        (spec_dir / "mandate.spec").write_text("test", encoding="utf-8")
+        (spec_dir / "mandate.md").write_text("test", encoding="utf-8")
 
         bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
         assert bootstrapper.has_source_specs() is True
@@ -69,13 +69,13 @@ class TestBootstrapMain:
         """Should skip bootstrap when specs already exist."""
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
-        (spec_dir / "mandate.spec").write_text("existing", encoding="utf-8")
+        (spec_dir / "mandate.md").write_text("existing", encoding="utf-8")
 
         bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
         bootstrapper.bootstrap()
 
         # Original file should be unchanged
-        assert (spec_dir / "mandate.spec").read_text(encoding="utf-8") == "existing"
+        assert (spec_dir / "mandate.md").read_text(encoding="utf-8") == "existing"
 
     def test_bootstrap_creates_spec_directory(self, tmp_path: Path) -> None:
         """Should create spec directory if it doesn't exist."""
@@ -104,8 +104,8 @@ class TestBootstrapFromMarkdown:
         bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
         bootstrapper._bootstrap_from_markdown()
 
-        # Should create mandate.spec with extracted IDs
-        mandate_spec = spec_dir / "mandate.spec"
+        # Should create mandate.md with extracted IDs
+        mandate_spec = spec_dir / "mandate.md"
         assert mandate_spec.exists()
         content = mandate_spec.read_text(encoding="utf-8")
         assert "M001" in content
@@ -150,7 +150,7 @@ class TestBootstrapFromMarkdown:
         bootstrapper._bootstrap_from_markdown()
 
         # Should still succeed and find M001
-        mandate_spec = spec_dir / "mandate.spec"
+        mandate_spec = spec_dir / "mandate.md"
         assert mandate_spec.exists()
         assert "M001" in mandate_spec.read_text(encoding="utf-8")
 
@@ -165,7 +165,7 @@ class TestBootstrapFromMarkdown:
         bootstrapper._bootstrap_from_markdown()
 
         # Should not create any files
-        assert not (spec_dir / "mandate.spec").exists()
+        assert not (spec_dir / "mandate.md").exists()
         assert not (spec_dir / "guidelines.dsl").exists()
 
     def test_bootstrap_from_markdown_skips_when_no_ids_found(
@@ -184,5 +184,5 @@ class TestBootstrapFromMarkdown:
         bootstrapper._bootstrap_from_markdown()
 
         # Should not create any files
-        assert not (spec_dir / "mandate.spec").exists()
+        assert not (spec_dir / "mandate.md").exists()
         assert not (spec_dir / "guidelines.dsl").exists()

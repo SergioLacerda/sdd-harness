@@ -20,10 +20,10 @@ def test_bootstrap_source_specs_from_markdown_when_docs_meta_missing(
 
     bootstrapper.bootstrap()
 
-    mandate_spec = spec_dir / "mandate.spec"
+    mandate_spec = spec_dir / "mandate.md"
     guidelines_dsl = spec_dir / "guidelines.dsl"
 
     assert mandate_spec.exists()
     assert guidelines_dsl.exists()
-    assert "[M001]" in mandate_spec.read_text(encoding="utf-8")
+    assert "M001" in mandate_spec.read_text(encoding="utf-8")
     assert "guideline G001" in guidelines_dsl.read_text(encoding="utf-8")

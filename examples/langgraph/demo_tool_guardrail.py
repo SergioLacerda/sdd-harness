@@ -16,10 +16,12 @@ import sys
 from pathlib import Path
 from typing import Annotated, TypedDict
 
-from langchain_core.messages import HumanMessage
-from langchain_core.tools import tool
-from langgraph.graph import END, StateGraph
-from langgraph.graph.message import add_messages
+from langchain_core.messages import (  # type: ignore[import-not-found]
+    HumanMessage,
+)
+from langchain_core.tools import tool  # type: ignore[import-not-found]
+from langgraph.graph import END, StateGraph  # type: ignore[import-not-found]
+from langgraph.graph.message import add_messages  # type: ignore[import-not-found]
 from sdd_runtime import CompiledArtifact, PolicyEngine, SessionState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -39,10 +41,10 @@ def load_artifact() -> CompiledArtifact:
     )
 
 
-@tool
-def send_email(recipient: str, body: str) -> str:
+@tool  # type: ignore[untyped-decorator]
+def send_email(to: str, subject: str, body: str) -> str:
     """Send an email. (NOT authorized in governance mandate.)"""
-    return f"Email sent to {recipient}: {body}"
+    return f"Email sent to {to}: {body}"
 
 
 # ─── LangGraph agent node ──────────────────────────────────────────────────

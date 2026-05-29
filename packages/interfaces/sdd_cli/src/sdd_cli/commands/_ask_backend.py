@@ -933,6 +933,7 @@ def ask_cmd(
         organize_chunks,
         organize_retrieval,
     ) = _run_organize_intake(workspace_root, query)
+
     _guard_handshake(workspace_root)
     profile, state = _get_profile_state()
     agent_id = os.environ.get("SDD_AGENT_ID", "unknown")
@@ -1256,6 +1257,7 @@ def ask_full_cmd(  # noqa: C901
     _guard_budget_breach()
     workspace_root = _resolve_workspace_root()
     organize_used, organize_reason = _should_use_organize(query)
+
     organize_artifact_path = ""
     organize_chunks = 0
     organize_retrieval = "indexed_only"
