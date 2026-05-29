@@ -8,11 +8,14 @@ from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
 def test_bootstrap_source_specs_from_markdown_when_docs_meta_missing(
     tmp_path: Path,
 ) -> None:
-    docs_dir = tmp_path / "docs"
-    docs_dir.mkdir(parents=True)
-    (docs_dir / "seed.md").write_text(
-        "# Governance\n\n- Mandate M001\n- Mandate M002\n- Guideline G001\n",
-        encoding="utf-8",
+    # Canonical mandate files (with **ID:** M* declarations) are the source of truth
+    canonical_dir = tmp_path / "docs" / "spec" / "canonical" / "core" / "mandates"
+    canonical_dir.mkdir(parents=True)
+    (canonical_dir / "M001_ARCH.md").write_text(
+        "# Mandate: Clean Architecture\n\n**ID:** M001\n", encoding="utf-8"
+    )
+    (canonical_dir / "M002_TDD.md").write_text(
+        "# Mandate: Test-Driven Development\n\n**ID:** M002\n", encoding="utf-8"
     )
 
     spec_dir = tmp_path / "generated" / "client" / "build" / "docs-meta"
@@ -26,4 +29,6 @@ def test_bootstrap_source_specs_from_markdown_when_docs_meta_missing(
     assert mandate_spec.exists()
     assert guidelines_dsl.exists()
     assert "M001" in mandate_spec.read_text(encoding="utf-8")
-    assert "guideline G001" in guidelines_dsl.read_text(encoding="utf-8")
+    assert "M002" in mandate_spec.read_text(encoding="utf-8")
+    # Guidelines are not auto-discovered from docs; dsl file is created but empty
+    assert "guideline G001" not in guidelines_dsl.read_text(encoding="utf-8")

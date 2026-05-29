@@ -196,6 +196,22 @@ class GovernanceOrchestrator:
         try:
             self._spec_bootstrapper.bootstrap()
             spec_mandates_path = self.repo_root / ".sdd" / "spec" / "mandates.json"
+
+            # Auto-generate mandates.json from canonical mandate files when absent.
+            # This ensures enforcement_steps, rationale, and requirements are
+            # available in clean environments (CI, Docker, fresh clones).
+            if not spec_mandates_path.exists():
+                canonical_mandates_dir = (
+                    self.repo_root / "docs" / "spec" / "canonical" / "core" / "mandates"
+                )
+                if canonical_mandates_dir.exists():
+                    try:
+                        PipelineBuilder.generate_spec_file(
+                            canonical_mandates_dir, spec_mandates_path
+                        )
+                    except Exception as exc:  # pragma: no cover
+                        logger.warning("Failed to auto-generate spec mandates: %s", exc)
+
             builder = PipelineBuilder(
                 str(self.spec),
                 spec_mandates_path=spec_mandates_path

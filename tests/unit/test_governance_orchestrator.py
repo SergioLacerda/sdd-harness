@@ -90,10 +90,14 @@ class TestBootstrapSourceSpecsFromMarkdown:
         orch = _make_orchestrator(tmp_path)
         orch.spec.mkdir(parents=True, exist_ok=True)
 
-        docs_dir = tmp_path / "docs"
-        docs_dir.mkdir()
-        (docs_dir / "spec.md").write_text(
-            "See M001 and M002 for details", encoding="utf-8"
+        # Canonical files with **ID:** declarations are the authoritative source
+        canonical_dir = tmp_path / "docs" / "spec" / "canonical" / "core" / "mandates"
+        canonical_dir.mkdir(parents=True)
+        (canonical_dir / "M001_ARCH.md").write_text(
+            "# Mandate: Clean Architecture\n\n**ID:** M001\n", encoding="utf-8"
+        )
+        (canonical_dir / "M002_TDD.md").write_text(
+            "# Mandate: Test-Driven Development\n\n**ID:** M002\n", encoding="utf-8"
         )
 
         bootstrapper = SourceSpecBootstrapper(spec_path=orch.spec, repo_root=tmp_path)
@@ -216,11 +220,14 @@ class TestBootstrapSourceSpecsFromMarkdown2:
         orch = _make_orchestrator(tmp_path)
         # orch.spec points to tmp_path / "docs_meta" — create it
         orch.spec.mkdir(parents=True, exist_ok=True)
-        docs_dir = tmp_path / "docs"
-        docs_dir.mkdir()
-        (docs_dir / "overview.md").write_text(
-            "See M001 and M002 for mandates. G001 is a guideline.",
-            encoding="utf-8",
+        # Canonical files drive mandate discovery
+        canonical_dir = tmp_path / "docs" / "spec" / "canonical" / "core" / "mandates"
+        canonical_dir.mkdir(parents=True)
+        (canonical_dir / "M001_ARCH.md").write_text(
+            "# Mandate: Architecture\n\n**ID:** M001\n", encoding="utf-8"
+        )
+        (canonical_dir / "M002_TDD.md").write_text(
+            "# Mandate: TDD\n\n**ID:** M002\n", encoding="utf-8"
         )
 
         bootstrapper = SourceSpecBootstrapper(spec_path=orch.spec, repo_root=tmp_path)

@@ -91,65 +91,83 @@ class TestBootstrapMain:
 class TestBootstrapFromMarkdown:
     """Tests for _bootstrap_from_markdown() method."""
 
-    def test_bootstrap_from_markdown_extracts_mandate_ids(self, tmp_path: Path) -> None:
-        """Should extract mandate IDs from markdown files."""
+    def test_bootstrap_from_markdown_extracts_mandate_ids_from_canonical(
+        self, tmp_path: Path
+    ) -> None:
+        """Should extract mandate IDs only from canonical files with **ID:** M* declarations."""
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
         docs_dir = tmp_path / "docs"
-        docs_dir.mkdir()
-        (docs_dir / "test.md").write_text(
-            "# Test\nSee M001 and M002 for details", encoding="utf-8"
+        # Create canonical mandate files with the expected format
+        canonical_dir = docs_dir / "spec" / "canonical" / "core" / "mandates"
+        canonical_dir.mkdir(parents=True)
+        (canonical_dir / "M001_CLEAN_ARCH.md").write_text(
+            "# Mandate: Clean Architecture\n\n**ID:** M001\n",
+            encoding="utf-8",
         )
+        (canonical_dir / "M002_TDD.md").write_text(
+            "# Mandate: Test-Driven Development\n\n**ID:** M002\n",
+            encoding="utf-8",
+        )
+        # A plain docs file that references M003 should NOT be picked up
+        plain_docs = docs_dir / "guide.md"
+        plain_docs.write_text("See M003 for details", encoding="utf-8")
 
         bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
         bootstrapper._bootstrap_from_markdown()
 
-        # Should create mandate.md with extracted IDs
         mandate_spec = spec_dir / "mandate.md"
         assert mandate_spec.exists()
         content = mandate_spec.read_text(encoding="utf-8")
         assert "M001" in content
         assert "M002" in content
+        # M003 must NOT appear — it was only referenced, not canonically defined
+        assert "M003" not in content
 
-    def test_bootstrap_from_markdown_extracts_guideline_ids(
+    def test_bootstrap_from_markdown_does_not_auto_discover_guidelines(
         self, tmp_path: Path
     ) -> None:
-        """Should extract guideline IDs from markdown files when mandates also present."""
+        """Should create an empty guidelines.dsl rather than auto-discovering G-IDs."""
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
         docs_dir = tmp_path / "docs"
-        docs_dir.mkdir()
-        # Include both mandate and guideline IDs
-        (docs_dir / "test.md").write_text(
-            "# Test\nSee M001 and G001 and G002 for details", encoding="utf-8"
+        canonical_dir = docs_dir / "spec" / "canonical" / "core" / "mandates"
+        canonical_dir.mkdir(parents=True)
+        (canonical_dir / "M001_ARCH.md").write_text(
+            "# Mandate: Architecture\n\n**ID:** M001\n", encoding="utf-8"
         )
+        # Plain docs file with G-IDs that should NOT be picked up
+        plain = docs_dir / "guide.md"
+        plain.write_text("See G001 and G002 for details", encoding="utf-8")
 
         bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
         bootstrapper._bootstrap_from_markdown()
 
-        # Should create guidelines.dsl with extracted IDs
         guidelines_dsl = spec_dir / "guidelines.dsl"
         assert guidelines_dsl.exists()
         content = guidelines_dsl.read_text(encoding="utf-8")
-        assert "G001" in content
-        assert "G002" in content
+        # Should be empty (only header comment) — no G-ID auto-discovery
+        assert "G001" not in content
+        assert "G002" not in content
 
     def test_bootstrap_from_markdown_skips_unreadable_files(
         self, tmp_path: Path
     ) -> None:
-        """Should skip unreadable files without crashing."""
+        """Should skip unreadable canonical files without crashing, still finding readable ones."""
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
         docs_dir = tmp_path / "docs"
-        docs_dir.mkdir()
-
-        # Create a valid markdown file with a mandate
-        (docs_dir / "valid.md").write_text("M001", encoding="utf-8")
+        canonical_dir = docs_dir / "spec" / "canonical" / "core" / "mandates"
+        canonical_dir.mkdir(parents=True)
+        # Valid canonical file — readable
+        (canonical_dir / "M001_ARCH.md").write_text(
+            "# Mandate: Clean Architecture\n\n**ID:** M001\n", encoding="utf-8"
+        )
+        # Simulate an extra file alongside — bootstrapper must not crash
 
         bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
         bootstrapper._bootstrap_from_markdown()
 
-        # Should still succeed and find M001
         mandate_spec = spec_dir / "mandate.md"
         assert mandate_spec.exists()
         assert "M001" in mandate_spec.read_text(encoding="utf-8")
