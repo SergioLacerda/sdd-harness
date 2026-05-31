@@ -1123,10 +1123,11 @@ class TestGovernanceSeedsGeneratorGeneratePromptCommands:
 
         assert success is True
         assert gen.prompt_commands_mode == "full"
-        assert (
-            ".codex/commands.md"
-            in gen.get_summary()["awareness_pack"]["prompt_commands_outputs"]
-        )
+        outputs = [
+            path.replace("\\", "/")
+            for path in gen.get_summary()["awareness_pack"]["prompt_commands_outputs"]
+        ]
+        assert ".codex/commands.md" in outputs
 
 
 class TestGovernanceSeedsGeneratorExceptionHandling:
