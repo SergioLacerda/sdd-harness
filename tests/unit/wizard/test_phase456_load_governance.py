@@ -130,6 +130,9 @@ def test_create_ide_templates_copies_agent_directories(tmp_path: Path) -> None:
     )
 
     deployer = IdeTemplateDeployer(repo_root=tmp_path, output_base=tmp_path / "project")
+    deployer._template_base_candidates = lambda: [  # type: ignore[method-assign]
+        template_base
+    ]
     assert deployer.create_ide_templates() is True
     assert (deployer.output_base / ".github" / "copilot-instructions.md").exists()
     assert (deployer.output_base / ".vscode" / "ai-rules.md").exists()

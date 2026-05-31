@@ -61,7 +61,7 @@ First-run onboarding is zero-state aware:
 
 ```bash
 # 3) Bootstrap governance runtime in your project
-sdd init --type client --name sergio-harness --force
+sdd init --type client --name <your-project> --force
 sdd governance generate --full-bootstrap
 sdd skills --full-bootstrap --regenerate-seeds
 ```

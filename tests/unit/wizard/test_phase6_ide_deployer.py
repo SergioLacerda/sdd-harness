@@ -20,11 +20,22 @@ def _make_deployer(tmp_path: Path, verbose: bool = False) -> Any:
     output_base = tmp_path / "output"
     output_base.mkdir(parents=True, exist_ok=True)
 
-    return IdeTemplateDeployer(
+    deployer = IdeTemplateDeployer(
         repo_root=repo_root,
         output_base=output_base,
         verbose=verbose,
     )
+    # Keep tests deterministic: use repo-root template tree only.
+    deployer._template_base_candidates = lambda: [  # type: ignore[method-assign]
+        repo_root
+        / "packages"
+        / "features"
+        / "sdd_integration"
+        / "src"
+        / "sdd_integration"
+        / "templates"
+    ]
+    return deployer
 
 
 class TestIdeTemplateDeployerInit:

@@ -27,7 +27,7 @@ Repository = "https://github.com/SergioLacerda/sdd-harness"
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
-sdd_wizard = ["py.typed"]
+sdd_wizard = ["py.typed", "templates/**/*"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

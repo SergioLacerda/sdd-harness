@@ -4,6 +4,7 @@ IdeTemplateDeployer — Phase 6 step: copy IDE/CI templates and inject bootstrap
 
 import os
 import shutil
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -51,7 +52,21 @@ class IdeTemplateDeployer:
 
     @property
     def _template_base(self) -> Path:
-        return (
+        for candidate in self._template_base_candidates():
+            if candidate.exists():
+                return candidate
+        # Keep legacy behavior for diagnostics when no candidate exists.
+        return self._template_base_candidates()[-1]
+
+    def _template_base_candidates(self) -> list[Path]:
+        candidates: list[Path] = []
+        try:
+            pkg_root = resources.files("sdd_integration")
+            candidates.append(Path(str(pkg_root)) / "templates")
+        except (ModuleNotFoundError, TypeError, AttributeError):
+            pass
+
+        candidates.append(
             self.repo_root
             / "packages"
             / "features"
@@ -60,6 +75,7 @@ class IdeTemplateDeployer:
             / "sdd_integration"
             / "templates"
         )
+        return candidates
 
     def copy_templates(self) -> bool:
         """Copy base templates to .github/workflows."""
@@ -88,7 +104,11 @@ class IdeTemplateDeployer:
         try:
             template_base = self._template_base
             if not template_base.exists():
+                attempted = ", ".join(
+                    str(path) for path in self._template_base_candidates()
+                )
                 print(f"  ❌ Template base not found: {template_base}")  # noqa: T201
+                self._log(f"Attempted template bases: {attempted}")
                 return False
 
             copied_count = 0

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -174,3 +174,119 @@ class TestCallablePrompterConfirm:
     def test_n_returns_false(self) -> None:
         p = _CallablePrompter(lambda _: "n")
         assert p.confirm("Sure?") is False
+
+
+class TestCallablePrompterSelectEmptyChoices:
+    def test_empty_choices_returns_empty_string(self) -> None:
+        p = _CallablePrompter(lambda _: "1")
+        assert p.select("Pick:", []) == ""
+
+
+class TestMatchTokenValueWithDash:
+    def test_key_prefix_matches_value_with_dash(self) -> None:
+        from sdd_wizard.src.prompter import _match_token_value
+
+        result = _match_token_value(
+            "governance", {"governance — GAP v1.0", "compliance — CI"}
+        )
+        assert result == "governance — GAP v1.0"
+
+    def test_no_match_returns_none(self) -> None:
+        from sdd_wizard.src.prompter import _match_token_value
+
+        result = _match_token_value("unknown", {"governance — GAP v1.0"})
+        assert result is None
+
+    def test_exact_match_short_circuits(self) -> None:
+        from sdd_wizard.src.prompter import _match_token_value
+
+        result = _match_token_value("foo", {"foo", "bar — baz"})
+        assert result == "foo"
+
+
+class TestWrapPrompterFallback:
+    def test_non_callable_non_prompter_returns_make_prompter(self) -> None:
+        from sdd_wizard.src.prompter import _wrap_prompter
+
+        with patch.object(sys.stdin, "isatty", return_value=False):
+            p = _wrap_prompter(42)  # type: ignore[arg-type]
+        assert isinstance(p, PlainPrompter)
+
+
+class TestRichPrompter:
+    def test_select_returns_value(self) -> None:
+        mock_q = MagicMock()
+        mock_q.select.return_value.ask.return_value = "choice_a"
+        with patch.dict(sys.modules, {"questionary": mock_q}):
+            from importlib import reload
+
+            import sdd_wizard.src.prompter as pm
+
+            reload(pm)
+            p = pm.RichPrompter()
+            result = p.select("Pick:", ["choice_a", "choice_b"])
+        assert result == "choice_a"
+
+    def test_select_raises_keyboard_interrupt_on_none(self) -> None:
+        mock_q = MagicMock()
+        mock_q.select.return_value.ask.return_value = None
+        with patch.dict(sys.modules, {"questionary": mock_q}):
+            from importlib import reload
+
+            import sdd_wizard.src.prompter as pm
+
+            reload(pm)
+            p = pm.RichPrompter()
+            with pytest.raises(KeyboardInterrupt):
+                p.select("Pick:", ["a"])
+
+    def test_checkbox_returns_values(self) -> None:
+        mock_q = MagicMock()
+        mock_q.checkbox.return_value.ask.return_value = ["a", "b"]
+        with patch.dict(sys.modules, {"questionary": mock_q}):
+            from importlib import reload
+
+            import sdd_wizard.src.prompter as pm
+
+            reload(pm)
+            p = pm.RichPrompter()
+            result = p.checkbox("Pick:", ["a", "b", "c"])
+        assert result == ["a", "b"]
+
+    def test_checkbox_raises_keyboard_interrupt_on_none(self) -> None:
+        mock_q = MagicMock()
+        mock_q.checkbox.return_value.ask.return_value = None
+        with patch.dict(sys.modules, {"questionary": mock_q}):
+            from importlib import reload
+
+            import sdd_wizard.src.prompter as pm
+
+            reload(pm)
+            p = pm.RichPrompter()
+            with pytest.raises(KeyboardInterrupt):
+                p.checkbox("Pick:", ["a"])
+
+    def test_confirm_returns_bool(self) -> None:
+        mock_q = MagicMock()
+        mock_q.confirm.return_value.ask.return_value = True
+        with patch.dict(sys.modules, {"questionary": mock_q}):
+            from importlib import reload
+
+            import sdd_wizard.src.prompter as pm
+
+            reload(pm)
+            p = pm.RichPrompter()
+            assert p.confirm("Sure?") is True
+
+    def test_confirm_raises_keyboard_interrupt_on_none(self) -> None:
+        mock_q = MagicMock()
+        mock_q.confirm.return_value.ask.return_value = None
+        with patch.dict(sys.modules, {"questionary": mock_q}):
+            from importlib import reload
+
+            import sdd_wizard.src.prompter as pm
+
+            reload(pm)
+            p = pm.RichPrompter()
+            with pytest.raises(KeyboardInterrupt):
+                p.confirm("Sure?")

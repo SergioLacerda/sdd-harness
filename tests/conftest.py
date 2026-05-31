@@ -4,6 +4,7 @@ import contextlib
 import hashlib
 import inspect
 import io
+import json
 import os
 import shutil
 import sys
@@ -317,19 +318,50 @@ def _snapshot_repo_sdd_tree() -> dict[str, str]:
         return {}
     snapshot: dict[str, str] = {}
     for path in sorted(_REPO_SDD_ROOT.rglob("*")):
-        try:
+        with contextlib.suppress(ValueError):
             if path.resolve().is_relative_to(_SDD_RUNTIME_DIR):
                 continue
-        except ValueError:
-            pass
         rel = str(path.relative_to(_REPO_ROOT))
         if path.is_dir():
             snapshot[rel + "/"] = "dir"
             continue
         if path.is_file():
-            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            digest = _snapshot_digest(path)
             snapshot[rel] = digest
     return snapshot
+
+
+def _snapshot_digest(path: Path) -> str:
+    """Return snapshot digest with JSON canonicalization for stable policy checks.
+
+    Some governed artifacts are JSON files that may be reformatted by CI/lint
+    (for example: trailing newline at EOF). For those files we hash canonical
+    JSON content so formatting-only changes do not fail the session policy.
+    """
+    if _is_format_tolerant_sdd_json(path):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            canonical = json.dumps(
+                data,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            )
+            return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        except Exception:
+            # Fall back to raw bytes if parsing fails.
+            pass
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _is_format_tolerant_sdd_json(path: Path) -> bool:
+    """Allow formatting-only drift for known JSON artifact files."""
+    rel = str(path.relative_to(_REPO_ROOT))
+    return rel in {
+        ".sdd/compiled/governance-core.json.sig",
+        ".sdd/compiled/governance-client.json.sig",
+        ".sdd/trust/trusted-keys.json",
+    }
 
 
 def _resolve_candidate_path(target: Any) -> Path | None:

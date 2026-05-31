@@ -115,3 +115,117 @@ class TestSeedlingSelection:
         with patch("builtins.input", return_value="all"):
             result = ask_seedling_selection(messages.append)
         assert result is None
+
+    def test_string_returning_checkbox_blank_returns_none(self) -> None:
+        """Covers the isinstance(selected_values, str) textual fallback path."""
+
+        class _StringPrompter:
+            def select(self, q: str, choices: list) -> str:
+                return ""
+
+            def checkbox(self, q: str, choices: list) -> str:  # type: ignore[override]
+                return ""
+
+            def confirm(self, q: str, default: bool = True) -> bool:
+                return default
+
+        messages: list[str] = []
+        result = ask_seedling_selection(messages.append, prompter=_StringPrompter())
+        assert result is None
+
+    def test_string_returning_checkbox_all_returns_none(self) -> None:
+        class _StringPrompter:
+            def select(self, q: str, choices: list) -> str:
+                return ""
+
+            def checkbox(self, q: str, choices: list) -> str:  # type: ignore[override]
+                return "all"
+
+            def confirm(self, q: str, default: bool = True) -> bool:
+                return default
+
+        messages: list[str] = []
+        result = ask_seedling_selection(messages.append, prompter=_StringPrompter())
+        assert result is None
+
+    def test_string_returning_checkbox_named_key(self) -> None:
+        class _StringPrompter:
+            def select(self, q: str, choices: list) -> str:
+                return ""
+
+            def checkbox(self, q: str, choices: list) -> str:  # type: ignore[override]
+                return "governance,compliance"
+
+            def confirm(self, q: str, default: bool = True) -> bool:
+                return default
+
+        messages: list[str] = []
+        result = ask_seedling_selection(messages.append, prompter=_StringPrompter())
+        assert result == {"governance", "compliance"}
+
+    def test_string_returning_checkbox_numeric_index(self) -> None:
+        class _StringPrompter:
+            def select(self, q: str, choices: list) -> str:
+                return ""
+
+            def checkbox(self, q: str, choices: list) -> str:  # type: ignore[override]
+                return "1"
+
+            def confirm(self, q: str, default: bool = True) -> bool:
+                return default
+
+        messages: list[str] = []
+        result = ask_seedling_selection(messages.append, prompter=_StringPrompter())
+        assert result == {"governance"}
+
+    def test_normalized_value_with_dash_separator(self) -> None:
+        """Covers the ' — ' normalization branch in ask_seedling_selection."""
+
+        class _RawChoicePrompter:
+            def select(self, q: str, choices: list) -> str:
+                return ""
+
+            def checkbox(self, q: str, choices: list) -> list:
+                return ["governance           — GAP v1.0 auto-activation"]
+
+            def confirm(self, q: str, default: bool = True) -> bool:
+                return default
+
+        messages: list[str] = []
+        result = ask_seedling_selection(messages.append, prompter=_RawChoicePrompter())
+        assert result is not None
+        assert "governance" in result
+
+    def test_all_invalid_normalized_values_returns_none_with_warning(self) -> None:
+        """Covers the 'no valid selection' warning path (lines 93-94)."""
+
+        class _BadPrompter:
+            def select(self, q: str, choices: list) -> str:
+                return ""
+
+            def checkbox(self, q: str, choices: list) -> list:
+                return ["not-a-real-seedling", "also-invalid"]
+
+            def confirm(self, q: str, default: bool = True) -> bool:
+                return default
+
+        messages: list[str] = []
+        result = ask_seedling_selection(messages.append, prompter=_BadPrompter())
+        assert result is None
+        assert any("No valid selection" in m for m in messages)
+
+
+class TestBuildChoices:
+    def test_build_choices_without_questionary(self) -> None:
+        """Covers the ImportError fallback path in _build_choices."""
+        import sys
+        from unittest.mock import patch
+
+        from sdd_wizard.orchestration.wizard.seedling_selection import _build_choices
+
+        with patch.dict(sys.modules, {"questionary": None}):
+            choices = _build_choices()
+
+        assert isinstance(choices, list)
+        assert len(choices) > 0
+        assert all(isinstance(c, str) for c in choices)

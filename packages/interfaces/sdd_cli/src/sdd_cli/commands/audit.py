@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import csv
 import hashlib
 import io
@@ -483,13 +484,11 @@ def _resolve_governance_fingerprint() -> str:
             pass  # best-effort; fingerprint unavailable if file is unreadable
     metadata = root / ".sdd" / "metadata.json"
     if metadata.exists():
-        try:
+        with contextlib.suppress(OSError, json.JSONDecodeError):
             raw = json.loads(metadata.read_text(encoding="utf-8"))
             fp = raw.get("fingerprints", {}).get("combined", "")
             if isinstance(fp, str) and fp.strip():
                 return fp.strip()
-        except (OSError, json.JSONDecodeError):
-            pass
     return ""
 
 

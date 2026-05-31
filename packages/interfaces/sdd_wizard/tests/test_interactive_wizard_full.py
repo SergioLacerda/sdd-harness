@@ -202,6 +202,32 @@ class TestEnsureDocsMeta:
         assert (tmp_path / "build" / "docs-meta" / "guidelines.dsl").exists()
 
 
+class TestPostGenerationCleanup:
+    def test_cleanup_removes_temporary_artifacts_and_keeps_final_template(
+        self, tmp_path: Path
+    ) -> None:
+        wizard = _make_wizard(tmp_path)
+        (wizard.final_template_dir / "keep.txt").mkdir(parents=True, exist_ok=True)
+        (wizard.final_template_dir / "keep.txt" / "ok").write_text(
+            "ok", encoding="utf-8"
+        )
+        (wizard.client_build_dir / "docs-meta").mkdir(parents=True, exist_ok=True)
+        (wizard.phase1_choices_dir).mkdir(parents=True, exist_ok=True)
+        (wizard.phase2_input_dir).mkdir(parents=True, exist_ok=True)
+        wizard.client_compiled_dir.mkdir(parents=True, exist_ok=True)
+        (wizard.client_compiled_dir / ".sdd").mkdir(parents=True, exist_ok=True)
+        wizard.wizard_config_path.write_text("{}", encoding="utf-8")
+
+        cleaned = wizard._cleanup_post_generation_artifacts()
+
+        assert cleaned
+        assert not (wizard.client_build_dir / "docs-meta").exists()
+        assert not wizard.phase1_choices_dir.exists()
+        assert not wizard.phase2_input_dir.exists()
+        assert not (wizard.client_compiled_dir / ".sdd").exists()
+        assert wizard.final_template_dir.exists()
+
+
 class TestPhase1Generate:
     def _ready_docs_meta(self, tmp_path: Path) -> None:
         d = tmp_path / "build" / "docs-meta"
@@ -476,6 +502,158 @@ class TestConsolidateFinalTemplate:
         ):
             result = wizard._consolidate_final_template()
         assert result["success"] is False
+
+
+def _make_wizard_with_source_spec(tmp_path: Path, **extra_paths) -> InteractiveWizard:
+    paths = {
+        **_BASE_PATHS,
+        "client_build": tmp_path / "build",
+        "client_compiled": tmp_path / "compiled",
+        **extra_paths,
+    }
+    with patch("sdd_wizard.src.interactive_mode.get_sdd_paths", return_value=paths):
+        return InteractiveWizard(
+            repo_root=tmp_path,
+            emitter=lambda _: None,
+            prompter=lambda _: "",
+        )
+
+
+class TestShowPhaseMenuFallback:
+    def test_returns_1_when_selection_matches_no_choice(self, tmp_path: Path) -> None:
+        """Covers line 141: fallback return '1' when selected value isn't in _PHASE_CHOICES."""
+
+        class _UnknownPrompter:
+            def select(self, q: str, choices: list) -> str:
+                return "totally unknown value"
+
+            def checkbox(self, q: str, choices: list) -> list:
+                return []
+
+            def confirm(self, q: str, default: bool = True) -> bool:
+                return default
+
+        wizard = _make_wizard(tmp_path, prompter=_UnknownPrompter())
+        result = wizard.show_phase_menu()
+        assert result == "1"
+
+
+class TestSourceSpecReady:
+    def test_false_when_source_spec_missing(self, tmp_path: Path) -> None:
+        wizard = _make_wizard_with_source_spec(tmp_path, source_spec=tmp_path / "spec")
+        assert wizard._source_spec_ready() is False
+
+    def test_true_with_mandate_and_guidelines(self, tmp_path: Path) -> None:
+        spec = tmp_path / "spec"
+        spec.mkdir(parents=True)
+        (spec / "mandate.spec").write_text("x", encoding="utf-8")
+        (spec / "guidelines.dsl").write_text("x", encoding="utf-8")
+        wizard = _make_wizard_with_source_spec(tmp_path, source_spec=spec)
+        assert wizard._source_spec_ready() is True
+
+    def test_false_without_guidelines(self, tmp_path: Path) -> None:
+        spec = tmp_path / "spec"
+        spec.mkdir(parents=True)
+        (spec / "mandate.md").write_text("x", encoding="utf-8")
+        wizard = _make_wizard_with_source_spec(tmp_path, source_spec=spec)
+        assert wizard._source_spec_ready() is False
+
+
+class TestEnsureOnboardingScaffoldOSError:
+    def test_returns_false_on_mkdir_failure(self, tmp_path: Path) -> None:
+        """Covers the except OSError branch in _ensure_onboarding_scaffold."""
+        wizard = _make_wizard(tmp_path)
+        with patch.object(Path, "mkdir", side_effect=OSError("disk full")):
+            ok, reason = wizard._ensure_onboarding_scaffold()
+        assert ok is False
+        assert "disk full" in reason
+
+
+class TestEnsureDocsMetaReadyFailures:
+    def test_scaffold_failure_propagates(self, tmp_path: Path) -> None:
+        """Covers line 262: when scaffold_ok is False."""
+        wizard = _make_wizard(tmp_path)
+        with patch.object(
+            wizard, "_ensure_onboarding_scaffold", return_value=(False, "oops")
+        ):
+            ok, reason = wizard._ensure_docs_meta_ready()
+        assert ok is False
+        assert "oops" in reason
+
+    def test_returns_false_when_both_checks_fail(self, tmp_path: Path) -> None:
+        """Covers lines 265-272: scaffold succeeds but neither docs_meta nor source_spec ready."""
+        wizard = _make_wizard(tmp_path)
+        with (
+            patch.object(
+                wizard, "_ensure_onboarding_scaffold", return_value=(True, "")
+            ),
+            patch.object(wizard, "_docs_meta_ready", return_value=False),
+            patch.object(wizard, "_source_spec_ready", return_value=False),
+        ):
+            ok, reason = wizard._ensure_docs_meta_ready()
+        assert ok is False
+        assert "Phase 1 source artifacts are missing" in reason
+
+
+class TestPhase1GenerateTemplatesFailurePaths:
+    def _ready_docs_meta(self, tmp_path: Path) -> None:
+        d = tmp_path / "build" / "docs-meta"
+        d.mkdir(parents=True)
+        (d / "mandate.spec").write_text("x", encoding="utf-8")
+        (d / "guidelines.dsl").write_text("x", encoding="utf-8")
+
+    def test_fails_when_docs_meta_not_ready(self, tmp_path: Path) -> None:
+        """Covers lines 291-296: _ensure_docs_meta_ready returns False."""
+        responses = iter(["2", "1"])
+        wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
+        with patch.object(
+            wizard, "_ensure_docs_meta_ready", return_value=(False, "no artifacts")
+        ):
+            result = wizard.phase_1_generate_templates()
+        assert result["success"] is False
+        assert "no artifacts" in result["error"]
+
+    def test_generator_failure_records_status(self, tmp_path: Path) -> None:
+        """Covers line 338: generator returns success=False."""
+        self._ready_docs_meta(tmp_path)
+        responses = iter(["2", "1"])
+        wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
+        mock_gen = MagicMock()
+        mock_gen.run.return_value = {"success": False, "error": "gen failed"}
+        sys.modules[
+            "sdd_wizard.orchestration.wizard.phase1_generator"
+        ].Phase1Generator.return_value = mock_gen
+        result = wizard.phase_1_generate_templates()
+        assert result["success"] is False
+
+
+class TestPhase2InstructionsConfigPaths:
+    def _setup_phase1(self, tmp_path: Path) -> None:
+        phase1 = tmp_path / "build" / "phase-1-choices"
+        phase1.mkdir(parents=True)
+        (phase1 / "test.md").write_text("# Test", encoding="utf-8")
+
+    def test_fails_when_config_shows_phase1_failed(self, tmp_path: Path) -> None:
+        """Covers the phase1_status == 'failed' branch in phase_2_show_instructions."""
+        self._setup_phase1(tmp_path)
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "")
+        wizard.wizard_config_path.parent.mkdir(parents=True, exist_ok=True)
+        wizard.wizard_config_path.write_text(
+            json.dumps({"phase1_status": {"status": "failed", "reason": "bad input"}}),
+            encoding="utf-8",
+        )
+        result = wizard.phase_2_show_instructions()
+        assert result["success"] is False
+        assert "bad input" in result["error"]
+
+    def test_warns_and_continues_on_corrupt_config(self, tmp_path: Path) -> None:
+        """Covers the except (OSError, ValueError, TypeError) branch."""
+        self._setup_phase1(tmp_path)
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "")
+        wizard.wizard_config_path.parent.mkdir(parents=True, exist_ok=True)
+        wizard.wizard_config_path.write_text("{bad json}", encoding="utf-8")
+        result = wizard.phase_2_show_instructions()
+        assert result["success"] is True
 
 
 class TestAskSeedlingSelection:
