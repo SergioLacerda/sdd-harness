@@ -30,13 +30,11 @@ def _artifacts_valid(repo_root: Path) -> bool:
     canonical = repo_root / ".sdd" / "compiled" / "governance-core.json"
     for candidate in [canonical]:
         if candidate.exists():
-            try:
+            with contextlib.suppress(Exception):
                 data = _json.loads(candidate.read_text(encoding="utf-8"))
                 items = data.get("items", [])
                 if len(items) >= 4 and all("id" in item for item in items):
                     return True
-            except Exception:
-                pass
 
     # Fallback: legacy generated/ paths for local dev environments.
     try:

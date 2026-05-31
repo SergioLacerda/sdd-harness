@@ -334,6 +334,15 @@ class TestIdeTemplateDeployer:
         self._make_template_tree(tmp_path)
         out = tmp_path / "project"
         deployer = IdeTemplateDeployer(repo_root=tmp_path, output_base=out)
+        deployer._template_base_candidates = lambda: [  # type: ignore[method-assign]
+            tmp_path
+            / "packages"
+            / "features"
+            / "sdd_integration"
+            / "src"
+            / "sdd_integration"
+            / "templates"
+        ]
         assert deployer.create_ide_templates() is True
         assert (out / ".github" / "copilot-instructions.md").exists()
         assert (out / ".vscode" / "ai-rules.md").exists()
@@ -345,6 +354,16 @@ class TestIdeTemplateDeployer:
         deployer = IdeTemplateDeployer(
             repo_root=tmp_path / "nonexistent", output_base=tmp_path / "out"
         )
+        deployer._template_base_candidates = lambda: [  # type: ignore[method-assign]
+            tmp_path
+            / "nonexistent"
+            / "packages"
+            / "features"
+            / "sdd_integration"
+            / "src"
+            / "sdd_integration"
+            / "templates"
+        ]
         assert deployer.create_ide_templates() is False
 
     def test_inject_bootstrap_metadata_appends_footer(self, tmp_path: Path) -> None:

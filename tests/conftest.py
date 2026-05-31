@@ -318,11 +318,9 @@ def _snapshot_repo_sdd_tree() -> dict[str, str]:
         return {}
     snapshot: dict[str, str] = {}
     for path in sorted(_REPO_SDD_ROOT.rglob("*")):
-        try:
+        with contextlib.suppress(ValueError):
             if path.resolve().is_relative_to(_SDD_RUNTIME_DIR):
                 continue
-        except ValueError:
-            pass
         rel = str(path.relative_to(_REPO_ROOT))
         if path.is_dir():
             snapshot[rel + "/"] = "dir"
