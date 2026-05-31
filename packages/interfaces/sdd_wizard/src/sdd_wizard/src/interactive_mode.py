@@ -64,6 +64,18 @@ class InteractiveWizard:
     )
     FINAL_TEMPLATE_MANIFEST_FILE = "DEPLOYMENT_MANIFEST.json"
     FINAL_TEMPLATE_CONTEXT_CACHE_FILE = ".sdd/runtime/.sdd-cache.md"
+    ONBOARDING_BASELINE_MANDATE = """# M001: Bootstrap Governance Baseline
+
+Initial mandate placeholder generated during first onboarding.
+Customize this file in Phase 2.
+"""
+    ONBOARDING_BASELINE_GUIDELINES = """guideline G001 {
+    title: "Bootstrap guideline"
+    description: "Initial guideline placeholder generated during first onboarding."
+    type: "GUIDELINE"
+    category: "core"
+}
+"""
 
     def __init__(
         self,
@@ -212,17 +224,54 @@ class InteractiveWizard:
         )
         return has_mandate and has_guidelines
 
+    def _ensure_onboarding_scaffold(self) -> tuple[bool, str]:
+        """Create minimal wizard scaffold for first-run onboarding."""
+        try:
+            self.client_build_dir.mkdir(parents=True, exist_ok=True)
+            self.phase1_choices_dir.mkdir(parents=True, exist_ok=True)
+            self.phase2_input_dir.mkdir(parents=True, exist_ok=True)
+
+            docs_meta = self.client_build_dir / "docs-meta"
+            docs_meta.mkdir(parents=True, exist_ok=True)
+
+            has_mandate = any(
+                (docs_meta / name).exists() for name in ("mandate.spec", "mandate.md")
+            )
+            has_guidelines = any(
+                (docs_meta / name).exists()
+                for name in ("guidelines.dsl", "guidelines.md")
+            )
+
+            if not has_mandate:
+                (docs_meta / "mandate.md").write_text(
+                    self.ONBOARDING_BASELINE_MANDATE, encoding="utf-8"
+                )
+            if not has_guidelines:
+                (docs_meta / "guidelines.dsl").write_text(
+                    self.ONBOARDING_BASELINE_GUIDELINES, encoding="utf-8"
+                )
+
+            return True, ""
+        except OSError as exc:
+            return False, f"Failed to create onboarding scaffold: {exc}"
+
     def _ensure_docs_meta_ready(self) -> tuple[bool, str]:
         """Ensure Phase 1 inputs exist (legacy docs-meta or unified source_spec)."""
+        scaffold_ok, scaffold_reason = self._ensure_onboarding_scaffold()
+        if not scaffold_ok:
+            return False, scaffold_reason
         if self._docs_meta_ready() or self._source_spec_ready():
             return True, ""
         docs_meta = self.client_build_dir / "docs-meta"
         source_spec = Path(
             self.paths.get("source_spec", self.client_build_dir / "docs-meta")
         )
+        locations = [str(docs_meta)]
+        if source_spec != docs_meta:
+            locations.append(str(source_spec))
         return (
             False,
-            f"Phase 1 source artifacts are missing at {docs_meta} and {source_spec}. "
+            f"Phase 1 source artifacts are missing at {', '.join(locations)}. "
             "Run 'sdd governance compile' to regenerate governance artifacts.",
         )
 

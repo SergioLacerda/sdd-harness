@@ -188,10 +188,18 @@ class TestEnsureDocsMeta:
         assert ok is True
         assert reason == ""
 
-    def test_returns_false_when_docs_meta_missing(self, tmp_path: Path) -> None:
-        ok, reason = _make_wizard(tmp_path)._ensure_docs_meta_ready()
-        assert ok is False
-        assert "sdd governance compile" in reason
+    def test_bootstraps_and_returns_true_when_docs_meta_missing(
+        self, tmp_path: Path
+    ) -> None:
+        wizard = _make_wizard(tmp_path)
+        ok, reason = wizard._ensure_docs_meta_ready()
+        assert ok is True
+        assert reason == ""
+        assert (tmp_path / "build" / "docs-meta").exists()
+        assert (tmp_path / "build" / "phase-1-choices").exists()
+        assert (tmp_path / "build" / "phase-2-input").exists()
+        assert (tmp_path / "build" / "docs-meta" / "mandate.md").exists()
+        assert (tmp_path / "build" / "docs-meta" / "guidelines.dsl").exists()
 
 
 class TestPhase1Generate:
@@ -214,12 +222,16 @@ class TestPhase1Generate:
         result = wizard.phase_1_generate_templates()
         assert result["success"] is True
 
-    def test_failure_docs_meta_not_ready(self, tmp_path: Path) -> None:
-        # docs-meta artifacts are absent → _ensure_docs_meta_ready returns False
+    def test_success_in_zero_state_without_docs_meta(self, tmp_path: Path) -> None:
         responses = iter(["2", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
+        mock_gen = MagicMock()
+        mock_gen.run.return_value = {"success": True}
+        sys.modules[
+            "sdd_wizard.orchestration.wizard.phase1_generator"
+        ].Phase1Generator.return_value = mock_gen
         result = wizard.phase_1_generate_templates()
-        assert result["success"] is False
+        assert result["success"] is True
 
     def test_exception_returns_failure(self, tmp_path: Path) -> None:
         self._ready_docs_meta(tmp_path)
