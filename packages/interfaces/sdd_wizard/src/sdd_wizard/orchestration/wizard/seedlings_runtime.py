@@ -7,6 +7,34 @@ from pathlib import Path
 from sdd_wizard.orchestration.wizard.messages import phase6_seedlings_success_message
 
 
+def _resolve_governance_paths(
+    paths: dict[str, Path], output_base: Path
+) -> tuple[Path, Path]:
+    """Resolve governance JSON paths with .sdd-first precedence."""
+    root = paths.get("root", Path.cwd())
+    client_compiled = paths.get(
+        "client_compiled", root / "generated" / "client" / "compiled"
+    )
+    core_candidates = [
+        root / ".sdd" / "compiled" / "governance-core.json",
+        root / ".sdd" / "source" / "governance-core.json",
+        client_compiled / "source" / "governance-core.json",
+        output_base / ".sdd" / "source" / "governance-core.json",
+    ]
+    client_candidates = [
+        root / ".sdd" / "compiled" / "governance-client.json",
+        root / ".sdd" / "source" / "governance-client.json",
+        client_compiled / "source" / "governance-client.json",
+        output_base / ".sdd" / "source" / "governance-client.json",
+    ]
+
+    core_path = next((p for p in core_candidates if p.exists()), core_candidates[0])
+    client_path = next(
+        (p for p in client_candidates if p.exists()), client_candidates[0]
+    )
+    return core_path, client_path
+
+
 def run_phase6_seedlings_generation(
     *,
     wizard_config_path: Path,
@@ -27,9 +55,8 @@ def run_phase6_seedlings_generation(
         config = {"language": "Python", "enforcement_mode": "warn_mode"}
 
     paths = get_sdd_paths()
-    governance_core_path = paths["client_compiled"] / "source" / "governance-core.json"
-    governance_client_path = (
-        paths["client_compiled"] / "source" / "governance-client.json"
+    governance_core_path, governance_client_path = _resolve_governance_paths(
+        paths, output_base
     )
 
     loader = GovernanceLoader(

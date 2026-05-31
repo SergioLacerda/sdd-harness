@@ -9,12 +9,12 @@
 | Task | Command | Expected Output |
 |------|---------|-----------------|
 | Check governance status | `python packages/agent_handshake.py --mode=compact` | 🟢 HEALTHY (if adopted) |
-| Initialize governance | `python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py` | Wizard walks you through setup |
-| List governance policies | `cat .sdd/governance-core.json` | JSON config |
-| Check authority roles | `grep -A5 '"authority"' .sdd/governance-core.json` | Lists architect, governance, ops |
+| Initialize governance | `python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py` | Wizard walks you through setup |
+| List governance policies | `cat .sdd/metadata.json` | JSON config |
+| Check authority roles | `grep -A5 '"authority"' .sdd/metadata.json` | Lists architect, governance, ops |
 | Validate compliance | `python packages/quiz_executor.py --topic=governance` | Score + topic breakdown |
 | View seedlings | `ls -la .sdd/seedlings/` | List of active domains |
-| Update enforcement | Edit `.sdd/governance-core.json` → set `"enforcement": "strict"` | Blocks bypasses |
+| Update enforcement | Edit `.sdd/metadata.json` → set `"enforcement": "strict"` | Blocks bypasses |
 
 ---
 
@@ -22,7 +22,7 @@
 
 ```
 .sdd/
-├── governance-core.json        ← Main config (user edits this)
+├── metadata.json        ← Main config (user edits this)
 ├── seedlings/
 │   └── {domain}/               ← Domain-specific templates
 │       ├── governance-specialization.json
@@ -45,7 +45,7 @@
 | HEALTHY | 🟢 | Governance fully adopted | Proceed with work |
 | PARTIAL | 🟡 | Governance incomplete | Complete setup steps |
 | NOT_INITIALIZED | ⚠️ | PHASE 0 not run | `python phase-0-agent-onboarding.py` |
-| MISCONFIGURED | ⚠️ | Governance files broken | Fix .sdd/governance-core.json |
+| MISCONFIGURED | ⚠️ | Governance files broken | Fix .sdd/metadata.json |
 | NOT_CONNECTED | ❌ | No governance found | Initialize with wizard |
 
 ---
@@ -56,7 +56,7 @@
 User asks about governance?
 ├─ Yes, wants to ADOPT
 │  └─ → Send to WIZARD_ADOPTION.md
-│     └─ Recommend: python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py
+│     └─ Recommend: python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py
 │
 ├─ Yes, wants to IMPLEMENT
 │  └─ → Send to GOVERNANCE_IMPLEMENTATION.md
@@ -80,7 +80,7 @@ User asks about governance?
 | `standard` | 🔐 Moderate | Only by architect | Most projects |
 | `permissive` | 🔓 Low | Anyone can override | Dev/experimental |
 
-Set in `governance-core.json`:
+Set in `metadata.json`:
 ```json
 "policies": {
   "enforcement": "strict"
@@ -93,10 +93,10 @@ Set in `governance-core.json`:
 
 ```bash
 # 1. Run wizard (interactive, ~3 min)
-python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py
+python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py
 
 # 2. Verify governance created
-ls -la .sdd/governance-core.json
+ls -la .sdd/metadata.json
 
 # 3. Validate with health check
 python packages/agent_handshake.py --mode=compact
@@ -109,20 +109,20 @@ python packages/agent_handshake.py --mode=compact
 
 ## Error Messages & Fixes
 
-### ❌ "governance-core.json not found"
-**Fix:** Run wizard: `python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py`
+### ❌ "metadata.json not found"
+**Fix:** Run wizard: `python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py`
 
 ### ❌ "Governance files not valid JSON"
-**Fix:** `python3 -m json.tool .sdd/governance-core.json` to find errors, fix them
+**Fix:** `python3 -m json.tool .sdd/metadata.json` to find errors, fix them
 
 ### ❌ "Authority not recognized"
-**Fix:** Add your email to `authority` section in governance-core.json
+**Fix:** Add your email to `authority` section in metadata.json
 
 ### ❌ "Manual bypass blocked"
 **Fix:** Change `"manual_bypass_allowed": true` if you need override (not recommended)
 
 ### ❌ "Phase progression blocked"
-**Fix:** Update `"phases"."current"` in governance-core.json to match progress
+**Fix:** Update `"phases"."current"` in metadata.json to match progress
 
 ---
 
@@ -153,7 +153,7 @@ python packages/agent_handshake.py --mode=compact
 | `governance` | Enforce rules, approve changes | Bob (governance lead) |
 | `operations` | Deploy to production, manage runtime | Alice (ops engineer) |
 
-Add users to roles in governance-core.json:
+Add users to roles in metadata.json:
 ```json
 "authority": {
   "architect": ["jane@company.com"],
@@ -166,7 +166,7 @@ Add users to roles in governance-core.json:
 
 ## Checklist: Is Governance Adopted?
 
-- [ ] `.sdd/governance-core.json` exists
+- [ ] `.sdd/metadata.json` exists
 - [ ] `.sdd/seedlings/` has at least one domain
 - [ ] Authority roles assigned
 - [ ] Enforcement level set (strict/standard/permissive)

@@ -420,8 +420,8 @@ class TestGovernanceSeedsGeneratorBasic:
 
         assert "auto_activate" in content
         assert "load_compiled_from" in content
-        assert content["load_compiled_from"] == ".sdd/source"
-        assert ".sdd/source/governance-core.json" in content["required_context"]
+        assert content["load_compiled_from"] == ".sdd"
+        assert ".sdd/metadata.json" in content["required_context"]
         assert "project_metadata" in content
         assert content["project_metadata"]["spec_fingerprint"] == "abc12345"
         assert content["project_metadata"]["mandates_selected"] == ["M001", "M002"]
@@ -475,8 +475,8 @@ class TestGovernanceSeedsGeneratorBasic:
             seed_file = tmp_seedlings_dir / "compliance.seed.json"
             content = json.loads(seed_file.read_text(encoding="utf-8"))
             assert "compliance_rules" in content
-            assert content["load_compiled_from"] == ".sdd/source"
-            assert ".sdd/source/governance-core.json" in content["required_context"]
+            assert content["load_compiled_from"] == ".sdd"
+            assert ".sdd/metadata.json" in content["required_context"]
 
 
 class TestIDESeedsGeneratorMethods:
@@ -516,11 +516,9 @@ class TestIDESeedsGeneratorMethods:
         seed_file = tmp_seedlings_dir / "agent-prep.seed.json"
         content = json.loads(seed_file.read_text(encoding="utf-8"))
         assert "agent_configuration" in content
-        assert content["load_compiled_from"] == ".sdd/source"
-        assert (
-            content["agent_configuration"]["quick_access"]["compiled"] == ".sdd/source"
-        )
-        assert ".sdd/source/governance-core.json" in content["required_context"]
+        assert content["load_compiled_from"] == ".sdd"
+        assert content["agent_configuration"]["quick_access"]["compiled"] == ".sdd"
+        assert ".sdd/metadata.json" in content["required_context"]
         assert (
             ".sdd/seedlings/personal-overlay.seed.json" in content["required_context"]
         )
@@ -601,7 +599,7 @@ class TestIDESeedsGeneratorMethods:
         seed_file = tmp_seedlings_dir / "vscode.seed.json"
         content = json.loads(seed_file.read_text(encoding="utf-8"))
         assert content["agent"] == "vscode"
-        assert content["load_compiled_from"] == ".sdd/source"
+        assert content["load_compiled_from"] == ".sdd"
         assert content["governance_fingerprint"] == "abc12345"
         assert content["mandates_count"] == 2
 
@@ -641,7 +639,7 @@ class TestIDESeedsGeneratorMethods:
         seed_file = tmp_seedlings_dir / "cursor.seed.json"
         content = json.loads(seed_file.read_text(encoding="utf-8"))
         assert content["agent"] == "cursor"
-        assert content["load_compiled_from"] == ".sdd/source"
+        assert content["load_compiled_from"] == ".sdd"
         assert "commands_ref" in content
 
 
@@ -1276,7 +1274,7 @@ class TestGovernanceSeedsGeneratorWithMandates:
         assert "M001" in content
         assert "metadata-core.json" not in content
         assert "trust the compiled file" not in content
-        assert "validate this against `.sdd/source/governance-core.json`" in content
+        assert "validate this against `.sdd/metadata.json`" in content
 
 
 class TestGovernanceSeedsGeneratorConfigVariations:

@@ -44,7 +44,7 @@ Complete these steps during `phase-0-agent-onboarding.py`:
 
 ### Validation Phase (Automatic)
 - [ ] Wizard creates `.sdd/` directory
-- [ ] Wizard generates `governance-core.json`
+- [ ] Wizard generates `metadata.json`
 - [ ] Wizard creates seedling directories
 - [ ] Wizard validates JSON syntax
 - [ ] Wizard creates PHASE 0 completion marker
@@ -62,9 +62,9 @@ Complete these IMMEDIATELY after wizard finishes:
 
 ### File Verification
 ```bash
-# Check 1: governance-core.json exists and is valid JSON
-[ -f .sdd/governance-core.json ] && echo "✓" || echo "✗"
-python3 -m json.tool .sdd/governance-core.json > /dev/null && echo "✓" || echo "✗"
+# Check 1: metadata.json exists and is valid JSON
+[ -f .sdd/metadata.json ] && echo "✓" || echo "✗"
+python3 -m json.tool .sdd/metadata.json > /dev/null && echo "✓" || echo "✗"
 
 # Check 2: Seedlings directory exists
 [ -d .sdd/seedlings ] && echo "✓" || echo "✗"
@@ -80,10 +80,10 @@ python3 -m json.tool .sdd/governance-core.json > /dev/null && echo "✓" || echo
 
 ### Configuration Verification
 ```bash
-# Check governance-core.json content
+# Check metadata.json content
 python3 << 'EOF'
 import json
-cfg = json.load(open('.sdd/governance-core.json'))
+cfg = json.load(open('.sdd/metadata.json'))
 
 # Verify structure
 checks = {
@@ -149,14 +149,14 @@ Verify governance integrates with existing systems:
 git status .sdd/
 ```
 
-- [ ] `.sdd/governance-core.json` is tracked in git
+- [ ] `.sdd/metadata.json` is tracked in git
 - [ ] `.sdd/seedlings/` is tracked in git
 - [ ] Files committed to main branch
 
 ### Wizard Integration
 ```bash
 # Test wizard can see governance
-python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py --validate-only
+python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py --validate-only
 ```
 
 - [ ] Wizard recognizes existing governance
@@ -211,10 +211,10 @@ python script.py --force --skip-checks
 Verify governance roles are properly assigned:
 
 ```bash
-# Extract authority from governance-core.json
+# Extract authority from metadata.json
 python3 << 'EOF'
 import json
-cfg = json.load(open('.sdd/governance-core.json'))
+cfg = json.load(open('.sdd/metadata.json'))
 authority = cfg.get('authority', {})
 
 for role, emails in authority.items():
@@ -237,7 +237,7 @@ Verify seedlings are properly configured:
 # List active seedlings
 python3 << 'EOF'
 import json
-cfg = json.load(open('.sdd/governance-core.json'))
+cfg = json.load(open('.sdd/metadata.json'))
 active = cfg.get('seedlings', {}).get('active', [])
 print(f"Active seedlings: {active}")
 

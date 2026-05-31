@@ -28,12 +28,12 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
 
             seed_data = {
                 "auto_activate": True,
-                "load_compiled_from": ".sdd/source",
+                "load_compiled_from": ".sdd",
                 "on_load": "prepare_agent_context",
                 "triggers": ["on_project_load", "on_editor_focus"],
                 "description": "AI Agent Preparation - Sets up IDE context for Copilot, Claude, and other agents",
                 "required_context": [
-                    ".sdd/source/governance-core.json",
+                    ".sdd/metadata.json",
                     ".sdd/metadata.json",
                     ".sdd/seedlings/personal-overlay.seed.json",
                 ],
@@ -47,7 +47,7 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                     "auto_inject_context": True,
                     "adoption_level": adoption_level,
                     "quick_access": {
-                        "compiled": ".sdd/source",
+                        "compiled": ".sdd",
                         "metadata": ".sdd/metadata.json",
                     },
                 },
@@ -94,7 +94,7 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
             seed_data = {
                 "schema_version": "1.0.0",
                 "auto_activate": True,
-                "load_compiled_from": ".sdd/source",
+                "load_compiled_from": ".sdd",
                 "on_load": "prepare_personal_overlay",
                 "triggers": ["on_project_load", "on_editor_focus"],
                 "description": "Personal seed overlay - merges personal .agents skills with governed .sdd registries",
@@ -122,7 +122,7 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                 "auto_activate": True,
                 "agent": "vscode",
                 "description": "VS Code governance bootstrap — redirects to compiled SDD source",
-                "load_compiled_from": ".sdd/source",
+                "load_compiled_from": ".sdd",
                 "instructions_ref": ".vscode/ai-rules.md",
                 "settings_ref": ".vscode/settings.json",
                 "governance_fingerprint": self.spec_fingerprint,
@@ -130,7 +130,7 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                 "auto_load": True,
                 "triggers": ["on_project_load", "on_editor_focus"],
                 "required_context": [
-                    ".sdd/source/governance-core.json",
+                    ".sdd/metadata.json",
                     ".vscode/ai-rules.md",
                 ],
                 "on_load": "prepare_ide_context",
@@ -152,7 +152,7 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                 "auto_activate": True,
                 "agent": "cursor",
                 "description": "Cursor IDE governance bootstrap — redirects to compiled SDD source",
-                "load_compiled_from": ".sdd/source",
+                "load_compiled_from": ".sdd",
                 "instructions_ref": ".cursor/rules/sdd-governance.mdc",
                 "commands_ref": ".cursor/rules/sdd-commands.mdc",
                 "governance_fingerprint": self.spec_fingerprint,
@@ -160,7 +160,7 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                 "auto_load": True,
                 "triggers": ["on_project_load", "on_editor_focus"],
                 "required_context": [
-                    ".sdd/source/governance-core.json",
+                    ".sdd/metadata.json",
                     ".cursor/rules/sdd-governance.mdc",
                 ],
                 "on_load": "prepare_ide_context",

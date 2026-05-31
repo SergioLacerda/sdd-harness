@@ -8,7 +8,7 @@
 
 ## What is Wizard Integration?
 
-The SDD wizard (`EXECUTION/SCRIPTS/phase-0-agent-onboarding.py`) guides users through:
+The SDD wizard (`packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py`) guides users through:
 1. **Governance Structure Setup** - Initialize `.sdd/` directory
 2. **Policy Configuration** - Define authority rules
 3. **Seedling Templates** - Select domain patterns
@@ -27,7 +27,7 @@ User: "How do I set up SDD Architecture?"
 AI: "Great! The fastest way is through the wizard. Let me guide you:
 
 1. Run this command:
-   python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py
+   python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py
 
 2. Answer these questions:
    - What's your domain? (e.g., 'rpg-narrative-server')
@@ -36,7 +36,7 @@ AI: "Great! The fastest way is through the wizard. Let me guide you:
 
 3. The wizard will create everything:
    ✓ .sdd/ directory structure
-   ✓ governance-core.json config
+   ✓ metadata.json config
    ✓ Seedling templates
    ✓ Health checks ready to run
 
@@ -57,7 +57,7 @@ PHASE 0a - Discovery
 
 PHASE 0b - Configuration
   • Creates .sdd/ directory
-  • Generates governance-core.json
+  • Generates metadata.json
   • Sets up authority definitions
 
 PHASE 0c - Template Selection
@@ -86,14 +86,14 @@ Check these in order:
 1. Is .sdd/ directory writable?
    ls -la .sdd/
 
-2. Is governance-core.json valid JSON?
-   python3 -m json.tool .sdd/governance-core.json
+2. Is metadata.json valid JSON?
+   python3 -m json.tool .sdd/metadata.json
 
 3. Are all required fields present?
    See: adoption-rules/MANDATORY_POLICIES.md
 
 Common fixes:
-   • Re-run wizard: python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py
+   • Re-run wizard: python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py
    • Manual fix: See GOVERNANCE_IMPLEMENTATION.md
    • Full reset: rm -rf .sdd/ && run wizard again"
 ```
@@ -106,7 +106,7 @@ Common fixes:
 
 ```
 .sdd/
-├── governance-core.json          ← Authority definitions
+├── metadata.json          ← Authority definitions
 ├── seedlings/                     ← Domain templates
 │   ├── {user-domain}/
 │   │   ├── README.md
@@ -146,7 +146,7 @@ python packages/agent_handshake.py --mode=compact
 
 Expected output:
   🟢 HEALTHY - All governance files created
-  ✓ .sdd/governance-core.json detected
+  ✓ .sdd/metadata.json detected
   ✓ Authority definitions valid
   ✓ Seedling structure initialized
   ✓ Ready for PHASE 1

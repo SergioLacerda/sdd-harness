@@ -630,62 +630,25 @@ class TestCopyLanguageTemplates:
         result = c.copy_language_templates()
         assert result is True
 
-    def test_copies_language_template_files(self, tmp_path: Path) -> None:
+    def test_does_not_generate_templates_output(self, tmp_path: Path) -> None:
         c = _make_phase3(tmp_path)
-        lang_dir = (
-            c.repo_root / "packages" / "wizard" / "templates" / "languages" / "python"
-        )
-        lang_dir.mkdir(parents=True, exist_ok=True)
-        (lang_dir / "sample.py").write_text("# python template", encoding="utf-8")
         result = c.copy_language_templates()
         assert result is True
-        assert (c.output_path / "templates" / "sample.py").exists()
+        assert not (c.output_path / "templates").exists()
 
-    def test_copies_base_templates(self, tmp_path: Path) -> None:
+    def test_does_not_generate_templates_with_go_selected(self, tmp_path: Path) -> None:
         c = _make_phase3(tmp_path)
-        base_dir = c.repo_root / "packages" / "wizard" / "templates" / "base"
-        base_dir.mkdir(parents=True, exist_ok=True)
-        (base_dir / "base.md").write_text("# base template", encoding="utf-8")
+        c.language = "Go"
         result = c.copy_language_templates()
         assert result is True
+        assert not (c.output_path / "templates").exists()
 
-    def test_skips_workflow_when_g151_not_selected(self, tmp_path: Path) -> None:
-        c = _make_phase3(tmp_path)
-        base_dir = (
-            c.repo_root
-            / "packages"
-            / "wizard"
-            / "templates"
-            / "base"
-            / ".github"
-            / "workflows"
-        )
-        base_dir.mkdir(parents=True, exist_ok=True)
-        (base_dir / "ci.yml").write_text("name: CI", encoding="utf-8")
-        c.copy_language_templates()
-        # Workflow should NOT be copied since G151 not selected
-        assert not (
-            c.output_path / "templates" / ".github" / "workflows" / "ci.yml"
-        ).exists()
-
-    def test_includes_workflow_when_g151_selected(self, tmp_path: Path) -> None:
+    def test_does_not_generate_workflow_templates(self, tmp_path: Path) -> None:
         c = _make_phase3(tmp_path)
         c.selected_guidelines.append("G151")
-        base_dir = (
-            c.repo_root
-            / "packages"
-            / "wizard"
-            / "templates"
-            / "base"
-            / ".github"
-            / "workflows"
-        )
-        base_dir.mkdir(parents=True, exist_ok=True)
-        (base_dir / "ci.yml").write_text("name: CI", encoding="utf-8")
-        c.copy_language_templates()
-        assert (
-            c.output_path / "templates" / ".github" / "workflows" / "ci.yml"
-        ).exists()
+        result = c.copy_language_templates()
+        assert result is True
+        assert not (c.output_path / "templates").exists()
 
 
 class TestCopySeedlings:
@@ -765,10 +728,6 @@ class TestPhase3CompilerRun:
             ) as mock_paths,
             patch(
                 "sdd_wizard.orchestration.wizard.phase3_compiler.Phase3Compiler.compile_with_pipeline_builder",
-                return_value=True,
-            ),
-            patch(
-                "sdd_wizard.orchestration.wizard.phase3_compiler.Phase3Compiler.copy_language_templates",
                 return_value=True,
             ),
             patch(

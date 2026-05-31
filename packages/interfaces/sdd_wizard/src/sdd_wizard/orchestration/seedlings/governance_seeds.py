@@ -64,12 +64,12 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
             seed_data = {
                 "schema_version": "1.0.0",
                 "auto_activate": self._should_auto_activate(),
-                "load_compiled_from": ".sdd/source",
+                "load_compiled_from": ".sdd",
                 "on_load": "activate_governance",
                 "triggers": ["on_project_load"],
                 "description": "Governance Activation Protocol (GAP) v1.0 - Auto-activates on project load",
                 "required_context": [
-                    ".sdd/source/governance-core.json",
+                    ".sdd/metadata.json",
                     ".sdd/seedlings/agent-prep.seed.json",
                 ],
                 "project_metadata": {
@@ -129,12 +129,11 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
 
     def generate_compliance_seed(self) -> bool:
         """
-        Generate compliance.seed.json - CI/CD validation hooks
+        Generate compliance.seed.json - CI/CD validation profile
 
         This seedling:
         - Auto-validates compliance against mandates
-        - Triggers pre-commit hooks
-        - Sets up GitHub Actions workflows
+        - Triggers CI/CD checks
         - Validates fingerprint hasn't drifted
         """
         try:
@@ -161,12 +160,12 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
 
             seed_data = {
                 "auto_activate": True,
-                "load_compiled_from": ".sdd/source",
-                "on_load": "setup_compliance_hooks",
-                "triggers": ["on_git_hook", "on_ci_pipeline"],
-                "description": "Compliance Validation - Auto-setup for pre-commit and CI/CD pipelines",
+                "load_compiled_from": ".sdd",
+                "on_load": "setup_compliance_pipeline",
+                "triggers": ["on_ci_pipeline"],
+                "description": "Compliance Validation - CI/CD policy and runtime checks",
                 "required_context": [
-                    ".sdd/source/governance-core.json",
+                    ".sdd/metadata.json",
                     ".sdd/seedlings/governance.seed.json",
                 ],
                 "telemetry": {
@@ -208,19 +207,6 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
                     },
                 },
                 "hooks": {
-                    "pre_commit": {
-                        "enabled": True,
-                        "auto_healing": {
-                            "enabled": False,  # Feature flag for auto-fixing code via LLM
-                            "provider": "gemini-flash",
-                            "auto_commit": True,
-                        },
-                        "checks": [
-                            "mandate-compliance",
-                            "fingerprint-validation",
-                            "guideline-audit",
-                        ],
-                    },
                     "github_actions": {
                         "enabled": True,
                         "workflow": ".github/workflows/sdd-validation.yml",
@@ -256,7 +242,7 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
             enforcement_explanations = {
                 "silent_mode": "No warnings when violations detected - suitable for learning and experiments",
                 "warn_mode": "Show warnings but allow violations to continue - flexible during development",
-                "strict_mode": "Block violations in pre-commit hooks - strict enforcement for production",
+                "strict_mode": "Block violations in CI pipeline - strict enforcement for production",
             }
             enforcement_explanation = enforcement_explanations.get(
                 enforcement_mode, "Show warnings only"
@@ -267,7 +253,7 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
                 else (
                     "- **Violations show WARNINGS**: Notifications in IDE/logs but no blocking"
                     if enforcement_mode == "warn_mode"
-                    else "- **Violations are BLOCKED**: Pre-commit hooks prevent commits with violations"
+                    else "- **Violations are BLOCKED**: CI pipeline blocks merge/release with violations"
                 )
             )
 
@@ -352,7 +338,6 @@ You MUST NOT proceed without reading this file in its entirety.
 ├── agent-instructions.md              ← THIS FILE (you are reading it)
 ├── compiled/                          ← Optional binary/runtime artifacts (may be absent in template handoff)
 └── source/
-    ├── governance-core.json           ← Human-readable mandates snapshot — READ THIS
     ├── mandates/mandates.md           ← Mandate descriptions (enforcement rules)
     └── README.md
 ```
@@ -371,7 +356,7 @@ Before planning, coding, or deciding:
    - Verify workspace is not stale
    - Expected fingerprint prefix (first 8 chars): {self.spec_fingerprint}
 
-2. **Read `.sdd/source/governance-core.json`**
+2. **Read `.sdd/metadata.json`**
    - Extract mandate IDs and titles
    - Example: `"items": [{{"id": "M001", "title": "Clean Architecture"}}, ...]`
    - If `items` is empty or count < 4, governance is broken → escalate to human
@@ -384,9 +369,9 @@ Before planning, coding, or deciding:
 
 ## 3. Active Mandates (read from `.sdd/source/`)
 
-The authoritative human-readable list is in `.sdd/source/governance-core.json`, not this file.
+The authoritative human-readable list is in `.sdd/metadata.json`, not this file.
 
-**Current snapshot** (validate this against `.sdd/source/governance-core.json`):
+**Current snapshot** (validate this against `.sdd/metadata.json`):
 {mandates_list}
 
 ---
@@ -396,7 +381,7 @@ The authoritative human-readable list is in `.sdd/source/governance-core.json`, 
 Before starting any work:
 
 - [ ] `.sdd/metadata.json` read → version, fingerprint, count verified
-- [ ] `.sdd/source/governance-core.json` read → mandates extracted
+- [ ] `.sdd/metadata.json` read → mandates extracted
 - [ ] `.sdd/source/mandates/mandates.md` read → enforcement rules understood
 - [ ] No contradictions between this file and `.sdd/` (if found → escalate)
 
@@ -427,7 +412,7 @@ These constraints are non-negotiable. Violation requires human escalation, not a
 **If `.sdd/` is incomplete or inconsistent:**
 - **STOP EXECUTION IMMEDIATELY. Do not guess or interpolate.**
 - Escalate to human: "`.sdd/` is broken: [specific problem]"
-- Example: "`.sdd/source/governance-core.json` has only 1 mandate but `.sdd/metadata.json` claims 4"
+- Example: "`.sdd/metadata.json` has only 1 mandate but `.sdd/metadata.json` claims 4"
 - You must refuse to bypass the governance gate.
 
 **This is not a blocker — it's a signal that the human should regenerate the workspace.**
@@ -746,7 +731,6 @@ def generate_agent_instructions_from_config(
 ├── metadata.json              ← Workspace version + fingerprints
 ├── agent-instructions.md      ← THIS FILE
 └── source/
-    ├── governance-core.json   ← Human-readable mandates snapshot
     ├── mandates/mandates.md   ← Mandate descriptions
     └── README.md
 ```
@@ -758,7 +742,7 @@ def generate_agent_instructions_from_config(
 Before planning, coding, or deciding:
 
 1. **Read `.sdd/metadata.json`** — check version, fingerprint, mandate count
-2. **Read `.sdd/source/governance-core.json`** — extract mandate IDs and titles
+2. **Read `.sdd/metadata.json`** — extract mandate IDs and titles
 3. **Read `.sdd/source/mandates/mandates.md`** — understand enforcement rules
 
 ---
@@ -772,7 +756,7 @@ Before planning, coding, or deciding:
 ## 4. Pre-Task Checklist
 
 - [ ] `.sdd/metadata.json` read → version, fingerprint, count verified
-- [ ] `.sdd/source/governance-core.json` read → mandates extracted
+- [ ] `.sdd/metadata.json` read → mandates extracted
 - [ ] `.sdd/source/mandates/mandates.md` read → enforcement rules understood
 
 ---

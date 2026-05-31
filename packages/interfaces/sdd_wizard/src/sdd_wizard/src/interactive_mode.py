@@ -134,7 +134,7 @@ class InteractiveWizard:
         "Alertas": "warn_mode",
         "Bloquear": "strict_mode",
     }
-    _LANGUAGE_CHOICES = ["Python", "Java", "TypeScript"]
+    _LANGUAGE_CHOICES = ["Python", "Java", "TypeScript", "Go"]
 
     def ask_user_preferences(self) -> dict[str, Any]:
         """Ask user for preferences: enforcement mode and programming language."""
@@ -174,6 +174,20 @@ class InteractiveWizard:
 
         return config_path
 
+    def _build_phase1_status(
+        self,
+        status: str,
+        reason: str = "",
+        artifacts: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Build phase-1 status block persisted to wizard-config.json."""
+        return {
+            "status": status,
+            "reason": reason,
+            "artifacts": artifacts or [],
+            "updated_at": datetime.now().isoformat(),
+        }
+
     def _docs_meta_ready(self) -> bool:
         docs_meta = self.client_build_dir / "docs-meta"
         has_mandate = any(
@@ -184,14 +198,31 @@ class InteractiveWizard:
         )
         return has_mandate and has_guidelines
 
+    def _source_spec_ready(self) -> bool:
+        """Return True when unified source_spec contains mandate/guideline files."""
+        source_spec = Path(
+            self.paths.get("source_spec", self.client_build_dir / "docs-meta")
+        )
+        has_mandate = any(
+            (source_spec / name).exists() for name in ("mandate.spec", "mandate.md")
+        )
+        has_guidelines = any(
+            (source_spec / name).exists()
+            for name in ("guidelines.dsl", "guidelines.md")
+        )
+        return has_mandate and has_guidelines
+
     def _ensure_docs_meta_ready(self) -> tuple[bool, str]:
-        """Ensure docs-meta inputs exist for Phase 1 in clean environments."""
-        if self._docs_meta_ready():
+        """Ensure Phase 1 inputs exist (legacy docs-meta or unified source_spec)."""
+        if self._docs_meta_ready() or self._source_spec_ready():
             return True, ""
         docs_meta = self.client_build_dir / "docs-meta"
+        source_spec = Path(
+            self.paths.get("source_spec", self.client_build_dir / "docs-meta")
+        )
         return (
             False,
-            f"docs-meta artifacts are missing at {docs_meta}. "
+            f"Phase 1 source artifacts are missing at {docs_meta} and {source_spec}. "
             "Run 'sdd governance compile' to regenerate governance artifacts.",
         )
 
@@ -206,12 +237,13 @@ class InteractiveWizard:
             config = self.ask_user_preferences()
             self.config = config
 
-            # Save config
-            config_path = self.save_config(config)
-            self._emit(f"\n✅ Configuration saved to: {config_path}")
-
             ready, reason = self._ensure_docs_meta_ready()
             if not ready:
+                config["phase1_status"] = self._build_phase1_status(
+                    status="failed", reason=reason
+                )
+                config_path = self.save_config(config)
+                self._emit(f"\n✅ Configuration saved to: {config_path}")
                 return {
                     "success": False,
                     "config_path": str(config_path),
@@ -232,6 +264,14 @@ class InteractiveWizard:
             result = generator.run()
 
             if result["success"]:
+                generated_files = sorted(
+                    path.name
+                    for pattern in self.SUPPORTED_PHASE2_PATTERNS
+                    for path in output_path.glob(pattern)
+                )
+                config["phase1_status"] = self._build_phase1_status(
+                    status="completed", artifacts=generated_files
+                )
                 self._emit(f"""
 ✅ Phase 1 Complete!
 
@@ -245,6 +285,14 @@ Next steps:
 3. Run Phase 2 for step-by-step instructions
 4. Run Phase 3 to compile
 """)
+            else:
+                config["phase1_status"] = self._build_phase1_status(
+                    status="failed",
+                    reason=str(result.get("error") or "phase1_generation_failed"),
+                )
+
+            config_path = self.save_config(config)
+            self._emit(f"\n✅ Configuration saved to: {config_path}")
 
             return {
                 "success": bool(result["success"]),
@@ -274,6 +322,30 @@ Next steps:
 
         phase1_path = self.phase1_choices_dir
         output_path = self.phase2_input_dir
+        if self.wizard_config_path.exists():
+            try:
+                with open(self.wizard_config_path, encoding="utf-8") as f:
+                    config = json.load(f)
+                phase1_status = config.get("phase1_status", {})
+                if phase1_status.get("status") == "failed":
+                    reason = str(phase1_status.get("reason") or "unknown reason")
+                    self._emit("\n❌ Phase 1 did not complete successfully.")
+                    self._emit(f"Reason: {reason}")
+                    self._emit(
+                        "Run Phase 1 again after fixing the issue above before continuing."
+                    )
+                    return {
+                        "success": False,
+                        "phase1_path": str(phase1_path),
+                        "output_path": str(output_path),
+                        "copied_files": [],
+                        "error": f"Phase 1 status is failed: {reason}",
+                    }
+            except (OSError, ValueError, TypeError) as exc:
+                # Best-effort read; filesystem checks below remain source of truth.
+                self._emit(
+                    f"⚠️  Unable to read phase1_status from {self.wizard_config_path}: {exc}"
+                )
 
         if not phase1_path.exists():
             self._emit(f"\n❌ Phase 1 templates not found: {phase1_path}")

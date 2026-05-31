@@ -73,6 +73,23 @@ class Phase3Compiler:
         if self.verbose:
             self._emit(f"  ℹ️  {message}")
 
+    def _resolve_templates_dir(self) -> Path | None:
+        """Resolve wizard template root with compatibility fallback."""
+        candidates = [
+            self.repo_root
+            / "packages"
+            / "interfaces"
+            / "sdd_wizard"
+            / "src"
+            / "sdd_wizard"
+            / "templates",
+            self.repo_root / "packages" / "wizard" / "templates",
+        ]
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        return None
+
     def has_staged_input_files(self) -> bool:
         """Return True when phase-2-input contains at least one file."""
         if not self.markdown_input_path.exists():
@@ -114,84 +131,9 @@ class Phase3Compiler:
             return False
 
     def copy_language_templates(self) -> bool:  # noqa: C901
-        """Copy language-specific templates to templates/, conditionally include CI/CD workflows"""
-        try:
-            templates_dir = self.repo_root / "packages" / "wizard" / "templates"
-            language_lower = self.language.lower()
-
-            # Map language names to template directory names
-            language_dir_map = {
-                "python": "python",
-                "java": "java",
-                "typescript": "js",  # TypeScript/JavaScript use same templates in js/ folder
-            }
-
-            template_dir_name = language_dir_map.get(language_lower, language_lower)
-
-            # Copy language-specific templates
-            language_template_dir = templates_dir / "languages" / template_dir_name
-            if language_template_dir.exists():
-                target_dir = self.output_path / "templates"
-                target_dir.mkdir(parents=True, exist_ok=True)
-
-                import shutil
-
-                for item in language_template_dir.rglob("*"):
-                    if item.is_file():
-                        rel_path = item.relative_to(language_template_dir)
-                        target_file = target_dir / rel_path
-                        target_file.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copy2(item, target_file)
-
-                self.log(f"Copied {language_lower} language templates to templates/")
-
-            # Copy base templates, but selectively include .github/workflows
-            base_template_dir = templates_dir / "base"
-            if base_template_dir.exists():
-                target_dir = self.output_path / "templates"
-                target_dir.mkdir(parents=True, exist_ok=True)
-
-                import shutil
-
-                for item in base_template_dir.rglob("*"):
-                    if item.is_file():
-                        rel_path = item.relative_to(base_template_dir)
-
-                        # Check if this is a workflow file
-                        is_workflow_file = (
-                            ".github" in rel_path.parts
-                            and "workflows" in rel_path.parts
-                        )
-
-                        # Only copy workflow files if G151 is selected
-                        if is_workflow_file and "G151" not in self.selected_guidelines:
-                            self.log(
-                                f"Skipping workflow template (G151 not selected): {rel_path}"
-                            )
-                            continue
-
-                        target_file = target_dir / rel_path
-                        target_file.parent.mkdir(parents=True, exist_ok=True)
-                        # Don't overwrite language-specific templates
-                        if not target_file.exists():
-                            shutil.copy2(item, target_file)
-
-                if "G151" in self.selected_guidelines:
-                    self.log(
-                        "Copied base templates with CI/CD workflow (G151 selected)"
-                    )
-                else:
-                    self.log(
-                        "Copied base templates (workflow skipped - G151 not selected)"
-                    )
-
-            return True
-        except Exception as e:
-            self._emit(f"  ❌ Error copying language templates: {e}")
-            import traceback
-
-            traceback.print_exc()
-            return False
+        """No-op by policy: wizard must not generate code templates by language."""
+        self.log("Language template generation disabled by governance policy")
+        return True
 
     def copy_seedlings(self) -> bool:
         """Copy seedling templates from sdd_integration to output directory"""
@@ -718,9 +660,6 @@ For optimal performance when using these with agents:
 
         self._generate_spec_file()
 
-        if not self.copy_language_templates():
-            return {"success": False, "error": "Failed to copy language templates"}
-
         if not self.copy_seedlings():
             return {"success": False, "error": "Failed to copy seedlings"}
 
@@ -741,7 +680,6 @@ For optimal performance when using these with agents:
             "files": [
                 "governance-core.json",
                 "governance-client.json",
-                "templates/",
                 "seedling/",
                 "mandates.md",
                 "guidelines/",

@@ -17,8 +17,8 @@ class AISeedsGenerator(BaseSeedlingGenerator):
     _CLAUDE_BOOTSTRAP_SCRIPT = """#!/usr/bin/env sh
 set -eu
 
-if [ ! -f ".sdd/source/governance-core.json" ]; then
-  echo "[sdd-bootstrap] missing .sdd/source/governance-core.json"
+if [ ! -f ".sdd/metadata.json" ]; then
+  echo "[sdd-bootstrap] missing .sdd/metadata.json"
   exit 0
 fi
 
@@ -77,7 +77,7 @@ fi
                 "auto_activate": True,
                 "agent": "gemini",
                 "description": "Gemini CLI governance bootstrap — redirects to compiled SDD source",
-                "load_compiled_from": ".sdd/source",
+                "load_compiled_from": ".sdd",
                 "instructions_ref": "GEMINI.md",
                 "commands_ref": ".gemini/commands.md",
                 "governance_fingerprint": self.spec_fingerprint,
@@ -85,7 +85,7 @@ fi
                 "auto_load": True,
                 "triggers": ["on_project_load", "on_editor_focus"],
                 "required_context": [
-                    ".sdd/source/governance-core.json",
+                    ".sdd/metadata.json",
                     "GEMINI.md",
                 ],
                 "on_load": "prepare_ide_context",
@@ -253,7 +253,7 @@ No other file overrides or extends the governance in `.sdd/`. Everything you nee
 |------|---------|
 | `.sdd/agent-instructions.md` | **START HERE** — Complete agent bootstrap instructions |
 | `.sdd/metadata.json` | Workspace version, fingerprints, item counts |
-| `.sdd/source/governance-core.json` | Human-readable mandates snapshot |
+| `.sdd/metadata.json` | Human-readable mandates snapshot |
 | `.sdd/source/mandates/mandates.md` | Full mandate descriptions with enforcement rules |
 
 ---
@@ -309,14 +309,14 @@ If registries or canonical files are missing/inconsistent, register bootstrap dr
                 "auto_activate": True,
                 "agent": "cortex",
                 "description": "Snowflake Cortex Code governance bootstrap — redirects to compiled SDD source",
-                "load_compiled_from": ".sdd/source",
+                "load_compiled_from": ".sdd",
                 "instructions_ref": ".cortex/skills/sdd-governance.md",
                 "governance_fingerprint": self.spec_fingerprint,
                 "mandates_count": len(self.mandate_ids),
                 "auto_load": True,
                 "triggers": ["on_project_load"],
                 "required_context": [
-                    ".sdd/source/governance-core.json",
+                    ".sdd/metadata.json",
                     ".cortex/skills/sdd-governance.md",
                 ],
                 "on_load": "prepare_ide_context",

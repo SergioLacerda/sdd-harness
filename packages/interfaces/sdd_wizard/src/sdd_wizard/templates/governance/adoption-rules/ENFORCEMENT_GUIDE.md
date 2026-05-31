@@ -111,7 +111,7 @@ def _layer_4_governance_health(self) -> bool:
     return True
 
 def _get_enforcement_level(self) -> str:
-    """Get enforcement level from governance-core.json"""
+    """Get enforcement level from metadata.json"""
     governance = self._load_governance_config()
     return governance.get('policies', {}).get('enforcement', 'standard')
 
@@ -155,7 +155,7 @@ def _check_authority_valid(self) -> bool:
     required_roles = ['architect', 'governance', 'operations']
     for role in required_roles:
         if not authority.get(role):
-            self.actions.append(f"Assign {role} role in governance-core.json")
+            self.actions.append(f"Assign {role} role in metadata.json")
             return False
 
     return True
@@ -175,7 +175,7 @@ def validate(self, output_mode='silent', force_recheck=False, force_skip_checks=
             self._log_bypass_attempt()
             print("❌ Manual bypass is disabled in governance policies")
             print("   Enforcement level: " + enforcement)
-            print("   To enable: Set manual_bypass_allowed=true in .sdd/governance-core.json")
+            print("   To enable: Set manual_bypass_allowed=true in .sdd/metadata.json")
             return self.AgentHandshakeResult(state='NOT_CONNECTED', confidence=0)
 
     # Continue with normal validation...
@@ -211,7 +211,7 @@ def should_run_handshake(self, user_input: str) -> bool:
 **Response**:
 ```
 ❌ GOVERNANCE VIOLATION: No active seedlings
-   Action: Define at least one seedling in governance-core.json
+   Action: Define at least one seedling in metadata.json
 
    Example:
    "seedlings": {
@@ -226,7 +226,7 @@ def should_run_handshake(self, user_input: str) -> bool:
 **Response**:
 ```
 ❌ GOVERNANCE VIOLATION: Architect role not assigned
-   Action: Add architect to authority in governance-core.json
+   Action: Add architect to authority in metadata.json
 
    Example:
    "authority": {
@@ -275,7 +275,7 @@ Your options:
    - But still must run wizard
 
 2. Complete quick setup (~5 min)
-   - Run: python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py
+   - Run: python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py
    - Health check validates
    - You're done
 
@@ -296,7 +296,7 @@ Your options:
 1. Fix the issue causing the check to fail
    [Show specific error]
 
-2. Change enforcement level in .sdd/governance-core.json
+2. Change enforcement level in .sdd/metadata.json
    "enforcement": "permissive"
    [Warning: Not recommended for production]
 
@@ -312,7 +312,7 @@ Let me help with option 1 - what's the specific error?"
 
 All of these are non-negotiable:
 
-- [ ] `.sdd/governance-core.json` must exist
+- [ ] `.sdd/metadata.json` must exist
 - [ ] Governance JSON must be valid
 - [ ] At least one active seedling must be defined
 - [ ] All authority roles must be assigned (architect, governance, operations)

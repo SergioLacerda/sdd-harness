@@ -10,14 +10,14 @@
 
 ### Policy 1: Governance File Must Exist
 
-**Policy**: `.sdd/governance-core.json` must exist in project root
+**Policy**: `.sdd/metadata.json` must exist in project root
 
 **Why**: Entire system depends on this file for configuration
 
 **How to Fix**:
 ```bash
 # Option A: Run wizard (recommended)
-python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py
+python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py
 
 # Option B: Manual creation
 mkdir -p .sdd
@@ -26,21 +26,21 @@ mkdir -p .sdd
 
 **Verification**:
 ```bash
-[ -f .sdd/governance-core.json ] && echo "✓ Policy 1 met" || echo "✗ Policy 1 failed"
+[ -f .sdd/metadata.json ] && echo "✓ Policy 1 met" || echo "✗ Policy 1 failed"
 ```
 
 ---
 
 ### Policy 2: Governance File Must Be Valid JSON
 
-**Policy**: `.sdd/governance-core.json` must parse as valid JSON
+**Policy**: `.sdd/metadata.json` must parse as valid JSON
 
 **Why**: System cannot load invalid JSON
 
 **How to Fix**:
 ```bash
 # Check syntax
-python3 -m json.tool .sdd/governance-core.json
+python3 -m json.tool .sdd/metadata.json
 
 # Common errors:
 # - Missing commas between fields
@@ -53,14 +53,14 @@ python3 -m json.tool .sdd/governance-core.json
 
 **Verification**:
 ```bash
-python3 -c "import json; json.load(open('.sdd/governance-core.json'))" && echo "✓ Policy 2 met" || echo "✗ Policy 2 failed"
+python3 -c "import json; json.load(open('.sdd/metadata.json'))" && echo "✓ Policy 2 met" || echo "✗ Policy 2 failed"
 ```
 
 ---
 
 ### Policy 3: At Least One Active Seedling Must Be Defined
 
-**Policy**: `governance-core.json` must have at least one entry in `seedlings.active`
+**Policy**: `metadata.json` must have at least one entry in `seedlings.active`
 
 **Why**: Users must declare their domain/specialization
 
@@ -82,7 +82,7 @@ python3 -c "import json; json.load(open('.sdd/governance-core.json'))" && echo "
 **Verification**:
 ```python
 import json
-config = json.load(open('.sdd/governance-core.json'))
+config = json.load(open('.sdd/metadata.json'))
 active_seedlings = config.get('seedlings', {}).get('active', [])
 assert len(active_seedlings) >= 1, "No active seedlings"
 print("✓ Policy 3 met")
@@ -121,7 +121,7 @@ print("✓ Policy 3 met")
 
 **Verification**:
 ```python
-config = json.load(open('.sdd/governance-core.json'))
+config = json.load(open('.sdd/metadata.json'))
 authority = config.get('authority', {})
 
 for role in ['architect', 'governance', 'operations']:
@@ -153,7 +153,7 @@ print("✓ Policy 4 met")
 
 **How to Fix**:
 ```bash
-# Edit .sdd/governance-core.json and set enforcement
+# Edit .sdd/metadata.json and set enforcement
 
 # Recommended for most projects:
 "enforcement": "standard"
@@ -161,7 +161,7 @@ print("✓ Policy 4 met")
 
 **Verification**:
 ```python
-config = json.load(open('.sdd/governance-core.json'))
+config = json.load(open('.sdd/metadata.json'))
 enforcement = config.get('policies', {}).get('enforcement')
 assert enforcement in ['strict', 'standard', 'permissive'], f"Invalid: {enforcement}"
 print("✓ Policy 5 met")
@@ -190,13 +190,13 @@ After running wizard, it auto-updates this.
 
 **Manual Update**:
 ```bash
-# Edit .sdd/governance-core.json
+# Edit .sdd/metadata.json
 # Make sure "completed" includes 0
 ```
 
 **Verification**:
 ```python
-config = json.load(open('.sdd/governance-core.json'))
+config = json.load(open('.sdd/metadata.json'))
 completed = config.get('phases', {}).get('completed', [])
 assert 0 in completed, "PHASE 0 not completed"
 print("✓ Policy 6 met")
@@ -260,7 +260,7 @@ Response:
    Policy: At least one active seedling required
    Current: seedlings.active = []
 
-   Fix: Add seedling to .sdd/governance-core.json
+   Fix: Add seedling to .sdd/metadata.json
    "seedlings": {
      "active": ["my-domain"]  // Add here
    }
@@ -281,12 +281,12 @@ import sys
 
 def check_all_policies():
     """Verify all 7 mandatory policies"""
-    config = json.load(open('.sdd/governance-core.json'))
+    config = json.load(open('.sdd/metadata.json'))
 
     errors = []
 
     # Policy 1: File exists (already passed to get here)
-    print("✓ Policy 1: governance-core.json exists")
+    print("✓ Policy 1: metadata.json exists")
 
     # Policy 2: Valid JSON (already passed to parse here)
     print("✓ Policy 2: JSON is valid")

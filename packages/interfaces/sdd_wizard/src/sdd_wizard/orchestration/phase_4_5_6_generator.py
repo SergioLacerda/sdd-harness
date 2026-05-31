@@ -72,22 +72,31 @@ class Phase456Generator:
         self.mandates_dir = self.source_dir / "mandates"
         self.guidelines_dir = self.source_dir / "guidelines"
 
-        # Governance input paths
-        self.governance_core_path = (
-            paths["client_compiled"] / "source" / "governance-core.json"
+        # Governance input paths (single-source preference: .sdd/* in workspace)
+        self.governance_core_path, self.governance_client = (
+            self._resolve_governance_inputs()
         )
-        if not self.governance_core_path.exists():
-            self.governance_core_path = (
-                output_base / ".sdd" / "source" / "governance-core.json"
-            )
 
-        self.governance_client = (
-            paths["client_compiled"] / "source" / "governance-client.json"
+    def _resolve_governance_inputs(self) -> tuple[Path, Path]:
+        """Resolve governance input files with .sdd-first precedence."""
+        core_candidates = [
+            self.repo_root / ".sdd" / "compiled" / "governance-core.json",
+            self.repo_root / ".sdd" / "source" / "governance-core.json",
+            self.paths["client_compiled"] / "source" / "governance-core.json",
+            self.output_base / ".sdd" / "source" / "governance-core.json",
+        ]
+        client_candidates = [
+            self.repo_root / ".sdd" / "compiled" / "governance-client.json",
+            self.repo_root / ".sdd" / "source" / "governance-client.json",
+            self.paths["client_compiled"] / "source" / "governance-client.json",
+            self.output_base / ".sdd" / "source" / "governance-client.json",
+        ]
+
+        core_path = next((p for p in core_candidates if p.exists()), core_candidates[0])
+        client_path = next(
+            (p for p in client_candidates if p.exists()), client_candidates[0]
         )
-        if not self.governance_client.exists():
-            self.governance_client = (
-                output_base / ".sdd" / "source" / "governance-client.json"
-            )
+        return core_path, client_path
 
     def log(self, message: str) -> None:
         """Log."""

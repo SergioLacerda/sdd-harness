@@ -57,12 +57,37 @@ def ask_seedling_selection(
     choices = _build_choices()
     selected_values = _p.checkbox("Select seedlings (empty = all):", choices)
 
+    # Backward-compatible textual fallback (tests and non-questionary flows)
+    # may return raw comma-separated input instead of list[str].
+    if isinstance(selected_values, str):
+        raw = selected_values.strip()
+        if not raw or raw.lower() == "all":
+            selected_values = []
+        else:
+            known_keys = [s[0] for s in SEEDLINGS]
+            by_index = {str(i + 1): key for i, key in enumerate(known_keys)}
+            parsed: list[str] = []
+            for token in (t.strip().lower() for t in raw.split(",")):
+                if not token:
+                    continue
+                if token in by_index:
+                    parsed.append(by_index[token])
+                else:
+                    parsed.append(token)
+            selected_values = parsed
+
     if not selected_values:
         emitter("  → Generating all seedlings")
         return None
 
     known = {s[0] for s in SEEDLINGS}
-    valid = {v for v in selected_values if v in known}
+    normalized: list[str] = []
+    for value in selected_values:
+        candidate = value.strip()
+        if " — " in candidate:
+            candidate = candidate.split(" — ", 1)[0].strip()
+        normalized.append(candidate)
+    valid = {v for v in normalized if v in known}
 
     if not valid:
         emitter("  ⚠️  No valid selection — generating all seedlings")

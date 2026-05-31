@@ -137,7 +137,7 @@ YOUR GOVERNANCE PROJECT IS READY
 
 🧭 STEP 6: PASTE THIS IN YOUR AGENT PROMPT
    Please evaluate governance from project-root files first, then from `.sdd`.
-   Read `AGENTS.md`, `.sdd/agent-instructions.md`, `.sdd/source/governance-core.json`,
+   Read `AGENTS.md`, `.sdd/agent-instructions.md`, `.sdd/metadata.json`,
    and `.sdd/source/mandates/mandates.md`. Confirm:
    1) active mandates loaded, 2) current fingerprint, 3) any drift/blockers,
    4) next governed action using `sdd-*` commands only.

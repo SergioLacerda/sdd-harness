@@ -54,6 +54,7 @@ CLAUDE.md
 AGENTS.md
 .hypothesis
 .analysis
+.strategist
 
 # Testing
 .pytest_cache/
@@ -127,3 +128,4 @@ build/
 
 # Drift battery local state — not for commit
 examples/security/drift_battery_snapshot.json
+.strategist/.compiled/

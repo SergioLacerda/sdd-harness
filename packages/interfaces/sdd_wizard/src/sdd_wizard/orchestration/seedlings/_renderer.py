@@ -85,7 +85,7 @@ If that file says something different from what you remember seeing in this file
 |------|---------|
 | `.sdd/agent-instructions.md` | **START HERE** — Complete agent bootstrap |
 | `.sdd/metadata.json` | Workspace version, fingerprints, item counts |
-| `.sdd/source/governance-core.json` | Human-readable mandates snapshot |
+| `.sdd/metadata.json` | Human-readable mandates snapshot |
 | `.sdd/source/mandates/mandates.md` | Full mandate descriptions |
 
 ## Safe Fallback
