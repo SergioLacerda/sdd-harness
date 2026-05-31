@@ -73,31 +73,32 @@ class TestCreateIdeTemplates:
         result = d.create_ide_templates()
         assert result is False
 
-    def test_copies_precommit_when_template_exists(self, tmp_path: Path) -> None:
+    def test_does_not_copy_precommit_when_template_exists(self, tmp_path: Path) -> None:
         d = _make_deployer(tmp_path)
         template_base = d._template_base
         template_base.mkdir(parents=True, exist_ok=True)
         (template_base / ".pre-commit-config.yaml").write_text(
             "repos: []", encoding="utf-8"
         )
+        (template_base / ".vscode").mkdir(parents=True, exist_ok=True)
+        (template_base / ".vscode" / "settings.json").write_text("{}", encoding="utf-8")
 
         result = d.create_ide_templates()
         assert result is True
-        assert (d.output_base / ".pre-commit-config.yaml").exists()
+        assert not (d.output_base / ".pre-commit-config.yaml").exists()
 
-    def test_copies_sh_file_via_file_mapping(self, tmp_path: Path) -> None:
+    def test_does_not_copy_hook_script(self, tmp_path: Path) -> None:
         d = _make_deployer(tmp_path)
         template_base = d._template_base
-        # The .sh file is in file_mappings — needs to be directly under .github/
         (template_base / ".github").mkdir(parents=True, exist_ok=True)
         sh_file = template_base / ".github" / "setup-precommit-hook.sh"
         sh_file.write_text("#!/bin/sh", encoding="utf-8")
-        (template_base / ".pre-commit-config.yaml").write_text(
-            "repos: []", encoding="utf-8"
-        )
+        (template_base / ".vscode").mkdir(parents=True, exist_ok=True)
+        (template_base / ".vscode" / "settings.json").write_text("{}", encoding="utf-8")
 
         result = d.create_ide_templates()
         assert result is True
+        assert not (d.output_base / ".github" / "setup-precommit-hook.sh").exists()
 
     def test_copies_dir_mappings(self, tmp_path: Path) -> None:
         d = _make_deployer(tmp_path)
@@ -106,28 +107,22 @@ class TestCreateIdeTemplates:
         vscode_dir = template_base / ".vscode"
         vscode_dir.mkdir(parents=True, exist_ok=True)
         (vscode_dir / "settings.json").write_text("{}", encoding="utf-8")
-        # Also need at least one "file" to get copied_count > 0
-        (template_base / ".pre-commit-config.yaml").write_text(
-            "repos: []", encoding="utf-8"
-        )
-
         result = d.create_ide_templates()
         assert result is True
 
-    def test_copies_tests_dir_when_present(self, tmp_path: Path) -> None:
+    def test_does_not_copy_tests_dir_when_present(self, tmp_path: Path) -> None:
         d = _make_deployer(tmp_path)
         template_base = d._template_base
         template_base.mkdir(parents=True, exist_ok=True)
         tests_dir = template_base / "tests"
         tests_dir.mkdir()
         (tests_dir / "test_sample.py").write_text("# test", encoding="utf-8")
-        (template_base / ".pre-commit-config.yaml").write_text(
-            "repos: []", encoding="utf-8"
-        )
+        (template_base / ".vscode").mkdir(parents=True, exist_ok=True)
+        (template_base / ".vscode" / "settings.json").write_text("{}", encoding="utf-8")
 
         result = d.create_ide_templates()
         assert result is True
-        assert (d.output_base / "tests" / "test_sample.py").exists()
+        assert not (d.output_base / "tests" / "test_sample.py").exists()
 
     def test_returns_false_when_no_files_copied(self, tmp_path: Path) -> None:
         d = _make_deployer(tmp_path)

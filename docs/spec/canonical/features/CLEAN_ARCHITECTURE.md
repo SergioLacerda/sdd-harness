@@ -38,3 +38,15 @@ Prevents business logic from leaking into framework-specific code, enabling easy
 - [ ] Directory structure follows the 8-layer model.
 - [ ] Dependency flow is unidirectional (inner circles don't know about outer circles).
 - [ ] Domain logic has zero dependencies on external libraries.
+
+---
+
+## Go Best-Practice Parameters (Governance)
+
+When the target project language is Go, governance checks should validate:
+
+- [ ] Domain and application packages do not import infrastructure adapters directly.
+- [ ] Use constructor-based dependency injection with interfaces at boundaries (ports).
+- [ ] Keep business rules in `internal/domain` and orchestration in `internal/app` (or equivalent).
+- [ ] Avoid framework/runtime coupling in domain packages (`net/http`, DB drivers, SDKs in outer layers only).
+- [ ] Composition root wires concrete adapters in outer layer (`cmd/*` or dedicated bootstrap package).

@@ -99,6 +99,19 @@ class TestDocsMetaBootstrap:
         assert ok is False
         assert reason != ""
 
+    def test_ensure_docs_meta_returns_true_when_source_spec_ready(
+        self, tmp_path: Path
+    ) -> None:
+        wizard = _make_wizard(tmp_path)
+        source_spec = tmp_path / ".sdd" / "source"
+        wizard.paths["source_spec"] = source_spec
+        source_spec.mkdir(parents=True, exist_ok=True)
+        (source_spec / "mandate.md").write_text("x", encoding="utf-8")
+        (source_spec / "guidelines.md").write_text("y", encoding="utf-8")
+        ok, reason = wizard._ensure_docs_meta_ready()
+        assert ok is True
+        assert reason == ""
+
 
 class TestConsolidateFinalTemplate:
     def test_returns_false_when_no_compiled_dir(self, tmp_path: Path) -> None:
@@ -184,6 +197,25 @@ class TestPhase2ShowInstructions:
             result = wizard.phase_2_show_instructions()
         assert result["success"] is True
         assert "mandates.md" in result["copied_files"]
+
+    def test_returns_false_when_phase1_status_is_failed(self, tmp_path: Path) -> None:
+        wizard = _make_wizard(tmp_path)
+        wizard.client_build_dir.mkdir(parents=True, exist_ok=True)
+        wizard.wizard_config_path.write_text(
+            json.dumps(
+                {
+                    "language": "Python",
+                    "phase1_status": {
+                        "status": "failed",
+                        "reason": "docs-meta missing",
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        result = wizard.phase_2_show_instructions()
+        assert result["success"] is False
+        assert "Phase 1 status is failed" in result["error"]
 
 
 class TestGetEnforcementLabel:
@@ -337,6 +369,12 @@ class TestAskUserPreferences:
         assert config["enforcement_mode"] == "strict_mode"
         assert config["language"] == "Java"
 
+    def test_supports_go_language_choice(self, tmp_path: Path) -> None:
+        wizard = _make_wizard(tmp_path)
+        with patch("builtins.input", side_effect=["1", "4"]):
+            config = wizard.ask_user_preferences()
+        assert config["language"] == "Go"
+
 
 class TestPhase1GenerateTemplates:
     def test_returns_true_on_success(self, tmp_path: Path) -> None:
@@ -413,6 +451,24 @@ class TestPhase1GenerateTemplates:
             result = wizard.phase_1_generate_templates()
         assert result["success"] is False
         assert result["error"] == "bootstrap failed"
+
+    def test_persists_failed_phase1_status_on_bootstrap_failure(
+        self, tmp_path: Path
+    ) -> None:
+        wizard = _make_wizard(tmp_path)
+        with (
+            patch("builtins.input", side_effect=["1", "1"]),
+            patch.object(
+                wizard,
+                "_ensure_docs_meta_ready",
+                return_value=(False, "bootstrap failed"),
+            ),
+        ):
+            result = wizard.phase_1_generate_templates()
+        assert result["success"] is False
+        saved = json.loads(wizard.wizard_config_path.read_text(encoding="utf-8"))
+        assert saved["phase1_status"]["status"] == "failed"
+        assert saved["phase1_status"]["reason"] == "bootstrap failed"
 
 
 class TestPhase3CompileTemplates:

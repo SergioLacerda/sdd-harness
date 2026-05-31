@@ -4,16 +4,11 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-"""Phase 5: Apply template scaffold and customizations
+"""Phase 5: Apply template scaffold and customizations.
 
-Copies template files from sdd_wizard/templates/ and applies language customizations
+Copies base governance scaffolding only. Language-specific code templates are
+intentionally not copied to client outputs.
 """
-
-
-def _get_language_template_dir(language: str) -> Path:
-    """Get language-specific template directory"""
-    wizard_root = Path(__file__).parent.parent
-    return wizard_root / "templates" / "languages" / language
 
 
 def _get_base_template_dir() -> Path:
@@ -144,15 +139,8 @@ def phase_5_apply_template(
         if base_errors:
             report["warnings"].extend(base_errors)
 
-        # 2. Copy language-specific templates
-        lang_dir = _get_language_template_dir(language)
-        if lang_dir.exists():
-            lang_copied, lang_errors = _copy_template_files(lang_dir, scaffolding_dir)
-            report["statistics"]["language_files_copied"] = lang_copied
-            if lang_errors:
-                report["warnings"].extend(lang_errors)
-        else:
-            report["warnings"].append(f"Language template not found: {lang_dir}")
+        # 2. Language-specific templates are intentionally disabled.
+        report["statistics"]["language_files_copied"] = 0
 
         # 3. Apply customizations
         customizations_count = 0

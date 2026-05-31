@@ -58,10 +58,6 @@ def _create_all_required_files(tmp_path: Path) -> None:
     (output_base / ".sdd" / "metadata.json").write_text(
         json.dumps({}), encoding="utf-8"
     )
-    (output_base / ".pre-commit-config.yaml").write_text("repos: []", encoding="utf-8")
-    (output_base / ".github" / "setup-precommit-hook.sh").write_text(
-        "#!/bin/sh", encoding="utf-8"
-    )
     (output_base / ".github" / "copilot-instructions.md").write_text(
         "# Copilot", encoding="utf-8"
     )

@@ -172,23 +172,14 @@ cat .sdd/current-system-state/_quiz_tracking.json | \
   run: python packages/.sdd-wizard/SCRIPTS/validate_quiz.py
 ```
 
-### Local Pre-commit Hook
+### Local Validation Run
 
 ```bash
-# Install pre-commit
-pip install pre-commit
-
-# Install hooks (runs automatically on commit)
-pre-commit install
-
-# Run manually
-pre-commit run --all-files
+# Run governance validations locally
+python packages/.sdd-wizard/SCRIPTS/validate_governance.py
+python packages/.sdd-wizard/SCRIPTS/validate_adrs.py
+python packages/.sdd-wizard/SCRIPTS/validate_quiz.py
 ```
-
-Hooks configured in `.pre-commit-config.yaml`:
-- ✅ validate-governance
-- ✅ validate-adrs
-- ✅ prevent-ia-rules-modification
 
 ---
 

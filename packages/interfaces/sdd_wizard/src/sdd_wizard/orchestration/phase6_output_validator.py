@@ -64,11 +64,6 @@ class OutputValidator:
                 (self.runtime_dir / "README.md", "Runtime README"),
                 (self.source_dir / "README.md", "Source README"),
                 (self.sdd_dir / "metadata.json", "Metadata"),
-                (self.output_base / ".pre-commit-config.yaml", "Pre-commit Config"),
-                (
-                    self.output_base / ".github" / "setup-precommit-hook.sh",
-                    "Pre-commit Hook Setup",
-                ),
                 (
                     self.output_base / ".github" / "copilot-instructions.md",
                     "Copilot Instructions",

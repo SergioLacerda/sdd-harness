@@ -16,7 +16,7 @@ You MUST NOT proceed without reading this file in its entirety.
 ├── agent-instructions.md              ← THIS FILE (you are reading it)
 ├── compiled/                          ← Optional binary/runtime artifacts (may be absent in template handoff)
 └── source/
-    ├── governance-core.json           ← Human-readable mandates snapshot — READ THIS
+    ├── metadata.json                  ← Workspace version + fingerprints — READ THIS
     ├── mandates/mandates.md           ← Mandate descriptions (enforcement rules)
     └── README.md
 ```
@@ -35,7 +35,7 @@ Before planning, coding, or deciding:
    - Verify workspace is not stale
    - Expected fingerprint prefix (first 8 chars): 8d00f2d0
 
-2. **Read `.sdd/source/governance-core.json`**
+2. **Read `.sdd/metadata.json`**
    - Extract mandate IDs and titles
    - Example: `"items": [{"id": "M001", "title": "Clean Architecture"}, ...]`
    - If `items` is empty or count < 4, governance is broken → escalate to human
@@ -62,9 +62,9 @@ For explicit HARD paths (example: `/sdd-ask`), missing/invalid governance must f
 
 ## 3. Active Mandates (read from `.sdd/source/`)
 
-The authoritative human-readable list is in `.sdd/source/governance-core.json`, not this file.
+The authoritative human-readable list is in `.sdd/metadata.json`, not this file.
 
-**Current snapshot** (validate this against `.sdd/source/governance-core.json`):
+**Current snapshot** (validate this against `.sdd/metadata.json`):
 - **M001**: Clean Architecture
 - **M002**: Test-Driven Development (TDD)
 - **M003**: Context Awareness & Task Caching
@@ -85,7 +85,7 @@ The authoritative human-readable list is in `.sdd/source/governance-core.json`, 
 Before starting any work:
 
 - [ ] `.sdd/metadata.json` read → version, fingerprint, count verified
-- [ ] `.sdd/source/governance-core.json` read → mandates extracted
+- [ ] `.sdd/metadata.json` read → mandates extracted
 - [ ] `.sdd/source/mandates/mandates.md` read → enforcement rules understood
 - [ ] No contradictions between this file and `.sdd/` (if found → escalate)
 
@@ -147,7 +147,7 @@ These constraints are non-negotiable. Violation requires human escalation, not a
 **If `.sdd/` is incomplete or inconsistent:**
 - Do not guess or interpolate
 - Escalate to human: "`.sdd/` is broken: [specific problem]"
-- Example: "`.sdd/source/governance-core.json` has only 1 mandate but `.sdd/metadata.json` claims 4"
+- Example: "`.sdd/metadata.json` has only 1 mandate but `.sdd/metadata.json` claims 4"
 
 **This is not a blocker — it's a signal that the human should regenerate the workspace.**
 

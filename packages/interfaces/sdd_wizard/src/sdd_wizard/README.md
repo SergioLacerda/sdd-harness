@@ -596,7 +596,7 @@ OUTPUT: /path/to/my-project/
 - `.sdd-runtime/metadata.json` (METADATA - CI/CD generates)
 - `.sdd-wizard/templates/base/` (SCAFFOLD - part of wizard)
 - `.sdd-wizard/templates/profiles/` (SCAFFOLD - part of wizard)
-- `.sdd-wizard/templates/languages/` (SCAFFOLD - part of wizard)
+- `.sdd-wizard/templates/languages/` (internal authoring assets; not emitted as final client scaffold)
 
 ### Writes TO:
 - `{output_dir}/.sdd/CANONICAL/` (filtered specs)

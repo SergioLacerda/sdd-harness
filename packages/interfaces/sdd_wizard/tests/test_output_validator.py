@@ -33,8 +33,6 @@ def _create_all_required(tmp_path: Path, categories: list[str] | None = None) ->
     (sdd / "runtime" / "README.md").write_text("# R", encoding="utf-8")
     (sdd / "source" / "README.md").write_text("# S", encoding="utf-8")
     (sdd / "metadata.json").write_text("{}", encoding="utf-8")
-    (tmp_path / ".pre-commit-config.yaml").write_text("x", encoding="utf-8")
-    (tmp_path / ".github" / "setup-precommit-hook.sh").write_text("x", encoding="utf-8")
     (tmp_path / ".github" / "copilot-instructions.md").write_text("x", encoding="utf-8")
     (tmp_path / ".vscode").mkdir()
     (tmp_path / ".vscode" / "ai-rules.md").write_text("x", encoding="utf-8")

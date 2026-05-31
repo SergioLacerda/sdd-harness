@@ -91,31 +91,7 @@ class IdeTemplateDeployer:
                 print(f"  ❌ Template base not found: {template_base}")  # noqa: T201
                 return False
 
-            file_mappings: list[tuple[Path, Path]] = [
-                (
-                    template_base / ".pre-commit-config.yaml",
-                    self.output_base / ".pre-commit-config.yaml",
-                ),
-                (
-                    template_base / ".github" / "setup-precommit-hook.sh",
-                    self.output_base / ".github" / "setup-precommit-hook.sh",
-                ),
-            ]
-
             copied_count = 0
-            for src, dst in file_mappings:
-                try:
-                    dst.parent.mkdir(parents=True, exist_ok=True)
-                    if src.exists():
-                        shutil.copy2(src, dst)
-                        if src.suffix == ".sh":
-                            os.chmod(dst, 0o700)
-                        self._log(f"Copied {src.name}")
-                        copied_count += 1
-                    else:
-                        self._log(f"⚠️  Template not found: {src.name}")
-                except Exception as e:
-                    self._log(f"⚠️  Failed to copy {src.name}: {e}")
 
             dir_mappings: list[tuple[Path, Path]] = [
                 (template_base / ".github", self.output_base / ".github"),
@@ -133,6 +109,11 @@ class IdeTemplateDeployer:
                 try:
                     if src.exists() and src.is_dir():
                         shutil.copytree(src, dst, dirs_exist_ok=True)
+                        # Never generate git hook bootstrap in client output.
+                        if dst == self.output_base / ".github":
+                            hook = dst / "setup-precommit-hook.sh"
+                            if hook.exists():
+                                hook.unlink()
                         self._log(f"Copied {src.name}/ directory")
                         copied_count += 1
                     else:
@@ -140,15 +121,8 @@ class IdeTemplateDeployer:
                 except Exception as e:
                     self._log(f"⚠️  Failed to copy {src.name}/: {e}")
 
-            tests_src = template_base / "tests"
-            if tests_src.exists() and tests_src.is_dir():
-                tests_dst = self.output_base / "tests"
-                try:
-                    shutil.copytree(tests_src, tests_dst, dirs_exist_ok=True)
-                    self._log("Copied tests/ directory")
-                    copied_count += 1
-                except Exception as e:
-                    self._log(f"⚠️  Failed to copy tests/: {e}")
+            # Intentionally do not copy template tests/examples into client output.
+            # Governance guidance should come from .sdd source artifacts, not scaffold tests.
 
             if copied_count == 0:
                 print("  ❌ No template files were copied")  # noqa: T201
@@ -193,7 +167,7 @@ class IdeTemplateDeployer:
             f"governance_fingerprint : {fingerprint}\n"
             f"mandates_count         : {mandates_count}\n"
             f"generated_at           : {generated_at}\n"
-            "load_compiled_from     : .sdd/source\n"
+            "load_compiled_from     : .sdd\n"
             "-->"
         )
 

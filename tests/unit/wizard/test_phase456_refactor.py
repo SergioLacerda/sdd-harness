@@ -312,7 +312,6 @@ class TestIdeTemplateDeployer:
             ".cursor/rules",
         ]:
             (tpl / d).mkdir(parents=True, exist_ok=True)
-        (tpl / ".pre-commit-config.yaml").write_text("repos: []\n", encoding="utf-8")
         (tpl / ".github" / "setup-precommit-hook.sh").write_text(
             "#!/bin/sh\n", encoding="utf-8"
         )
@@ -425,8 +424,6 @@ class TestOutputValidator:
         (runtime_dir / "README.md").write_text("", encoding="utf-8")
         (source / "README.md").write_text("", encoding="utf-8")
         (sdd / "metadata.json").write_text("{}", encoding="utf-8")
-        (out / ".pre-commit-config.yaml").write_text("", encoding="utf-8")
-        (out / ".github" / "setup-precommit-hook.sh").write_text("", encoding="utf-8")
         (out / ".github" / "copilot-instructions.md").write_text("", encoding="utf-8")
         (out / ".vscode").mkdir()
         (out / ".vscode" / "ai-rules.md").write_text("", encoding="utf-8")

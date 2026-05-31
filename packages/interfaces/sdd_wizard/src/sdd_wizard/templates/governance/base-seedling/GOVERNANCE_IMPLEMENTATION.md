@@ -8,7 +8,7 @@
 
 ## Governance Core Components
 
-### 1. governance-core.json Structure
+### 1. metadata.json Structure
 
 ```json
 {
@@ -98,7 +98,7 @@ mkdir -p .sdd/enforcement
 mkdir -p .sdd/rules
 ```
 
-### Step 2: Create governance-core.json
+### Step 2: Create metadata.json
 
 Use template above, fill in:
 - `domain` - user's primary domain
@@ -137,7 +137,7 @@ Expected state: **HEALTHY** 🟢
 ### Current AHP Layer 4: Governance Health
 
 AHP checks:
-- ✓ governance-core.json exists
+- ✓ metadata.json exists
 - ✓ JSON is valid
 - ✓ Required fields present
 - ✓ Authority defined
@@ -149,7 +149,7 @@ Add to `packages/agent_handshake.py`:
 ```python
 def _check_policy_compliance(self):
     """Verify policies are being followed"""
-    governance = self.config.get('governance-core.json', {})
+    governance = self._load_governance_config()
     policies = governance.get('policies', {})
 
     # Check enforcement level
@@ -176,7 +176,7 @@ def _check_policy_compliance(self):
 ```python
 if not ahp.validate().passed:
     print("❌ Governance not adopted")
-    print("Run: python EXECUTION/SCRIPTS/phase-0-agent-onboarding.py")
+    print("Run: python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py")
     sys.exit(1)
 ```
 
@@ -213,7 +213,7 @@ When user asks "How do I implement governance?":
 
 1. **Check if wizard was run**
    ```bash
-   [ -d .sdd/governance-core.json ] && echo "✓ Governance exists"
+   [ -f .sdd/metadata.json ] && echo "✓ Governance exists"
    ```
 
 2. **Understand their domain**
@@ -233,7 +233,7 @@ When user asks "How do I implement governance?":
    - Confirm HEALTHY status
 
 5. **Document decisions**
-   - In governance-core.json
+   - In metadata.json
    - In seedling README
    - In implementation guides
 
@@ -263,22 +263,22 @@ When user asks "How do I implement governance?":
 
 ## Troubleshooting
 
-### "governance-core.json" not valid
+### "metadata.json" not valid
 ```bash
-python3 -m json.tool .sdd/governance-core.json
+python3 -m json.tool .sdd/metadata.json
 # Fix any JSON errors, retry
 ```
 
 ### Authority not recognized
 ```bash
-# Check governance-core.json authority section
+# Check metadata.json authority section
 # Add user email to appropriate role
 # Re-run AHP validation
 ```
 
 ### Phase progression blocked
 ```bash
-# Check current phase in governance-core.json
+# Check current phase in metadata.json
 # Complete required phases in sequence
 # Update phase.completed array
 ```

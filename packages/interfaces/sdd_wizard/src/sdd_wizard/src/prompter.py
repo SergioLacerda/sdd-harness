@@ -53,6 +53,37 @@ def _real_choices(choices: list[Any]) -> list[tuple[int, str, str]]:
     return result
 
 
+def _match_token_value(token: str, value_set: set[str]) -> str | None:
+    """Resolve token to an allowed choice value (exact or '<key> — <desc>' prefix)."""
+    if token in value_set:
+        return token
+    for value in value_set:
+        if isinstance(value, str) and " — " in value:
+            key = value.split(" — ", 1)[0].strip()
+            if token == key:
+                return value
+    return None
+
+
+def _parse_checkbox_tokens(raw: str, real: list[tuple[int, str, str]]) -> list[str]:
+    """Parse comma-separated checkbox input into selected values."""
+    if not raw or raw.lower() == "all":
+        return []
+    value_set = {v for _, v, _ in real}
+    selected: list[str] = []
+    for token in raw.split(","):
+        token = token.strip()
+        if token.isdigit():
+            idx = int(token) - 1
+            if 0 <= idx < len(real):
+                selected.append(real[idx][1])
+            continue
+        matched = _match_token_value(token, value_set)
+        if matched is not None:
+            selected.append(matched)
+    return selected
+
+
 class PlainPrompter:
     """Input-based prompter for non-interactive environments (CI, pipe)."""
 
@@ -84,19 +115,7 @@ class PlainPrompter:
                 real_idx += 1
         print("  (empty = all, or comma-separated numbers/names)")
         raw = input(f"{question}: ").strip()
-        if not raw or raw.lower() == "all":
-            return []
-        value_set = {v for _, v, _ in real}
-        selected: list[str] = []
-        for token in raw.split(","):
-            token = token.strip()
-            if token.isdigit():
-                idx = int(token) - 1
-                if 0 <= idx < len(real):
-                    selected.append(real[idx][1])
-            elif token in value_set:
-                selected.append(token)
-        return selected
+        return _parse_checkbox_tokens(raw, real)
 
     def confirm(self, question: str, default: bool = True) -> bool:
         """Prompt y/n; empty input returns the default."""
@@ -154,20 +173,8 @@ class _CallablePrompter:
 
     def checkbox(self, question: str, choices: list[Any]) -> list[str]:
         raw = self._fn(question).strip()
-        if not raw or raw.lower() == "all":
-            return []
         real = _real_choices(choices)
-        value_set = {v for _, v, _ in real}
-        selected: list[str] = []
-        for token in raw.split(","):
-            token = token.strip()
-            if token.isdigit():
-                idx = int(token) - 1
-                if 0 <= idx < len(real):
-                    selected.append(real[idx][1])
-            elif token in value_set:
-                selected.append(token)
-        return selected
+        return _parse_checkbox_tokens(raw, real)
 
     def confirm(self, question: str, default: bool = True) -> bool:
         raw = self._fn(question).strip().lower()

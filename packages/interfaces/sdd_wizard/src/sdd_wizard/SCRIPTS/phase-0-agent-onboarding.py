@@ -156,12 +156,6 @@ class PHASE0Bootstrap:
                 "ai/runtime/search-keywords.md",
                 self.project_root / ".sdd" / "runtime" / "search-keywords.md",
             ),
-            # Pre-commit governance
-            (".pre-commit-config.yaml", self.project_root / ".pre-commit-config.yaml"),
-            (
-                ".github/setup-precommit-hook.sh",
-                self.project_root / ".github" / "setup-precommit-hook.sh",
-            ),
         ]
 
         for src_rel, dst in templates_to_copy:
@@ -232,7 +226,6 @@ class PHASE0Bootstrap:
 Infrastructure Status:
   ✅ .sdd/context-aware/ created (task tracking)
   ✅ .sdd/runtime/ created (SDD remote index)
-  ✅ Pre-commit hooks configured
   ✅ Templates copied
   ✅ Knowledge validated (quiz passed)
 
@@ -250,29 +243,21 @@ What was created:
   ✅ .sdd/runtime/spec-guides-index.md (guides reference)
   ✅ .sdd/runtime/search-keywords.md (quick search)
 
-  Governance
-  ✅ .pre-commit-config.yaml (pre-commit hooks)
-  ✅ .github/setup-precommit-hook.sh (hook setup)
-
 Next Steps:
-  1. Optional: Setup pre-commit hooks
-     $ bash .github/setup-precommit-hook.sh
-
-  2. Read: .sdd/runtime/README.md
+  1. Read: .sdd/runtime/README.md
      (Understanding the SDD remote index)
 
-  3. Search: Use .sdd/runtime/search-keywords.md
+  2. Search: Use .sdd/runtime/search-keywords.md
      (Find what you need quickly)
 
-  4. Read: docs/ia/guides/onboarding/AGENT_HARNESS.md
+  3. Read: docs/ia/guides/onboarding/AGENT_HARNESS.md
      (7-phase development workflow)
 
-  5. Create: Your first task in .sdd/context-aware/task-progress/_current.md
+  4. Create: Your first task in .sdd/context-aware/task-progress/_current.md
 
 Recommended Actions:
-  $ git add .sdd/ .pre-commit-config.yaml .github/setup-precommit-hook.sh
+  $ git add .sdd/
   $ git commit -m "🚀 PHASE 0: Agent workspace initialized (with runtime index)"
-  $ bash .github/setup-precommit-hook.sh (optional)
 
 Time to Complete First Task: ~5-10 minutes
 
