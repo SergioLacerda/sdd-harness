@@ -82,6 +82,19 @@ class TestSaveConfig:
 
 
 class TestDocsMetaBootstrap:
+    def test_ensure_docs_meta_bootstraps_zero_state_scaffold(
+        self, tmp_path: Path
+    ) -> None:
+        wizard = _make_wizard(tmp_path)
+        ok, reason = wizard._ensure_docs_meta_ready()
+        assert ok is True
+        assert reason == ""
+        assert (wizard.client_build_dir / "docs-meta").exists()
+        assert wizard.phase1_choices_dir.exists()
+        assert wizard.phase2_input_dir.exists()
+        assert (wizard.client_build_dir / "docs-meta" / "mandate.md").exists()
+        assert (wizard.client_build_dir / "docs-meta" / "guidelines.dsl").exists()
+
     def test_docs_meta_ready_true_when_files_exist(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
         docs_meta = wizard.client_build_dir / "docs-meta"
@@ -94,10 +107,15 @@ class TestDocsMetaBootstrap:
         self, tmp_path: Path
     ) -> None:
         wizard = _make_wizard(tmp_path)
-        # docs-meta directory does not exist — no files to detect
-        ok, reason = wizard._ensure_docs_meta_ready()
+        # Force scaffold failure path to validate error handling.
+        with patch.object(
+            wizard,
+            "_ensure_onboarding_scaffold",
+            return_value=(False, "bootstrap failed"),
+        ):
+            ok, reason = wizard._ensure_docs_meta_ready()
         assert ok is False
-        assert reason != ""
+        assert reason == "bootstrap failed"
 
     def test_ensure_docs_meta_returns_true_when_source_spec_ready(
         self, tmp_path: Path
@@ -451,6 +469,22 @@ class TestPhase1GenerateTemplates:
             result = wizard.phase_1_generate_templates()
         assert result["success"] is False
         assert result["error"] == "bootstrap failed"
+
+    def test_ensure_docs_meta_error_does_not_duplicate_path(
+        self, tmp_path: Path
+    ) -> None:
+        wizard = _make_wizard(tmp_path)
+        docs_meta = wizard.client_build_dir / "docs-meta"
+        with (
+            patch.object(
+                wizard, "_ensure_onboarding_scaffold", return_value=(True, "")
+            ),
+            patch.object(wizard, "_docs_meta_ready", return_value=False),
+            patch.object(wizard, "_source_spec_ready", return_value=False),
+        ):
+            ok, reason = wizard._ensure_docs_meta_ready()
+        assert ok is False
+        assert reason.count(str(docs_meta)) == 1
 
     def test_persists_failed_phase1_status_on_bootstrap_failure(
         self, tmp_path: Path

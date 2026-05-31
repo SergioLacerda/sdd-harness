@@ -8,30 +8,40 @@ Get your SDD workspace running with governed bootstrap and agent command packs.
 - Git
 - [uv](https://astral.sh/uv) (optional, installed by `setup.sh`)
 
-## Step-by-step Setup
+## Step-by-step Setup (Client Project)
 
 ```bash
-# 1. Clone
-git clone https://github.com/SergioLacerda/sdd-harness.git
-cd sdd-harness
+# 1. Install SDD CLI
+curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh | sh
 
-# 2. Install environment
-make install
-source .venv/bin/activate
+# 2. Enter your project and run the wizard
+cd <your-project>
+sdd wizard run
 
-# 3. Initialize workspace/runtime (client profile by default)
-sdd init --full-bootstrap
+# 3. Activate runtime/governance in the generated template
+sdd init --type client --name <your-project> --force
 
 # 4. Compile + generate + sign + handshake
 sdd governance generate --full-bootstrap
 
 # 5. Generate skills/commands/seeds for agent entrypoints
-sdd skills --full-bootstrap
+sdd skills --full-bootstrap --regenerate-seeds
 
 # 6. Verify runtime/governance health
 sdd runtime status
 sdd governance validate
 ```
+
+### Zero-state onboarding behavior
+
+`sdd wizard run` supports first-run onboarding in an empty workspace.
+
+- If `.sdd/` and `generated/` are absent, the wizard bootstraps Phase 1/2 inputs automatically.
+- Minimal folders are created under `generated/client/build/`:
+  - `docs-meta/`
+  - `phase-1-choices/`
+  - `phase-2-input/`
+- Runtime activation is intentionally deferred to step 3 (`sdd init` + bootstrap commands).
 
 ## Agent Custom Commands (Slash/Prompt Packs)
 

@@ -52,11 +52,16 @@ cd your-project
 sdd wizard run
 ```
 
-The wizard walks you through 4 phases: template generation → customization → compile → project structure. At the end, `.sdd/` is created with your governance artifacts, IDE templates, and agent instructions.
+The wizard walks you through 4 phases: template generation → customization → compile → project structure.
+
+First-run onboarding is zero-state aware:
+- If `generated/` (or `generated/client/build/`) does not exist, the wizard bootstraps the minimum structure automatically.
+- It creates `generated/client/build/docs-meta/`, `phase-1-choices/`, and `phase-2-input/` for Phase 1/2 flow.
+- This step prepares templates and project scaffold only. Runtime activation still happens in the next step.
 
 ```bash
 # 3) Bootstrap governance runtime in your project
-sdd init --type client --name <your-project> --force
+sdd init --type client --name sergio-harness --force
 sdd governance generate --full-bootstrap
 sdd skills --full-bootstrap --regenerate-seeds
 ```
