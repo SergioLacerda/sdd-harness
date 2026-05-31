@@ -247,7 +247,7 @@ app = LazyCommandGroup(
 )
 
 
-def main() -> None:
+def main() -> int:
     """Main."""
     load_dotenv()
     logging.basicConfig(
@@ -262,8 +262,12 @@ def main() -> None:
         logging.debug(
             "sdd_core.log_config not available; using stdlib logging defaults."
         )
-    app()
+    try:
+        app(standalone_mode=False)
+    except click.exceptions.Exit as exc:
+        return int(exc.exit_code)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

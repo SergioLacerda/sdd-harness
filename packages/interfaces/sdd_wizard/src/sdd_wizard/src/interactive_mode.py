@@ -64,6 +64,18 @@ class InteractiveWizard:
     )
     FINAL_TEMPLATE_MANIFEST_FILE = "DEPLOYMENT_MANIFEST.json"
     FINAL_TEMPLATE_CONTEXT_CACHE_FILE = ".sdd/runtime/.sdd-cache.md"
+    TEMP_BUILD_DIRS = ("docs-meta", PHASE1_CHOICES_DIRNAME, PHASE2_INPUT_DIRNAME)
+    TEMP_COMPILED_DIRS = (
+        ".sdd",
+        ".github",
+        ".vscode",
+        ".cursor",
+        ".claude",
+        ".gemini",
+        ".antigravity",
+        ".ai",
+        ".ia",
+    )
     ONBOARDING_BASELINE_MANDATE = """# M001: Bootstrap Governance Baseline
 
 Initial mandate placeholder generated during first onboarding.
@@ -516,6 +528,11 @@ Next steps:
                         self.final_template_dir,
                     )
                 )
+                cleaned = self._cleanup_post_generation_artifacts()
+                if cleaned:
+                    self._emit("  🧹 Cleaned temporary onboarding artifacts:")
+                    for rel in cleaned:
+                        self._emit(f"     - {rel}")
                 return build_interactive_phase4_result(
                     success=True,
                     mandates=int(result.get("mandates", 0)),
@@ -540,6 +557,36 @@ Next steps:
 
             traceback.print_exc()
             return build_interactive_phase4_result(success=False, error=str(e))
+
+    def _cleanup_post_generation_artifacts(self) -> list[str]:
+        """Remove wizard temporary artifacts while preserving final-template."""
+        cleaned: list[str] = []
+        candidates: list[Path] = []
+
+        candidates.extend(self.client_build_dir / name for name in self.TEMP_BUILD_DIRS)
+        candidates.append(self.wizard_config_path)
+        candidates.extend(
+            self.client_compiled_dir / name for name in self.TEMP_COMPILED_DIRS
+        )
+
+        for path in candidates:
+            if (
+                path == self.final_template_dir
+                or self.final_template_dir in path.parents
+            ):
+                continue
+            if not path.exists():
+                continue
+            try:
+                if path.is_dir():
+                    shutil.rmtree(path)
+                else:
+                    path.unlink()
+                cleaned.append(str(path.relative_to(self.repo_root)))
+            except OSError:
+                # Best-effort cleanup only; generation already succeeded.
+                continue
+        return cleaned
 
     def phase_3_compile_templates(self) -> Phase3CompileResult:
         """Execute Phase 3: Compile edited templates to governance JSON"""

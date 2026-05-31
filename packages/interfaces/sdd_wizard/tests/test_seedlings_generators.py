@@ -1092,6 +1092,42 @@ class TestGovernanceSeedsGeneratorGeneratePromptCommands:
         # Check if minimal prompt command files were created
         assert (tmp_path / ".cursor" / "rules" / "sdd-commands.mdc").exists()
 
+    def test_generate_prompt_commands_accepts_tuple_outputs(
+        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
+    ) -> None:
+        """Prompt command generator may return list[tuple[str, Path]]."""
+        gen = GovernanceSeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        out_file = tmp_path / ".codex" / "commands.md"
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        out_file.write_text("# commands", encoding="utf-8")
+
+        class _FakeModule:
+            @staticmethod
+            def generate_agent_prompt_commands(*args: Any, **kwargs: Any) -> Any:
+                return [("Codex/commands.md", out_file)]
+
+        with patch(
+            "sdd_wizard.orchestration.seedlings.governance_seeds.import_module",
+            return_value=_FakeModule(),
+        ):
+            success = gen.generate_prompt_commands()
+
+        assert success is True
+        assert gen.prompt_commands_mode == "full"
+        assert (
+            ".codex/commands.md"
+            in gen.get_summary()["awareness_pack"]["prompt_commands_outputs"]
+        )
+
 
 class TestGovernanceSeedsGeneratorExceptionHandling:
     def test_generate_governance_seed_handles_write_error(

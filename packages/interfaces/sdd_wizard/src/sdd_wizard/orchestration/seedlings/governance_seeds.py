@@ -457,12 +457,7 @@ If `sdd governance generate` does not update `.sdd/agent-instructions.md`, ask t
             )
 
             results = generator(self.output_base, self.config)
-            if isinstance(results, dict):
-                output_paths = list(results.values())
-            elif isinstance(results, list):
-                output_paths = list(results)
-            else:
-                output_paths = []
+            output_paths = self._normalize_prompt_command_outputs(results)
 
             if not output_paths:
                 self.log(
@@ -486,6 +481,35 @@ If `sdd governance generate` does not update `.sdd/agent-instructions.md`, ask t
                 f"⚠️  Failed to generate prompt commands via sdd_cli ({e}), using fallback"
             )
             return self._generate_minimal_prompt_commands()
+
+    def _normalize_prompt_command_outputs(self, results: Any) -> list[Path]:
+        """Normalize prompt command outputs to a list of Paths.
+
+        Accepted shapes:
+        - dict[str, Path]
+        - list[Path]
+        - list[tuple[str, Path]]
+        """
+        output_paths: list[Path] = []
+
+        raw_items: list[Any]
+        if isinstance(results, dict):
+            raw_items = list(results.values())
+        elif isinstance(results, list):
+            raw_items = list(results)
+        else:
+            return output_paths
+
+        for item in raw_items:
+            path_candidate: Any = item
+            if isinstance(item, tuple) and len(item) >= 2:
+                path_candidate = item[1]
+            if isinstance(path_candidate, Path):
+                output_paths.append(path_candidate)
+            elif isinstance(path_candidate, str):
+                output_paths.append(Path(path_candidate))
+
+        return output_paths
 
     def _generate_minimal_prompt_commands(self) -> bool:
         """Fallback: generate minimal prompt command files without sdd_cli dependency.
