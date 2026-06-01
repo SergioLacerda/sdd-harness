@@ -1,4 +1,4 @@
-# Mandate: Any change that could require users to update their code or governance artifacts must follow this RFC process.
+# Mandate: Any change that could require users to update their code or governance artifacts must follow this RFC process
 
 **Type:** HARD MANDATE
 **ID:** M006

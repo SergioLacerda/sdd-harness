@@ -264,7 +264,7 @@ def main() -> int:
         )
     try:
         app(standalone_mode=False)
-    except click.exceptions.Exit as exc:
+    except (click.exceptions.Exit, typer.Exit) as exc:
         return int(exc.exit_code)
     return 0
 

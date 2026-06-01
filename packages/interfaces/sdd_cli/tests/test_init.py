@@ -179,7 +179,7 @@ class TestInitEdgeCases:
             patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
         ):
-            result = runner.invoke(app, ["--force"])
+            result = runner.invoke(app, ["--force", "--no-bootstrap"])
         assert result.exit_code == 0
         assert "profile overwritten" in result.output
 
@@ -203,7 +203,7 @@ class TestInitEdgeCases:
                 side_effect=Exception("telemetry down"),
             ),
         ):
-            result = runner.invoke(app, [])
+            result = runner.invoke(app, ["--no-bootstrap"])
         assert result.exit_code == 0
         assert "Workspace initialized" in result.output
 
@@ -228,43 +228,147 @@ class TestShowExistingProfile:
 
 
 class TestInitFullBootstrap:
-    """Phase 4: sdd init --full-bootstrap zero-touch flow."""
+    """--type client runs OnboardingOrchestrator by default (opt-out via --no-bootstrap)."""
 
-    def test_full_bootstrap_flag_triggers_compile_and_status(
-        self, tmp_path: Path
-    ) -> None:
-        """--full-bootstrap runs governance compile then runtime status."""
-        result, step_mock = _invoke_init(
-            tmp_path,
-            ["--type", "client", "--full-bootstrap"],
-            step_side_effect=[True, True],
+    def _invoke_with_orchestrator(
+        self, tmp_path: Path, args: list[str], orchestrator_result=None
+    ):
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+        from sdd_cli.services.onboarding import OnboardingResult
+
+        runner = CliRunner()
+
+        def _fake_cwd():
+            return tmp_path
+
+        mock_ctx = MagicMock(type="client", name="client", workspace_id="ws-test")
+
+        if orchestrator_result is None:
+            orchestrator_result = OnboardingResult(success=True, exit_code=0)
+
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
+            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
+            patch("sdd_cli.commands.init.OnboardingOrchestrator") as MockOrch,
+        ):
+            mock_instance = MagicMock()
+            mock_instance.run.return_value = orchestrator_result
+            MockOrch.return_value = mock_instance
+            result = runner.invoke(app, args)
+        return result, MockOrch
+
+    def test_client_type_runs_orchestrator_by_default(self, tmp_path: Path) -> None:
+        """--type client invokes OnboardingOrchestrator without any extra flag."""
+        result, MockOrch = self._invoke_with_orchestrator(
+            tmp_path, ["--type", "client"]
         )
-
         assert result.exit_code == 0, result.output
-        calls = step_mock.call_args_list
-        assert len(calls) == 2
-        assert calls[0][0][1] == ["governance", "compile"]
-        assert calls[1][0][1] == ["runtime", "status", "--force"]
+        MockOrch.return_value.run.assert_called_once_with(force=False)
 
-    def test_full_bootstrap_success_prints_workspace_ready(
+    def test_bootstrap_success_prints_onboarding_complete(self, tmp_path: Path) -> None:
+        result, _ = self._invoke_with_orchestrator(tmp_path, ["--type", "client"])
+        assert result.exit_code == 0
+        assert "Onboarding complete" in result.output
+
+    def test_bootstrap_failure_exits_with_orchestrator_exit_code(
         self, tmp_path: Path
     ) -> None:
-        result, _ = _invoke_init(
-            tmp_path, ["--full-bootstrap"], step_side_effect=[True, True]
-        )
-        assert result.exit_code == 0
-        assert "Workspace ready" in result.output
+        from sdd_cli.services.onboarding import OnboardingResult
 
-    def test_full_bootstrap_failure_exits_with_1(self, tmp_path: Path) -> None:
-        # compile fails, status succeeds
-        result, _ = _invoke_init(
-            tmp_path, ["--full-bootstrap"], step_side_effect=[False, True]
+        result, _ = self._invoke_with_orchestrator(
+            tmp_path,
+            ["--type", "client"],
+            orchestrator_result=OnboardingResult(
+                success=False,
+                failed_step="governance",
+                exit_code=1,
+                messages=["failed"],
+            ),
         )
         assert result.exit_code == 1
 
-    def test_without_full_bootstrap_prints_next_steps(self, tmp_path: Path) -> None:
-        """Without --full-bootstrap, the classic next-steps block is shown."""
-        result, _ = _invoke_init(tmp_path, [])
+    def test_no_bootstrap_prints_next_steps(self, tmp_path: Path) -> None:
+        """--no-bootstrap skips orchestrator and shows manual next-steps block."""
+        result, _ = _invoke_init(tmp_path, ["--no-bootstrap"])
         assert result.exit_code == 0
-        assert "sdd governance compile" in result.output
+        assert "sdd governance generate" in result.output
         assert "sdd runtime status" in result.output
+
+
+class TestBootstrapDefault:
+    """--type client runs OnboardingOrchestrator by default; --no-bootstrap skips it."""
+
+    def _invoke(self, tmp_path: Path, args: list[str], orchestrator_result=None):
+        from unittest.mock import MagicMock, patch
+
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+        from sdd_cli.services.onboarding import OnboardingResult
+
+        runner = CliRunner()
+        mock_ctx = MagicMock()
+        mock_ctx.type = "client"
+        mock_ctx.name = args[args.index("--name") + 1] if "--name" in args else "test"
+        mock_ctx.workspace_id = "test-id"
+
+        if orchestrator_result is None:
+            orchestrator_result = OnboardingResult(success=True, exit_code=0)
+
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch(
+                "sdd_core.utils.environment.find_workspace_root",
+                side_effect=lambda p=None: None,
+            ),
+            patch(
+                "sdd_core.utils.environment.write_profile",
+                return_value=mock_ctx,
+            ),
+            patch("sdd_cli.commands.init.OnboardingOrchestrator") as MockOrch,
+        ):
+            mock_instance = MagicMock()
+            mock_instance.run.return_value = orchestrator_result
+            MockOrch.return_value = mock_instance
+            result = runner.invoke(app, args)
+        return result, MockOrch
+
+    def test_client_type_runs_orchestrator_by_default(self, tmp_path: Path) -> None:
+        result, MockOrch = self._invoke(
+            tmp_path, ["--type", "client", "--name", "test", "--force"]
+        )
+        MockOrch.return_value.run.assert_called_once_with(force=True)
+        assert result.exit_code == 0
+
+    def test_no_bootstrap_skips_orchestrator(self, tmp_path: Path) -> None:
+        result, MockOrch = self._invoke(
+            tmp_path,
+            ["--type", "client", "--name", "test", "--no-bootstrap", "--force"],
+        )
+        MockOrch.assert_not_called()
+        assert result.exit_code == 0
+
+    def test_master_type_does_not_bootstrap(self, tmp_path: Path) -> None:
+        result, MockOrch = self._invoke(tmp_path, ["--type", "master", "--force"])
+        MockOrch.assert_not_called()
+        assert result.exit_code == 0
+
+    def test_orchestrator_failure_exits_with_its_exit_code(
+        self, tmp_path: Path
+    ) -> None:
+        from sdd_cli.services.onboarding import OnboardingResult
+
+        result, _ = self._invoke(
+            tmp_path,
+            ["--type", "client", "--force"],
+            orchestrator_result=OnboardingResult(
+                success=False,
+                failed_step="governance",
+                exit_code=2,
+                messages=["governance generate failed"],
+            ),
+        )
+        assert result.exit_code == 2

@@ -283,3 +283,233 @@ class TestDoUpdateCache:
         with pytest.raises(typer.Exit) as exc_info:
             _do_update_cache(tmp_path)
         assert exc_info.value.exit_code == 1
+
+
+class TestMainExitHandling:
+    """typer.Exit must not leak as a raw traceback regardless of typer version."""
+
+    def test_typer_exit_is_caught_by_main(self) -> None:
+        from unittest.mock import patch
+
+        import typer
+
+        from sdd_cli.main import main
+
+        with patch("sdd_cli.main.app") as mock_app:
+            mock_app.side_effect = typer.Exit(3)
+            result = main()
+        assert result == 3
+
+
+class TestRuntimeStatusVerboseDiagnostics:
+    """--verbose must print workspace root and diagnostic header."""
+
+    def test_verbose_prints_workspace_root(self, tmp_path: Path, capsys) -> None:
+        ahp_instance = _make_ahp_patch("HEALTHY")
+        ahp_instance.skill_profile = "client"
+
+        with (
+            patch(
+                "sdd_core.utils.environment.find_workspace_root", return_value=tmp_path
+            ),
+            patch(
+                "sdd_cli.commands.runtime.enforce_path_policy", return_value=tmp_path
+            ),
+            patch(
+                "sdd_core.governance.handshake.AgentHandshakeProtocol",
+                return_value=ahp_instance,
+            ),
+            patch("sdd_cli.commands.runtime._emit_runtime_status", return_value={}),
+            patch("sdd_cli.commands.runtime._show_ask_confidence", return_value=""),
+            patch(
+                "sdd_cli.commands.runtime._check_cache_staleness",
+                return_value={"stale": False},
+            ),
+            patch("sdd_runtime.format_governance_footer", return_value=""),
+        ):
+            ctx = MagicMock()
+            ctx.obj = {}
+            ctx.params = {}
+            ctx.info_name = "status"
+            status(ctx=ctx, verbose=True, force=False, update_cache=False)
+
+        captured = capsys.readouterr()
+        assert "workspace root" in captured.out
+        assert str(tmp_path) in captured.out
+
+    def test_compact_mode_does_not_print_diagnostic_block(
+        self, tmp_path: Path, capsys
+    ) -> None:
+        ahp_instance = _make_ahp_patch("HEALTHY")
+        ahp_instance.skill_profile = "client"
+
+        with (
+            patch(
+                "sdd_core.utils.environment.find_workspace_root", return_value=tmp_path
+            ),
+            patch(
+                "sdd_cli.commands.runtime.enforce_path_policy", return_value=tmp_path
+            ),
+            patch(
+                "sdd_core.governance.handshake.AgentHandshakeProtocol",
+                return_value=ahp_instance,
+            ),
+            patch("sdd_cli.commands.runtime._emit_runtime_status", return_value={}),
+            patch("sdd_cli.commands.runtime._show_ask_confidence", return_value=""),
+            patch(
+                "sdd_cli.commands.runtime._check_cache_staleness",
+                return_value={"stale": False},
+            ),
+            patch("sdd_runtime.format_governance_footer", return_value=""),
+        ):
+            ctx = MagicMock()
+            ctx.obj = {}
+            ctx.params = {}
+            ctx.info_name = "status"
+            status(ctx=ctx, verbose=False, force=False, update_cache=False)
+
+        captured = capsys.readouterr()
+        assert "workspace root" not in captured.out
+        assert "═══" not in captured.out
+
+
+class TestHandshakeCacheNotConnected:
+    """NOT_CONNECTED must never be read from or written to cache."""
+
+    def test_load_cache_rejects_not_connected(self, tmp_path: Path) -> None:
+        import json
+        from datetime import datetime, timedelta
+
+        from sdd_core.governance.handshake_cache import HandshakeCache
+
+        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir.mkdir(parents=True)
+        cache_file = cache_dir / "governance-state.json"
+        cache_file.write_text(
+            json.dumps(
+                {
+                    "state": "NOT_CONNECTED",
+                    "last_check": datetime.now().isoformat(),
+                    "confidence": 0.0,
+                    "gap_version": "1.0",
+                    "status": "NOT_ACTIVE",
+                    "checks": [],
+                    "mandates_loaded": [],
+                    "skill_profile": "default",
+                    "spec_fingerprint": "",
+                    "agent_id": "test",
+                }
+            ),
+            encoding="utf-8",
+        )
+        cache = HandshakeCache(
+            cache_file, cache_dir, timedelta(minutes=30), tmp_path, "test-agent"
+        )
+        assert cache.load_cache() is None
+
+    def test_save_cache_skips_not_connected(self, tmp_path: Path) -> None:
+        from datetime import timedelta
+
+        from sdd_core.governance.handshake_cache import HandshakeCache
+
+        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir.mkdir(parents=True)
+        cache_file = cache_dir / "governance-state.json"
+        cache = HandshakeCache(
+            cache_file, cache_dir, timedelta(minutes=30), tmp_path, "test-agent"
+        )
+        cache.save_cache("NOT_CONNECTED", [], 0.0, "default")
+        assert not cache_file.exists()
+
+
+class TestHandshakeAutoHeal:
+    """Stale NOT_CONNECTED cache is discarded when .sdd/ now exists."""
+
+    def test_auto_heal_triggers_revalidation_when_sdd_exists(
+        self, tmp_path: Path
+    ) -> None:
+        import json
+        from datetime import datetime
+        from unittest.mock import patch
+
+        from sdd_core.governance.handshake import AgentHandshakeProtocol
+
+        # Create .sdd/ so Layer 1 would pass
+        (tmp_path / ".sdd").mkdir()
+
+        ahp = AgentHandshakeProtocol(project_root=tmp_path)
+
+        # Manually write a stale NOT_CONNECTED cache file (pre-fix format)
+        ahp.cache_dir.mkdir(parents=True, exist_ok=True)
+        ahp.cache_file.write_text(
+            json.dumps(
+                {
+                    "state": "NOT_CONNECTED",
+                    "last_check": datetime.now().isoformat(),
+                    "confidence": 0.0,
+                    "gap_version": "1.0",
+                    "status": "NOT_ACTIVE",
+                    "checks": [],
+                    "mandates_loaded": [],
+                    "skill_profile": "default",
+                    "spec_fingerprint": "",
+                    "agent_id": "test",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        # Patch all 4 layers to return non-NOT_CONNECTED states
+        with (
+            patch.object(
+                ahp._validator, "layer_1_discovery", return_value=("CONNECTED", [])
+            ),
+            patch.object(
+                ahp._validator,
+                "layer_2_link_validation",
+                return_value=("CONNECTED", []),
+            ),
+            patch.object(
+                ahp._validator,
+                "layer_3_runtime_validation",
+                return_value=("INITIALIZED", []),
+            ),
+            patch.object(
+                ahp._validator,
+                "layer_4_governance_health",
+                return_value=("UNKNOWN", []),
+            ),
+            patch.object(ahp._cache, "extract_mandates", return_value=[]),
+            patch.object(ahp._cache, "compute_spec_fingerprint", return_value=""),
+            patch.object(ahp._cache, "map_ahp_to_gap", return_value="NOT_ACTIVE"),
+            patch.object(ahp._cache, "extract_skill_profile", return_value="default"),
+        ):
+            state, _ = ahp.validate()
+
+        # Should NOT return the cached NOT_CONNECTED
+        assert state != "NOT_CONNECTED"
+
+
+class TestRuntimeStatusPathPolicy:
+    """PathPolicyViolation must produce a clean error message, not a raw traceback."""
+
+    def test_path_policy_violation_exits_2(self, tmp_path: Path) -> None:
+        from sdd_cli.utils.sdd_authority import PathPolicyViolation
+
+        with (
+            patch(
+                "sdd_core.utils.environment.find_workspace_root",
+                return_value=tmp_path,
+            ),
+            patch(
+                "sdd_cli.commands.runtime.enforce_path_policy",
+                side_effect=PathPolicyViolation(
+                    requested_path=tmp_path,
+                    reason="outside permitted paths",
+                    hint="use SDD_WORKSPACE_ROOT",
+                ),
+            ),
+            pytest.raises(typer.Exit) as exc_info,
+        ):
+            status(ctx=MagicMock(), verbose=False, force=False, update_cache=False)
+        assert exc_info.value.exit_code == 2

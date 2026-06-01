@@ -6,13 +6,13 @@ Get your SDD workspace running with governed bootstrap and agent command packs.
 
 - Python 3.10+
 - Git
-- [uv](https://astral.sh/uv) (optional, installed by `setup.sh`)
+- [uv](https://astral.sh/uv) (required)
 
 ## Step-by-step Setup (Client Project)
 
 ```bash
-# 1. Install SDD CLI
-curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh | sh
+# 1. Install SDD CLI (cross-platform: Linux/macOS/Windows)
+uv tool install sdd-cli
 
 # 2. Enter your project and run the wizard
 cd <your-project>
@@ -30,6 +30,14 @@ sdd skills --full-bootstrap --regenerate-seeds
 # 6. Verify runtime/governance health
 sdd runtime status
 sdd governance validate
+```
+
+### Alternative (legacy / Unix shell)
+
+Use this only if `uv` is unavailable in your environment (Unix shell only).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh | sh
 ```
 
 ### Zero-state onboarding behavior

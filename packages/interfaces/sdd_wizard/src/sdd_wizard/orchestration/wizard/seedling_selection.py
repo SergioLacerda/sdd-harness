@@ -16,6 +16,7 @@ SEEDLINGS: list[tuple[str, str, str]] = [
     ("cursor", "AGENT/IDE", "Cursor IDE"),
     ("vscode", "AGENT/IDE", "VS Code"),
     ("gemini", "AGENT/IDE", "Gemini"),
+    ("codex", "AGENT/IDE", "Codex"),
     ("cortex", "AGENT/IDE", "Snowflake Cortex Code"),
     ("activation-guide", "UTIL", "ACTIVATION_GUIDE.md"),
     ("verify", "UTIL", "verify.py"),

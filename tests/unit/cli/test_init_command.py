@@ -25,7 +25,7 @@ class TestInitCommand:
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
         ):
-            init(type="client", name="test-ws", force=False, full_bootstrap=False)
+            init(type="client", name="test-ws", force=False, no_bootstrap=True)
         profile_path = tmp_path / ".sdd" / "profile"
         assert profile_path.exists()
         content = profile_path.read_text(encoding="utf-8")
@@ -37,14 +37,14 @@ class TestInitCommand:
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
         ):
-            init(type="client", name="first", force=False, full_bootstrap=False)
+            init(type="client", name="first", force=False, no_bootstrap=True)
         # Second init without --force must exit 1
         with (
             pytest.raises(typer.Exit) as exc_info,
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
         ):
-            init(type="client", name="second", force=False, full_bootstrap=False)
+            init(type="client", name="second", force=False, no_bootstrap=True)
         assert exc_info.value.exit_code == 1
 
     def test_force_overwrites_existing_profile(self, tmp_path: Path) -> None:
@@ -52,8 +52,8 @@ class TestInitCommand:
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
         ):
-            init(type="client", name="first", force=False, full_bootstrap=False)
-            init(type="master", name="second", force=True, full_bootstrap=False)
+            init(type="client", name="first", force=False, no_bootstrap=True)
+            init(type="master", name="second", force=True, no_bootstrap=True)
         content = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
         assert "master" in content
 
@@ -62,7 +62,7 @@ class TestInitCommand:
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
         ):
-            init(type="client", name=None, force=False, full_bootstrap=False)
+            init(type="client", name=None, force=False, no_bootstrap=True)
         content = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
         assert "client" in content
 

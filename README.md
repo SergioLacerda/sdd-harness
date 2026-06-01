@@ -37,13 +37,17 @@ Spec-Driven Development (SDD) Harness is not just a tool—it's a **Governance O
 
 **Prerequisite:** [uv](https://docs.astral.sh/uv) must be installed on your machine.
 
+This installation path works on Linux, macOS, and Windows and does not require cloning this repository.
+
 ```bash
 # 1) Install the SDD CLI globally
-curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh | sh
+uv tool install sdd-cli
+```
 
-# Prefer to inspect first?
-curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh -o install.sh
-cat install.sh && sh install.sh
+```bash
+# Alternative (legacy / Unix shell)
+# Use this only when `uv` is unavailable.
+curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh | sh
 ```
 
 ```bash
@@ -55,6 +59,7 @@ sdd wizard run
 The wizard walks you through 4 phases: template generation → customization → compile → project structure.
 
 First-run onboarding is zero-state aware:
+
 - If `generated/` (or `generated/client/build/`) does not exist, the wizard bootstraps the minimum structure automatically.
 - It creates `generated/client/build/docs-meta/`, `phase-1-choices/`, and `phase-2-input/` for Phase 1/2 flow.
 - This step prepares templates and project scaffold only. Runtime activation still happens in the next step.

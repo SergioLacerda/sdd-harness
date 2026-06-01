@@ -170,23 +170,34 @@ class TestValidateMethod:
         assert hasattr(report, "confidence")
 
     def test_validate_caches_state(self, tmp_path: Path) -> None:
-        """validate() should save state to cache file."""
+        """validate() should save state to cache for non-transient states only.
+
+        A bare workspace with no .sdd directory produces NOT_CONNECTED, which
+        is a transient setup state and must never be written to disk.
+        """
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         state1, _ = ahp.validate()
 
-        # Cache should exist
-        assert ahp.cache_file.exists()
+        # NOT_CONNECTED is transient — cache file must NOT exist
+        assert state1 == "NOT_CONNECTED"
+        assert not ahp.cache_file.exists()
 
     def test_validate_loads_from_cache(self, tmp_path: Path) -> None:
-        """validate() should use cached state when available."""
-        ahp = AgentHandshakeProtocol(project_root=tmp_path)
-        ahp.validate()  # warm cache
+        """validate() should use cached state when available.
 
-        # Create new instance and validate (should load from cache)
+        A bare workspace produces NOT_CONNECTED, which is never persisted.
+        So a second validate() call on the same bare workspace must also
+        revalidate (cached=False) rather than reading a stale cache entry.
+        """
+        ahp = AgentHandshakeProtocol(project_root=tmp_path)
+        ahp.validate()  # attempt to warm cache (no-op for NOT_CONNECTED)
+
+        # Create new instance and validate — cache was never written, so
+        # the result must be a fresh check, not a cache hit.
         ahp2 = AgentHandshakeProtocol(project_root=tmp_path)
         state2, report2 = ahp2.validate()
 
-        assert report2.cached is True
+        assert report2.cached is False
 
     def test_validate_force_recheck(self, tmp_path: Path) -> None:
         """validate(force_recheck=True) should bypass cache."""

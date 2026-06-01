@@ -2,6 +2,18 @@
 
 Documentacao estruturada por **papel no sistema**, nao por audiencia. Otimizada para consumo eficiente por agentes de IA com carregamento por demanda.
 
+## Client Onboarding (Official)
+
+Use one cross-platform command as the primary installation path:
+
+```bash
+uv tool install sdd-cli
+```
+
+Then follow the complete guide:
+
+- [`guides/CLIENT_ONBOARDING.md`](./guides/CLIENT_ONBOARDING.md)
+
 ## Start Here
 
 - **Agentes de IA** → [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md)

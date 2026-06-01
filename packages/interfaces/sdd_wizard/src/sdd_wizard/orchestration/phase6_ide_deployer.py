@@ -2,6 +2,7 @@
 IdeTemplateDeployer — Phase 6 step: copy IDE/CI templates and inject bootstrap metadata.
 """
 
+import contextlib
 import os
 import shutil
 from importlib import resources
@@ -60,11 +61,9 @@ class IdeTemplateDeployer:
 
     def _template_base_candidates(self) -> list[Path]:
         candidates: list[Path] = []
-        try:
+        with contextlib.suppress(ModuleNotFoundError, TypeError, AttributeError):
             pkg_root = resources.files("sdd_integration")
             candidates.append(Path(str(pkg_root)) / "templates")
-        except (ModuleNotFoundError, TypeError, AttributeError):
-            pass
 
         candidates.append(
             self.repo_root
