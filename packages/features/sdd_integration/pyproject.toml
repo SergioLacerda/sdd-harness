@@ -29,13 +29,13 @@ sdd_integration = [
     "py.typed",
     "templates/README.md",
     "templates/.pre-commit-config.yaml",
-    "templates/.ai/**",
+    "templates/.ai/**",  # legacy-path-ok: AI tooling template dir, not governance legacy
     "templates/.antigravity/**",
     "templates/.claude/**",
     "templates/.cursor/**",
     "templates/.gemini/**",
     "templates/.github/**",
-    "templates/.ia/**",
+    "templates/.ia/**",  # legacy-path-ok: IA tooling template dir, not governance legacy
     "templates/.sdd/**",
     "templates/.vscode/**",
     "templates/scripts/**",

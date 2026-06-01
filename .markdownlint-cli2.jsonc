@@ -16,5 +16,8 @@
   "globs": [
     "docs/**/*.md",
     "README.md"
+  ],
+  "ignores": [
+    "docs/spec/**/*.md"
   ]
 }
