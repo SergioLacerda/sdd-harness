@@ -177,6 +177,7 @@ class IntelligentSeedlingsGenerator:
                 "vscode": self.ide_gen.generate_vscode_seed,
                 "cursor": self.ide_gen.generate_cursor_seed,
                 "claude": self.ai_gen.generate_claude_seed,
+                "codex": self.ai_gen.generate_codex_seed,
                 "cortex": self.ai_gen.generate_cortex_seed,
                 "prompt-commands": self.gov_gen.generate_prompt_commands,
                 "agents-md": self.gov_gen.generate_agents_md,
@@ -218,6 +219,7 @@ class IntelligentSeedlingsGenerator:
             ".sdd/seedlings/cursor.seed.json": "seed",
             ".sdd/seedlings/cortex.seed.json": "seed",
             ".sdd/seedlings/gemini.seed.json": "seed",
+            ".sdd/seedlings/codex.seed.json": "seed",
         }
 
         bootstrap_files = {}

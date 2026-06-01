@@ -153,6 +153,15 @@ def test_cortex_seed_has_fingerprint(tmp_path: Path) -> None:
     assert FINGERPRINT in content
 
 
+def test_codex_seed_has_fingerprint(tmp_path: Path) -> None:
+    gen = _make_ai_gen(tmp_path)
+    assert gen.generate_codex_seed()
+    content = (tmp_path / ".sdd" / "seedlings" / "codex.seed.json").read_text(
+        encoding="utf-8"
+    )
+    assert FINGERPRINT in content
+
+
 # ---------------------------------------------------------------------------
 # Reference to .sdd/agent-instructions.md
 # ---------------------------------------------------------------------------
@@ -163,6 +172,7 @@ def test_all_bootstrap_files_reference_agent_instructions(tmp_path: Path) -> Non
     gen.generate_claude_seed()
     gen.generate_gemini_seed()
     gen.generate_copilot_seed()
+    gen.generate_codex_seed()
     gen.generate_cortex_seed()
 
     files = [

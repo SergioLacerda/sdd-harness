@@ -174,6 +174,23 @@ class TestSeedlingsOrchestrator:
         ):
             assert orch.generate() is False
 
+    def test_generate_passes_selected_codex_to_generator(self, tmp_path: Path) -> None:
+        orch = _make_orchestrator(tmp_path)
+        mock_gen = MagicMock()
+        mock_gen.generate_all.return_value = True
+        mock_gen.get_summary.return_value = {
+            "count": 1,
+            "fingerprint": "abc",
+            "mandates": ["M001"],
+            "guidelines": ["git"],
+        }
+        with patch(
+            "sdd_wizard.orchestration.phase6_seedlings_orchestrator.IntelligentSeedlingsGenerator",
+            return_value=mock_gen,
+        ):
+            assert orch.generate(selected={"codex"}) is True
+        mock_gen.generate_all.assert_called_once_with(selected={"codex"})
+
     def test_resolve_governance_path_returns_existing(self, tmp_path: Path) -> None:
         core = tmp_path / "governance-core.json"
         core.write_text("{}", encoding="utf-8")

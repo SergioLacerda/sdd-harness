@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import time
 from pathlib import Path
@@ -15,6 +16,7 @@ from sdd_cli.shared.contracts import (
 )
 from sdd_cli.utils.output import emit_json, is_json_mode, is_verbose_mode
 from sdd_cli.utils.sdd_authority import (
+    PathPolicyViolation,
     compiled_active_dir,
     enforce_path_policy,
     profile_active_path,
@@ -53,7 +55,14 @@ def status(
     """Show current workspace governance state (AHP + GAP + runtime drift)."""
 
     root = resolve_workspace_root()
-    root = enforce_path_policy(root, workspace_root=root, mode="normal")
+    try:
+        root = enforce_path_policy(root, workspace_root=root, mode="normal")
+    except PathPolicyViolation as exc:
+        typer.echo(
+            f"[SDD] ERROR: workspace path rejected — {exc.reason}\n  Hint: {exc.hint}",
+            err=True,
+        )
+        raise typer.Exit(2) from exc
 
     if update_cache:
         _do_update_cache(root)
@@ -73,11 +82,14 @@ def status(
     output_mode: Literal["silent", "compact", "verbose"] = (
         "verbose" if effective_verbose else "compact"
     )
+
+    if effective_verbose and not output_json:
+        cache_file = root / ".sdd" / "runtime" / "governance-state.json"
+        typer.echo(_format_diagnostic_block(root, cache_file=cache_file))
+        typer.echo("")
+
     ahp = AgentHandshakeProtocol(project_root=root)
     state, report = ahp.validate(output_mode=output_mode, force_recheck=force)
-
-    if not output_json:
-        typer.echo(ahp.format_combined_output(state, report, mode=output_mode))
 
     _EXIT_CODES = {
         "HEALTHY": 0,
@@ -103,46 +115,24 @@ def status(
         current_profile=current_profile,
     )
 
-    # D3: show ask_confidence block if last_ask is present
-    ask_confidence = _show_ask_confidence(root, emit=not output_json)
-
-    cache_staleness = _check_cache_staleness(root)
-    if not output_json and cache_staleness["stale"]:
-        typer.echo(
-            f"\nWARNING L2: .sdd-cache.md is stale ({cache_staleness['age_min']} min ago)."
-            " Update it before committing to a protected branch."
-            "\n  → Run: sdd runtime status --update-cache",
-            err=False,
-        )
-
     governance_footer = format_governance_footer(
         drift=_footer_drift_status(drift_info),
         governance=state.lower(),
         profile=ahp.skill_profile,
     )
 
-    if output_json:
-        data = {
-            "state": state,
-            "exit_code": code,
-            "report": _normalize_report(report),
-            "drift": drift_info,
-            "ask_confidence": ask_confidence,
-            "governance_footer": governance_footer,
-            "cache_staleness": cache_staleness,
-        }
-        if code == 0:
-            payload = build_ok_result("runtime status", data)
-        else:
-            payload = build_error_result(
-                "runtime status",
-                data,
-                code="runtime_state_not_healthy",
-                message=f"runtime status returned non-success state '{state}'",
-            )
-        emit_json(payload, err=code != 0)
-    else:
-        typer.echo(governance_footer)
+    _render_status_output(
+        ahp=ahp,
+        state=state,
+        report=report,
+        code=code,
+        drift_info=drift_info,
+        governance_footer=governance_footer,
+        cache_staleness=_check_cache_staleness(root),
+        ask_confidence=_show_ask_confidence(root, emit=not output_json),
+        output_json=output_json,
+        output_mode=output_mode,
+    )
 
     if code != 0:
         raise typer.Exit(code)
@@ -399,9 +389,106 @@ def _read_profile(root: Path) -> str:
         return ""
 
 
+def _render_status_output(
+    *,
+    ahp: Any,
+    state: str,
+    report: Any,
+    code: int,
+    drift_info: dict[str, Any],
+    governance_footer: str,
+    cache_staleness: dict[str, Any],
+    ask_confidence: dict[str, Any] | None,
+    output_json: bool,
+    output_mode: str,
+) -> None:
+    """Emit status output: AHP report, cache staleness warning, JSON or text footer."""
+    if not output_json:
+        typer.echo(ahp.format_combined_output(state, report, mode=output_mode))
+
+    if not output_json and cache_staleness["stale"]:
+        typer.echo(
+            f"\nWARNING L2: .sdd-cache.md is stale ({cache_staleness['age_min']} min ago)."
+            " Update it before committing to a protected branch."
+            "\n  → Run: sdd runtime status --update-cache",
+            err=False,
+        )
+
+    if output_json:
+        data = {
+            "state": state,
+            "exit_code": code,
+            "report": _normalize_report(report),
+            "drift": drift_info,
+            "ask_confidence": ask_confidence,
+            "governance_footer": governance_footer,
+            "cache_staleness": cache_staleness,
+        }
+        if code == 0:
+            payload = build_ok_result("runtime status", data)
+        else:
+            payload = build_error_result(
+                "runtime status",
+                data,
+                code="runtime_state_not_healthy",
+                message=f"runtime status returned non-success state '{state}'",
+            )
+        emit_json(payload, err=code != 0)
+    else:
+        typer.echo(governance_footer)
+
+
 # ---------------------------------------------------------------------------
 # Display helpers
 # ---------------------------------------------------------------------------
+
+
+def _format_diagnostic_block(root: Path, *, cache_file: Path) -> str:
+    """Return the verbose diagnostic header block for --verbose output."""
+    import importlib.metadata
+    import time as _time
+
+    lines = ["═══ SDD Runtime Diagnostics ═══"]
+    lines.append(f"workspace root : {root}")
+
+    profile_path = profile_active_path(root)
+    profile_type = _read_profile(root) or "unknown"
+    try:
+        rel = profile_path.relative_to(root)
+    except ValueError:
+        rel = profile_path
+    lines.append(f"profile file   : {rel} [type={profile_type}]")
+
+    if cache_file.exists():
+        try:
+            import json as _json
+
+            mtime = cache_file.stat().st_mtime
+            age_sec = int(_time.time() - mtime)
+            raw = _json.loads(cache_file.read_text(encoding="utf-8"))
+            cached_state = raw.get("state", "?")
+            try:
+                rel_cache = cache_file.relative_to(root)
+            except ValueError:
+                rel_cache = cache_file
+            lines.append(
+                f"cache file     : {rel_cache} [age={age_sec}s, state={cached_state}]"
+            )
+        except Exception:
+            lines.append(
+                "cache file     : .sdd/runtime/governance-state.json [unreadable]"
+            )
+    else:
+        lines.append(
+            "cache file     : .sdd/runtime/governance-state.json [NONE, revalidating]"
+        )
+
+    for pkg in ("sdd-core", "sdd-cli"):
+        with contextlib.suppress(Exception):
+            ver = importlib.metadata.version(pkg)
+            lines.append(f"{pkg:<14} : {ver}")
+
+    return "\n".join(lines)
 
 
 def _show_ask_confidence(

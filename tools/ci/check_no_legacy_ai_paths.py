@@ -35,6 +35,8 @@ SKIP_DIRS = {
     "superpowers",
     # Legacy template directory itself — files inside .ai/ are the old artifact.
     ".ai",
+    # setuptools build artifacts — auto-generated, not source of truth.
+    "egg-info",
 }
 
 
@@ -60,7 +62,7 @@ def main() -> int:
     for path in root.rglob("*"):
         if not path.is_file():
             continue
-        if any(part in SKIP_DIRS for part in path.parts):
+        if any(part in SKIP_DIRS or part.endswith(".egg-info") for part in path.parts):
             continue
         if path.suffix.lower() not in ALLOWED_SUFFIXES:
             continue

@@ -47,6 +47,22 @@ Workflows in `.github/workflows/`:
 - `codeql.yml` — Static security analysis (Python + Actions)
 - `release.yml` — Versioned release pipeline
 
+### GitHub Pages Publish Flow
+
+`docs.yml` has two stages:
+
+1. `docs-quality`: installs deps, validates docs and builds MkDocs with `--strict`.
+2. `deploy`: publishes to GitHub Pages only on `push` to `main`.
+
+Publishing is gated by repository variable `ENABLE_GITHUB_PAGES`:
+
+- `ENABLE_GITHUB_PAGES=true` → upload artifact + deploy job runs
+- unset/`false` → docs are validated, but not published
+
+Operational checklist:
+
+- [docs/guides/GITHUB_PAGES_PUBLISH_CHECKLIST.md](./GITHUB_PAGES_PUBLISH_CHECKLIST.md)
+
 ## Governance Artifacts
 
 After `sdd governance compile`, artifacts land in:

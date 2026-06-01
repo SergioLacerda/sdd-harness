@@ -662,6 +662,7 @@ If a dedicated path does not exist:
             ("vscode.seed.json", "VS Code redirector"),
             ("cursor.seed.json", "Cursor IDE redirector"),
             ("claude.seed.json", "Claude Code redirector"),
+            ("codex.seed.json", "Codex redirector"),
             ("ACTIVATION_GUIDE.md", "Instructions"),
             ("verify.py", "Verification script"),
         ]

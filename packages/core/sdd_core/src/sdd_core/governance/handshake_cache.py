@@ -47,6 +47,9 @@ class HandshakeCache:
             with open(self.cache_file, encoding="utf-8") as f:
                 cache = cast(dict[str, Any], json.load(f))
 
+            if cache.get("state") == "NOT_CONNECTED":
+                return None  # never serve transient setup state from cache
+
             last_check = datetime.fromisoformat(cache.get("last_check", ""))
             if (datetime.now() - last_check) < self.cache_ttl:
                 return cache
@@ -121,6 +124,8 @@ class HandshakeCache:
         skill_profile: str,
     ) -> None:
         """Save state to persistent cache with GAP fields."""
+        if state == "NOT_CONNECTED":
+            return  # transient setup state; never persist
         try:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
 

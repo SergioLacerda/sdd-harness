@@ -262,6 +262,65 @@ class TestAISeedsGeneratorCortex:
         assert ".cortex/skills/sdd-governance.md" in seed["required_context"]
 
 
+class TestAISeedsGeneratorCodex:
+    def test_generate_codex_seed_creates_file(
+        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
+    ) -> None:
+        gen = AISeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        success = gen.generate_codex_seed()
+        assert success is True
+        assert (tmp_seedlings_dir / "codex.seed.json").exists()
+
+    def test_generate_codex_seed_content(
+        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
+    ) -> None:
+        gen = AISeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        gen.generate_codex_seed()
+        seed = json.loads(
+            (tmp_seedlings_dir / "codex.seed.json").read_text(encoding="utf-8")
+        )
+        assert seed["agent"] == "codex"
+        assert seed["commands_ref"] == ".codex/commands.md"
+        assert ".codex/commands.md" in seed["required_context"]
+
+    def test_generate_codex_seed_handles_write_error(
+        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
+    ) -> None:
+        gen = AISeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        with patch(
+            "sdd_wizard.orchestration.seedlings.ai_seeds.write_text_utf8",
+            side_effect=OSError("disk full"),
+        ):
+            assert gen.generate_codex_seed() is False
+
+
 class TestAISeedsGeneratorCopilot:
     def test_generate_copilot_seed_creates_file(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
@@ -1562,6 +1621,90 @@ class TestIntelligentSeedlingsGeneratorFingerprintFallback:
 
         # Should return fallback fingerprint
         assert generator.spec_fingerprint == "00000000"
+
+
+class TestIntelligentSeedlingsGeneratorCodex:
+    def test_generate_all_with_codex_selection_creates_codex_seed(
+        self, tmp_path: Path
+    ) -> None:
+        from sdd_wizard.orchestration.intelligent_seedlings_generator import (
+            IntelligentSeedlingsGenerator,
+        )
+
+        governance_core_path = tmp_path / "governance-core.json"
+        governance_core_path.write_text(
+            json.dumps({"version": "3.0", "items": [{"id": "M001"}]}),
+            encoding="utf-8",
+        )
+
+        generator = IntelligentSeedlingsGenerator(
+            output_base=tmp_path,
+            mandates=[{"id": "M001", "title": "Clean Code"}],
+            guidelines_by_category={},
+            config={},
+            governance_core_path=governance_core_path,
+            verbose=False,
+        )
+
+        assert generator.generate_all(selected={"codex"}) is True
+        codex_seed = tmp_path / ".sdd" / "seedlings" / "codex.seed.json"
+        assert codex_seed.exists()
+        manifest = json.loads(
+            (tmp_path / "DEPLOYMENT_MANIFEST.json").read_text(encoding="utf-8")
+        )
+        assert ".sdd/seedlings/codex.seed.json" in manifest.get("seed_files", {})
+
+    def test_generate_all_full_includes_codex_seed(self, tmp_path: Path) -> None:
+        from sdd_wizard.orchestration.intelligent_seedlings_generator import (
+            IntelligentSeedlingsGenerator,
+        )
+
+        governance_core_path = tmp_path / "governance-core.json"
+        governance_core_path.write_text(
+            json.dumps(
+                {
+                    "version": "3.0",
+                    "items": [
+                        {"id": "M001", "type": "MANDATE", "title": "Clean Code"},
+                        {"id": "G001", "type": "GUIDELINE", "title": "Test"},
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        (tmp_path / "AGENTS.md").write_text("bootstrap", encoding="utf-8")
+        (tmp_path / "CLAUDE.md").write_text("bootstrap", encoding="utf-8")
+        prompts = tmp_path / ".github" / "prompts"
+        prompts.mkdir(parents=True, exist_ok=True)
+        (prompts / "sdd-ask.prompt.md").write_text("x", encoding="utf-8")
+        cursor_dir = tmp_path / ".cursor" / "rules"
+        cursor_dir.mkdir(parents=True, exist_ok=True)
+        (cursor_dir / "sdd-commands.mdc").write_text("x", encoding="utf-8")
+        gemini_dir = tmp_path / ".gemini"
+        gemini_dir.mkdir(parents=True, exist_ok=True)
+        (gemini_dir / "commands.md").write_text("x", encoding="utf-8")
+
+        generator = IntelligentSeedlingsGenerator(
+            output_base=tmp_path,
+            mandates=[{"id": "M001", "title": "Clean Code"}],
+            guidelines_by_category={"testing": [{"id": "G001", "title": "Test"}]},
+            config={},
+            governance_core_path=governance_core_path,
+            verbose=False,
+        )
+
+        with (
+            patch.object(
+                generator.gov_gen, "generate_prompt_commands", return_value=True
+            ),
+            patch.object(
+                generator.sovereign_gen,
+                "generate_sovereign_factory_seed",
+                return_value=True,
+            ),
+        ):
+            assert generator.generate_all(selected=None) is True
+        assert (tmp_path / ".sdd" / "seedlings" / "codex.seed.json").exists()
 
     def test_compute_fingerprint_returns_default_when_json_corrupted(
         self, tmp_path: Path

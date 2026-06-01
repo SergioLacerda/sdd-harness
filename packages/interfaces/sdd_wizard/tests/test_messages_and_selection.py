@@ -106,6 +106,7 @@ class TestSeedlingSelection:
         keys = {s[0] for s in SEEDLINGS}
         assert "governance" in keys
         assert "claude" in keys
+        assert "codex" in keys
         assert "compliance" in keys
 
     def test_no_prompter_uses_input_by_default(self) -> None:
@@ -162,6 +163,21 @@ class TestSeedlingSelection:
         messages: list[str] = []
         result = ask_seedling_selection(messages.append, prompter=_StringPrompter())
         assert result == {"governance", "compliance"}
+
+    def test_string_returning_checkbox_named_codex_key(self) -> None:
+        class _StringPrompter:
+            def select(self, q: str, choices: list) -> str:
+                return ""
+
+            def checkbox(self, q: str, choices: list) -> str:  # type: ignore[override]
+                return "codex"
+
+            def confirm(self, q: str, default: bool = True) -> bool:
+                return default
+
+        messages: list[str] = []
+        result = ask_seedling_selection(messages.append, prompter=_StringPrompter())
+        assert result == {"codex"}
 
     def test_string_returning_checkbox_numeric_index(self) -> None:
         class _StringPrompter:

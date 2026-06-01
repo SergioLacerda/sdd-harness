@@ -334,3 +334,37 @@ If registries or canonical files are missing/inconsistent, register bootstrap dr
         except Exception as e:
             logger.warning(f"  ❌ Failed to generate Cortex seed: {e}")
             return False
+
+    def generate_codex_seed(self) -> bool:
+        """Generate Codex governance bootstrap seed."""
+        try:
+            codex_dir = self.output_base / ".codex"
+            codex_dir.mkdir(parents=True, exist_ok=True)
+
+            seed_data = {
+                "auto_activate": True,
+                "agent": "codex",
+                "description": "Codex governance bootstrap — routes command aliases through .codex/commands.md",
+                "load_compiled_from": ".sdd",
+                "commands_ref": ".codex/commands.md",
+                "governance_fingerprint": self.spec_fingerprint,
+                "mandates_count": len(self.mandate_ids),
+                "auto_load": True,
+                "triggers": ["on_project_load", "on_editor_focus"],
+                "required_context": [
+                    ".sdd/metadata.json",
+                    ".codex/commands.md",
+                ],
+                "on_load": "prepare_ide_context",
+                "generated_at": self.generated_at,
+            }
+            write_text_utf8(
+                self.seedlings_dir / "codex.seed.json",
+                json.dumps(seed_data, indent=2) + "\n",
+            )
+
+            self.log("✅ Generated Codex seed (.sdd/seedlings/codex.seed.json)")
+            return True
+        except Exception as e:
+            logger.warning(f"  ❌ Failed to generate Codex seed: {e}")
+            return False

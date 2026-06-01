@@ -442,6 +442,8 @@ class TestValidate:
         assert report.cached is False
 
     def test_validate_saves_cache_on_fresh_run(self, tmp_path: Path) -> None:
+        # NOT_CONNECTED is never cached; create .sdd/ so state is non-NOT_CONNECTED
+        _write_profile(tmp_path, "client")
         ahp = _make_ahp(tmp_path)
         ahp.validate(output_mode="silent", force_recheck=True)
         cache_file = tmp_path / ".sdd" / "runtime" / "governance-state.json"

@@ -7,7 +7,7 @@ the chosen ones. Omit (or pass None) to generate all (default behaviour).
 Available seedling keys:
     "governance", "agent-prep", "personal-overlay", "compliance",
     "activation-guide", "verify",
-    "copilot", "gemini", "vscode", "cursor", "claude",
+    "copilot", "gemini", "codex", "vscode", "cursor", "claude",
     "prompt-commands"
 """
 

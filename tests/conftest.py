@@ -529,9 +529,6 @@ def mock_repo(tmp_path: Path) -> Path:
     ]
     core_payload = {"items": core_items}
 
-    import hashlib
-    import json
-
     core_fingerprint = hashlib.sha256(
         json.dumps(core_payload, sort_keys=True).encode("utf-8")
     ).hexdigest()

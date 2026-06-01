@@ -285,6 +285,14 @@ class AgentHandshakeProtocol:
         """Execute full handshake protocol."""
         if not force_recheck:
             cache = self._load_cache()
+            # Auto-heal: discard stale NOT_CONNECTED when .sdd/ now exists
+            if (
+                cache
+                and cache.get("state") == "NOT_CONNECTED"
+                and (self.project_root / ".sdd").is_dir()
+            ):
+                cache = None  # fall through to full revalidation
+
             if cache:
                 if "gap_version" in cache:
                     self.gap_status = cache.get("status", "NOT_ACTIVE")

@@ -9,6 +9,7 @@ from typing import cast
 
 import typer
 
+from sdd_cli.services.onboarding import OnboardingOrchestrator
 from sdd_core.utils.environment import (
     SddProfile,
     find_workspace_root,
@@ -58,10 +59,10 @@ def init(
         "-f",
         help="Overwrite existing .sdd/profile without prompting (safe in CI).",
     ),
-    full_bootstrap: bool = typer.Option(
+    no_bootstrap: bool = typer.Option(
         False,
-        "--full-bootstrap",
-        help="Run governance compile + runtime status after init (zero-touch setup).",
+        "--no-bootstrap",
+        help="Skip governance and skills bootstrap (profile only). Default for --type master.",
     ),
 ) -> None:
     """Initialize an SDD workspace in the current directory.
@@ -141,27 +142,24 @@ def init(
     typer.echo("  core_hash:    (empty — run 'sdd governance compile' to populate)")
     typer.echo("  phase_0:      completed")
 
-    if full_bootstrap:
+    run_bootstrap = (profile_type == "client") and not no_bootstrap
+    if run_bootstrap:
         typer.echo("")
-        typer.echo("=== Full Bootstrap ===")
-        compile_ok = _run_cli_step("governance compile", ["governance", "compile"], cwd)
-        status_ok = _run_cli_step(
-            "runtime status", ["runtime", "status", "--force"], cwd
-        )
-        if compile_ok and status_ok:
-            typer.echo("\n[bootstrap] Workspace ready.")
+        typer.echo("[1/4] Workspace profile created ✓")
+        orc = OnboardingOrchestrator(cwd)
+        bootstrap_result = orc.run(force=bool(force))
+        if bootstrap_result.success:
+            typer.echo("\n🟢 Onboarding complete — workspace is HEALTHY")
         else:
-            typer.echo(
-                "\n[bootstrap] Some steps failed. "
-                "Run 'sdd governance compile' and 'sdd runtime status' manually.",
-                err=True,
-            )
-            raise typer.Exit(1)
+            for msg in bootstrap_result.messages:
+                typer.echo(f"  ERROR: {msg}", err=True)
+            raise typer.Exit(bootstrap_result.exit_code)
     else:
         typer.echo("")
         typer.echo("Next steps:")
-        typer.echo("  sdd governance compile   # build governance artifacts")
-        typer.echo("  sdd runtime status       # verify workspace state")
+        typer.echo("  sdd governance generate --full-bootstrap")
+        typer.echo("  sdd skills --full-bootstrap --regenerate-seeds")
+        typer.echo("  sdd runtime status")
 
     if overwriting_existing:
         typer.echo(

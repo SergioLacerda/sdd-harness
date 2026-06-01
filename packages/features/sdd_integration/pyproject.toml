@@ -25,7 +25,22 @@ Repository = "https://github.com/SergioLacerda/sdd-harness"
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
-sdd_integration = ["py.typed", "templates/**/*"]
+sdd_integration = [
+    "py.typed",
+    "templates/README.md",
+    "templates/.pre-commit-config.yaml",
+    "templates/.ai/**",  # legacy-path-ok: AI tooling template dir, not governance legacy
+    "templates/.antigravity/**",
+    "templates/.claude/**",
+    "templates/.cursor/**",
+    "templates/.gemini/**",
+    "templates/.github/**",
+    "templates/.ia/**",  # legacy-path-ok: IA tooling template dir, not governance legacy
+    "templates/.sdd/**",
+    "templates/.vscode/**",
+    "templates/scripts/**",
+    "templates/tests/**",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
