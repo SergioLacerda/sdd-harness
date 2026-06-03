@@ -1,0 +1,29 @@
+{
+  "contract_version": "1",
+  "trace_id": "trace-fallback-001",
+  "channel": "mcp",
+  "mode": "delegate",
+  "outcome": "fallback",
+  "latency_ms": 3200,
+  "result": {
+    "refined_prompt": "Fallback refined prompt.",
+    "response": "Original prompt retained by fallback policy.",
+    "compression_ratio": 0.1,
+    "warnings": [
+      "executor_unavailable"
+    ]
+  },
+  "telemetry": {
+    "trace_id": "trace-fallback-001",
+    "channel": "mcp",
+    "mode": "delegate",
+    "latency_ms": 3200,
+    "outcome": "fallback",
+    "fallback_reason": "LLM_UNAVAILABLE",
+    "input_tokens": 800,
+    "output_tokens": 0,
+    "cache_hit": false,
+    "model_used": null
+  },
+  "fallback_reason": "LLM_UNAVAILABLE"
+}

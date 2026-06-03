@@ -1,0 +1,18 @@
+{
+  "contract_version": "1",
+  "trace_id": "trace-fallback-001",
+  "channel": "mcp",
+  "mode": "delegate",
+  "domain": "generic",
+  "input": {
+    "prompt": "Delegate this task.",
+    "context": {
+      "source": "fixture"
+    }
+  },
+  "policy": {
+    "preserve_mandates": true,
+    "fallback_on_error": true
+  },
+  "governance_context": {}
+}

@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExternalContractV1Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "trace_id",
+    "channel",
+    "mode",
+    "domain",
+    "input",
+    "policy"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "1",
+      "type": "string"
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["mcp", "sdk"]
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["refine-only", "delegate"]
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["coding", "generic"]
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt"],
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "token_budget": {
+          "anyOf": [
+            { "type": "integer", "minimum": 1 },
+            { "type": "null" }
+          ],
+          "default": null
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preserve_mandates", "fallback_on_error"],
+      "properties": {
+        "preserve_mandates": {
+          "type": "boolean",
+          "default": true
+        },
+        "fallback_on_error": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "governance_context": {
+      "type": "object",
+      "additionalProperties": true,
+      "default": {}
+    }
+  }
+}

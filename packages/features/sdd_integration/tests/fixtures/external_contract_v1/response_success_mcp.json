@@ -1,0 +1,27 @@
+{
+  "contract_version": "1",
+  "trace_id": "trace-success-001",
+  "channel": "mcp",
+  "mode": "refine-only",
+  "outcome": "success",
+  "latency_ms": 120,
+  "result": {
+    "refined_prompt": "Refined prompt for clarity.",
+    "response": null,
+    "compression_ratio": 0.42,
+    "warnings": []
+  },
+  "telemetry": {
+    "trace_id": "trace-success-001",
+    "channel": "mcp",
+    "mode": "refine-only",
+    "latency_ms": 120,
+    "outcome": "success",
+    "fallback_reason": null,
+    "input_tokens": 1200,
+    "output_tokens": 480,
+    "cache_hit": false,
+    "model_used": "mock-executor"
+  },
+  "fallback_reason": null
+}
