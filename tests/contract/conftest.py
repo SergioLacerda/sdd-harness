@@ -24,37 +24,15 @@ def _artifacts_valid(repo_root: Path) -> bool:
     """Return True if compiled artifacts exist and contain a viable mandate set."""
     import json as _json
 
-    from sdd_core.utils.environment import get_sdd_paths
-
     # Canonical .sdd/compiled/ path (CI bootstrap path via `sdd governance compile`).
     canonical = repo_root / ".sdd" / "compiled" / "governance-core.json"
-    for candidate in [canonical]:
-        if candidate.exists():
-            with contextlib.suppress(Exception):
-                data = _json.loads(candidate.read_text(encoding="utf-8"))
-                items = data.get("items", [])
-                if len(items) >= 4 and all("id" in item for item in items):
-                    return True
-
-    # Fallback: legacy generated/ paths for local dev environments.
-    try:
-        paths = get_sdd_paths()
-    except Exception:
+    if not canonical.exists():
         return False
-
-    for candidate in (
-        paths["client_compiled"] / "governance-core.json",
-        paths["master_compiled"] / "governance-core.json",
-    ):
-        if not candidate.exists():
-            continue
-        try:
-            data = _json.loads(candidate.read_text(encoding="utf-8"))
-            items = data.get("items", [])
-            if len(items) >= 4 and all("id" in item for item in items):
-                return True
-        except Exception:
-            continue
+    with contextlib.suppress(Exception):
+        data = _json.loads(canonical.read_text(encoding="utf-8"))
+        items = data.get("items", [])
+        if len(items) >= 4 and all("id" in item for item in items):
+            return True
     return False
 
 

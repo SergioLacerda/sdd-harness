@@ -25,7 +25,6 @@ _CANONICAL_ARTIFACT = compiled_active_dir(REPO_ROOT) / "governance-core.json"
 _LEGACY_ARTIFACT = (
     REPO_ROOT / "generated" / "master" / "compiled" / "governance-core.json"
 )
-ARTIFACT = _CANONICAL_ARTIFACT if _CANONICAL_ARTIFACT.exists() else _LEGACY_ARTIFACT
 GOLDEN = Path(__file__).parent / "fixtures" / "governance_core.golden.json"
 
 _CLIENT_ARTIFACT = compiled_active_dir(REPO_ROOT) / "governance-client.json"
@@ -48,15 +47,23 @@ def _normalise(
     return cast(dict[str, Any], json.loads(json.dumps(clean, sort_keys=True)))
 
 
+def _artifact_path() -> Path:
+    """Resolve the compiled artifact after session fixtures have run."""
+    if _CANONICAL_ARTIFACT.exists():
+        return _CANONICAL_ARTIFACT
+    return _LEGACY_ARTIFACT
+
+
 @pytest.fixture(scope="module")
 def artifact() -> dict[str, Any]:
     """Load the compiled governance artifact once per module."""
-    if not ARTIFACT.exists():
+    artifact_path = _artifact_path()
+    if not artifact_path.exists():
         pytest.skip(
-            f"Compiled artifact not found: {ARTIFACT}\n"
+            f"Compiled artifact not found: {artifact_path}\n"
             "Run: uv run sdd governance compile"
         )
-    return json.loads(read_text_utf8(ARTIFACT))  # type: ignore[no-any-return]
+    return json.loads(read_text_utf8(artifact_path))  # type: ignore[no-any-return]
 
 
 # ---------------------------------------------------------------------------
@@ -75,8 +82,9 @@ class TestGovernanceCoreSchema:
 
     def test_artifact_exists(self) -> None:
         """MUST: Compiled artifact is present and readable."""
-        assert ARTIFACT.exists(), (
-            f"Artifact missing: {ARTIFACT}\nRun: uv run sdd governance compile"
+        artifact_path = _artifact_path()
+        assert artifact_path.exists(), (
+            f"Artifact missing: {artifact_path}\nRun: uv run sdd governance compile"
         )
 
     def test_top_level_structure(self, artifact: dict[str, Any]) -> None:
@@ -154,7 +162,7 @@ class TestGovernanceCoreSchema:
 
         repo_root = Path(__file__).parent.parent.parent
         GovernanceOrchestrator(repo_root=str(repo_root)).run_full_pipeline()
-        second = json.loads(read_text_utf8(ARTIFACT))
+        second = json.loads(read_text_utf8(_artifact_path()))
         assert artifact["fingerprint"] == second["fingerprint"], (
             f"Non-deterministic compilation:\n"
             f"  first:  {artifact['fingerprint']!r}\n"
