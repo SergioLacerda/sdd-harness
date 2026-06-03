@@ -157,6 +157,7 @@ class Phase456Generator:
             (writer.generate_guidelines_files, "Failed to generate guidelines"),
             (writer.generate_source_readme, "Failed to generate source README"),
             (writer.generate_runtime_readme, "Failed to generate runtime README"),
+            (writer.generate_plugin_workspace, "Failed to generate plugin workspace"),
         ]:
             if not step():
                 result["errors"].append(label)

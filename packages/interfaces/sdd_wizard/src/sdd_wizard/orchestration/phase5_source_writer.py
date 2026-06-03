@@ -572,3 +572,43 @@ if governance_mtime > agent.memory.get('governance_loaded_at', 0):
         except Exception as e:
             print(f"  ❌ Failed to generate runtime README: {e}")  # noqa: T201
             return False
+
+    def generate_plugin_workspace(self) -> bool:
+        """Generate plugin protocol directories and files.
+
+        Creates:
+        - .sdd/plugins/registry.yaml  — plugin registry with Strategist entry
+        - .sdd/contracts/             — three interface schema files
+        - .sdd/analysis/{todo,pending,refined,done}/ — mission workspace
+        - .sdd/docs/                  — compiled governance docs (populated by tooling)
+        """
+        self._log(
+            "Generating plugin workspace (.sdd/plugins, .sdd/contracts, .sdd/analysis, .sdd/docs)"
+        )
+        try:
+            from sdd_cli.generators._contracts import generate_contracts
+            from sdd_cli.generators._plugins import generate_plugins_registry
+
+            output_dir = str(self.output_base)
+
+            plugins_result = generate_plugins_registry(output_dir, self.config)
+            self._log(f"  plugins registry: {plugins_result.get('registry_path')}")
+
+            contracts_result = generate_contracts(output_dir, self.config)
+            self._log(
+                f"  contracts: {contracts_result.get('files_written')} files written"
+            )
+
+            for state in ("todo", "pending", "refined", "done"):
+                state_dir = self.output_base / ".sdd" / "analysis" / state
+                state_dir.mkdir(parents=True, exist_ok=True)
+            self._log("  analysis workspace: todo/pending/refined/done created")
+
+            docs_dir = self.output_base / ".sdd" / "docs"
+            docs_dir.mkdir(parents=True, exist_ok=True)
+            self._log("  docs dir created")
+
+            return True
+        except Exception as e:
+            print(f"  ❌ Failed to generate plugin workspace: {e}")  # noqa: T201
+            return False

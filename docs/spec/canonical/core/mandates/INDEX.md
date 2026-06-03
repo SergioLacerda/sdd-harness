@@ -19,6 +19,9 @@ Define mandatory behavioral contracts that ALL agents MUST follow.
 | M009 | OpenTelemetry Compliance       | [M009_OTEL_COMPLIANCE.md](M009_OTEL_COMPLIANCE.md) |
 | M010 | Delivery Hygiene Enforcement   | [M010_DELIVERY_HYGIENE.md](M010_DELIVERY_HYGIENE.md) |
 | M011 | English Language Standard      | [M011_LANGUAGE_STANDARD_ENGLISH.md](M011_LANGUAGE_STANDARD_ENGLISH.md) |
+| M015 | Bidirectional Agent Handshake  | [M015_BIDIRECTIONAL_HANDSHAKE.md](M015_BIDIRECTIONAL_HANDSHAKE.md) |
+| M016 | Guardrail Non-Regression       | [M016_GUARDRAIL_IMMUTABILITY.md](M016_GUARDRAIL_IMMUTABILITY.md) |
+| M017 | Analysis Plugin Compliance     | [M017_ANALYSIS_PLUGIN_COMPLIANCE.md](M017_ANALYSIS_PLUGIN_COMPLIANCE.md) |
 
 ---
 

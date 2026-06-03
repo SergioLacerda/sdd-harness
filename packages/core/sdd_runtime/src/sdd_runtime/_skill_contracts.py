@@ -86,6 +86,8 @@ class SkillDefinition:
             "default_detail": "minimal",
         }
     )
+    # Plugin delegation — M017 Analysis Plugin Compliance
+    delegation_policy: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
