@@ -213,10 +213,25 @@
     },
     {
       "criticality": "high",
+      "enforcement_steps": [
+        "Verify plugin registry entry declares sdd_injection with base_path, execution_provider, approval_gate",
+        "Verify plugin does not write outside sdd_injection.base_path",
+        "Verify plugin invokes only the declared execution_provider",
+        "Verify approval_gate is honored when set to required",
+        "Confirm GovernanceEvent emitted on any plugin compliance violation"
+      ],
       "id": "M017",
+      "rationale": "Plugins extend SDD with external orchestration capabilities. Without governance over their write scope and execution authority, a plugin could silently corrupt the workspace or bypass approval controls. M017 ensures the plugin contract is enforceable and auditable.",
+      "requirements": [
+        "Plugins MUST write artifacts only within sdd_injection.base_path",
+        "Plugins MUST invoke only the declared sdd_injection.execution_provider",
+        "Plugins MUST not skip sdd_injection.approval_gate when set to required",
+        "Plugin registry entries MUST declare all three sdd_injection fields: base_path, execution_provider, approval_gate",
+        "Violations MUST emit a GovernanceEvent with event_type=PLUGIN_COMPLIANCE_VIOLATION"
+      ],
       "status": "active",
       "summary_minimal": "Analysis Plugin Compliance",
-      "summary_runtime": null,
+      "summary_runtime": "Ensure that analysis plugins respect SDD-injected base_path, execution_provider, and approval_gate. No plugin may write artifacts outside its declared scope, invoke an unauthorized execution provider, or skip the approval gate.",
       "title": "Analysis Plugin Compliance",
       "type": "MANDATE"
     }
