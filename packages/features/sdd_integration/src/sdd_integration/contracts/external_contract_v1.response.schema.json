@@ -1,0 +1,173 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExternalContractV1Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "trace_id",
+    "channel",
+    "mode",
+    "outcome",
+    "latency_ms",
+    "result",
+    "telemetry"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "1",
+      "type": "string"
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["mcp", "sdk"]
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["refine-only", "delegate"]
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["success", "fallback", "error"]
+    },
+    "latency_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["warnings"],
+      "properties": {
+        "refined_prompt": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ],
+          "default": null
+        },
+        "response": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ],
+          "default": null
+        },
+        "compression_ratio": {
+          "anyOf": [
+            { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            { "type": "null" }
+          ],
+          "default": null
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_id",
+        "channel",
+        "mode",
+        "latency_ms",
+        "outcome"
+      ],
+      "properties": {
+        "trace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "type": "string",
+          "enum": ["mcp", "sdk"]
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["refine-only", "delegate"]
+        },
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "outcome": {
+          "type": "string",
+          "enum": ["success", "fallback", "error"]
+        },
+        "fallback_reason": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ],
+          "default": null
+        },
+        "input_tokens": {
+          "anyOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ],
+          "default": null
+        },
+        "output_tokens": {
+          "anyOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ],
+          "default": null
+        },
+        "cache_hit": {
+          "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+          "default": null
+        },
+        "model_used": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ],
+          "default": null
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": { "const": "fallback" }
+            },
+            "required": ["outcome"]
+          },
+          "then": {
+            "required": ["fallback_reason"]
+          }
+        }
+      ]
+    },
+    "fallback_reason": {
+      "anyOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "null" }
+      ],
+      "default": null
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": { "const": "fallback" }
+        },
+        "required": ["outcome"]
+      },
+      "then": {
+        "required": ["fallback_reason"]
+      }
+    }
+  ]
+}

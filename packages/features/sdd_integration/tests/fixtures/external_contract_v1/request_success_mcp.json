@@ -1,0 +1,22 @@
+{
+  "contract_version": "1",
+  "trace_id": "trace-success-001",
+  "channel": "mcp",
+  "mode": "refine-only",
+  "domain": "coding",
+  "input": {
+    "prompt": "Refine the prompt for clarity.",
+    "context": {
+      "source": "fixture",
+      "priority": "normal"
+    },
+    "token_budget": 4000
+  },
+  "policy": {
+    "preserve_mandates": true,
+    "fallback_on_error": true
+  },
+  "governance_context": {
+    "profile": "client"
+  }
+}

@@ -18,7 +18,7 @@ from pathlib import Path
 from sdd_runtime import DriftDetector
 
 try:
-    from crewai import Agent, Crew, Task  # type: ignore[import-untyped]
+    from crewai import Agent, Crew, Task
 
     _CREWAI_AVAILABLE = True
 except Exception:
