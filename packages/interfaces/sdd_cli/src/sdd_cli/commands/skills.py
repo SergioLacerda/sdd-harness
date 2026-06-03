@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Literal
 
+import click
 import typer
 from sdd_runtime import SkillEngine, SupervisedLearningStore
 
@@ -90,7 +91,7 @@ def _(
     """Skill operations."""
     if dry_run and not regenerate_seeds:
         typer.echo("ERROR: --dry-run requires --regenerate-seeds", err=True)
-        raise typer.Exit(2)
+        raise click.exceptions.Exit(2)
 
     if not full_bootstrap and not regenerate_seeds:
         return
