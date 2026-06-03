@@ -59,6 +59,14 @@ COMMAND_SPECS: dict[str, CommandSpec] = {
         "sdd_cli.commands.telemetry", "Inspect and manage local telemetry events"
     ),
     "version": CommandSpec("sdd_cli.commands.version", "Show version"),
+    "plugin": CommandSpec(
+        "sdd_cli.commands.plugin",
+        "Plugin registry management (list, validate)",
+    ),
+    "analysis": CommandSpec(
+        "sdd_cli.commands.analysis",
+        "Analysis workspace management (list, status, clean)",
+    ),
     "ask": CommandSpec(
         "sdd_cli.commands.ask_entry",
         "Query SDD governance context (governed, minimal output)",

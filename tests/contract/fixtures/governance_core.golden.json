@@ -210,6 +210,15 @@
       "summary_runtime": "Ensure that guardrails evolve in a net-positive direction. Increments and",
       "title": "Guardrail Non-Regression",
       "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "id": "M017",
+      "status": "active",
+      "summary_minimal": "Analysis Plugin Compliance",
+      "summary_runtime": null,
+      "title": "Analysis Plugin Compliance",
+      "type": "MANDATE"
     }
   ],
   "version": "3.0"

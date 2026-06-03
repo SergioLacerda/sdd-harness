@@ -111,6 +111,28 @@ _REGISTRY: dict[str, SkillDefinition] = {
         fallback_to=None,
         idempotent=False,
         context_policy={"max_context_tokens": 1200, "default_detail": "minimal"},
+        delegation_policy={
+            "enabled": True,
+            "triggers": [
+                "analyze and plan",
+                "create implementation plan",
+                "implementation plan",
+                "analysis mission",
+                "orchestrate",
+                "multi-phase analysis",
+            ],
+            "delegate_to": "analysis_orchestrator",
+            "plugin_registry": ".sdd/plugins/registry.yaml",
+            "input_transform": {
+                "user_prompt": "mission_contract",
+                "reviewed_task": "direct_execution",
+            },
+            "result_handling": {
+                "validate_against": ".sdd/contracts/mission-result.schema.yaml",
+                "on_invalid": "emit_governance_violation",
+                "on_no_provider": "error_no_analysis_provider_registered",
+            },
+        },
     ),
     "sdd-diagnose": SkillDefinition(
         name="sdd-diagnose",
