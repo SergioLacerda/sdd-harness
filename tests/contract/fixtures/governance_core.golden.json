@@ -221,7 +221,7 @@
         "Confirm GovernanceEvent emitted on any plugin compliance violation"
       ],
       "id": "M017",
-      "rationale": "Plugins extend SDD with external orchestration capabilities. Without governance over\ntheir write scope and execution authority, a plugin could silently corrupt the\nworkspace or bypass approval controls. M017 ensures the plugin contract is\nenforceable and auditable.\n\n---",
+      "rationale": "Plugins extend SDD with external orchestration capabilities. Without governance over their write scope and execution authority, a plugin could silently corrupt the workspace or bypass approval controls. M017 ensures the plugin contract is enforceable and auditable.",
       "requirements": [
         "Plugins MUST write artifacts only within sdd_injection.base_path",
         "Plugins MUST invoke only the declared sdd_injection.execution_provider",
@@ -231,7 +231,7 @@
       ],
       "status": "active",
       "summary_minimal": "Analysis Plugin Compliance",
-      "summary_runtime": "Ensure that analysis plugins respect SDD-injected base_path, execution_provider, and approval_gate.",
+      "summary_runtime": "Ensure that analysis plugins respect SDD-injected base_path, execution_provider, and approval_gate. No plugin may write artifacts outside its declared scope, invoke an unauthorized execution provider, or skip the approval gate.",
       "title": "Analysis Plugin Compliance",
       "type": "MANDATE"
     }

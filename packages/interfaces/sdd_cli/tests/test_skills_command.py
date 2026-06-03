@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -388,6 +390,19 @@ def test_skills_dry_run_requires_regenerate_seeds() -> None:
     result = runner.invoke(app, ["skills", "--dry-run"])
     assert result.exit_code == 2, result.output
     assert "--dry-run requires --regenerate-seeds" in result.output
+
+
+def test_skills_dry_run_module_entrypoint_preserves_exit_code() -> None:
+    repo_root = Path(__file__).resolve().parents[4]
+    result = subprocess.run(
+        [sys.executable, "-m", "sdd_cli", "skills", "--dry-run"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 2, result.stderr
+    assert "--dry-run requires --regenerate-seeds" in result.stderr
 
 
 def test_skills_full_bootstrap_json_uses_canonical_envelope(tmp_path) -> None:
