@@ -143,7 +143,9 @@ class TestPluginCoverage:
 
 
 class TestAskDossierCoverage:
-    def test_handle_budget_and_artifact_paths(self, tmp_path: Path) -> None:
+    def test_handle_budget_and_artifact_paths(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         class _Logger:
             def __init__(self) -> None:
                 self.debug_calls: list[tuple[object, ...]] = []
@@ -172,8 +174,8 @@ class TestAskDossierCoverage:
         fake_context = types.ModuleType("sdd_runtime.context")
         fake_context.BudgetBreachError = _BudgetBreach
         fake_root.context = fake_context
-        sys.modules["sdd_runtime"] = fake_root
-        sys.modules["sdd_runtime.context"] = fake_context
+        monkeypatch.setitem(sys.modules, "sdd_runtime", fake_root)
+        monkeypatch.setitem(sys.modules, "sdd_runtime.context", fake_context)
         with pytest.raises(SystemExit):
             ask_dossier_mod.handle_dossier_error(
                 _BudgetBreach("limit"), logger=logger, typer_module=typer_mod
@@ -254,8 +256,8 @@ class TestAskDossierCoverage:
         fake_context.ContextLoader = lambda: _Loader()
         fake_context.ContextRequest = lambda **kwargs: kwargs
         fake_root.context = fake_context
-        sys.modules["sdd_runtime"] = fake_root
-        sys.modules["sdd_runtime.context"] = fake_context
+        monkeypatch.setitem(sys.modules, "sdd_runtime", fake_root)
+        monkeypatch.setitem(sys.modules, "sdd_runtime.context", fake_context)
 
         compiled_dir = tmp_path / ".sdd" / "compiled"
         compiled_dir.mkdir(parents=True)
@@ -305,10 +307,13 @@ class TestAskDossierCoverage:
         class _BudgetBreachError(Exception):
             pass
 
+        fake_root = types.ModuleType("sdd_runtime")
         fake_context = types.ModuleType("sdd_runtime.context")
         fake_context.BudgetBreachError = _BudgetBreachError
         fake_context.ContextLoader = lambda: _Loader()
         fake_context.ContextRequest = lambda **kwargs: kwargs
+        fake_root.context = fake_context
+        monkeypatch.setitem(sys.modules, "sdd_runtime", fake_root)
         monkeypatch.setitem(sys.modules, "sdd_runtime.context", fake_context)
 
         logger = _Logger()

@@ -314,9 +314,10 @@ class TestReviewGolden:
 
         fake_ast_mod = types.ModuleType("sdd_compiler.ast")
         fake_ast_mod.GovernanceAST = _AST
-        sys.modules["sdd_compiler.ast"] = fake_ast_mod
-        sys.modules["sdd_compiler"] = types.ModuleType("sdd_compiler")
-        sys.modules["sdd_compiler"].ast = fake_ast_mod
+        compiler_mod = types.ModuleType("sdd_compiler")
+        compiler_mod.ast = fake_ast_mod
+        monkeypatch.setitem(sys.modules, "sdd_compiler.ast", fake_ast_mod)
+        monkeypatch.setitem(sys.modules, "sdd_compiler", compiler_mod)
         monkeypatch.setattr(test_mod, "detect_repo_root", lambda: root)
 
         test_mod._save_golden(golden, _AST())
@@ -383,9 +384,10 @@ class TestReviewGolden:
 
         fake_ast_mod = types.ModuleType("sdd_compiler.ast")
         fake_ast_mod.GovernanceAST = _BrokenCurrentAST
-        sys.modules["sdd_compiler.ast"] = fake_ast_mod
-        sys.modules["sdd_compiler"] = types.ModuleType("sdd_compiler")
-        sys.modules["sdd_compiler"].ast = fake_ast_mod
+        compiler_mod = types.ModuleType("sdd_compiler")
+        compiler_mod.ast = fake_ast_mod
+        monkeypatch.setitem(sys.modules, "sdd_compiler.ast", fake_ast_mod)
+        monkeypatch.setitem(sys.modules, "sdd_compiler", compiler_mod)
         with pytest.raises(typer.Exit):
             test_mod.review_golden(
                 update=False, fail_on_breaking=True, artifact=artifact, golden=golden
@@ -452,8 +454,8 @@ class TestReviewGolden:
         ast_mod.GovernanceAST = _GovernanceAST
         compiler_mod = types.ModuleType("sdd_compiler")
         compiler_mod.ast = ast_mod
-        sys.modules["sdd_compiler"] = compiler_mod
-        sys.modules["sdd_compiler.ast"] = ast_mod
+        monkeypatch.setitem(sys.modules, "sdd_compiler", compiler_mod)
+        monkeypatch.setitem(sys.modules, "sdd_compiler.ast", ast_mod)
         monkeypatch.setattr(test_mod, "detect_repo_root", lambda: root)
         with pytest.raises(typer.Exit):
             test_mod.review_golden(
