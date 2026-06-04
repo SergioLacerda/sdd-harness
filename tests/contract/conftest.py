@@ -19,13 +19,15 @@ from pathlib import Path
 
 import pytest
 
+from sdd_cli.utils.sdd_authority import compiled_active_dir, resolve_workspace_root
+
 
 def _artifacts_valid(repo_root: Path) -> bool:
     """Return True if compiled artifacts exist and contain a viable mandate set."""
     import json as _json
 
-    # Canonical .sdd/compiled/ path (CI bootstrap path via `sdd governance compile`).
-    canonical = repo_root / ".sdd" / "compiled" / "governance-core.json"
+    del repo_root
+    canonical = compiled_active_dir() / "governance-core.json"
     if not canonical.exists():
         return False
     with contextlib.suppress(Exception):
@@ -50,7 +52,8 @@ def fresh_governance_artifact() -> None:
 
     # xdist workers can enter this fixture concurrently and race while
     # writing/reading governance artifacts. Serialize compilation with a lock.
-    lock_file = repo_root / ".sdd" / "runtime" / "contract-compile.lock"
+    workspace_root = resolve_workspace_root()
+    lock_file = workspace_root / ".sdd" / "runtime" / "contract-compile.lock"
     lock_file.parent.mkdir(parents=True, exist_ok=True)
     lock_fd: int | None = None
     deadline = time.time() + 60.0
@@ -72,7 +75,10 @@ def fresh_governance_artifact() -> None:
         # Another worker may have completed while we were waiting to acquire lock.
         if _artifacts_valid(repo_root):
             return
-        result = GovernanceOrchestrator(repo_root=str(repo_root)).run_full_pipeline()
+        result = GovernanceOrchestrator(
+            repo_root=str(repo_root),
+            workspace_root=str(workspace_root),
+        ).run_full_pipeline()
         if not result.get("full_pipeline_success"):
             pytest.fail(
                 f"Governance compilation failed before contract tests: {result}"

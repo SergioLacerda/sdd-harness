@@ -21,13 +21,13 @@ from sdd_cli.utils.sdd_authority import compiled_active_dir
 from tests.helpers.text_io import read_text_utf8
 
 REPO_ROOT = Path(__file__).parent.parent.parent
-_CANONICAL_ARTIFACT = compiled_active_dir(REPO_ROOT) / "governance-core.json"
+_CANONICAL_ARTIFACT = compiled_active_dir() / "governance-core.json"
 _LEGACY_ARTIFACT = (
     REPO_ROOT / "generated" / "master" / "compiled" / "governance-core.json"
 )
 GOLDEN = Path(__file__).parent / "fixtures" / "governance_core.golden.json"
 
-_CLIENT_ARTIFACT = compiled_active_dir(REPO_ROOT) / "governance-client.json"
+_CLIENT_ARTIFACT = compiled_active_dir() / "governance-client.json"
 _CLIENT_GOLDEN = Path(__file__).parent / "fixtures" / "governance_client.golden.json"
 
 _VOLATILE_KEYS = frozenset({"fingerprint", "generated_at"})

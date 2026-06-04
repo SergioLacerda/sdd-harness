@@ -21,7 +21,6 @@ def _ctx_json() -> bool:
 app = typer.Typer(help="Analysis workspace management")
 
 _STATES = ("todo", "pending", "refined", "done")
-_MISSION_ID_RE = re.compile(r"^mission-\d{4}-\d{2}-\d{2}-\d+$")
 _DURATION_RE = re.compile(r"^(\d+)(d|h|m)$")
 
 

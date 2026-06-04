@@ -20,6 +20,9 @@ from tests.helpers.text_io import read_text_utf8, write_text_utf8
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _REPO_SDD_ROOT = (_REPO_ROOT / ".sdd").resolve()
 _SDD_SNAPSHOT_START: dict[str, str] = {}
+_TEST_WORKSPACE_ROOT = (
+    Path(tempfile.gettempdir()) / f"sdd-shadow-workspace-{os.getpid()}"
+).resolve()
 
 tomllib: ModuleType | None
 try:
@@ -109,7 +112,7 @@ def _governance_artifacts_valid(paths: dict[str, Path]) -> bool:
     return False
 
 
-def _canonical_compiled_valid(root: Path) -> bool:
+def _canonical_compiled_valid() -> bool:
     """Return True if .sdd/compiled/governance-core.json is present and valid.
 
     Used to skip the legacy GovernanceOrchestrator rebuild when the CI bootstrap
@@ -119,7 +122,7 @@ def _canonical_compiled_valid(root: Path) -> bool:
 
     from sdd_cli.utils.sdd_authority import compiled_active_dir
 
-    canonical = compiled_active_dir(root) / "governance-core.json"
+    canonical = compiled_active_dir() / "governance-core.json"
     if not canonical.exists():
         return False
     try:
@@ -175,16 +178,34 @@ def _sync_compiled_dirs(master_compiled: Path, client_compiled: Path) -> None:
         )
 
 
-def _bootstrap_governance(root: Path, paths: dict[str, Path]) -> None:
+def _ensure_test_workspace() -> Path:
+    from sdd_core.utils.environment import write_profile
+
+    os.environ["SDD_WORKSPACE_ROOT"] = str(_TEST_WORKSPACE_ROOT)
+    os.environ["SDD_TEST_ISOLATED_WORKSPACE"] = "1"
+    if not (_TEST_WORKSPACE_ROOT / ".sdd" / "profile").exists():
+        write_profile(_TEST_WORKSPACE_ROOT, "client", "test-workspace")
+    return _TEST_WORKSPACE_ROOT
+
+
+def _bootstrap_governance(
+    repo_root: Path, workspace_root: Path, paths: dict[str, Path]
+) -> None:
     from sdd_core.deployment_manager import DeploymentManager
     from sdd_core.governance_orchestrator import GovernanceOrchestrator
 
-    orchestrator = GovernanceOrchestrator(repo_root=str(root))
+    orchestrator = GovernanceOrchestrator(
+        repo_root=str(repo_root),
+        workspace_root=str(workspace_root),
+    )
     result = orchestrator.run_full_pipeline()
     if not result.get("full_pipeline_success"):
         raise RuntimeError(f"governance bootstrap failed: {result}")
 
-    deploy_result = DeploymentManager(repo_root=str(root)).deploy()
+    deploy_result = DeploymentManager(
+        repo_root=str(repo_root),
+        workspace_root=str(workspace_root),
+    ).deploy()
     if not deploy_result.get("success"):
         raise RuntimeError(f"deployment bootstrap failed: {deploy_result}")
 
@@ -212,10 +233,11 @@ def pytest_sessionstart(session: object) -> None:  # noqa: ARG001
             "SDD_COMPLIANCE_EVENTS_PATH",
             str((test_output / "compliance-events.jsonl").resolve()),
         )
+    workspace_root = _ensure_test_workspace()
 
     from sdd_core.utils.environment import get_sdd_paths
 
-    paths = get_sdd_paths()
+    paths = get_sdd_paths(repo_root=root, workspace_root=workspace_root)
     required = [
         paths["master_compiled"] / "governance-core.json",
         paths["master_compiled"] / "governance-core.compiled.msgpack",
@@ -226,14 +248,14 @@ def pytest_sessionstart(session: object) -> None:  # noqa: ARG001
     ]
     global _SDD_SNAPSHOT_START
 
-    if _canonical_compiled_valid(root) or _governance_artifacts_valid(paths):
+    if _canonical_compiled_valid() or _governance_artifacts_valid(paths):
         # .sdd/compiled/ populated by `sdd governance compile` (CI bootstrap path),
         # or legacy generated/ artifacts present — skip rebuild.
         _SDD_SNAPSHOT_START = _snapshot_repo_sdd_tree()
         return
 
     print("\n[conftest] Governance artifacts missing — rebuilding...")
-    _bootstrap_governance(root, paths)
+    _bootstrap_governance(root, workspace_root, paths)
 
     missing_after = [str(p) for p in required if not p.exists()]
     if missing_after:

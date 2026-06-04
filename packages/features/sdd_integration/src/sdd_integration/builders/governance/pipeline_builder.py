@@ -298,6 +298,8 @@ class PipelineBuilder:
 
             # Rationale: full text of Rationale section
             rationale = MarkdownParser.extract_section_text(content, "Rationale")
+            if rationale:
+                rationale = " ".join(rationale.split())
 
             # Implementation pattern: first paragraph of Implementation section
             impl = MarkdownParser.extract_section_text(

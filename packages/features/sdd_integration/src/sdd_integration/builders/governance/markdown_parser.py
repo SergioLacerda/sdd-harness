@@ -9,6 +9,18 @@ class MarkdownParser:
     """Extracts governance item metadata from Markdown content."""
 
     @staticmethod
+    def _strip_trailing_section_separators(text: str) -> str:
+        """Remove trailing horizontal-rule separators from extracted section text."""
+        lines = text.splitlines()
+        while lines and not lines[-1].strip():
+            lines.pop()
+        while lines and lines[-1].strip() == "---":
+            lines.pop()
+            while lines and not lines[-1].strip():
+                lines.pop()
+        return "\n".join(lines).strip()
+
+    @staticmethod
     def extract_summary_minimal(content: str, item_id: str) -> str | None:
         """Extract one-line minimal summary for an item from Markdown.
 
@@ -94,7 +106,8 @@ class MarkdownParser:
         match = re.search(pattern, content, re.MULTILINE | re.DOTALL)
         if not match:
             return None
-        return match.group(1).strip() or None
+        section = MarkdownParser._strip_trailing_section_separators(match.group(1))
+        return section or None
 
     @staticmethod
     def extract_bullet_list(content: str, section_heading: str) -> list[str] | None:
@@ -150,8 +163,16 @@ class MarkdownParser:
         for heading in ("Goal", "Objective"):
             section = MarkdownParser.extract_section_text(content, heading)
             if section:
-                lines = [ln.strip() for ln in section.splitlines() if ln.strip()]
-                if lines:
-                    first = lines[0]
-                    return first[:197] + "..." if len(first) > 200 else first
+                paragraphs = [
+                    part.strip()
+                    for part in re.split(r"\n\s*\n", section)
+                    if part.strip()
+                ]
+                if paragraphs:
+                    first_paragraph = " ".join(paragraphs[0].split())
+                    return (
+                        first_paragraph[:197] + "..."
+                        if len(first_paragraph) > 200
+                        else first_paragraph
+                    )
         return None
