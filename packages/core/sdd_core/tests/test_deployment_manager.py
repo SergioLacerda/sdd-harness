@@ -8,11 +8,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import sdd_core
-import sdd_core.deployment_manager as _dm_module
 from sdd_core.deployment_manager import (
     GOVERNANCE_ARTIFACTS,
     DeploymentManager,
 )
+
+_dm_module = sdd_core.deployment_manager
 
 pytestmark = pytest.mark.unit
 
