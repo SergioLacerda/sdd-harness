@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import typer
 
+from sdd_cli.utils.output import is_json_mode
+
 app = typer.Typer(help="Query SDD governance context (minimal).")
 
 
 @app.callback(invoke_without_command=True)
 def ask(
+    ctx: typer.Context,
     query: str = typer.Argument(
         ..., help="Governance query (text is hashed, never stored)."
     ),
@@ -29,4 +32,10 @@ def ask(
 
     from sdd_cli.commands._ask_backend import ask_cmd
 
-    ask_cmd(query=normalized_query, dossier=dossier, skill=skill, budget=budget)
+    ask_cmd(
+        query=normalized_query,
+        dossier=dossier,
+        skill=skill,
+        budget=budget,
+        output_json=is_json_mode(ctx),
+    )

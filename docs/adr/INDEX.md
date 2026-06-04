@@ -161,7 +161,7 @@ Local ADRs specific to the SDD Harness runtime layer. These are distinct from `d
 **Links:**
 
 - [ADR-009-progressive-enforcement-ladder.md](ADR-009-progressive-enforcement-ladder.md)
-- [ADR-009-threshold-signoff.md](ADR-009-threshold-signoff.md)
+- [threshold-signoff.md](threshold-signoff.md)
 - Related: M010 (Governance Hardening)
 
 ---
@@ -194,6 +194,12 @@ Local ADRs specific to the SDD Harness runtime layer. These are distinct from `d
 **Links:**
 
 - [ADR-011-golden-snapshot-drift-classification.md](ADR-011-golden-snapshot-drift-classification.md)
+
+## 🧾 Operational Appendices
+
+These artifacts support governance operations but are not ADRs:
+
+- [Threshold signoff: progressive-enforcement-ladder](threshold-signoff.md)
 
 ---
 

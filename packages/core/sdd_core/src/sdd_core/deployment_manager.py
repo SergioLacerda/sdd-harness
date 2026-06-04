@@ -214,7 +214,8 @@ class DeploymentManager:
         )
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Run the deployment CLI entrypoint."""
     manager = DeploymentManager()
     result = manager.deploy()
 
@@ -253,3 +254,7 @@ if __name__ == "__main__":
     else:
         print()  # noqa: T201
         print("❌ Deployment failed")  # noqa: T201
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

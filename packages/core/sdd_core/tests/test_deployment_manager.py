@@ -7,6 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import sdd_core
+import sdd_core.deployment_manager as _dm_module
 from sdd_core.deployment_manager import (
     GOVERNANCE_ARTIFACTS,
     DeploymentManager,
@@ -281,3 +283,245 @@ class TestDeploymentManagerEmitMessages:
 
             # Should have called emit at least once
             assert emit_fn.called
+
+
+def _make_manager(tmp_path: Path) -> DeploymentManager:
+    with patch("sdd_core.deployment_manager.get_sdd_paths") as mp:
+        mp.return_value = {
+            "root": tmp_path,
+            "client_compiled": tmp_path / "client",
+            "master_compiled": tmp_path / "master",
+        }
+        return DeploymentManager()
+
+
+class TestPublicApiLazyLoading:
+    """Ensure sdd_core.__getattr__ lazy exports are exercised."""
+
+    def test_deployment_manager_lazy_export(self) -> None:
+        """sdd_core.DeploymentManager resolves to the real class."""
+        assert sdd_core.DeploymentManager is DeploymentManager
+
+    def test_governance_orchestrator_lazy_export(self) -> None:
+        """sdd_core.GovernanceOrchestrator resolves without ImportError."""
+        import importlib
+
+        assert (
+            sdd_core.GovernanceOrchestrator
+            is importlib.import_module(
+                "sdd_core.governance_orchestrator"
+            ).GovernanceOrchestrator
+        )
+
+    def test_missing_attribute_raises(self) -> None:
+        """sdd_core.__getattr__ raises AttributeError for unknown names."""
+        with pytest.raises(AttributeError, match="has no attribute"):
+            sdd_core.__getattr__("_does_not_exist_xyz")
+
+
+class TestMetadataSource:
+    """Tests for _metadata_source path resolution."""
+
+    def test_prefers_audit_subdir_when_file_exists(self, tmp_path: Path) -> None:
+        """Returns audit/filename when the file exists there."""
+        manager = _make_manager(tmp_path)
+        audit_dir = manager.compiled_dir / "audit"
+        audit_dir.mkdir(parents=True, exist_ok=True)
+        preferred = audit_dir / "metadata.json"
+        preferred.write_text("{}", encoding="utf-8")
+
+        result = manager._metadata_source("metadata.json")
+        assert result == preferred
+
+    def test_falls_back_to_compiled_root_when_audit_missing(
+        self, tmp_path: Path
+    ) -> None:
+        """Returns compiled_dir/filename when audit copy is absent."""
+        manager = _make_manager(tmp_path)
+        result = manager._metadata_source("metadata.json")
+        assert result == manager.compiled_dir / "metadata.json"
+
+
+class TestPrivateDelegateMethods:
+    """Exercise each private one-liner delegate to cover their bodies."""
+
+    def test_validate_compiled_files_delegates(self, tmp_path: Path) -> None:
+        manager = _make_manager(tmp_path)
+        with patch(
+            "sdd_core.deployment_manager.DeploymentValidator.validate_compiled_files",
+            return_value=True,
+        ) as mock:
+            result = manager._validate_compiled_files()
+        assert result is True
+        mock.assert_called_once()
+
+    def test_create_runtime_structure_delegates(self, tmp_path: Path) -> None:
+        manager = _make_manager(tmp_path)
+        with patch(
+            "sdd_core.deployment_manager.DeploymentFileSystem.create_runtime_structure"
+        ) as mock:
+            manager._create_runtime_structure()
+        mock.assert_called_once()
+
+    def test_copy_files_transactional_delegates(self, tmp_path: Path) -> None:
+        manager = _make_manager(tmp_path)
+        with patch(
+            "sdd_core.deployment_manager.DeploymentFileSystem.copy_files_transactional",
+            return_value={"f": "/p"},
+        ) as mock:
+            result = manager._copy_files_transactional()
+        assert result == {"f": "/p"}
+        mock.assert_called_once()
+
+    def test_verify_deployment_delegates(self, tmp_path: Path) -> None:
+        manager = _make_manager(tmp_path)
+        with patch(
+            "sdd_core.deployment_manager.DeploymentValidator.verify_deployment",
+            return_value=True,
+        ) as mock:
+            result = manager._verify_deployment()
+        assert result is True
+        mock.assert_called_once()
+
+    def test_generate_checklist_delegates(self, tmp_path: Path) -> None:
+        manager = _make_manager(tmp_path)
+        with patch(
+            "sdd_core.deployment_manager.DeploymentReporter.generate_checklist",
+            return_value={"c": True},
+        ) as mock:
+            result = manager._generate_checklist()
+        assert result == {"c": True}
+        mock.assert_called_once()
+
+    def test_generate_manifest_delegates(self, tmp_path: Path) -> None:
+        manager = _make_manager(tmp_path)
+        with patch(
+            "sdd_core.deployment_manager.DeploymentReporter.generate_manifest",
+            return_value={"artifacts": {}},
+        ) as mock:
+            result = manager._generate_manifest()
+        assert result == {"artifacts": {}}
+        mock.assert_called_once()
+
+    def test_get_next_steps_delegates(self, tmp_path: Path) -> None:
+        manager = _make_manager(tmp_path)
+        with patch(
+            "sdd_core.deployment_manager.DeploymentReporter.get_next_steps",
+            return_value=["step1"],
+        ) as mock:
+            result = manager._get_next_steps()
+        assert result == ["step1"]
+        mock.assert_called_once()
+
+    def test_cleanup_legacy_manifests_delegates(self, tmp_path: Path) -> None:
+        manager = _make_manager(tmp_path)
+        with patch(
+            "sdd_core.deployment_manager.DeploymentReporter.cleanup_legacy_manifests"
+        ) as mock:
+            manager._cleanup_legacy_manifests()
+        mock.assert_called_once()
+
+    def test_get_deployment_status_delegates(self, tmp_path: Path) -> None:
+        manager = _make_manager(tmp_path)
+        with patch(
+            "sdd_core.deployment_manager.DeploymentReporter.get_deployment_status",
+            return_value={"status": "ok"},
+        ) as mock:
+            result = manager.get_deployment_status()
+        assert result == {"status": "ok"}
+        mock.assert_called_once()
+
+
+class TestDeployFailurePaths:
+    """Cover deploy() copy and verification failure branches."""
+
+    def test_copy_empty_result_returns_failed(self, tmp_path: Path) -> None:
+        """Empty copy result (falsy dict) → failed result."""
+        manager = _make_manager(tmp_path)
+        with (
+            patch.object(manager, "_validate_compiled_files", return_value=True),
+            patch.object(manager, "_create_runtime_structure"),
+            patch.object(manager, "_copy_files_transactional", return_value={}),
+        ):
+            result = manager.deploy()
+        assert result["success"] is False
+
+    def test_verify_failure_returns_failed(self, tmp_path: Path) -> None:
+        """Verification failure after successful copy → failed result."""
+        manager = _make_manager(tmp_path)
+        with (
+            patch.object(manager, "_validate_compiled_files", return_value=True),
+            patch.object(manager, "_create_runtime_structure"),
+            patch.object(manager, "_copy_files_transactional", return_value={"f": "p"}),
+            patch.object(manager, "_verify_deployment", return_value=False),
+        ):
+            result = manager.deploy()
+        assert result["success"] is False
+
+
+class TestMainFunction:
+    """Cover the module-level main() function."""
+
+    def test_main_success_path(self, tmp_path: Path, capsys) -> None:
+        """main() prints deployment complete on success."""
+
+        class _FakeManager:
+            def __init__(self, *a, **kw):
+                pass
+
+            def deploy(self):
+                return {
+                    "success": True,
+                    "checklist": {"validated": True, "copied": False},
+                    "deployment_location": "/tmp/loc",
+                    "manifest": {
+                        "artifacts": {"core": "/tmp/core.msgpack"},
+                        "status": "deployed",
+                    },
+                    "next_steps": ["git commit", "git tag"],
+                }
+
+        with patch.object(_dm_module, "DeploymentManager", _FakeManager):
+            _dm_module.main()
+
+        out = capsys.readouterr().out
+        assert "DEPLOYMENT COMPLETE" in out
+        assert "Status: DEPLOYED" in out
+
+    def test_main_failure_path(self, tmp_path: Path, capsys) -> None:
+        """main() prints failure message when deploy returns success=False."""
+
+        class _FakeManager:
+            def __init__(self, *a, **kw):
+                pass
+
+            def deploy(self):
+                return {"success": False}
+
+        with patch.object(_dm_module, "DeploymentManager", _FakeManager):
+            _dm_module.main()
+
+        out = capsys.readouterr().out
+        assert "failed" in out.lower()
+
+    def test_main_unknown_status(self, capsys) -> None:
+        """main() prints 'UNKNOWN' when manifest status is not a string."""
+
+        class _FakeManager:
+            def __init__(self, *a, **kw):
+                pass
+
+            def deploy(self):
+                return {
+                    "success": True,
+                    "checklist": {},
+                    "deployment_location": "/tmp/loc",
+                    "manifest": {"artifacts": {}, "status": None},
+                    "next_steps": [],
+                }
+
+        with patch.object(_dm_module, "DeploymentManager", _FakeManager):
+            _dm_module.main()
+
+        out = capsys.readouterr().out
+        assert "UNKNOWN" in out

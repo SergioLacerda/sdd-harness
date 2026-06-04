@@ -32,17 +32,20 @@ def test_ask_top_level_invocation_without_duplication(monkeypatch) -> None:
         dossier: bool = False,
         skill: str | None = None,
         budget: int | None = None,
+        output_json: bool | None = None,
     ) -> None:
         called["query"] = query
         called["dossier"] = dossier
         called["skill"] = skill
         called["budget"] = budget
+        called["output_json"] = output_json
 
     monkeypatch.setattr("sdd_cli.commands._ask_backend.ask_cmd", _fake_ask_cmd)
 
     result = CliRunner().invoke(app, ["ask", "prompt"])
     assert result.exit_code == 0, result.output
     assert called["query"] == "prompt"
+    assert called["output_json"] is False
 
 
 def test_ask_top_level_noop_when_query_is_empty_or_null(monkeypatch) -> None:

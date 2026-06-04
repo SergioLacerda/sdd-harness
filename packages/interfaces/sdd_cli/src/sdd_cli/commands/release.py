@@ -42,10 +42,10 @@ def build() -> None:
         raise typer.Exit(1) from None
     except ProcessAuthorizationError as err:
         typer.echo(f"ERROR: execution blocked by policy: {err}", err=True)
-        raise typer.Exit(2) from None
+        raise click.exceptions.Exit(2) from None
     except ProcessTimeoutError:
         typer.echo("ERROR: build timed out", err=True)
-        raise typer.Exit(124) from None
+        raise click.exceptions.Exit(124) from None
     except ProcessSpawnError as err:
         typer.echo(f"ERROR: could not start build: {err}", err=True)
-        raise typer.Exit(127) from None
+        raise click.exceptions.Exit(127) from None

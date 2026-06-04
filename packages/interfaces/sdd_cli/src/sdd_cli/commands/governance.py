@@ -4,7 +4,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import click
 import typer
@@ -69,6 +69,7 @@ __all__ = ["render_governance_compile_table", "Table"]
 
 app = typer.Typer(help="Governance management commands")
 console = Console()
+SignatureMode = Literal["off", "warn", "strict"]
 logger = logging.getLogger(__name__)
 
 
@@ -385,10 +386,10 @@ def validate(  # noqa: C901
         ".sdd/compiled",
         help="Path to governance configuration (default: .sdd/compiled)",
     ),
-    signature_mode: str = typer.Option(
+    signature_mode: SignatureMode = typer.Option(
         "warn",
         help="Signature enforcement mode: off|warn|strict",
-        click_type=click.Choice(["off", "warn", "strict"], case_sensitive=False),
+        case_sensitive=False,
     ),
     skip_handshake: bool = typer.Option(
         False,

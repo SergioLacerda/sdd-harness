@@ -19,9 +19,8 @@ Usage:
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
-import click
 import typer
 
 # Add parent directory to path for imports
@@ -307,12 +306,12 @@ app = typer.Typer(
     help="SDD v3.0 Wizard - Generate project from compiled specifications"
 )
 
-_LANGUAGE_CHOICES = ["java", "python", "js"]
+LanguageChoice = Literal["java", "python", "js"]
 
 _LANGUAGE_OPTION = typer.Option(
     None,
     help="Target programming language (interactive if not specified)",
-    click_type=click.Choice(_LANGUAGE_CHOICES),
+    case_sensitive=False,
 )
 _MANDATES_OPTION = typer.Option(
     None,
@@ -331,7 +330,7 @@ _INTERACTIVE_OPTION = typer.Option(False, help="Run in interactive guided mode")
 
 @app.command()
 def main(
-    language: str | None = _LANGUAGE_OPTION,
+    language: LanguageChoice | None = _LANGUAGE_OPTION,
     mandates: str | None = _MANDATES_OPTION,
     output: Path | None = _OUTPUT_OPTION,
     dry_run: bool = _DRY_RUN_OPTION,

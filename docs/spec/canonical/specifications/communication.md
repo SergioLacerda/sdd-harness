@@ -47,7 +47,7 @@ File: `.sdd/source/execution-state/_current.md`
 
 **QUESTIONS OPEN:**
 - Q1: [What needs discussion]? (Owner: whoever)
-- Q2: [What's TBD]? (Decision: in code review)
+- Q2: [What remains unresolved after code review]? (Owner: reviewer)
 
 **RISKS:**
 - R1: [Potential issue] - Mitigation: [how to prevent]

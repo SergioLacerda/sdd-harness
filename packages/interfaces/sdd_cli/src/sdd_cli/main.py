@@ -11,10 +11,12 @@ import logging
 import sys
 import warnings
 from dataclasses import dataclass
+from typing import cast
 
 import click
 import typer
 from dotenv import load_dotenv
+from typer._click.exceptions import Exit as TyperClickExit
 from typer.main import get_command as typer_get_command
 
 if sys.platform == "win32":
@@ -154,7 +156,7 @@ class LazyCommandGroup(click.Group):
             module_app = module.app
             if not isinstance(module_app, typer.Typer):
                 raise TypeError(f"{spec.module_path}.app is not a typer.Typer instance")
-            return typer_get_command(module_app)
+            return cast(click.Command, typer_get_command(module_app))
         except (
             Exception
         ) as exc:  # pragma: no cover - exercised via CLI integration tests.
@@ -184,7 +186,10 @@ class LazyCommandGroup(click.Group):
         from sdd_cli.utils.profile import governance_gate
 
         governance_gate(ctx)
-        return super().invoke(ctx)
+        try:
+            return super().invoke(ctx)
+        except TyperClickExit as exc:
+            raise click.exceptions.Exit(int(exc.exit_code)) from None
 
 
 def _profile_option_callback(
@@ -272,7 +277,7 @@ def main() -> int:
         )
     try:
         app(standalone_mode=False)
-    except (click.exceptions.Exit, typer.Exit) as exc:
+    except (click.exceptions.Exit, typer.Exit, TyperClickExit) as exc:
         return int(exc.exit_code)
     return 0
 

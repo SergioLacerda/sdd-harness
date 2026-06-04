@@ -274,5 +274,5 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 
 ---
 
-**Version:** 0.1 (WIP)
+**Version:** 1.0
 **Updated:** 2026-04-19

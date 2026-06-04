@@ -15,7 +15,7 @@ else
   PYTHON := $(VENV_PYTHON)
 endif
 
-.PHONY: check test lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check
+.PHONY: check ci-pr ci-pr-full test lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check
 
 help:
 	@echo "SDD Architecture Development"
@@ -23,6 +23,8 @@ help:
 	@echo "install         - Install all workspace dependencies (dev)"
 	@echo "install-docs    - Install documentation dependencies (mkdocs)"
 	@echo "check           - Run all tests (unit + integration + contract)"
+	@echo "ci-pr           - Run fast artifact/golden CI parity gates before promotion/push"
+	@echo "ci-pr-full      - Run ci-pr plus strict coverage gates"
 	@echo "test            - Run full multi-layer test pipeline with unified coverage gate"
 	@echo "coverage        - Run tests with HTML coverage report"
 	@echo "coverage-strict - Per-layer coverage gates (core 90%, features 70%, interfaces 70%)"
@@ -53,6 +55,15 @@ check: golden-status
 	$(PYTHON) -m pytest tests packages \
 		--cov=packages \
 		--cov-report=term-missing:skip-covered
+
+ci-pr:
+	$(PYTHON) -m pytest -q \
+		tests/contract/test_governance_schema.py::TestGovernanceCoreGoldenFile::test_structure_matches_golden
+	$(PYTHON) tools/ci/check_golden_policy.py --mode block
+	$(PYTHON) tools/ci/check_core_compiler_runtime_contract.py --mode enforce
+
+ci-pr-full: ci-pr
+	$(MAKE) coverage-strict
 
 golden-policy-check:
 	$(PYTHON) tools/ci/check_golden_policy.py --mode block
