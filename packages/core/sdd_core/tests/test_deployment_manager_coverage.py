@@ -10,19 +10,18 @@ from unittest.mock import patch
 import pytest
 
 import sdd_core.deployment_manager as deployment_manager
-from sdd_core.deployment_manager import DeploymentManager
 
 pytestmark = pytest.mark.unit
 
 
-def _make_manager(tmp_path: Path) -> DeploymentManager:
+def _make_manager(tmp_path: Path) -> deployment_manager.DeploymentManager:
     with patch("sdd_core.deployment_manager.get_sdd_paths") as mp:
         mp.return_value = {
             "root": tmp_path,
             "client_compiled": tmp_path / "client",
             "master_compiled": tmp_path / "master",
         }
-        return DeploymentManager()
+        return deployment_manager.DeploymentManager()
 
 
 def _run_main_block(
@@ -41,16 +40,15 @@ def _run_main_block(
     exec(compile(prefix, str(source_path), "exec"), namespace)
 
     class _FakeDeploymentManager:
-        def __init__(self, *args: object, **kwargs: object) -> None:
-            del args, kwargs
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            pass
 
         def deploy(self) -> dict[str, object]:
             return deploy_result
 
     captured: list[str] = []
 
-    def _capture_print(*args: object, **kwargs: object) -> None:
-        del kwargs
+    def _capture_print(*args: object, **_kwargs: object) -> None:
         captured.append(" ".join(str(arg) for arg in args))
 
     monkeypatch.setitem(namespace, "DeploymentManager", _FakeDeploymentManager)
@@ -249,8 +247,8 @@ class TestDeployFailurePaths:
         original_print = builtins.print
 
         class _FakeDeploymentManager:
-            def __init__(self, *args: object, **kwargs: object) -> None:
-                del args, kwargs
+            def __init__(self, *_args: object, **_kwargs: object) -> None:
+                pass
 
             def deploy(self) -> dict[str, object]:
                 return {
@@ -281,8 +279,8 @@ class TestDeployFailurePaths:
         original_print = builtins.print
 
         class _FakeDeploymentManager:
-            def __init__(self, *args: object, **kwargs: object) -> None:
-                del args, kwargs
+            def __init__(self, *_args: object, **_kwargs: object) -> None:
+                pass
 
             def deploy(self) -> dict[str, object]:
                 return {
@@ -312,8 +310,8 @@ class TestDeployFailurePaths:
         original_print = builtins.print
 
         class _FakeDeploymentManager:
-            def __init__(self, *args: object, **kwargs: object) -> None:
-                del args, kwargs
+            def __init__(self, *_args: object, **_kwargs: object) -> None:
+                pass
 
             def deploy(self) -> dict[str, object]:
                 return {
@@ -350,11 +348,10 @@ class TestDeployFailurePaths:
             if name != "DeploymentManager":
                 return built_class
 
-            def _fake_init(self, *init_args: object, **init_kwargs: object) -> None:
-                del self, init_args, init_kwargs
+            def _fake_init(self, *_init_args: object, **_init_kwargs: object) -> None:
+                pass
 
             def _fake_deploy(self) -> dict[str, object]:
-                del self
                 return {
                     "success": False,
                     "checklist": {},

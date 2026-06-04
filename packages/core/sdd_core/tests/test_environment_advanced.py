@@ -86,6 +86,9 @@ class TestGetSddPathsVariations:
         with (
             patch("sdd_core.utils.environment.detect_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.environment.find_workspace_root", return_value=None),
+            patch(
+                "sdd_core.utils.environment._workspace_root_from_env", return_value=None
+            ),
         ):
             paths = get_sdd_paths()
 
