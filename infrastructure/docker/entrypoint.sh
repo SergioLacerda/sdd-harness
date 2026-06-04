@@ -56,6 +56,13 @@ if [ "${1:-}" = "make" ] && [ "${2:-}" = "check" ]; then
     # Copy full repo tree (including tests and Makefile) to isolated location.
     cp -a /app/. "$SHADOW_ROOT/"
 
+    # Replace the copied .venv with a symlink to the canonical /app/.venv.
+    # The copied venv's pyvenv.cfg and Python wrapper may not activate correctly
+    # from a different directory depth, causing editable-install .pth files to
+    # be skipped and workspace packages to resolve as empty namespace packages.
+    rm -rf "$SHADOW_ROOT/.venv"
+    ln -s /app/.venv "$SHADOW_ROOT/.venv"
+
     # Ensure telemetry tests use their own tmp_path/workspace resolution.
     unset SDD_TELEMETRY_PATH || true
     unset SDD_COMPLIANCE_EVENTS_PATH || true

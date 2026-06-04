@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import click
-import typer
+from typer._click.exceptions import Exit as TyperClickExit
 
 
 @dataclass(frozen=True)
@@ -113,7 +113,7 @@ def enforce_profile_policy(command_name: str, ctx: click.Context | None = None) 
             err=True,
         )
         click.echo(f"  → {msg}", err=True)
-        raise typer.Exit(1)
+        raise click.exceptions.Exit(1)
 
     if command_name in adapter.warned_commands:
         msg = adapter.warned_commands[command_name]
@@ -315,11 +315,11 @@ def governance_gate(ctx: click.Context) -> None:
             )
             sink.flush()
             if is_hard:
-                raise typer.Exit(1)
+                raise click.exceptions.Exit(1)
 
         sink.flush()
         # HEALTHY / NOT_CONNECTED with no profile directive → silent
-    except typer.Exit:
+    except (click.exceptions.Exit, TyperClickExit):
         raise
     except Exception:  # nosec B110
         # Gate must never block legitimate commands due to import errors.

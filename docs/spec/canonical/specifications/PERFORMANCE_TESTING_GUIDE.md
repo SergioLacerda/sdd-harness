@@ -391,7 +391,7 @@ LAYER_BUDGETS = {
 
 - [Performance Specification](../specifications/performance.md)
 - [Architecture (with layer budgets)](../specifications/architecture.md)
-- [Monitoring Guide](../specifications/observability.md) (WIP)
+- [Monitoring Guide](../specifications/observability.md)
 - [Test Strategy](../specifications/testing.md)
 
 ---

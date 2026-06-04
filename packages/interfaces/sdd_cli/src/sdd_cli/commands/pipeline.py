@@ -73,14 +73,14 @@ def pipeline_run_cmd(
         )
     except PermissionError as exc:
         typer.echo(f"BLOCK [pipeline]: {exc}", err=True)
-        raise typer.Exit(3) from None
+        raise click.exceptions.Exit(3) from None
     workspace_root = ask_snapshot["workspace_root"]
     learning_recommendation = ask_snapshot["learning_recommendation"]
     learning_context = ask_snapshot["learning_context"]
     if budget is not None:
         if budget <= 0:
             typer.echo("ERROR [pipeline]: --budget must be > 0", err=True)
-            raise typer.Exit(2)
+            raise click.exceptions.Exit(2)
         learning_context["budget_hint"] = budget
     ask_decision_envelope = ask_snapshot["ask_decision_envelope"]
     task_id = str(ask_decision_envelope.get("task_id", ""))
@@ -203,7 +203,7 @@ def pipeline_run_cmd(
     else:
         typer.echo(json.dumps(payload, indent=2, ensure_ascii=False))
     if data["exit_code"] != 0:
-        raise typer.Exit(data["exit_code"])
+        raise click.exceptions.Exit(data["exit_code"])
 
 
 @app.callback(invoke_without_command=True)

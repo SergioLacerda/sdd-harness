@@ -18,6 +18,7 @@ import os
 import re
 import time
 import uuid
+from contextvars import ContextVar
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -132,6 +133,9 @@ _ASK_MIN_DIAGNOSIS_CONFIDENCE = 0.80
 _ASK_ENVELOPE_TTL_MINUTES = 30
 _ASK_SCOPE_MODE_DEFAULT = "inferred"
 _TRUE_VALUES = {"1", "true", "yes", "on"}
+_JSON_MODE_OVERRIDE: ContextVar[bool | None] = ContextVar(
+    "ask_json_mode_override", default=None
+)
 
 
 # ---------------------------------------------------------------------------
@@ -348,7 +352,15 @@ def _governance_footer_for_state(
 
 
 def _json_mode() -> bool:
-    return is_json_mode(click.get_current_context(silent=True))
+    override = _JSON_MODE_OVERRIDE.get()
+    if override is not None:
+        return override
+    ctx = click.get_current_context(silent=True)
+    while ctx is not None:
+        if is_json_mode(ctx):
+            return True
+        ctx = ctx.parent
+    return False
 
 
 def _safe_parse_iso(value: str) -> datetime | None:
@@ -532,11 +544,12 @@ def _guard_handshake(workspace_root: Path) -> None:
                 )
                 raise typer.Exit(3)
             else:
-                typer.echo(
-                    "SOFT [ask]: No active handshake. "
-                    "Run 'sdd governance handshake --init' to formalize your session.",
-                    err=True,
-                )
+                if not _json_mode():
+                    typer.echo(
+                        "SOFT [ask]: No active handshake. "
+                        "Run 'sdd governance handshake --init' to formalize your session.",
+                        err=True,
+                    )
     except Exception as exc:
         logger.debug("Handshake guard skipped: %s", exc)
 
@@ -730,6 +743,8 @@ def _run_organize_intake(
 
 
 def _emit_state_warnings(state: str) -> None:
+    if _json_mode():
+        return
     if state in ("NOT_INITIALIZED", "MISCONFIGURED"):
         typer.echo(
             f"SOFT [ask]: workspace {state}. Run 'sdd governance compile' before using ask.",
@@ -899,7 +914,8 @@ def build_governed_ask_snapshot(
 
 
 @app.command("ask")
-def ask_cmd(
+def _ask_cli_cmd(
+    ctx: typer.Context,
     query: str = typer.Argument(
         ..., help="Governance query (text is hashed, never stored)."
     ),
@@ -914,6 +930,37 @@ def ask_cmd(
     ),
 ) -> None:
     """Query SDD governance context — minimal governed output."""
+    token = _JSON_MODE_OVERRIDE.set(is_json_mode(ctx))
+    try:
+        ask_cmd(query=query, dossier=dossier, skill=skill, budget=budget)
+    finally:
+        _JSON_MODE_OVERRIDE.reset(token)
+
+
+def ask_cmd(
+    query: str,
+    dossier: bool = False,
+    skill: str | None = None,
+    budget: int | None = None,
+    *,
+    output_json: bool | None = None,
+) -> None:
+    """Query SDD governance context — minimal governed output."""
+    token = _JSON_MODE_OVERRIDE.set(output_json) if output_json is not None else None
+    try:
+        _ask_cmd_impl(query=query, dossier=dossier, skill=skill, budget=budget)
+    finally:
+        if token is not None:
+            _JSON_MODE_OVERRIDE.reset(token)
+
+
+def _ask_cmd_impl(
+    *,
+    query: str,
+    dossier: bool,
+    skill: str | None,
+    budget: int | None,
+) -> None:
     dossier = bool(_normalize_typer_value(dossier, False))
     skill = _normalize_typer_value(skill, None)
     if not isinstance(skill, str):

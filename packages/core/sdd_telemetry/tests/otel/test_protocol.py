@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from sdd_telemetry.otel.protocol import OtelExporter
 
 
@@ -39,3 +41,19 @@ def test_protocol_is_runtime_checkable() -> None:
     exporter = _MinimalExporter()
     result = isinstance(exporter, OtelExporter)
     assert result is True
+
+
+class _InheritedImpl(OtelExporter):
+    """Subclass that inherits Protocol default implementations (the pass bodies)."""
+
+
+def test_inherited_export_event_default_returns_none() -> None:
+    impl = _InheritedImpl()
+    result = impl.export_event({"key": "val"}, trace_id="t1", span_id="s1")
+    assert result is None
+
+
+def test_inherited_shutdown_default_returns_none() -> None:
+    impl = _InheritedImpl()
+    result = impl.shutdown()
+    assert result is None

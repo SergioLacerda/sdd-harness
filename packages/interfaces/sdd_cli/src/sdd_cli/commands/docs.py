@@ -2,6 +2,7 @@
 
 import shutil
 
+import click
 import typer
 
 app = typer.Typer(help="Documentation commands")
@@ -26,7 +27,7 @@ def deploy(force: bool = typer.Option(True, help="Force deploy to gh-pages")) ->
         typer.echo(
             "ERROR: mkdocs command not found. Install with: pip install mkdocs mkdocs-material"
         )
-        raise typer.Exit(1)
+        raise click.exceptions.Exit(1)
 
     from sdd_core.utils.process import (
         AUTHORIZED_BINARIES,
@@ -46,13 +47,13 @@ def deploy(force: bool = typer.Option(True, help="Force deploy to gh-pages")) ->
         runner.run(cmd, check=True, capture_output=False)
     except ProcessNonZeroExitError as err:
         typer.echo(f"ERROR: docs deploy failed: {err}", err=True)
-        raise typer.Exit(1) from None
+        raise click.exceptions.Exit(1) from None
     except ProcessAuthorizationError as err:
         typer.echo(f"ERROR: execution blocked by policy: {err}", err=True)
-        raise typer.Exit(2) from None
+        raise click.exceptions.Exit(2) from None
     except ProcessTimeoutError:
         typer.echo("ERROR: docs deploy timed out", err=True)
-        raise typer.Exit(124) from None
+        raise click.exceptions.Exit(124) from None
     except ProcessSpawnError as err:
         typer.echo(f"ERROR: could not start docs deploy: {err}", err=True)
-        raise typer.Exit(127) from None
+        raise click.exceptions.Exit(127) from None

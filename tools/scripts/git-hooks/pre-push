@@ -96,8 +96,26 @@ if ! "$PYTHON_BIN" "$PROJECT_ROOT/tools/architecture/validate_class_size.py" --s
     echo -e "${YELLOW}WARNING ARCH:${NC} class size guardrail violations detected (CI is blocking)."
 fi
 
-# ── Summary ──────────────────────────────────────────────────────────────────
+# ── CI parity gate for promotion branches ────────────────────────────────────
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+CI_PARITY_STATUS="skipped"
+case "$BRANCH" in
+    dev|develop|main|release/*|hotfix/*)
+        echo -e "${YELLOW}→ Running CI parity gate (make ci-pr)...${NC}"
+        if ! make ci-pr; then
+            echo -e "${RED}CI PARITY GATE FAILED:${NC} fix local failures before pushing $BRANCH."
+            exit 1
+        fi
+        CI_PARITY_STATUS="passed"
+        echo -e "${GREEN}✓ CI parity gate passed${NC}"
+        ;;
+    *)
+        echo -e "${YELLOW}→ Skipping CI parity gate on non-promotion branch: $BRANCH${NC}"
+        echo "Run 'make ci-pr' before opening or updating a promotion PR."
+        ;;
+esac
+
+# ── Summary ──────────────────────────────────────────────────────────────────
 if git rev-parse --abbrev-ref @{u} >/dev/null 2>&1; then
     COMMIT_COUNT="$(git rev-list --count @{u}..HEAD)"
 else
@@ -109,5 +127,10 @@ echo -e "  Branch: $BRANCH"
 echo -e "  Commits: $COMMIT_COUNT"
 echo -e "  Health:     ${GREEN}✓${NC}"
 echo -e "  Governance: ${GREEN}✓${NC}"
+if [ "$CI_PARITY_STATUS" = "passed" ]; then
+    echo -e "  CI parity:  ${GREEN}✓${NC}"
+else
+    echo -e "  CI parity:  ${YELLOW}skipped${NC}"
+fi
 echo -e "${GREEN}[PRE-PUSH] All checks passed. Push allowed.${NC}"
 exit 0

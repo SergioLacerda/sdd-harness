@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import click
 import typer
 
 app = typer.Typer()
@@ -21,7 +22,7 @@ def list_tools() -> None:
 
     if not tools_dir.is_dir():
         typer.echo(f"Error: tools directory not found at {tools_dir}", err=True)
-        raise typer.Exit(1)
+        raise click.exceptions.Exit(1)
 
     typer.echo("Available tools in tools/:")
     for script in sorted(tools_dir.rglob("*.py")):
@@ -57,7 +58,7 @@ def run(
 
     if not script_path.exists():
         typer.echo(f"Error: tool '{name}' not found at {script_path}", err=True)
-        raise typer.Exit(1)
+        raise click.exceptions.Exit(1)
 
     cmd = ["uv", "run", str(script_path)]
     if args:
@@ -67,13 +68,13 @@ def run(
     try:
         # Stream tool output directly to the terminal/CI logs for debuggability.
         result = SafeProcessRunner().run(cmd, check=False, capture_output=False)
-        raise typer.Exit(result.returncode)
+        raise click.exceptions.Exit(result.returncode)
     except ProcessAuthorizationError as exc:
         typer.echo(f"Error: execution blocked by policy: {exc}", err=True)
-        raise typer.Exit(2) from None
+        raise click.exceptions.Exit(2) from None
     except ProcessSpawnError:
         typer.echo(
             "Error: 'uv' not found in path. Please install uv (https://github.com/astral-sh/uv).",
             err=True,
         )
-        raise typer.Exit(127) from None
+        raise click.exceptions.Exit(127) from None

@@ -2,11 +2,14 @@
 
 import typer
 
+from sdd_cli.utils.output import is_json_mode
+
 app = typer.Typer(help="Query SDD governance context with full telemetry.")
 
 
 @app.callback(invoke_without_command=True)
 def ask_full(
+    ctx: typer.Context,
     query: str = typer.Argument(
         ..., help="Governance query (text is hashed, never stored)."
     ),
@@ -41,5 +44,5 @@ def ask_full(
         log_format=log_format,
         tokens_input=tokens_input,
         tokens_output=tokens_output,
-        json_output=json_output,
+        json_output=json_output or is_json_mode(ctx),
     )

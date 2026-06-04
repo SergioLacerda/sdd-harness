@@ -258,3 +258,352 @@ class TestSDDIntegratorValidatePaths:
             integrator = SDDIntegrator()
             result = integrator.validate_paths()
             assert result is True
+
+
+# ---------------------------------------------------------------------------
+# Self-sufficiency: all coverage needed when this file runs in isolation
+# ---------------------------------------------------------------------------
+
+
+def _make_int(tmp_path: Path) -> SDDIntegrator:
+    messages: list[str] = []
+    with patch("sdd_compiler.integrate.get_sdd_paths") as mp:
+        mp.return_value = {
+            "root": tmp_path,
+            "source_spec": tmp_path / "docs" / "spec",
+            "packages": tmp_path / "packages",
+            "master_compiled": tmp_path / ".sdd" / "compiled",
+            "master_build": tmp_path / ".sdd" / "build",
+            "client_compiled": tmp_path / ".sdd" / "client",
+            "client_build": tmp_path / ".sdd" / "client_build",
+        }
+        return SDDIntegrator(repo_root=tmp_path, emitter=messages.append)
+
+
+def _write_sources(tmp_path: Path) -> tuple[Path, Path]:
+    source_core = tmp_path / "docs" / "spec"
+    source_core.mkdir(parents=True)
+    mandate = source_core / "mandate.spec"
+    guidelines = source_core / "guidelines.dsl"
+    mandate.write_text("- [M001] **T** desc\n", encoding="utf-8")
+    guidelines.write_text(
+        "guideline G01 {\n  type: SOFT\n  title: x\n}\n", encoding="utf-8"
+    )
+    return mandate, guidelines
+
+
+def _mock_runner_success(output_file: Path) -> MagicMock:
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_bytes(b"\x53\x44\x44\x03" + b"\x00" * 20)
+    result = MagicMock()
+    result.success = True
+    result.stdout = ""
+    result.stderr = ""
+    runner = MagicMock()
+    runner.run.return_value = result
+    return runner
+
+
+def _mock_runner_failure() -> MagicMock:
+    result = MagicMock()
+    result.success = False
+    result.stdout = ""
+    result.stderr = "compilation error"
+    runner = MagicMock()
+    runner.run.return_value = result
+    return runner
+
+
+class TestValidatePathsMissingRequired:
+    def test_missing_dsl_compiler_returns_false(self, tmp_path: Path) -> None:
+        """validate_paths returns False when sources exist but dsl_compiler.py is absent."""
+        integrator = _make_int(tmp_path)
+        source_core = tmp_path / "docs" / "spec"
+        source_core.mkdir(parents=True)
+        (source_core / "mandate.spec").write_text("x", encoding="utf-8")
+        (source_core / "guidelines.dsl").write_text("x", encoding="utf-8")
+        # compiled dir exists but dsl_compiler.py does NOT → missing list populated
+        (tmp_path / ".sdd" / "compiled").mkdir(parents=True)
+        result = integrator.validate_paths()
+        assert result is False
+
+
+class TestCheckIncrementalCompilation:
+    def test_exception_returns_both_true(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        result = integrator.check_incremental_compilation()
+        assert result == {"mandate": True, "guidelines": True}
+
+    def test_returns_needs_recompilation_when_artifacts_missing(
+        self, tmp_path: Path
+    ) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        result = integrator.check_incremental_compilation()
+        assert result["mandate"] is True
+        assert result["guidelines"] is True
+
+
+class TestAnalyzeSources:
+    def test_exception_returns_false(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        result = integrator.analyze_sources()
+        assert result is False
+
+    def test_success_returns_true(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        result = integrator.analyze_sources()
+        assert result is True
+
+
+class TestCompileMandate:
+    def test_success_returns_true(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        output_file = (
+            tmp_path / ".sdd" / "compiled" / "governance-core.compiled.msgpack"
+        )
+        with patch(
+            "sdd_core.utils.process.SafeProcessRunner",
+            return_value=_mock_runner_success(output_file),
+        ):
+            result = integrator.compile_mandate(force=True)
+        assert result is True
+
+    def test_failure_runner_returns_false(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        with patch(
+            "sdd_core.utils.process.SafeProcessRunner",
+            return_value=_mock_runner_failure(),
+        ):
+            result = integrator.compile_mandate(force=True)
+        assert result is False
+
+    def test_output_not_created_returns_false(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        result_mock = MagicMock()
+        result_mock.success = True
+        result_mock.stderr = ""
+        runner = MagicMock()
+        runner.run.return_value = result_mock
+        with patch("sdd_core.utils.process.SafeProcessRunner", return_value=runner):
+            result = integrator.compile_mandate(force=True)
+        assert result is False
+
+    def test_exception_returns_false(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        with patch(
+            "sdd_core.utils.process.SafeProcessRunner", side_effect=RuntimeError("boom")
+        ):
+            result = integrator.compile_mandate(force=True)
+        assert result is False
+
+    def test_cache_hit_returns_true(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        with patch.object(
+            integrator,
+            "check_incremental_compilation",
+            return_value={"mandate": False, "guidelines": False},
+        ):
+            result = integrator.compile_mandate(force=False)
+        assert result is True
+
+
+class TestCompileGuidelines:
+    def test_success_returns_true(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        output_file = (
+            tmp_path
+            / ".sdd"
+            / "compiled"
+            / "governance-client-template.compiled.msgpack"
+        )
+        with patch(
+            "sdd_core.utils.process.SafeProcessRunner",
+            return_value=_mock_runner_success(output_file),
+        ):
+            result = integrator.compile_guidelines(force=True)
+        assert result is True
+
+    def test_failure_runner_returns_false(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        with patch(
+            "sdd_core.utils.process.SafeProcessRunner",
+            return_value=_mock_runner_failure(),
+        ):
+            result = integrator.compile_guidelines(force=True)
+        assert result is False
+
+    def test_output_not_created_returns_false(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        result_mock = MagicMock()
+        result_mock.success = True
+        result_mock.stderr = ""
+        runner = MagicMock()
+        runner.run.return_value = result_mock
+        with patch("sdd_core.utils.process.SafeProcessRunner", return_value=runner):
+            result = integrator.compile_guidelines(force=True)
+        assert result is False
+
+    def test_exception_returns_false(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        with patch(
+            "sdd_core.utils.process.SafeProcessRunner", side_effect=RuntimeError("err")
+        ):
+            result = integrator.compile_guidelines(force=True)
+        assert result is False
+
+    def test_cache_hit_returns_true(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        with patch.object(
+            integrator,
+            "check_incremental_compilation",
+            return_value={"mandate": False, "guidelines": False},
+        ):
+            result = integrator.compile_guidelines(force=False)
+        assert result is True
+
+
+class TestGenerateMetadata:
+    def test_success_creates_metadata_files(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        _write_sources(tmp_path)
+        (tmp_path / ".sdd" / "compiled").mkdir(parents=True)
+        result = integrator.generate_metadata()
+        assert result is True
+        assert (
+            tmp_path / ".sdd" / "compiled" / "audit" / "metadata-core.json"
+        ).exists()
+
+    def test_exception_returns_false(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        result = integrator.generate_metadata()
+        assert result is False
+
+
+class TestVerifyDeployment:
+    def test_all_present_false_when_files_missing(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        result = integrator.verify_deployment()
+        assert result["all_present"] is False
+
+    def test_all_present_true_when_files_exist(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        compiled = tmp_path / ".sdd" / "compiled"
+        compiled.mkdir(parents=True)
+        (compiled / "governance-core.compiled.msgpack").write_bytes(b"x")
+        (compiled / "governance-client-template.compiled.msgpack").write_bytes(b"x")
+        result = integrator.verify_deployment()
+        assert result["all_present"] is True
+        assert result["critical_count"] == 2
+
+
+class TestRunDetailed:
+    def test_run_detailed_fails_on_validate_paths(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        with patch.object(integrator, "validate_paths", return_value=False):
+            result = integrator.run_detailed()
+        assert result["ok"] is False
+        assert result["phase"] == "validate_paths"
+
+    def test_run_detailed_fails_on_analyze_sources(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        with (
+            patch.object(integrator, "validate_paths", return_value=True),
+            patch.object(integrator, "analyze_sources", return_value=False),
+        ):
+            result = integrator.run_detailed()
+        assert result["ok"] is False
+        assert result["phase"] == "analyze_sources"
+
+    def test_run_detailed_fails_on_compile(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        with (
+            patch.object(integrator, "validate_paths", return_value=True),
+            patch.object(integrator, "analyze_sources", return_value=True),
+            patch.object(integrator, "compile_mandate", return_value=False),
+            patch.object(integrator, "compile_guidelines", return_value=False),
+        ):
+            result = integrator.run_detailed()
+        assert result["ok"] is False
+        assert result["phase"] == "compile"
+
+    def test_run_detailed_fails_on_metadata(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        with (
+            patch.object(integrator, "validate_paths", return_value=True),
+            patch.object(integrator, "analyze_sources", return_value=True),
+            patch.object(integrator, "compile_mandate", return_value=True),
+            patch.object(integrator, "compile_guidelines", return_value=True),
+            patch.object(integrator, "generate_metadata", return_value=False),
+        ):
+            result = integrator.run_detailed()
+        assert result["ok"] is False
+        assert result["phase"] == "metadata"
+
+    def test_run_detailed_fails_on_verify_deployment(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        with (
+            patch.object(integrator, "validate_paths", return_value=True),
+            patch.object(integrator, "analyze_sources", return_value=True),
+            patch.object(integrator, "compile_mandate", return_value=True),
+            patch.object(integrator, "compile_guidelines", return_value=True),
+            patch.object(integrator, "generate_metadata", return_value=True),
+            patch.object(
+                integrator,
+                "verify_deployment",
+                return_value={
+                    "all_present": False,
+                    "manifest": [],
+                    "critical_count": 0,
+                    "critical_required": 2,
+                },
+            ),
+        ):
+            result = integrator.run_detailed()
+        assert result["ok"] is False
+        assert result["phase"] == "verify_deployment"
+
+    def test_run_detailed_success(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        verification = {
+            "all_present": True,
+            "manifest": [],
+            "critical_count": 2,
+            "critical_required": 2,
+        }
+        with (
+            patch.object(integrator, "validate_paths", return_value=True),
+            patch.object(integrator, "analyze_sources", return_value=True),
+            patch.object(integrator, "compile_mandate", return_value=True),
+            patch.object(integrator, "compile_guidelines", return_value=True),
+            patch.object(integrator, "generate_metadata", return_value=True),
+            patch.object(integrator, "verify_deployment", return_value=verification),
+        ):
+            result = integrator.run_detailed()
+        assert result["ok"] is True
+        assert result["phase"] == "completed"
+
+    def test_run_returns_bool(self, tmp_path: Path) -> None:
+        integrator = _make_int(tmp_path)
+        with patch.object(
+            integrator,
+            "run_detailed",
+            return_value={
+                "ok": True,
+                "phase": "done",
+                "verification": None,
+                "metrics": {},
+            },
+        ):
+            assert integrator.run() is True

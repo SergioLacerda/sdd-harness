@@ -48,6 +48,26 @@ class TestCopyTemplateFiles:
         assert count == 1
         assert (dst / "sub" / "nested.md").exists()
 
+    def test_returns_error_when_copy_raises(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from sdd_wizard.orchestration import phase_5_apply_template as phase5
+
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "file.md").write_text("# content", encoding="utf-8")
+
+        monkeypatch.setattr(
+            phase5.shutil,
+            "copy2",
+            lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("boom")),
+        )
+
+        count, errors = phase5._copy_template_files(src, tmp_path / "dst")
+        assert count == 0
+        assert errors
+        assert "boom" in errors[0]
+
 
 class TestApplyPlaceholderReplacements:
     def test_replaces_placeholder(self) -> None:
@@ -102,6 +122,22 @@ class TestCustomizeFileForLanguage:
         assert success is True
         assert "PYTHON" in f.read_text(encoding="utf-8")
 
+    def test_returns_error_when_replacement_raises(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from sdd_wizard.orchestration import phase_5_apply_template as phase5
+
+        f = tmp_path / "template.md"
+        f.write_text("Language: {{LANGUAGE}}", encoding="utf-8")
+        monkeypatch.setattr(
+            phase5,
+            "_apply_placeholder_replacements",
+            lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("broken")),
+        )
+        success, msg = phase5._customize_file_for_language(f, "python")
+        assert success is False
+        assert "broken" in msg
+
 
 class TestPhase5ApplyTemplate:
     def test_fails_when_base_template_not_found(self, tmp_path: Path) -> None:
@@ -115,6 +151,40 @@ class TestPhase5ApplyTemplate:
         # It may succeed with 0 files or fail depending on template existence
         assert isinstance(success, bool)
         assert "status" in report
+
+    def test_returns_failed_when_base_dir_missing(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from sdd_wizard.orchestration import phase_5_apply_template as phase5
+
+        monkeypatch.setattr(
+            phase5, "_get_base_template_dir", lambda: tmp_path / "missing"
+        )
+        success, report = phase5.phase_5_apply_template(tmp_path / "scaffold")
+        assert success is False
+        assert report["status"] == "FAILED"
+        assert "Base template directory not found" in report["errors"][0]
+
+    def test_extends_warnings_from_copy_step(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from sdd_wizard.orchestration import phase_5_apply_template as phase5
+
+        base_dir = tmp_path / "base"
+        base_dir.mkdir()
+        monkeypatch.setattr(phase5, "_get_base_template_dir", lambda: base_dir)
+        monkeypatch.setattr(
+            phase5,
+            "_copy_template_files",
+            lambda source_dir, target_dir, ignored_patterns=None: (
+                1,
+                ["warn-a", "warn-b"],
+            ),
+        )
+
+        success, report = phase5.phase_5_apply_template(tmp_path / "scaffold")
+        assert success is True
+        assert report["warnings"] == ["warn-a", "warn-b"]
 
     def test_creates_scaffolding_dir(self, tmp_path: Path) -> None:
         from sdd_wizard.orchestration.phase_5_apply_template import (
@@ -143,6 +213,22 @@ class TestPhase5ApplyTemplate:
         scaffolding = tmp_path / "scaffold"
         _, report = phase_5_apply_template(scaffolding, language="python")
         assert report["phase"] == "PHASE_5_APPLY_TEMPLATE"
+
+    def test_returns_failed_on_unexpected_exception(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from sdd_wizard.orchestration import phase_5_apply_template as phase5
+
+        monkeypatch.setattr(
+            phase5.Path,
+            "mkdir",
+            lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("mkdir boom")),
+            raising=True,
+        )
+        success, report = phase5.phase_5_apply_template(tmp_path / "scaffold")
+        assert success is False
+        assert report["status"] == "FAILED"
+        assert "mkdir boom" in report["errors"][0]
 
 
 # ---------------------------------------------------------------------------

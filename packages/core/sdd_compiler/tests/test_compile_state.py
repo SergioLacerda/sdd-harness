@@ -55,6 +55,16 @@ def test_update_source_and_detect_changes(tmp_path: Path) -> None:
     assert state.source_changed("mandate", source_file) is True
 
 
+def test_update_source_is_noop_when_path_missing(tmp_path: Path) -> None:
+    state_file = tmp_path / ".sdd" / "runtime" / ".compile-state.json"
+    missing_file = tmp_path / "missing.spec"
+    state = CompileState(state_file)
+
+    state.update_source("missing", missing_file)
+
+    assert state.get_source_hash("missing") is None
+
+
 def test_source_changed_when_path_missing_or_hash_absent(tmp_path: Path) -> None:
     state_file = tmp_path / ".sdd" / "runtime" / ".compile-state.json"
     missing_file = tmp_path / "missing.spec"

@@ -799,7 +799,8 @@ def audit_export(
     """Export compliance events and write evidence manifest."""
     fmt = format.strip().lower()
     if fmt != "csv":
-        raise typer.BadParameter("Only --format=csv is currently supported.")
+        typer.echo("Only --format=csv is currently supported.")
+        raise click.exceptions.Exit(2)
     source = events_file or _default_events_path()
     events = _load_events(source)
     since_dt = _parse_since_date(since)
@@ -848,7 +849,7 @@ def audit_legacy_check(
     for item in hits[:20]:
         typer.echo(f"  - {item}")
     if mode == "block" and hits:
-        raise typer.Exit(2)
+        raise click.exceptions.Exit(2)
 
 
 @app.command("bootstrap-check")
@@ -866,7 +867,7 @@ def audit_bootstrap_check() -> None:
     typer.echo("- status: DRIFT")
     for issue in result["issues"]:
         typer.echo(f"  - {issue}")
-    raise typer.Exit(2)
+    raise click.exceptions.Exit(2)
 
 
 @app.command("compliance-pack")

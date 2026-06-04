@@ -20,6 +20,16 @@ Then follow the complete guide:
 - **Master Index** → [`indices/MASTER_INDEX.md`](./indices/MASTER_INDEX.md)
 - **AI Agent Index** → [`.ai-index.md`](./.ai-index.md)
 
+## Navigation by intent
+
+| You want to... | Start here |
+|---|---|
+| understand the system architecture | [`architecture/README.md`](./architecture/README.md) |
+| read canonical contracts and mandates | [`spec/canonical/INDEX.md`](./spec/canonical/INDEX.md) |
+| follow runtime entrypoints and protocol | [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md) |
+| troubleshoot an operational issue | [`guides/`](./guides/) and [`guides/FAQ.md`](./guides/FAQ.md) |
+| find a decision or history item | [`adr/INDEX.md`](./adr/INDEX.md) |
+
 ## Quatro pilares
 
 1. **`spec/` — Fonte de Verdade**

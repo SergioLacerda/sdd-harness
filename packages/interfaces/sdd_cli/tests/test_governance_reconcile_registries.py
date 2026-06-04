@@ -79,7 +79,11 @@ def test_governance_reconcile_registries_json_success(tmp_path: Path) -> None:
             ),
         )
 
-        result = runner.invoke(app, ["--json", "governance", "reconcile-registries"])
+        result = runner.invoke(
+            app,
+            ["--json", "governance", "reconcile-registries"],
+            env={"SDD_WORKSPACE_ROOT": str(root)},
+        )
         assert result.exit_code == 0, result.output
         payload = _last_json(result.output)
         data = _payload_data(payload)
@@ -115,7 +119,11 @@ def test_governance_reconcile_registries_duplicate_command_id_fails(
             """name: sdd-one\nversion: 1.0.0\ncategory: governance\ndescription: test\nstatus: active\nrisk_score: low\n""",
         )
 
-        result = runner.invoke(app, ["--json", "governance", "reconcile-registries"])
+        result = runner.invoke(
+            app,
+            ["--json", "governance", "reconcile-registries"],
+            env={"SDD_WORKSPACE_ROOT": str(root)},
+        )
         assert result.exit_code == 1
         payload = _last_json(result.output)
         assert payload["ok"] is False
@@ -145,7 +153,9 @@ def test_governance_reconcile_registries_check_mode_fails_on_drift(
         )
 
         result = runner.invoke(
-            app, ["--json", "governance", "reconcile-registries", "--check"]
+            app,
+            ["--json", "governance", "reconcile-registries", "--check"],
+            env={"SDD_WORKSPACE_ROOT": str(root)},
         )
         assert result.exit_code == 1
         payload = _last_json(result.output)
@@ -169,11 +179,17 @@ def test_governance_reconcile_registries_check_mode_passes_when_in_sync(
         )
 
         # First apply to sync.
-        applied = runner.invoke(app, ["governance", "reconcile-registries"])
+        applied = runner.invoke(
+            app,
+            ["governance", "reconcile-registries"],
+            env={"SDD_WORKSPACE_ROOT": str(root)},
+        )
         assert applied.exit_code == 0, applied.output
 
         result = runner.invoke(
-            app, ["--json", "governance", "reconcile-registries", "--check"]
+            app,
+            ["--json", "governance", "reconcile-registries", "--check"],
+            env={"SDD_WORKSPACE_ROOT": str(root)},
         )
         assert result.exit_code == 0, result.output
         payload = _last_json(result.output)

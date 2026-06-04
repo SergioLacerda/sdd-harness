@@ -85,6 +85,7 @@ def test_ask_permission_error_exits_with_code_3() -> None:
 
 def test_pipeline_permission_error_exits_with_code_3() -> None:
     """PermissionError in pipeline_run_cmd must exit 3 without chaining the exception."""
+    import click
     import typer
 
     from sdd_cli.commands.pipeline import pipeline_run_cmd
@@ -97,7 +98,7 @@ def test_pipeline_permission_error_exits_with_code_3() -> None:
             "sdd_cli.commands.pipeline.build_governed_ask_snapshot",
             side_effect=_raise_permission,
         ),
-        pytest.raises((SystemExit, typer.Exit)) as exc_info,
+        pytest.raises((SystemExit, typer.Exit, click.exceptions.Exit)) as exc_info,
     ):
         pipeline_run_cmd(query="test", skill=None, budget=None, execute=False)
 
