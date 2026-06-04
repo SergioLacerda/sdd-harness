@@ -21,7 +21,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 
 # Install all workspace packages + test extras into /app/.venv in a single locked pass.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv venv /app/.venv --relocatable && \
+    uv venv /app/.venv && \
     UV_PROJECT_ENVIRONMENT=/app/.venv \
     uv sync --frozen --no-group docs --all-packages --extra test
 
