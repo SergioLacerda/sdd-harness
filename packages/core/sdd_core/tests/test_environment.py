@@ -218,36 +218,44 @@ class TestGetSddPaths:
                 assert key in paths
                 assert isinstance(paths[key], Path)
 
-    def test_root_path_is_set(self, tmp_path: Path) -> None:
+    def test_root_path_is_set(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Should set root path correctly."""
         (tmp_path / "generated").mkdir()
-
-        with patch(
-            "sdd_core.utils.environment.detect_repo_root", return_value=tmp_path
+        monkeypatch.delenv("SDD_WORKSPACE_ROOT", raising=False)
+        with (
+            patch("sdd_core.utils.environment.find_workspace_root", return_value=None),
+            patch("sdd_core.utils.environment.detect_repo_root", return_value=tmp_path),
         ):
             paths = get_sdd_paths()
             assert paths["root"] == tmp_path
 
-    def test_prefers_sdd_source_over_generated(self, tmp_path: Path) -> None:
+    def test_prefers_sdd_source_over_generated(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Should prefer .sdd/source when it exists."""
         gen = tmp_path / "generated"
         gen.mkdir()
+        monkeypatch.delenv("SDD_WORKSPACE_ROOT", raising=False)
 
         sdd_source = tmp_path / ".sdd" / "source"
         sdd_source.mkdir(parents=True)
 
-        with patch(
-            "sdd_core.utils.environment.detect_repo_root", return_value=tmp_path
+        with (
+            patch("sdd_core.utils.environment.find_workspace_root", return_value=None),
+            patch("sdd_core.utils.environment.detect_repo_root", return_value=tmp_path),
         ):
             paths = get_sdd_paths()
             assert paths["source_spec"] == sdd_source
 
     def test_falls_back_to_workspace_root_when_repo_root_missing(
-        self, tmp_path: Path
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Should use workspace root when framework repo root is unavailable."""
         workspace_root = tmp_path / "client-project"
         (workspace_root / ".sdd" / "source").mkdir(parents=True)
+        monkeypatch.delenv("SDD_WORKSPACE_ROOT", raising=False)
 
         with (
             patch(
@@ -268,6 +276,7 @@ class TestGetSddPaths:
     ) -> None:
         """Should use cwd for onboarding flows before `.sdd` exists."""
         monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("SDD_WORKSPACE_ROOT", raising=False)
 
         with (
             patch(
@@ -281,6 +290,27 @@ class TestGetSddPaths:
             assert (
                 paths["source_spec"]
                 == tmp_path / "generated" / "client" / "build" / "docs-meta"
+            )
+
+    def test_isolated_workspace_root_uses_env_generated_paths(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Should isolate generated artifacts under SDD_WORKSPACE_ROOT in tests."""
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+        workspace_root = tmp_path / "shadow-workspace"
+        monkeypatch.setenv("SDD_WORKSPACE_ROOT", str(workspace_root))
+
+        with patch(
+            "sdd_core.utils.environment.detect_repo_root", return_value=repo_root
+        ):
+            paths = get_sdd_paths()
+            assert paths["root"] == workspace_root.resolve()
+            assert paths["repo_root"] == repo_root
+            assert paths["generated"] == workspace_root / "generated"
+            assert (
+                paths["source_spec"]
+                == workspace_root / "generated" / "client" / "build" / "docs-meta"
             )
 
 

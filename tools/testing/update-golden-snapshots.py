@@ -12,6 +12,7 @@ Usage:
 
 import difflib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -23,7 +24,8 @@ if str(_SDD_CORE_SRC) not in sys.path:
 from sdd_core.utils.text_io import read_text_utf8, write_text_utf8  # noqa: E402
 
 COMPILED = REPO_ROOT / "generated" / "master" / "compiled"
-_SDD_COMPILED = REPO_ROOT / ".sdd" / "compiled"
+_WORKSPACE_ROOT = Path(os.environ.get("SDD_WORKSPACE_ROOT", REPO_ROOT)).resolve()
+_SDD_COMPILED = _WORKSPACE_ROOT / ".sdd" / "compiled"
 FIXTURES = REPO_ROOT / "tests" / "contract" / "fixtures"
 
 _CORE_VOLATILE_KEYS = {"fingerprint", "generated_at"}

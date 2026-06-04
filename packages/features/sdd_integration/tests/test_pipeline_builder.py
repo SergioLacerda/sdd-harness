@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -342,6 +343,31 @@ class TestPipelineBuilderFilesystem:
         assert result["core_items"][0]["id"] == "M001"
         assert result["core_items"][0]["title"] == "Test Mandate"
         assert len(result["client_items"]) == 1
+
+    def test_generate_spec_file_preserves_m017_paragraph_fields(
+        self, tmp_path: Path
+    ) -> None:
+        """Should preserve wrapped paragraph text when generating mandates.json."""
+        repo_root = Path(__file__).resolve().parents[4]
+        canonical_mandates_dir = (
+            repo_root / "docs" / "spec" / "canonical" / "core" / "mandates"
+        )
+        output_path = tmp_path / "mandates.json"
+
+        result = PipelineBuilder.generate_spec_file(canonical_mandates_dir, output_path)
+
+        assert result["mandates_written"] > 0
+        payload = json.loads(output_path.read_text(encoding="utf-8"))
+        m017 = next(item for item in payload["mandates"] if item["id"] == "M017")
+        assert (
+            m017["summary_runtime"]
+            == "Ensure that analysis plugins respect SDD-injected base_path, execution_provider, and approval_gate."
+        )
+        assert (
+            m017["rationale"]
+            == "Plugins extend SDD with external orchestration capabilities. Without governance over their write scope and execution authority, a plugin could silently corrupt the workspace or bypass approval controls. M017 ensures the plugin contract is enforceable and auditable."
+        )
+        assert "---" not in m017["rationale"]
 
     def test_save_outputs_creates_files(self, tmp_path: Path) -> None:
         """Should create JSON output files."""

@@ -128,29 +128,62 @@ def get_project_config() -> dict[str, Any]:
         return {}
 
 
-def get_sdd_paths() -> dict[str, Path]:
+def _workspace_root_from_env() -> Path | None:
+    """Return SDD_WORKSPACE_ROOT when explicitly set."""
+    raw = os.environ.get("SDD_WORKSPACE_ROOT", "").strip()
+    if not raw:
+        return None
+    return Path(raw).expanduser().resolve()
+
+
+def get_sdd_paths(
+    *,
+    repo_root: Path | None = None,
+    workspace_root: Path | None = None,
+) -> dict[str, Path]:
     """Resolve standard SDD paths for both framework repo and client workspaces.
 
     Resolution precedence:
-    1. SDD framework repository root (development mode)
-    2. Active workspace root containing `.sdd/` (installed CLI mode)
-    3. Current working directory (fresh onboarding before `.sdd` exists)
+    1. Explicit repo/workspace overrides
+    2. `SDD_WORKSPACE_ROOT` environment variable for isolated runtimes/tests
+    3. Active workspace root containing `.sdd/` (installed CLI mode)
+    4. SDD framework repository root (development mode)
+    5. Current working directory (fresh onboarding before `.sdd` exists)
     """
-    try:
-        root = detect_repo_root()
-    except RuntimeError:
-        root = find_workspace_root() or Path.cwd().resolve()
-    gen = root / "generated"
+    if repo_root is None:
+        try:
+            resolved_repo_root = detect_repo_root()
+        except RuntimeError:
+            resolved_repo_root = Path.cwd().resolve()
+    else:
+        resolved_repo_root = repo_root.resolve()
 
-    # Prefer .sdd/source over generated/client/build/docs-meta when compiling
+    resolved_workspace_root = (
+        workspace_root.resolve()
+        if workspace_root is not None
+        else _workspace_root_from_env() or find_workspace_root() or resolved_repo_root
+    )
+    gen = resolved_workspace_root / "generated"
+    isolated_test_workspace = _workspace_root_from_env() is not None and os.environ.get(
+        "SDD_TEST_ISOLATED_WORKSPACE", ""
+    ).strip().lower() in {"1", "true", "yes", "on"}
+
+    # Only the active client workspace should prefer .sdd/source.
+    # Isolated test workspaces intentionally bootstrap from generated/docs-meta
+    # so repository-root .sdd is never consulted by CI/test flows.
     source_spec = (
-        root / ".sdd" / "source"
-        if (root / ".sdd" / "source").exists()
+        resolved_workspace_root / ".sdd" / "source"
+        if (
+            not isolated_test_workspace
+            and (resolved_workspace_root / ".sdd" / "source").exists()
+        )
         else gen / "client" / "build" / "docs-meta"
     )
 
     paths = {
-        "root": root,
+        "root": resolved_workspace_root,
+        "repo_root": resolved_repo_root,
+        "workspace_root": resolved_workspace_root,
         "generated": gen,
         # Master (Core Framework) - Immutable artifacts
         "master": gen / "master",
@@ -165,10 +198,10 @@ def get_sdd_paths() -> dict[str, Path]:
         "docs_meta": gen / "client" / "build" / "docs-meta",
         # Source Code & Docs
         "source_spec": source_spec,
-        "packages": root / "packages",
-        "core_pkg": root / "packages" / "core" / "sdd_core",
-        "tools": root / "tools",
-        "scripts": root / "scripts",
+        "packages": resolved_repo_root / "packages",
+        "core_pkg": resolved_repo_root / "packages" / "core" / "sdd_core",
+        "tools": resolved_repo_root / "tools",
+        "scripts": resolved_repo_root / "scripts",
         # Compatibility aliases
         "compiler_output": gen / "master" / "compiled",
         "wizard_runtime": gen / "client" / "compiled",

@@ -45,17 +45,24 @@ class DeploymentManager:
     def __init__(
         self,
         repo_root: str | None = None,
+        workspace_root: str | None = None,
         emit: Callable[[str], None] | None = None,
     ):
         """Initialize deployment manager"""
-        paths = get_sdd_paths()
-        root_path = Path(repo_root) if repo_root is not None else paths["root"]
+        root_path = Path(repo_root).resolve() if repo_root is not None else None
+        workspace_path = (
+            Path(workspace_root).resolve() if workspace_root is not None else None
+        )
+        paths = get_sdd_paths(repo_root=root_path, workspace_root=workspace_path)
 
-        self.repo_root = root_path
+        self.repo_root = root_path or paths.get("repo_root", paths["root"])
+        self.workspace_root = workspace_path or paths.get(
+            "workspace_root", paths["root"]
+        )
         self.paths = paths
 
         # Deployment target: Client Runtime (.sdd/compiled/)
-        self.runtime_compiled = Path(self.repo_root) / ".sdd" / "compiled"
+        self.runtime_compiled = self.workspace_root / ".sdd" / "compiled"
         self.runtime_audit = self.runtime_compiled / "audit"
 
         # Source of truth for deployment: client/compiled only.
@@ -67,7 +74,7 @@ class DeploymentManager:
         self._bootstrapper = _ArtifactBootstrapper(
             self.compiled_dir,
             self.master_compiled_dir,
-            self.repo_root,
+            self.workspace_root,
             self._metadata_source,
             emit,
         )

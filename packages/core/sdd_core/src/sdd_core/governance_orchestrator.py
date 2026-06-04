@@ -64,6 +64,7 @@ class GovernanceOrchestrator:
     def __init__(
         self,
         repo_root: str | None = None,
+        workspace_root: str | None = None,
         spec_path: str | None = None,
         compiled_dir: str | None = None,
         emit: Callable[[str], None] | None = None,
@@ -79,9 +80,15 @@ class GovernanceOrchestrator:
             profile: Active profile override ("master" | "client"). When None,
                      resolved from .sdd/profile or SDD_PROFILE env var.
         """
-        paths = get_sdd_paths()
-        root_path = Path(repo_root) if repo_root is not None else paths["root"]
-        self.repo_root = root_path
+        root_path = Path(repo_root).resolve() if repo_root is not None else None
+        workspace_path = (
+            Path(workspace_root).resolve() if workspace_root is not None else None
+        )
+        paths = get_sdd_paths(repo_root=root_path, workspace_root=workspace_path)
+        self.repo_root = root_path or paths.get("repo_root", paths["root"])
+        self.workspace_root = workspace_path or paths.get(
+            "workspace_root", paths["root"]
+        )
 
         self.spec = Path(spec_path) if spec_path else paths["source_spec"]
 
@@ -89,7 +96,9 @@ class GovernanceOrchestrator:
             self.compiled_dir = Path(compiled_dir)
             self.build_dir = paths["master_build"]
         else:
-            active_profile = profile or self._resolve_active_profile(root_path)
+            active_profile = profile or self._resolve_active_profile(
+                self.workspace_root
+            )
             if active_profile == "master":
                 self.compiled_dir = paths["master_compiled"]
                 self.build_dir = paths["master_build"]
@@ -195,7 +204,7 @@ class GovernanceOrchestrator:
         """
         try:
             self._spec_bootstrapper.bootstrap()
-            spec_mandates_path = self.repo_root / ".sdd" / "spec" / "mandates.json"
+            spec_mandates_path = self.workspace_root / ".sdd" / "spec" / "mandates.json"
 
             # Auto-generate mandates.json from canonical mandate files when absent.
             # This ensures enforcement_steps, rationale, and requirements are
@@ -280,7 +289,7 @@ class GovernanceOrchestrator:
 
             # Publish canonical artifacts to `.sdd/compiled` authority directory.
             # `/generated/*` remains legacy/derived output only.
-            sdd_compiled_dir = self.repo_root / ".sdd" / "compiled"
+            sdd_compiled_dir = self.workspace_root / ".sdd" / "compiled"
             sdd_compiled_dir.mkdir(parents=True, exist_ok=True)
             sdd_audit_dir = sdd_compiled_dir / "audit"
             sdd_audit_dir.mkdir(parents=True, exist_ok=True)

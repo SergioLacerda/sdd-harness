@@ -43,6 +43,30 @@ class TestGovernanceOrchestratorInit:
             orchestrator = GovernanceOrchestrator(repo_root=custom_root)
             assert orchestrator.repo_root == Path(custom_root)
 
+    def test_init_tracks_distinct_workspace_root(self, tmp_path: Path) -> None:
+        """Should keep repo_root and workspace_root separate for isolated tests."""
+        repo_root = tmp_path / "repo"
+        workspace_root = tmp_path / "workspace"
+        with patch("sdd_core.governance_orchestrator.get_sdd_paths") as mock_paths:
+            mock_paths.return_value = {
+                "root": workspace_root,
+                "repo_root": repo_root,
+                "workspace_root": workspace_root,
+                "source_spec": workspace_root
+                / "generated"
+                / "client"
+                / "build"
+                / "docs-meta",
+                "master_compiled": workspace_root / "generated" / "master" / "compiled",
+                "master_build": workspace_root / "generated" / "master" / "build",
+            }
+            orchestrator = GovernanceOrchestrator(
+                repo_root=str(repo_root),
+                workspace_root=str(workspace_root),
+            )
+            assert orchestrator.repo_root == repo_root
+            assert orchestrator.workspace_root == workspace_root
+
     def test_init_with_custom_spec_path(self, tmp_path: Path) -> None:
         """Should accept custom spec path override."""
         custom_spec = str(tmp_path / "custom_spec")

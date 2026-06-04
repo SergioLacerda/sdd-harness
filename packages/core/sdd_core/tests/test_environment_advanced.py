@@ -77,17 +77,23 @@ class TestGetSddPathsVariations:
                 assert paths1[key] == paths2[key]
 
     def test_paths_relative_to_root(self, tmp_path: Path) -> None:
-        """All paths should be under the root directory."""
+        """All derived paths should be under the root directory."""
         (tmp_path / "generated").mkdir()
 
-        with patch(
-            "sdd_core.utils.environment.detect_repo_root", return_value=tmp_path
+        # Root-level keys are the workspace/repo root themselves — not under root.
+        _root_keys = {"root", "workspace_root", "repo_root"}
+
+        with (
+            patch("sdd_core.utils.environment.detect_repo_root", return_value=tmp_path),
+            patch("sdd_core.utils.environment.find_workspace_root", return_value=None),
         ):
             paths = get_sdd_paths()
 
             for key, path in paths.items():
-                if key != "root":
-                    assert tmp_path in path.parents or tmp_path == path.parent
+                if key not in _root_keys:
+                    assert tmp_path in path.parents or tmp_path == path.parent, (
+                        f"path[{key!r}] = {path} is not under {tmp_path}"
+                    )
 
 
 class TestProfileContextProperties:
