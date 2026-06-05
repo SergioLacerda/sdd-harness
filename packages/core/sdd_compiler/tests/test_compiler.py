@@ -191,6 +191,36 @@ class TestDSLParser:
         assert guidelines[0]["id"] == "G01"
         assert guidelines[1]["id"] == "G02"
 
+    def test_parse_guideline_with_tags_populates_tags_field(self) -> None:
+        """Test that language tags are extracted from guideline DSL."""
+        dsl = """
+        guideline G01 {
+          type: HARD
+          title: "Dependency Direction Python"
+          description: "Domain must not import infrastructure."
+          category: architecture
+          tags: ["python", "import-linter"]
+          examples: ["domain -> infra: VIOLATION"]
+        }
+        """
+        guidelines = DSLParser.parse_guidelines(dsl)
+        assert len(guidelines) == 1
+        assert guidelines[0]["tags"] == ["python", "import-linter"]
+
+    def test_parse_guideline_without_tags_returns_empty_list(self) -> None:
+        """Test that guidelines without tags produce an empty tags list (universal)."""
+        dsl = """
+        guideline G01 {
+          type: SOFT
+          title: "Universal guideline"
+          description: "No language-specific tags."
+          category: general
+        }
+        """
+        guidelines = DSLParser.parse_guidelines(dsl)
+        assert len(guidelines) == 1
+        assert guidelines[0]["tags"] == []
+
 
 class TestStringPool:
     """Test string deduplication"""

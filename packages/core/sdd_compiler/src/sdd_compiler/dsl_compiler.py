@@ -328,6 +328,7 @@ class DSLParser:
                 "title": DSLParser.extract_field(body, "title"),
                 "description": DSLParser.extract_field(body, "description"),
                 "category": DSLParser.extract_field(body, "category") or "general",
+                "tags": DSLParser.extract_array(body, "tags") or [],
                 "examples": DSLParser.extract_array(body, "examples"),
             }
             guidelines.append(guideline)
@@ -585,6 +586,7 @@ class DSLCompiler:
                     "title": DSLParser.extract_field(body, "title"),
                     "description": DSLParser.extract_field(body, "description"),
                     "category": DSLParser.extract_field(body, "category") or "general",
+                    "tags": DSLParser.extract_array(body, "tags") or [],
                     "examples": DSLParser.extract_array(body, "examples"),
                 }
             )

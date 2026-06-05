@@ -75,6 +75,7 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
                 "project_metadata": {
                     "adoption_level": self.config.get("adoption_level", "standard"),
                     "language": self.config.get("language", "python"),
+                    "language_context": self.config.get("language_context", {}),
                     "spec_fingerprint": self.spec_fingerprint,
                     "generated_at": self.generated_at,
                     "version": "1.0",

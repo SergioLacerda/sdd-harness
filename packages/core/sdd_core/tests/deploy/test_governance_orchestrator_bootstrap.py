@@ -30,5 +30,7 @@ def test_bootstrap_source_specs_from_markdown_when_docs_meta_missing(
     assert guidelines_dsl.exists()
     assert "M001" in mandate_spec.read_text(encoding="utf-8")
     assert "M002" in mandate_spec.read_text(encoding="utf-8")
-    # Guidelines are not auto-discovered from docs; dsl file is created but empty
-    assert "guideline G001" not in guidelines_dsl.read_text(encoding="utf-8")
+    content = guidelines_dsl.read_text(encoding="utf-8")
+    assert "guideline G021" in content
+    assert "guideline G022" in content
+    assert "guideline G001" not in content

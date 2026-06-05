@@ -127,7 +127,7 @@ class TestBootstrapFromMarkdown:
     def test_bootstrap_from_markdown_does_not_auto_discover_guidelines(
         self, tmp_path: Path
     ) -> None:
-        """Should create an empty guidelines.dsl rather than auto-discovering G-IDs."""
+        """Should seed only canonical bootstrap guidelines, never auto-discovered G-IDs."""
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
         docs_dir = tmp_path / "docs"
@@ -146,7 +146,9 @@ class TestBootstrapFromMarkdown:
         guidelines_dsl = spec_dir / "guidelines.dsl"
         assert guidelines_dsl.exists()
         content = guidelines_dsl.read_text(encoding="utf-8")
-        # Should be empty (only header comment) — no G-ID auto-discovery
+        assert "guideline G021" in content
+        assert "guideline G022" in content
+        # Should not auto-discover arbitrary guideline references from docs
         assert "G001" not in content
         assert "G002" not in content
 

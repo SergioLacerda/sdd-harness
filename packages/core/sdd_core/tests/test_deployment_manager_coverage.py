@@ -27,18 +27,14 @@ def _make_manager(tmp_path: Path) -> deployment_manager.DeploymentManager:
 def _run_main_block(
     monkeypatch: pytest.MonkeyPatch, deploy_result: dict[str, object]
 ) -> str:
-    source_path = Path("packages/core/sdd_core/src/sdd_core/deployment_manager.py")
-    source_lines = source_path.read_text(encoding="utf-8").splitlines()
-    prefix = "\n".join(source_lines[:216])
-    suffix = "\n".join(source_lines[216:])
+    """Execute the deployment_manager main block safely.
 
-    namespace: dict[str, object] = {
-        "__name__": "__main__",
-        "__file__": str(source_path),
-        "__builtins__": builtins.__dict__,
-    }
-    exec(compile(prefix, str(source_path), "exec"), namespace)
+    Instead of dynamically compiling and executing the source code, we import the
+    module and invoke ``main`` after applying the necessary monkeypatches.
+    """
+    import sdd_core.deployment_manager as dm
 
+    # Prepare a fake DeploymentManager that returns the supplied result.
     class _FakeDeploymentManager:
         def __init__(self, *_args: object, **_kwargs: object) -> None:
             pass
@@ -46,17 +42,18 @@ def _run_main_block(
         def deploy(self) -> dict[str, object]:
             return deploy_result
 
+    # Monkeypatch the DeploymentManager class and the print function used by the
+    # module. ``monkeypatch`` works on the imported module's namespace.
+    monkeypatch.setattr(dm, "DeploymentManager", _FakeDeploymentManager)
     captured: list[str] = []
 
     def _capture_print(*args: object, **_kwargs: object) -> None:
         captured.append(" ".join(str(arg) for arg in args))
 
-    monkeypatch.setitem(namespace, "DeploymentManager", _FakeDeploymentManager)
-    monkeypatch.setitem(namespace, "print", _capture_print)
-    exec(
-        compile("\n" * 216 + suffix, str(source_path), "exec"),
-        namespace,
-    )
+    monkeypatch.setattr(builtins, "print", _capture_print)
+    # Ensure the module thinks it is being run as a script.
+    dm.__name__ = "__main__"
+    dm.main()
     return "\n".join(captured)
 
 
@@ -339,19 +336,12 @@ class TestDeployFailurePaths:
     ) -> None:
         captured = io.StringIO()
         original_print = builtins.print
-        original_build_class = builtins.__build_class__
-        source_path = Path("packages/core/sdd_core/src/sdd_core/deployment_manager.py")
-        source = source_path.read_text(encoding="utf-8")
 
-        def _build_class(func, name, *args, **kwargs):
-            built_class = original_build_class(func, name, *args, **kwargs)
-            if name != "DeploymentManager":
-                return built_class
-
-            def _fake_init(self, *_init_args: object, **_init_kwargs: object) -> None:
+        class _FakeDeploymentManager:
+            def __init__(self, *_args: object, **_kwargs: object) -> None:
                 pass
 
-            def _fake_deploy(self) -> dict[str, object]:
+            def deploy(self) -> dict[str, object]:
                 return {
                     "success": False,
                     "checklist": {},
@@ -360,25 +350,14 @@ class TestDeployFailurePaths:
                     "next_steps": [],
                 }
 
-            return type(
-                "DeploymentManager",
-                (),
-                {"__init__": _fake_init, "deploy": _fake_deploy},
-            )
-
-        monkeypatch.setattr(builtins, "__build_class__", _build_class)
+        monkeypatch.setattr(
+            deployment_manager, "DeploymentManager", _FakeDeploymentManager
+        )
         monkeypatch.setattr(
             builtins,
             "print",
             lambda *args, **kwargs: original_print(*args, file=captured, **kwargs),
         )
-        exec(
-            compile(source, str(source_path), "exec"),
-            {
-                "__name__": "__main__",
-                "__file__": str(source_path),
-                "__builtins__": builtins.__dict__,
-            },
-        )
+        deployment_manager.main()
         output = captured.getvalue()
         assert "Deployment failed" in output

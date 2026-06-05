@@ -159,6 +159,12 @@ Customize this file in Phase 2.
         "Bloquear": "strict_mode",
     }
     _LANGUAGE_CHOICES = ["Python", "Java", "TypeScript", "Go"]
+    _INTERACTION_LANGUAGE_CHOICES = ["English", "Português (Brasil)"]
+    _LOCAL_DOCS_LANGUAGE_CHOICES = [
+        "English",
+        "Português (Brasil)",
+        "Same as interaction",
+    ]
 
     def ask_user_preferences(self) -> dict[str, Any]:
         """Ask user for preferences: enforcement mode and programming language."""
@@ -178,9 +184,37 @@ Customize this file in Phase 2.
         language = self._prompter.select("Select language:", self._LANGUAGE_CHOICES)
         self._emit(f"   ✅ Selected: {language}")
 
+        self._emit(
+            "\n3️⃣  Which language should the wizard prefer for chat and operational prompts?"
+        )
+        interaction_language = self._prompter.select(
+            "Select interaction language:", self._INTERACTION_LANGUAGE_CHOICES
+        )
+        self._emit(f"   ✅ Selected: {interaction_language}")
+
+        self._emit(
+            "\n4️⃣  Which language should local workspace notes prefer when the workspace allows it?"
+        )
+        local_docs_language = self._prompter.select(
+            "Select local docs preference:", self._LOCAL_DOCS_LANGUAGE_CHOICES
+        )
+        self._emit(f"   ✅ Selected: {local_docs_language}")
+
+        resolved_local_docs = (
+            interaction_language
+            if local_docs_language == "Same as interaction"
+            else local_docs_language
+        )
+
         config = {
             "language": language,
             "enforcement_mode": enforcement_mode,
+            "language_context": {
+                "preferred_human_language": interaction_language,
+                "preferred_chat_language": interaction_language,
+                "preferred_ui_language": interaction_language,
+                "preferred_local_docs_language": resolved_local_docs,
+            },
             "generated_at": datetime.now().isoformat(),
         }
 

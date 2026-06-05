@@ -6,6 +6,7 @@ import inspect
 import io
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -23,6 +24,7 @@ _SDD_SNAPSHOT_START: dict[str, str] = {}
 _TEST_WORKSPACE_ROOT = (
     Path(tempfile.gettempdir()) / f"sdd-shadow-workspace-{os.getpid()}"
 ).resolve()
+_ITEM_ID_PATTERN = re.compile(r"^[A-Z]\d{3}$")
 
 tomllib: ModuleType | None
 try:
@@ -106,7 +108,16 @@ def _governance_artifacts_valid(paths: dict[str, Path]) -> bool:
             _items = _data.get("items", [])
             # Require a minimum viable mandate set; single-item artifacts are stale.
             if len(_items) >= 4 and all("id" in _item for _item in _items):
-                return True
+                client_json = paths["client_compiled"] / "governance-client.json"
+                if not client_json.exists():
+                    return False
+                client_data = _json.loads(read_text_utf8(client_json))
+                client_items = client_data.get("items", [])
+                if all(
+                    _ITEM_ID_PATTERN.match(str(item.get("id", "")))
+                    for item in client_items
+                ):
+                    return True
         except Exception:
             continue
     return False
@@ -122,13 +133,21 @@ def _canonical_compiled_valid() -> bool:
 
     from sdd_cli.utils.sdd_authority import compiled_active_dir
 
-    canonical = compiled_active_dir() / "governance-core.json"
-    if not canonical.exists():
+    compiled_dir = compiled_active_dir()
+    canonical = compiled_dir / "governance-core.json"
+    client = compiled_dir / "governance-client.json"
+    if not canonical.exists() or not client.exists():
         return False
     try:
         data = _json.loads(read_text_utf8(canonical))
         items = data.get("items", [])
-        return len(items) >= 4 and all("id" in i for i in items)
+        client_data = _json.loads(read_text_utf8(client))
+        client_items = client_data.get("items", [])
+        return (
+            len(items) >= 4
+            and all("id" in i for i in items)
+            and all(_ITEM_ID_PATTERN.match(str(i.get("id", ""))) for i in client_items)
+        )
     except Exception:
         return False
 

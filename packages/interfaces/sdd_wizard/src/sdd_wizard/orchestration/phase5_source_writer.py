@@ -66,6 +66,59 @@ class SddSourceWriter:
         else:
             logger.debug(message)
 
+    def _language_context_lines(self) -> str:
+        """Render optional wizard language context for generated readmes."""
+        language_context = self.config.get("language_context", {})
+        if not isinstance(language_context, dict) or not language_context:
+            return "- No wizard language preference context was captured.\n"
+        labels = {
+            "preferred_human_language": "Human",
+            "preferred_chat_language": "Chat",
+            "preferred_ui_language": "UI",
+            "preferred_local_docs_language": "Local docs",
+        }
+        lines = []
+        for key, label in labels.items():
+            value = language_context.get(key)
+            if value:
+                lines.append(f"- {label}: {value}")
+        return "\n".join(lines) + ("\n" if lines else "")
+
+    def _guideline_category_examples(self) -> str:
+        """Render deterministic category examples for generated readmes."""
+        if not self.guidelines_by_category:
+            return "│   └── (rendered by category when generated)\n"
+        lines = []
+        for category in sorted(self.guidelines_by_category.keys()):
+            lines.append(f"│   ├── {category}.md")
+        lines[-1] = lines[-1].replace("├──", "└──", 1)
+        return "\n".join(lines) + "\n"
+
+    def _guideline_read_examples(self) -> str:
+        """Render example guideline read commands based on known categories."""
+        if not self.guidelines_by_category:
+            return "# No rendered category files available yet\ncat .sdd/source/guidelines.dsl\n"
+        return (
+            "\n".join(
+                f"cat .sdd/source/guidelines/{category}.md"
+                for category in sorted(self.guidelines_by_category.keys())[:3]
+            )
+            + "\n"
+        )
+
+    def _runtime_guideline_load_snippet(self) -> str:
+        """Render Python snippet for loading guideline categories."""
+        if not self.guidelines_by_category:
+            return "    guidelines = {'dsl': read_file('.sdd/source/guidelines.dsl')}\n"
+        categories = ", ".join(
+            repr(category) for category in sorted(self.guidelines_by_category.keys())
+        )
+        return (
+            "    guidelines = {}\n"
+            f"    for category in [{categories}]:\n"
+            "        guidelines[category] = read_file(f'.sdd/source/guidelines/{category}.md')\n"
+        )
+
     def create_directories(self) -> bool:
         """Create output directory structure."""
         self._log("Creating directory structure")
@@ -102,12 +155,19 @@ Mandatory rules that CANNOT be customized or skipped.
             for mandate in self.mandates:
                 mandate_id = mandate.get("id", "M000")
                 mandate_title = mandate.get("title") or f"Mandate {mandate_id}"
+                description = (
+                    mandate.get("content")
+                    or mandate.get("description")
+                    or mandate.get("summary_runtime")
+                    or mandate.get("summary_minimal")
+                    or "No description available"
+                )
                 content += f"""### {mandate_id}: {mandate_title}
 
 **Criticality**: {mandate.get("criticality", "OBRIGATÓRIO")}
 **Customizable**: No
 
-{mandate.get("content") or mandate.get("description") or mandate.get("summary_minimal") or "No description available"}
+{description}
 
 """
             with open(mandates_file, "w", encoding="utf-8") as f:
@@ -198,14 +258,9 @@ This directory contains the **compiled and optimized** governance specifications
 .sdd/source/
 ├── mandates/
 │   └── mandates.md              ← Read mandates first (hard rules)
+├── guidelines.dsl               ← Guideline source of truth (universal + tagged)
 ├── guidelines/
-│   ├── git.md                   ← Git workflow
-│   ├── testing.md               ← Testing strategies
-│   ├── naming.md                ← Naming conventions
-│   ├── docs.md                  ← Documentation standards
-│   ├── style.md                 ← Code style
-│   └── performance.md           ← Performance guidelines
-└── README.md                    ← This file
+{self._guideline_category_examples()}└── README.md                    ← This file
 ```
 
 ## For AI Agents: How to Use This
@@ -223,15 +278,11 @@ cat .sdd/source/mandates/mandates.md
 Based on the task, read relevant guidelines:
 
 ```
-# For git-related work
-cat .sdd/source/guidelines/git.md
+# Full DSL source
+cat .sdd/source/guidelines.dsl
 
-# For testing-related work
-cat .sdd/source/guidelines/testing.md
-
-# For naming decisions
-cat .sdd/source/guidelines/naming.md
-```
+# Example rendered category files
+{self._guideline_read_examples()}```
 
 ### 3. Use As Pre-Cache Context
 
@@ -280,9 +331,17 @@ See `.sdd/runtime/README.md` for detailed pre-cache instructions.
 - Rule: **MUST** be followed (no exceptions)
 
 ### Guidelines (Customizable)
-- Location: `.sdd/source/guidelines/`
+- Location: `.sdd/source/guidelines.dsl` and rendered `.sdd/source/guidelines/`
 - Count: {len(self.guidelines)}
 - Rule: Should be followed (exceptions allowed with documentation)
+
+### Wizard Language Context
+
+{self._language_context_lines()}
+### Surface Handling
+- Mandatory surfaces such as technical documentation, governance artifacts, and CLI help remain governed by mandates.
+- Contextual surfaces such as chat, operational UI, and local-only notes may follow wizard language preference when workspace policy allows it.
+- `.analysis/` is treated as workspace-local documentation until content is promoted into canonical documentation or governance surfaces.
 
 ### Categories Covered
 
@@ -323,6 +382,15 @@ mechanism for AI agents to reduce context token usage and improve performance.
 
 **Generated**: {datetime.now().isoformat()}
 
+## Language Context
+
+The wizard may capture language preference context for interaction surfaces.
+
+{self._language_context_lines()}Mandatory language rules still override preference context for:
+- technical documentation
+- governance artifacts
+- CLI help and examples
+
 ## What is Pre-Caching?
 
 Pre-caching is a strategy where:
@@ -341,9 +409,7 @@ Pre-caching is a strategy where:
 # When agent starts, load governance once
 def init_agent():
     mandates = read_file('.sdd/source/mandates/mandates.md')
-    guidelines = {{}}
-    for category in ['git', 'testing', 'naming', 'docs', 'style', 'performance']:
-        guidelines[category] = read_file(f'.sdd/source/guidelines/{{category}}.md')
+{self._runtime_guideline_load_snippet()}
 
     # Cache in agent memory/context
     agent.context['mandates'] = mandates

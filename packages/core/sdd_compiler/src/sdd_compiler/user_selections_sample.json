@@ -113,12 +113,12 @@
       "reason": "Core governance principle",
       "customizable": false
     },
-    "G21": {
+    "G021": {
       "choice": "CORE",
       "reason": "Core governance principle",
       "customizable": false
     },
-    "G22": {
+    "G022": {
       "choice": "CORE",
       "reason": "Core governance principle",
       "customizable": false

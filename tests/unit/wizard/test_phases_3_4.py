@@ -242,7 +242,7 @@ class TestLanguageFilter:
 
     def test_language_tags_defined(self) -> None:
         """All expected languages should have tags defined"""
-        expected_languages = {"java", "python", "js"}
+        expected_languages = {"java", "python", "js", "go"}
         assert set(LANGUAGE_TAGS.keys()) == expected_languages
 
     def test_filter_by_language_with_no_tags(self) -> None:

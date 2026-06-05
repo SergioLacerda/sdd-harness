@@ -14,7 +14,7 @@ from typing import Literal
 
 from pydantic import BaseModel, field_validator
 
-_ITEM_ID_RE = re.compile(r"^[A-Z]\d{3}$")
+_ITEM_ID_RE = re.compile(r"^[A-Z]\d{2,3}$")
 
 
 class GovernanceItem(BaseModel):
@@ -30,7 +30,7 @@ class GovernanceItem(BaseModel):
     @classmethod
     def id_matches_pattern(cls, v: str) -> str:
         if not _ITEM_ID_RE.match(v):
-            raise ValueError(f"id {v!r} does not match [A-Z]\\d{{3}}")
+            raise ValueError(f"id {v!r} does not match [A-Z]\\d{{2,3}}")
         return v
 
 

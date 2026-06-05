@@ -108,6 +108,27 @@ class TestDSLCompilerParseMode:
         assert len(guidelines) >= 1
         assert guidelines[0]["id"] == "G01"
 
+    def test_ast_parse_guideline_with_tags_populates_tags_field(self) -> None:
+        dsl = """\
+guideline G01 {
+  type: HARD
+  title: "Dependency Direction Python"
+  description: "Domain must not import infrastructure."
+  category: architecture
+  tags: ["python", "import-linter"]
+  examples: ["domain -> infra: VIOLATION"]
+}
+"""
+        compiler = DSLCompiler()
+        guidelines = compiler._parse_guidelines_ast(dsl)
+        assert len(guidelines) == 1
+        assert guidelines[0]["tags"] == ["python", "import-linter"]
+
+    def test_ast_parse_guideline_without_tags_returns_empty_list(self) -> None:
+        compiler = DSLCompiler()
+        guidelines = compiler._parse_guidelines_ast(_GUIDELINE_DSL)
+        assert guidelines[0]["tags"] == []
+
     def test_parse_mandate_header_returns_none_for_non_mandate(self) -> None:
         compiler = DSLCompiler()
         assert compiler._parse_mandate_header("  just text") is None
