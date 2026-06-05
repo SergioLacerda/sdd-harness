@@ -23,7 +23,7 @@ import pytest
 
 from sdd_cli.utils.sdd_authority import compiled_active_dir, resolve_workspace_root
 
-_ITEM_ID_PATTERN = re.compile(r"^[A-Z]\d{3}$")
+_ITEM_ID_PATTERN = re.compile(r"^[A-Z]\d{2,3}$")
 
 
 def _repo_compiled_dir(repo_root: Path) -> Path:

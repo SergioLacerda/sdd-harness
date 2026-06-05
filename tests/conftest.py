@@ -24,7 +24,7 @@ _SDD_SNAPSHOT_START: dict[str, str] = {}
 _TEST_WORKSPACE_ROOT = (
     Path(tempfile.gettempdir()) / f"sdd-shadow-workspace-{os.getpid()}"
 ).resolve()
-_ITEM_ID_PATTERN = re.compile(r"^[A-Z]\d{3}$")
+_ITEM_ID_PATTERN = re.compile(r"^[A-Z]\d{2,3}$")
 
 tomllib: ModuleType | None
 try:
