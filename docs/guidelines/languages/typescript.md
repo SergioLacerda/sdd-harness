@@ -16,10 +16,15 @@ npm test
 ```
 
 **Rules:**
-- Enable `strict: true` in `tsconfig.json` — no exceptions.
-- No `any` to silence compiler errors — use `unknown` at boundaries and narrow explicitly.
+
+- Enable `strict: true`in`tsconfig.json` — no exceptions.
+
+- No `any`to silence compiler errors — use`unknown` at boundaries and narrow explicitly.
+
 - All `Promise`s must be awaited or explicitly handled with `.catch`.
+
 - Business logic must not live in route handlers.
+
 - External JSON must be validated with a schema library before use as domain types.
 
 **`tsconfig.json` minimum:**
@@ -48,7 +53,7 @@ npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslin
 
 See [nodejs-typescript-dependency-direction.md](../architecture/examples/nodejs-typescript-dependency-direction.md) for full ESLint config.
 
-**Summary:** `domain/` and `application/` must not import `adapters/` or `infrastructure/`. Use ESLint `import/no-restricted-paths` to enforce in CI.
+**Summary:** `domain/`and`application/`must not import`adapters/`or`infrastructure/`. Use ESLint `import/no-restricted-paths` to enforce in CI.
 
 ---
 
@@ -124,14 +129,20 @@ const user = UserSchema.parse(response.data);
 ```bash
 node --prof app.js
 node --prof-process isolate-*.log
+
 # or: clinic.js, autocannon for HTTP benchmarking
 ```
 
 **Key rules:**
+
 - Never block the event loop with CPU-intensive synchronous work — use worker threads.
+
 - Batch database queries — never N+1 in a loop.
+
 - Avoid re-parsing JSON or re-creating `RegExp` objects in hot paths — hoist them.
+
 - Use streaming (`Transform`, `pipeline`) for large data instead of loading into memory.
+
 - Avoid `setInterval` for polling — prefer event-driven patterns or queue-based processing.
 
 ```typescript
@@ -170,8 +181,11 @@ tsconfig.json
 ```
 
 **Rules:**
-- Path aliases required: `@domain/*`, `@application/*`, `@adapters/*` in `tsconfig.json`.
-- No barrel files (`index.ts` re-exporting everything) — they hide boundaries and slow `tsc`.
+
+- Path aliases required: `@domain/*`, `@application/*`, `@adapters/*`in`tsconfig.json`.
+
+- No barrel files (`index.ts`re-exporting everything) — they hide boundaries and slow`tsc`.
+
 - Tests must mirror `src/` directory structure.
 
 **tsconfig.json path aliases:**

@@ -68,6 +68,7 @@ domain→adapter imports. These still represent architectural violations
 that golangci-lint/depguard can detect.
 
 **Correct pattern:**
+
 ```go
 // internal/domain/user.go — OK
 // No imports from internal/adapters or internal/infrastructure
@@ -105,6 +106,7 @@ import (
 ## Tooling Setup
 
 **`golangci-lint` config (`.golangci.yml`):**
+
 ```yaml
 linters:
   enable:
@@ -128,6 +130,7 @@ linters-settings:
 ```
 
 **CI check:**
+
 ```bash
 go vet ./...
 go test -race ./...

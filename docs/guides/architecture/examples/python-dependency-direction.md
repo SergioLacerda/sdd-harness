@@ -38,6 +38,7 @@ guideline G01 {
 ### `domain_imports_infrastructure`
 
 ```python
+
 # src/domain/user_service.py — VIOLATION
 from src.infrastructure.postgres import PostgresUserRepo  # ← breaks direction
 ```
@@ -46,7 +47,9 @@ from src.infrastructure.postgres import PostgresUserRepo  # ← breaks direction
 PostgreSQL for a different backend requires changes inside the domain.
 
 **Correct pattern:**
+
 ```python
+
 # src/domain/user_service.py — OK
 from src.ports.user_repository import UserRepository  # protocol/interface only
 ```
@@ -54,12 +57,15 @@ from src.ports.user_repository import UserRepository  # protocol/interface only
 ### `app_imports_concrete_adapter`
 
 ```python
+
 # src/application/create_user.py — VIOLATION
 from src.infrastructure.http_client import HttpNotifier  # ← concrete adapter
 ```
 
 **Correct pattern:**
+
 ```python
+
 # src/application/create_user.py — OK
 from src.ports.notifier import Notifier  # inject via DI
 ```
@@ -67,13 +73,16 @@ from src.ports.notifier import Notifier  # inject via DI
 ### `config_or_env_read_inside_domain`
 
 ```python
+
 # src/domain/pricing.py — VIOLATION
 import os
 TAX_RATE = float(os.environ["TAX_RATE"])  # ← infra concern in domain
 ```
 
 **Correct pattern:**
+
 ```python
+
 # src/domain/pricing.py — OK
 def calculate_price(amount: float, tax_rate: float) -> float:
     return amount * (1 + tax_rate)  # injected, not read from env
@@ -84,11 +93,16 @@ def calculate_price(amount: float, tax_rate: float) -> float:
 ## Exception Example (M016 compliant)
 
 ```python
+
 # src/domain/legacy_adapter.py
 from src.infrastructure.legacy_orm import LegacyModel  # type: ignore[import]
+
 # noqa: DOMAIN_IMPORTS_INFRA
+
 # diagnosis: LegacyModel predates ports layer; full migration blocked by Q3 freeze
+
 # evidence: https://github.com/org/repo/issues/4231
+
 # follow_up: issue #4231 — remove before v4.0
 ```
 
@@ -97,6 +111,7 @@ from src.infrastructure.legacy_orm import LegacyModel  # type: ignore[import]
 ## Tooling Setup
 
 **`import-linter` config (`.importlinter`):**
+
 ```ini
 [importlinter]
 root_package = src
@@ -113,6 +128,7 @@ forbidden_modules =
 ```
 
 **CI check:**
+
 ```bash
 ruff check .
 mypy src/

@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Implement M019 (Governance Federation Mandate), the `.sdd/plugins/` two-tier registry infrastructure, explicit `governance_adherence:` declarations in all internal skills, and full `/docs` coverage for the plugin federation system.
+**Goal:** Implement M019 (Governance Federation Mandate), the `.sdd/plugins/`two-tier registry infrastructure, explicit`governance_adherence:`declarations in all internal skills, and full`/docs` coverage for the plugin federation system.
 
-**Architecture:** Seven tasks in order. No code changes to Python packages — this is pure governance artifact work: YAML files, Markdown docs, index updates. M017 is untouched. The `.sdd/skills/` directory is untouched structurally; only `skill.yaml` files gain a new block.
+**Architecture:** Seven tasks in order. No code changes to Python packages — this is pure governance artifact work: YAML files, Markdown docs, index updates. M017 is untouched. The `.sdd/skills/`directory is untouched structurally; only`skill.yaml` files gain a new block.
 
 **Tech Stack:** YAML, Markdown, `.sdd/` governance artifacts.
 
@@ -13,6 +13,7 @@
 ### Task 1: M019 in mandates source
 
 **Files:**
+
 - Modify: `.sdd/source/mandates/mandates.md` (append after M018)
 
 **Step 1: Append M019 block**
@@ -20,6 +21,7 @@
 Open `.sdd/source/mandates/mandates.md`. After the M018 block (currently the last entry), append exactly:
 
 ```markdown
+
 ## M019: Governance Federation
 
 **Criticality**: high
@@ -51,6 +53,7 @@ governance_adherence in their skill.yaml to reinforce this contract.
 ```bash
 grep -c "M019" .sdd/source/mandates/mandates.md
 ```
+
 Expected: `1`
 
 **Step 3: Commit message (do not run — list files for user)**
@@ -68,11 +71,13 @@ feat: add M019 Governance Federation mandate to mandates source
 ### Task 2: M019 canonical doc
 
 **Files:**
+
 - Create: `docs/spec/canonical/core/mandates/M019_GOVERNANCE_FEDERATION.md`
 
 **Step 1: Create file**
 
 ```markdown
+
 # Mandate: Governance Federation
 
 **ID:** M019
@@ -110,7 +115,7 @@ environment.
 
 | Mode | Condition | Behavior |
 |------|-----------|----------|
-| `governed` | Full `.sdd/` governance found | HARD mandates enforced, execution contract required, artifacts validated |
+| `governed`| Full`.sdd/` governance found | HARD mandates enforced, execution contract required, artifacts validated |
 | `compatible` | Partial governance found | Adapts to available rules, reports missing context, degrades safely |
 | `standalone` | No governance found | Read-only by default, produces portable artifacts, recommends SDD integration |
 
@@ -123,12 +128,16 @@ See `.sdd/plugins/handshake-protocol.md` for the full registration flow.
 
 Internal skills declare adherence explicitly in `skill.yaml`:
 ```yaml
+
 governance_adherence:
   mode: governed
   respects_hard_mandates: true
   must_follow:
+
     - M017
+
     - M019
+
 ```
 
 ---
@@ -145,7 +154,7 @@ plugins are both correctly declared (M019) and correctly constrained at runtime 
 ## Enforcement Steps
 
 - Verify plugin has performed governance handshake before execution
-- Verify registry entry exists for plugin in `.sdd/plugins/registry.yaml` (external) or `governance_adherence:` block in `skill.yaml` (internal)
+- Verify registry entry exists for plugin in `.sdd/plugins/registry.yaml`(external) or`governance_adherence:`block in`skill.yaml` (internal)
 - Verify plugin respects all HARD mandates when mode=governed
 - Verify GovernanceEvent emitted on registration and on violation
 - Verify internal skills declare `governance_adherence:` in their skill.yaml
@@ -167,6 +176,7 @@ plugins are both correctly declared (M019) and correctly constrained at runtime 
 ```bash
 grep "M019" docs/spec/canonical/core/mandates/M019_GOVERNANCE_FEDERATION.md | head -1
 ```
+
 Expected: `**ID:** M019`
 
 **Step 3: Commit message**
@@ -184,8 +194,11 @@ docs: add M019 Governance Federation canonical mandate document
 ### Task 3: `.sdd/plugins/` directory and artifacts
 
 **Files:**
+
 - Create: `.sdd/plugins/plugin-entry.schema.yaml`
+
 - Create: `.sdd/plugins/registry.yaml`
+
 - Create: `.sdd/plugins/handshake-protocol.md`
 
 **Step 1: Create schema**
@@ -193,8 +206,11 @@ docs: add M019 Governance Federation canonical mandate document
 Create `.sdd/plugins/plugin-entry.schema.yaml`:
 
 ```yaml
+
 # Plugin Registry Entry Schema — v1.0
+
 # All entries in .sdd/plugins/registry.yaml must conform to this schema.
+
 # Mandate: M019 (Governance Federation)
 
 schema_version: "1.0"
@@ -283,25 +299,42 @@ optional_fields:
 Create `.sdd/plugins/registry.yaml`:
 
 ```yaml
+
 # Plugin Registry — SDD Governance Federation
+
 # Version: 1.0
+
 # Mandate: M019 (Governance Federation)
+
 # Protocol: agent-mediated
+
 # Schema: .sdd/plugins/plugin-entry.schema.yaml
 #
+
 # Registration protocol:
+
 #   1. Agent detects .sdd/metadata.json in working directory → SDD governance active
+
 #   2. Agent identifies skill in use
+
 #   3. Agent offers registration to user
+
 #   4. User approves
+
 #   5. Agent validates entry against plugin-entry.schema.yaml
+
 #   6. Agent writes entry under `entries:` below
+
 #   7. GovernanceEvent emitted: type=PLUGIN_REGISTERED
 #
+
 # Re-registration: if entry with same id exists, agent MUST show existing
+
 # entry and ask whether to update or skip. Never silently overwrite.
 #
+
 # Internal SDD skills (.sdd/skills/) are governed via governance_adherence:
+
 # blocks in their own skill.yaml files. They do NOT appear here.
 
 version: "1.0"
@@ -315,6 +348,7 @@ entries: []
 Create `.sdd/plugins/handshake-protocol.md`:
 
 ```markdown
+
 # Plugin Registration Handshake Protocol
 
 **Status:** Active
@@ -362,17 +396,17 @@ If user declines, no entry is written. Flow ends.
 
 Agent reads the skill's `skill.yaml` and extracts:
 - `id`, `name`, `version` → direct mapping
-- `risk_score` → maps to registry `risk` field
-- capabilities from `outcomes` or `capabilities` field
-- `handles` from `triggers` or task types
+- `risk_score`→ maps to registry`risk` field
+- capabilities from `outcomes`or`capabilities` field
+- `handles`from`triggers` or task types
 
 **7. Determine governance mode**
 
 | Condition | Mode |
 |-----------|------|
-| `.sdd/metadata.json` present + all HARD mandates resolvable | `governed` |
-| `.sdd/metadata.json` present but incomplete governance | `compatible` |
-| No `.sdd/` found (should not reach this step) | `standalone` |
+| `.sdd/metadata.json`present + all HARD mandates resolvable |`governed` |
+| `.sdd/metadata.json`present but incomplete governance |`compatible` |
+| No `.sdd/`found (should not reach this step) |`standalone` |
 
 **8. Validate entry**
 
@@ -382,38 +416,53 @@ missing fields and asks user to provide them.
 
 **9. Write entry**
 
-Agent appends the validated entry to `registry.yaml` under `entries:`.
+Agent appends the validated entry to `registry.yaml`under`entries:`.
 
 Example entry written:
 ```yaml
+
 entries:
+
   - id: brainstorming
+
     name: Brainstorming Skill
     version: "1.0.0"
     risk: read_only
     skill_path: ~/.claude/skills/brainstorming
     capabilities:
+
       - exploratory_analysis
+
       - option_discovery
+
       - tradeoff_mapping
+
       - design_session
+
     governance:
       mode: governed
       respects_hard_mandates: true
       must_follow:
+
         - M019
+
     handles:
+
       - exploratory_analysis
+
       - design_session
+
     source_policy: when_relevant
     registered_at: "2026-06-05T00:00:00Z"
     registered_by: "claude-sonnet-4-6"
+
 ```
 
 **10. Emit GovernanceEvent**
 
 Agent emits to `.sdd/runtime/compliance-events.jsonl`:
 ```json
+
 {
   "event_type": "PLUGIN_REGISTERED",
   "plugin_id": "<id>",
@@ -421,6 +470,7 @@ Agent emits to `.sdd/runtime/compliance-events.jsonl`:
   "severity": "info",
   "timestamp": "<ISO8601>"
 }
+
 ```
 
 ---
@@ -440,7 +490,7 @@ Agent MUST NOT silently overwrite an existing entry.
 
 ## Internal Skills
 
-Skills under `.sdd/skills/` are governed via `governance_adherence:` in their
+Skills under `.sdd/skills/`are governed via`governance_adherence:` in their
 own `skill.yaml`. They MUST NOT appear in this registry.
 
 Their contract is enforced at load time, not at registration time.
@@ -451,6 +501,7 @@ Their contract is enforced at load time, not at registration time.
 ```bash
 ls .sdd/plugins/
 ```
+
 Expected: `handshake-protocol.md  plugin-entry.schema.yaml  registry.yaml`
 
 **Step 5: Commit message**
@@ -470,13 +521,21 @@ feat: add .sdd/plugins/ registry infrastructure for M019 governance federation
 ### Task 4: `governance_adherence:` in internal skills
 
 **Files:**
+
 - Modify: `.sdd/skills/sdd-ask/skill.yaml`
+
 - Modify: `.sdd/skills/sdd-compress-context/skill.yaml`
+
 - Modify: `.sdd/skills/sdd-converge/skill.yaml`
+
 - Modify: `.sdd/skills/sdd-correct/skill.yaml`
+
 - Modify: `.sdd/skills/sdd-diagnose/skill.yaml`
+
 - Modify: `.sdd/skills/sdd-review-architecture/skill.yaml`
+
 - Modify: `.sdd/skills/sdd-stabilize/skill.yaml`
+
 - Modify: `.sdd/skills/sdd-validate-governance/skill.yaml`
 
 **Step 1: Read each skill.yaml to find the end of file**
@@ -497,12 +556,14 @@ governance_adherence:
 ```bash
 grep -l "governance_adherence" .sdd/skills/*/skill.yaml | wc -l
 ```
+
 Expected: `8`
 
 ```bash
 grep "M019" .sdd/skills/sdd-ask/skill.yaml
 ```
-Expected: `    - M019`
+
+Expected: `- M019`
 
 **Step 3: Commit message**
 
@@ -526,8 +587,11 @@ feat: declare governance_adherence in all internal SDD skills (M019)
 ### Task 5: `docs/guides/plugins/` — three new documents
 
 **Files:**
+
 - Create: `docs/guides/plugins/plugin-governance-overview.md`
+
 - Create: `docs/guides/plugins/registration-protocol.md`
+
 - Create: `docs/guides/plugins/plugin-entry-reference.md`
 
 **Step 1: Create overview**
@@ -535,6 +599,7 @@ feat: declare governance_adherence in all internal SDD skills (M019)
 Create `docs/guides/plugins/plugin-governance-overview.md`:
 
 ```markdown
+
 # Plugin Governance Overview
 
 **Status:** Active
@@ -559,7 +624,7 @@ Create `docs/guides/plugins/plugin-governance-overview.md`:
 
 | Tier | Location | Governed by |
 |------|----------|-------------|
-| Internal SDD skills | `.sdd/skills/` | `governance_adherence:` block in `skill.yaml` |
+| Internal SDD skills | `.sdd/skills/`|`governance_adherence:`block in`skill.yaml` |
 | External plugins | Installed elsewhere (e.g. `~/.claude/skills/`) | Entry in `.sdd/plugins/registry.yaml` via agent-mediated handshake |
 
 Internal skills are part of SDD core. They do not appear in the plugin registry.
@@ -582,9 +647,9 @@ M017 and M019 are complementary. M019 governs entry; M017 governs execution.
 
 | Mode | When | Behavior |
 |------|------|----------|
-| `governed` | Full `.sdd/` governance found, all HARD mandates resolvable | HARD mandates enforced, execution contract required, artifacts validated against schema |
-| `compatible` | `.sdd/` found but governance is partial or incomplete | Adapts to available rules, reports missing governance context, degrades safely |
-| `standalone` | No `.sdd/` governance found | Operates read-only by default, produces portable artifacts, recommends SDD integration |
+| `governed`| Full`.sdd/` governance found, all HARD mandates resolvable | HARD mandates enforced, execution contract required, artifacts validated against schema |
+| `compatible`|`.sdd/` found but governance is partial or incomplete | Adapts to available rules, reports missing governance context, degrades safely |
+| `standalone`| No`.sdd/` governance found | Operates read-only by default, produces portable artifacts, recommends SDD integration |
 
 The agent determines the mode at registration time based on what governance it finds.
 
@@ -627,6 +692,7 @@ The agent determines the mode at registration time based on what governance it f
 Create `docs/guides/plugins/registration-protocol.md`:
 
 ```markdown
+
 # Plugin Registration Protocol
 
 **Status:** Active
@@ -650,6 +716,7 @@ what has actually been used and approved in this project.
 ## Registration Flow
 
 ```
+
 Agent detects .sdd/metadata.json
         ↓
 Agent identifies active skill
@@ -668,6 +735,7 @@ Agent validates entry against plugin-entry.schema.yaml
 Agent writes entry to registry.yaml
         ↓
 GovernanceEvent emitted: PLUGIN_REGISTERED
+
 ```
 
 ---
@@ -678,9 +746,9 @@ The agent determines mode based on what governance it finds at registration time
 
 | Condition | Mode assigned |
 |-----------|--------------|
-| `.sdd/metadata.json` present + all HARD mandates resolvable | `governed` |
-| `.sdd/metadata.json` present but governance incomplete | `compatible` |
-| No `.sdd/` found | `standalone` (registration deferred) |
+| `.sdd/metadata.json`present + all HARD mandates resolvable |`governed` |
+| `.sdd/metadata.json`present but governance incomplete |`compatible` |
+| No `.sdd/`found |`standalone` (registration deferred) |
 
 ---
 
@@ -703,8 +771,8 @@ Two events are relevant to plugin governance:
 
 | Event type | When emitted | Severity |
 |------------|-------------|---------|
-| `PLUGIN_REGISTERED` | Plugin successfully registered | `info` |
-| `PLUGIN_GOVERNANCE_VIOLATION` | Plugin violated M019 or M017 at runtime | `critical` |
+| `PLUGIN_REGISTERED`| Plugin successfully registered |`info` |
+| `PLUGIN_GOVERNANCE_VIOLATION`| Plugin violated M019 or M017 at runtime |`critical` |
 
 Events are written to `.sdd/runtime/compliance-events.jsonl`.
 
@@ -724,6 +792,7 @@ See [Plugin Governance Overview](plugin-governance-overview.md) for the two-tier
 Create `docs/guides/plugins/plugin-entry-reference.md`:
 
 ```markdown
+
 # Plugin Entry Reference
 
 **Status:** Active
@@ -750,7 +819,7 @@ Create `docs/guides/plugins/plugin-entry-reference.md`:
 - **Example:** `1.0.0`
 
 ### `risk`
-- **Type:** enum — `read_only` | `read_write` | `controlled`
+- **Type:** enum — `read_only`|`read_write`|`controlled`
 - **Description:**
   - `read_only`: plugin only reads context and produces analysis artifacts
   - `read_write`: plugin may write artifacts within declared scope
@@ -769,8 +838,8 @@ Create `docs/guides/plugins/plugin-entry-reference.md`:
 ### `governance`
 - **Type:** object
 - **Fields:**
-  - `mode` (enum: `governed` | `compatible` | `standalone`) — determined at registration time
-  - `respects_hard_mandates` (bool) — must be `true` for `governed` mode
+  - `mode`(enum:`governed`|`compatible`|`standalone`) — determined at registration time
+  - `respects_hard_mandates`(bool) — must be`true`for`governed` mode
   - `must_follow` (list of mandate IDs) — mandates the plugin commits to
 
 ---
@@ -783,7 +852,7 @@ Create `docs/guides/plugins/plugin-entry-reference.md`:
 - **Example:** `["exploratory_analysis", "design_session"]`
 
 ### `source_policy`
-- **Type:** enum — `always` | `when_relevant` | `never`
+- **Type:** enum — `always`|`when_relevant`|`never`
 - **Default:** `when_relevant`
 - **Description:** When the plugin consults SDD governance sources (mandates, guidelines, ADRs).
 
@@ -805,34 +874,47 @@ Create `docs/guides/plugins/plugin-entry-reference.md`:
 ## Complete Example Entry
 
 ```yaml
+
 - id: brainstorming
+
   name: Brainstorming Skill
   version: "1.0.0"
   risk: read_only
   skill_path: ~/.claude/skills/brainstorming
   capabilities:
+
     - exploratory_analysis
+
     - option_discovery
+
     - tradeoff_mapping
+
     - design_session
+
   governance:
     mode: governed
     respects_hard_mandates: true
     must_follow:
+
       - M019
+
   handles:
+
     - exploratory_analysis
+
     - design_session
+
   source_policy: when_relevant
   registered_at: "2026-06-05T00:00:00Z"
   registered_by: "claude-sonnet-4-6"
+
 ```
 
 ---
 
 ## What Does NOT Go Here
 
-- Internal SDD skills (`.sdd/skills/`) — governed via `governance_adherence:` in `skill.yaml`
+- Internal SDD skills (`.sdd/skills/`) — governed via `governance_adherence:`in`skill.yaml`
 - Plugin-instance documentation (requirements-strategist, openspec, etc.) — created when the plugin is implemented
 - Governance rules — these live in mandates, not in registry entries
 ```
@@ -842,6 +924,7 @@ Create `docs/guides/plugins/plugin-entry-reference.md`:
 ```bash
 ls docs/guides/plugins/
 ```
+
 Expected: `plugin-entry-reference.md  plugin-governance-overview.md  registration-protocol.md`
 
 **Step 5: Commit message**
@@ -861,8 +944,11 @@ docs: add plugin governance guide (overview, registration protocol, entry refere
 ### Task 6: Update three indices
 
 **Files:**
+
 - Modify: `docs/spec/canonical/core/mandates/INDEX.md`
+
 - Modify: `docs/spec/canonical/INDEX.md`
+
 - Modify: `docs/indices/MASTER_INDEX.md`
 
 **Step 1: Update mandates INDEX**
@@ -878,6 +964,7 @@ In `docs/spec/canonical/core/mandates/INDEX.md`, find the table row for M017 and
 In `docs/spec/canonical/INDEX.md`, after the `## 📐 Language Engineering Guidelines (M018)` section, add:
 
 ```markdown
+
 ## 🔌 Plugin Governance (M019)
 
 *How external plugins and skills declare identity, negotiate capabilities, and adhere to host governance.*
@@ -891,7 +978,7 @@ In `docs/spec/canonical/INDEX.md`, after the `## 📐 Language Engineering Guide
 
 **Step 3: Update MASTER_INDEX**
 
-In `docs/indices/MASTER_INDEX.md`, find the `## 📂 Core Pillars` section and add after the `guides/guidelines/` entry:
+In `docs/indices/MASTER_INDEX.md`, find the `## 📂 Core Pillars`section and add after the`guides/guidelines/` entry:
 
 ```markdown
 - **`guides/plugins/`**: [Plugin Governance](../guides/plugins/plugin-governance-overview.md) (M019) | [Registration Protocol](../guides/plugins/registration-protocol.md) · [Entry Reference](../guides/plugins/plugin-entry-reference.md)
@@ -904,6 +991,7 @@ grep "M019" docs/spec/canonical/core/mandates/INDEX.md
 grep "Plugin Governance" docs/spec/canonical/INDEX.md
 grep "guides/plugins" docs/indices/MASTER_INDEX.md
 ```
+
 Expected: each returns one matching line.
 
 **Step 5: Commit message**
@@ -923,7 +1011,8 @@ docs: update indices with M019 and plugin governance guide links
 ### Task 7: Move analysis source file to done
 
 **Files:**
-- Move: `.analysis/pending/plugins_governance.md` → `.analysis/done/plugins_governance.md`
+
+- Move: `.analysis/pending/plugins_governance.md`→`.analysis/done/plugins_governance.md`
 
 **Step 1: Verify source exists**
 
@@ -960,6 +1049,7 @@ chore: move plugins_governance raw analysis to done — fully integrated into go
 After all 7 tasks:
 
 ```bash
+
 # M019 in mandates source
 grep "M019" .sdd/source/mandates/mandates.md
 

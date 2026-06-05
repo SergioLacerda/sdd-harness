@@ -16,10 +16,15 @@ golangci-lint run
 ```
 
 **Rules:**
+
 - All errors must be checked — never use `_ = err` without a documented reason.
+
 - Errors must be wrapped with context using `fmt.Errorf("...: %w", err)`.
+
 - No `panic` for expected application errors — return errors explicitly.
+
 - Every goroutine must have a cancellation path via `context.Context`.
+
 - Package names must be lowercase, single words reflecting cohesive behavior.
 
 **Install:**
@@ -34,7 +39,7 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 See [go-dependency-direction.md](../architecture/examples/go-dependency-direction.md) for full reference.
 
-**Summary:** `internal/domain/` and `internal/app/` must not import `internal/adapters/`. Use `golangci-lint` with `depguard` to enforce in CI.
+**Summary:** `internal/domain/`and`internal/app/`must not import`internal/adapters/`. Use `golangci-lint`with`depguard` to enforce in CI.
 
 ---
 
@@ -128,10 +133,15 @@ go tool pprof cpu.prof
 ```
 
 **Key rules:**
+
 - Profile with `pprof` before optimizing any hot path.
+
 - Use `sync.Pool` for frequently allocated short-lived objects.
+
 - Avoid goroutine spawning per request without a worker pool.
+
 - Use buffered channels intentionally — document the buffer size rationale.
+
 - Prefer value types over pointers for small structs in hot paths.
 
 ---
@@ -159,8 +169,11 @@ go.sum
 ```
 
 **Rules:**
+
 - Avoid `internal/common`, `internal/utils` — name packages by behavior.
+
 - No circular imports — enforced by the Go compiler.
+
 - Package boundaries define architecture boundaries.
 
 ---

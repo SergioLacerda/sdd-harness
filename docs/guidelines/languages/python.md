@@ -16,17 +16,24 @@ mypy .
 ```
 
 **Rules:**
+
 - All public functions and methods must have type annotations.
+
 - No `bare except` — always catch specific exceptions.
-- No `Any` as a default type. Use `Protocol` for structural contracts.
+
+- No `Any`as a default type. Use`Protocol` for structural contracts.
+
 - No import-time side effects (network I/O, global mutation, env reads at import).
+
 - Use typed models (`dataclass`, `TypedDict`, `pydantic.BaseModel`) for structured data.
+
 - Inject dependencies via parameter — never via `import module_with_global_state`.
 
 **Install:**
 
 ```bash
 pip install ruff mypy
+
 # or with poetry:
 poetry add --group dev ruff mypy
 ```
@@ -37,7 +44,7 @@ poetry add --group dev ruff mypy
 
 See [python-dependency-direction.md](../architecture/examples/python-dependency-direction.md) for full reference.
 
-**Summary:** `domain/` and `application/` must not import from `infrastructure/` or `adapters/`. Use `import-linter` to enforce in CI.
+**Summary:** `domain/`and`application/`must not import from`infrastructure/`or`adapters/`. Use `import-linter` to enforce in CI.
 
 ---
 
@@ -46,6 +53,7 @@ See [python-dependency-direction.md](../architecture/examples/python-dependency-
 ### Bare Except
 
 ```python
+
 # VIOLATION
 try:
     process()
@@ -62,6 +70,7 @@ except SpecificError as exc:
 ### Any-Driven Development
 
 ```python
+
 # VIOLATION
 def process(data: Any) -> Any:
     return data["key"]
@@ -78,6 +87,7 @@ Monkeypatching is for test doubles at real boundaries, not a substitute for depe
 ### Import-Time Side Effects
 
 ```python
+
 # VIOLATION — connects to DB at import time
 import psycopg2
 conn = psycopg2.connect(os.environ["DB_URL"])  # runs on import
@@ -96,15 +106,21 @@ def create_connection(url: str) -> Connection:
 ```bash
 python -m cProfile -o profile.out your_script.py
 python -m pstats profile.out
+
 # or with pytest-benchmark:
 pytest --benchmark-only
 ```
 
 **Key rules:**
+
 - Avoid creating large lists when a generator suffices.
+
 - Batch database calls — never N+1.
+
 - Cache only when invalidation strategy is explicit (TTL or event-driven).
+
 - Use `async`/`await` for I/O-bound work; never block the event loop with CPU work.
+
 - Add benchmarks before and after non-trivial performance changes.
 
 ---
@@ -134,8 +150,11 @@ pyproject.toml
 ```
 
 **Rules:**
+
 - No `utils/`, `helpers/`, `common/` — name modules by business capability.
+
 - Tests must mirror `src/` structure exactly.
+
 - Use `src/` layout (not flat) to prevent import accidents.
 
 ---

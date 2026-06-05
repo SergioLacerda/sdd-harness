@@ -14,7 +14,9 @@ concrete enforcement for a specific technology stack. They live in
 onboarding time based on the declared target language.
 
 **Separation principle:**
+
 - Canonical mandates (`mandate.dsl`) — zero language content, always applied
+
 - Language adapter guidelines (`guidelines.dsl`) — tagged, filtered per client
 
 ---
@@ -52,14 +54,14 @@ Every language adapter guideline MUST declare all of these fields:
 
 | Field | Purpose |
 |-------|---------|
-| `type` | `HARD` blocks CI; `SOFT` is advisory |
-| `title` | Human-readable, format: `<mandate> — <language>` |
+| `type`|`HARD`blocks CI;`SOFT` is advisory |
+| `title`| Human-readable, format:`<mandate> — <language>` |
 | `description` | One sentence: what is being enforced and why |
 | `category` | Domain category matching the canonical mandate |
 | `mandate_ref` | ID of the canonical mandate this adapts |
 | `tags` | Language and tool identifiers (used by Phase 4 filter) |
-| `enforcement.gate` | When it runs: `pre-commit`, `ci`, or `pr` |
-| `enforcement.severity` | `block` (hard gate) or `warn` (advisory) |
+| `enforcement.gate`| When it runs:`pre-commit`, `ci`, or `pr` |
+| `enforcement.severity`|`block`(hard gate) or`warn` (advisory) |
 | `enforcement.tools` | Concrete commands with required flags |
 | `violations` | Named violation patterns this catches |
 | `exception_policy` | Waiver requirements — must inherit M016 contract |
@@ -75,10 +77,10 @@ Language identifiers used by the wizard:
 
 | Language | Primary tag | Tool tags (examples) |
 |----------|-------------|----------------------|
-| Python | `python` | `ruff`, `mypy`, `pytest`, `import-linter` |
-| Go | `go` | `golangci-lint`, `go-vet` |
-| Java | `java` | `archunit`, `checkstyle`, `pmd`, `spotbugs`, `maven`, `gradle` |
-| JavaScript/TypeScript | `js` | `eslint`, `tsc`, `typescript`, `jest`, `vitest`, `npm` |
+| Python | `python`|`ruff`, `mypy`, `pytest`, `import-linter` |
+| Go | `go`|`golangci-lint`, `go-vet` |
+| Java | `java`|`archunit`, `checkstyle`, `pmd`, `spotbugs`, `maven`, `gradle` |
+| JavaScript/TypeScript | `js`|`eslint`, `tsc`, `typescript`, `jest`, `vitest`, `npm` |
 
 Guidelines without `tags` are universal and reach every client regardless
 of declared language. This is the expected shape for contextual language
@@ -86,6 +88,7 @@ guidelines that depend on `M011` but do not target a programming language,
 such as:
 
 - `G021` — interaction/chat/UI preference surfaces
+
 - `G022` — workspace-local notes and analysis surfaces
 
 ---
@@ -118,9 +121,13 @@ exception_policy: {
 ```
 
 - `diagnosis`: written explanation of why the rule cannot be followed
+
 - `evidence`: code comment or PR link documenting the exception
+
 - `temporary_marker`: `# noqa`, `// nolint`, `# type: ignore` with justification
+
 - `follow_up_task`: linked task to remove the exception
+
 - `ttl`: how long the exception is valid before mandatory review
 
 ---
@@ -130,15 +137,21 @@ exception_policy: {
 ### By topic (Dependency Direction — M001)
 
 - [Python — Dependency Direction](examples/python-dependency-direction.md) (G01)
+
 - [Go — Dependency Direction](examples/go-dependency-direction.md) (G02)
+
 - [Java — Dependency Direction](examples/java-dependency-direction.md) (G03)
+
 - [Node.js / TypeScript — Dependency Direction](examples/nodejs-typescript-dependency-direction.md) (G04)
 
 ### Full language reference (all topics: code style, anti-patterns, performance, structure)
 
 - [Python Engineering Guidelines](../../guidelines/languages/python.md) — G01, G05, G09, G13, G17
+
 - [Go Engineering Guidelines](../../guidelines/languages/go.md) — G02, G06, G10, G14, G18
+
 - [Java Engineering Guidelines](../../guidelines/languages/java.md) — G03, G07, G11, G15, G19
+
 - [TypeScript Engineering Guidelines](../../guidelines/languages/typescript.md) — G04, G08, G12, G16, G20
 
 See complete DSL: `.sdd/source/guidelines.dsl` — G01–G022 covering language adapters plus contextual language-preference guidance.

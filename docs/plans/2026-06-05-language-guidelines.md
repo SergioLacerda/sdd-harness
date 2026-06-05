@@ -15,7 +15,9 @@
 ## Task 1: Add M018 to mandates source files
 
 **Files:**
+
 - Modify: `.sdd/source/mandates/mandates.md`
+
 - Modify: `.sdd/source/mandate.md`
 
 **Step 1: Add M018 block to `.sdd/source/mandates/mandates.md`**
@@ -23,6 +25,7 @@
 Append after the M017 block:
 
 ```markdown
+
 ## M018: Code Quality Baseline
 
 **Criticality**: high
@@ -36,6 +39,7 @@ Every function must have a single responsibility and fit within 20 lines. Files 
 Append after the M017 line:
 
 ```markdown
+
 ## M018: Code Quality Baseline
 ```
 
@@ -50,7 +54,9 @@ Expected: two matches, one per file.
 **Step 4: Commit**
 
 Files to stage:
+
 - `.sdd/source/mandates/mandates.md`
+
 - `.sdd/source/mandate.md`
 
 Message: `feat: add M018 Code Quality Baseline mandate`
@@ -60,6 +66,7 @@ Message: `feat: add M018 Code Quality Baseline mandate`
 ## Task 2: Enrich M001, M002, M010, M016 descriptions
 
 **Files:**
+
 - Modify: `.sdd/source/mandates/mandates.md`
 
 **Step 1: Replace "No description available" for M001**
@@ -99,6 +106,7 @@ Expected: output is a number lower than before (M003, M005–M009, M011, M015 st
 **Step 6: Commit**
 
 Files to stage:
+
 - `.sdd/source/mandates/mandates.md`
 
 Message: `docs: enrich M001 M002 M010 M016 mandate descriptions from raw engineering material`
@@ -108,17 +116,21 @@ Message: `docs: enrich M001 M002 M010 M016 mandate descriptions from raw enginee
 ## Task 3: Add Code Style guidelines G05–G08 to guidelines.dsl
 
 **Files:**
+
 - Modify: `.sdd/source/guidelines.dsl`
+
 - Modify: `packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/phase_4_filter_guidelines.py`
 
-**Step 1: Add `gofmt` to LANGUAGE_TAGS for "go" in `phase_4_filter_guidelines.py`**
+**Step 1: Add `gofmt`to LANGUAGE_TAGS for "go" in`phase_4_filter_guidelines.py`**
 
 Find:
+
 ```python
 "go": {"go", "golang", "golangci-lint", "go-vet"},
 ```
 
 Replace with:
+
 ```python
 "go": {"go", "golang", "golangci-lint", "go-vet", "gofmt"},
 ```
@@ -209,7 +221,9 @@ Expected: prints list including G01–G08, then `OK`.
 **Step 5: Commit**
 
 Files to stage:
+
 - `.sdd/source/guidelines.dsl`
+
 - `packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/phase_4_filter_guidelines.py`
 
 Message: `feat: add G05-G08 code style guidelines for Python Go Java TypeScript`
@@ -219,6 +233,7 @@ Message: `feat: add G05-G08 code style guidelines for Python Go Java TypeScript`
 ## Task 4: Add Anti-pattern guidelines G09–G12 to guidelines.dsl
 
 **Files:**
+
 - Modify: `.sdd/source/guidelines.dsl`
 
 **Step 1: Append G09–G12**
@@ -290,6 +305,7 @@ print('All G01-G12 present. OK')
 **Step 3: Commit**
 
 Files to stage:
+
 - `.sdd/source/guidelines.dsl`
 
 Message: `feat: add G09-G12 anti-pattern guidelines for Python Go Java TypeScript`
@@ -299,6 +315,7 @@ Message: `feat: add G09-G12 anti-pattern guidelines for Python Go Java TypeScrip
 ## Task 5: Add Performance guidelines G13–G16 to guidelines.dsl
 
 **Files:**
+
 - Modify: `.sdd/source/guidelines.dsl`
 
 **Step 1: Append G13–G16**
@@ -370,6 +387,7 @@ print('All G01-G16 present. OK')
 **Step 3: Commit**
 
 Files to stage:
+
 - `.sdd/source/guidelines.dsl`
 
 Message: `feat: add G13-G16 performance guidelines for Python Go Java TypeScript`
@@ -379,6 +397,7 @@ Message: `feat: add G13-G16 performance guidelines for Python Go Java TypeScript
 ## Task 6: Add Structure guidelines G17–G20 to guidelines.dsl
 
 **Files:**
+
 - Modify: `.sdd/source/guidelines.dsl`
 
 **Step 1: Append G17–G20**
@@ -483,6 +502,7 @@ Expected: each language receives exactly its 5 guidelines (1 per topic group).
 **Step 4: Commit**
 
 Files to stage:
+
 - `.sdd/source/guidelines.dsl`
 
 Message: `feat: add G17-G20 project structure guidelines and verify full Phase 4 filtering`
@@ -492,11 +512,13 @@ Message: `feat: add G17-G20 project structure guidelines and verify full Phase 4
 ## Task 7: Create core-engineering-principles.md
 
 **Files:**
+
 - Create: `docs/guidelines/core-engineering-principles.md`
 
 **Step 1: Create the file**
 
 ```markdown
+
 # Core Engineering Principles (M018)
 
 **Mandate:** M018 — Code Quality Baseline
@@ -544,7 +566,7 @@ Message: `feat: add G17-G20 project structure guidelines and verify full Phase 4
 ## Comments
 
 - Comments document WHY and provenance: hidden constraints, bug references, upstream limitations.
-- Skip `// increment counter` above `i++`. The code explains WHAT.
+- Skip `// increment counter`above`i++`. The code explains WHAT.
 - Public functions: docstring with intent + one usage example.
 - Reference issue numbers or commit SHAs when a line exists because of a specific bug.
 
@@ -576,6 +598,7 @@ ls docs/guidelines/core-engineering-principles.md && echo "OK"
 **Step 3: Commit**
 
 Files to stage:
+
 - `docs/guidelines/core-engineering-principles.md`
 
 Message: `docs: add core-engineering-principles.md as human reference for M018`
@@ -585,11 +608,13 @@ Message: `docs: add core-engineering-principles.md as human reference for M018`
 ## Task 8: Create docs/guidelines/languages/python.md
 
 **Files:**
+
 - Create: `docs/guidelines/languages/python.md`
 
 **Step 1: Create the file**
 
 ```markdown
+
 # Python Engineering Guidelines
 
 **DSL guidelines active when wizard language = Python:** G01, G05, G09, G13, G17
@@ -602,24 +627,30 @@ Message: `docs: add core-engineering-principles.md as human reference for M018`
 **Tools required:**
 
 ```bash
+
 ruff check .
 ruff format --check .
 mypy .
+
 ```
 
 **Rules:**
 - All public functions and methods must have type annotations.
 - No `bare except` — always catch specific exceptions.
-- No `Any` as a default type. Use `Protocol` for structural contracts.
+- No `Any`as a default type. Use`Protocol` for structural contracts.
 - No import-time side effects (network I/O, global mutation, env reads at import).
 - Use typed models (`dataclass`, `TypedDict`, `pydantic.BaseModel`) for structured data.
 - Inject dependencies via parameter — never via `import module_with_global_state`.
 
 **Install:**
 ```bash
+
 pip install ruff mypy
+
 # or with poetry:
+
 poetry add --group dev ruff mypy
+
 ```
 
 ---
@@ -628,7 +659,7 @@ poetry add --group dev ruff mypy
 
 See [python-dependency-direction.md](../examples/python-dependency-direction.md) for full reference.
 
-**Summary:** `domain/` and `application/` must not import from `infrastructure/` or `adapters/`. Use `import-linter` to enforce in CI.
+**Summary:** `domain/`and`application/`must not import from`infrastructure/`or`adapters/`. Use `import-linter` to enforce in CI.
 
 ---
 
@@ -637,29 +668,37 @@ See [python-dependency-direction.md](../examples/python-dependency-direction.md)
 ### Bare Except
 
 ```python
+
 # VIOLATION
+
 try:
     process()
 except:
     pass
 
 # OK
+
 try:
     process()
 except SpecificError as exc:
     raise ProcessingError("failed to process item") from exc
+
 ```
 
 ### Any-Driven Development
 
 ```python
+
 # VIOLATION
+
 def process(data: Any) -> Any:
     return data["key"]
 
 # OK
+
 def process(data: UserRequest) -> UserResponse:
     return UserResponse(id=data.user_id)
+
 ```
 
 ### Monkeypatch Architecture
@@ -669,13 +708,17 @@ Monkeypatching is for test doubles at real boundaries, not a substitute for depe
 ### Import-Time Side Effects
 
 ```python
+
 # VIOLATION — connects to DB at import time
+
 import psycopg2
 conn = psycopg2.connect(os.environ["DB_URL"])  # runs on import
 
 # OK — explicit initialization
+
 def create_connection(url: str) -> Connection:
     return psycopg2.connect(url)
+
 ```
 
 ---
@@ -684,10 +727,14 @@ def create_connection(url: str) -> Connection:
 
 **Measure first:**
 ```bash
+
 python -m cProfile -o profile.out your_script.py
 python -m pstats profile.out
+
 # or with pytest-benchmark:
+
 pytest --benchmark-only
+
 ```
 
 **Key rules:**
@@ -702,6 +749,7 @@ pytest --benchmark-only
 ## 5. Project Structure (G17 — SOFT)
 
 ```
+
 src/
   {package}/
     domain/          ← business rules; zero framework imports
@@ -721,6 +769,7 @@ tests/               ← mirrors src/{package}/
   application/
   adapters/
 pyproject.toml
+
 ```
 
 **Rules:**
@@ -733,11 +782,13 @@ pyproject.toml
 ## 6. CI Checklist
 
 ```bash
+
 ruff check .              # linting
 ruff format --check .     # formatting
 mypy .                    # type checking
 pytest                    # tests
 import-linter             # architecture boundary check (optional, see G01)
+
 ```
 
 Full CI YAML example: see [python-dependency-direction.md](../examples/python-dependency-direction.md#ci-setup)
@@ -752,6 +803,7 @@ ls docs/guidelines/languages/python.md && wc -l docs/guidelines/languages/python
 **Step 3: Commit**
 
 Files to stage:
+
 - `docs/guidelines/languages/python.md`
 
 Message: `docs: add Python engineering guidelines reference page`
@@ -761,17 +813,24 @@ Message: `docs: add Python engineering guidelines reference page`
 ## Task 9: Create docs/guidelines/languages/go.md
 
 **Files:**
+
 - Create: `docs/guidelines/languages/go.md`
 
 Content follows the same 6-section structure as python.md — Go-specific:
+
 - Section 1 Code Style (G06): tools = `gofmt`, `golangci-lint`, `go vet`
+
 - Section 2 Architecture (G02): link to `go-dependency-direction.md`
+
 - Section 3 Anti-Patterns (G10): ignored errors, panic as control flow, goroutine leaks, package dumping ground
+
 - Section 4 Performance (G14): pprof, sync.Pool, go test -bench -benchmem
+
 - Section 5 Structure (G18): cmd/, internal/domain/, internal/adapters/, internal/ports/
+
 - Section 6 CI Checklist: `go test ./...`, `go test -race ./...`, `go vet ./...`, `golangci-lint run`
 
-**Step 1: Create `docs/guidelines/languages/go.md` using the structure above with Go-specific content from the raw material in `.analysis/pending/language/antipatterns.md` (sections 6.x) and `.analysis/pending/language/base_2.md` (Go section).**
+**Step 1: Create `docs/guidelines/languages/go.md`using the structure above with Go-specific content from the raw material in`.analysis/pending/language/antipatterns.md`(sections 6.x) and`.analysis/pending/language/base_2.md` (Go section).**
 
 **Step 2: Verify file created**
 
@@ -782,6 +841,7 @@ ls docs/guidelines/languages/go.md && wc -l docs/guidelines/languages/go.md
 **Step 3: Commit**
 
 Files to stage:
+
 - `docs/guidelines/languages/go.md`
 
 Message: `docs: add Go engineering guidelines reference page`
@@ -791,17 +851,24 @@ Message: `docs: add Go engineering guidelines reference page`
 ## Task 10: Create docs/guidelines/languages/java.md
 
 **Files:**
+
 - Create: `docs/guidelines/languages/java.md`
 
 Content follows the same 6-section structure — Java-specific:
+
 - Section 1 Code Style (G07): tools = `mvn verify`, Checkstyle, PMD, SpotBugs
+
 - Section 2 Architecture (G03): link to `java-dependency-direction.md`
+
 - Section 3 Anti-Patterns (G11): business logic in controller, framework-coupled domain, exception swallowing, over-engineered inheritance
+
 - Section 4 Performance (G15): JMH, StringBuilder in loops, connection pooling, lazy loading
+
 - Section 5 Structure (G19): `com.{org}.{app}.{domain,application,adapters,infrastructure}` packages
+
 - Section 6 CI Checklist: `mvn verify` (includes ArchUnit + Checkstyle + tests)
 
-**Step 1: Create `docs/guidelines/languages/java.md` using the structure above with Java-specific content from `.analysis/pending/language/antipatterns.md` (sections 7.x) and `.analysis/pending/language/performance.md` (section 6) and `.analysis/pending/language/base_2.md` (Java section).**
+**Step 1: Create `docs/guidelines/languages/java.md`using the structure above with Java-specific content from`.analysis/pending/language/antipatterns.md`(sections 7.x) and`.analysis/pending/language/performance.md`(section 6) and`.analysis/pending/language/base_2.md` (Java section).**
 
 **Step 2: Verify file created**
 
@@ -812,6 +879,7 @@ ls docs/guidelines/languages/java.md && wc -l docs/guidelines/languages/java.md
 **Step 3: Commit**
 
 Files to stage:
+
 - `docs/guidelines/languages/java.md`
 
 Message: `docs: add Java engineering guidelines reference page`
@@ -821,17 +889,24 @@ Message: `docs: add Java engineering guidelines reference page`
 ## Task 11: Create docs/guidelines/languages/typescript.md
 
 **Files:**
+
 - Create: `docs/guidelines/languages/typescript.md`
 
 Content follows the same 6-section structure — TypeScript-specific:
+
 - Section 1 Code Style (G08): tools = `tsc --noEmit`, `eslint`, `npm test`; strict mode required
+
 - Section 2 Architecture (G04): link to `nodejs-typescript-dependency-direction.md`
+
 - Section 3 Anti-Patterns (G12): any escape hatch, floating promises, business logic in route handlers, unsafe type assertion
+
 - Section 4 Performance (G16): event loop blocking, N+1 queries, streaming, worker threads
+
 - Section 5 Structure (G20): `src/{domain,application,adapters,infrastructure}/`, path aliases, no barrel files
+
 - Section 6 CI Checklist: `tsc --noEmit`, `eslint . --ext .ts --max-warnings 0`, `npm test`
 
-**Step 1: Create `docs/guidelines/languages/typescript.md` using the structure above with TypeScript-specific content from `.analysis/pending/language/antipatterns.md` (sections 9.x) and `.analysis/pending/language/base_2.md` (Node.js/TypeScript section).**
+**Step 1: Create `docs/guidelines/languages/typescript.md`using the structure above with TypeScript-specific content from`.analysis/pending/language/antipatterns.md`(sections 9.x) and`.analysis/pending/language/base_2.md` (Node.js/TypeScript section).**
 
 **Step 2: Verify file created**
 
@@ -842,6 +917,7 @@ ls docs/guidelines/languages/typescript.md && wc -l docs/guidelines/languages/ty
 **Step 3: Commit**
 
 Files to stage:
+
 - `docs/guidelines/languages/typescript.md`
 
 Message: `docs: add TypeScript engineering guidelines reference page`
@@ -851,8 +927,11 @@ Message: `docs: add TypeScript engineering guidelines reference page`
 ## Task 12: Update index files
 
 **Files:**
+
 - Modify: `docs/indices/MASTER_INDEX.md`
+
 - Modify: `docs/spec/canonical/INDEX.md`
+
 - Modify: `docs/guides/architecture/language-adapter-guidelines.md`
 
 **Step 1: Update `docs/indices/MASTER_INDEX.md`**
@@ -895,6 +974,7 @@ See complete DSL: `.sdd/source/guidelines.dsl` — G01–G20 covering architectu
 In the Examples section, replace the existing links block with:
 
 ```markdown
+
 ### By topic
 
 - [Python — Dependency Direction](examples/python-dependency-direction.md) (G01)
@@ -924,8 +1004,11 @@ Expected: all 3 files listed.
 **Step 5: Commit**
 
 Files to stage:
+
 - `docs/indices/MASTER_INDEX.md`
+
 - `docs/spec/canonical/INDEX.md`
+
 - `docs/guides/architecture/language-adapter-guidelines.md`
 
 Message: `docs: update index files with M018 and G05-G20 language guidelines`
@@ -935,7 +1018,9 @@ Message: `docs: update index files with M018 and G05-G20 language guidelines`
 ## Task 13: Move raw material to done and run existing tests
 
 **Files:**
-- Move: `.analysis/pending/language/` → `.analysis/done/language/`
+
+- Move: `.analysis/pending/language/`→`.analysis/done/language/`
+
 - No test file changes — DSL parsing tests already cover tag extraction
 
 **Step 1: Move raw material directory**
@@ -991,6 +1076,7 @@ for lang in ['python', 'go', 'java', 'js']:
 ```
 
 Expected output:
+
 ```
 Total guidelines in DSL: 20
 python: ['G01', 'G05', 'G09', 'G13', 'G17'] (5 active, 15 filtered out)
@@ -1002,6 +1088,7 @@ js: ['G04', 'G08', 'G12', 'G16', 'G20'] (5 active, 15 filtered out)
 **Step 6: Final commit**
 
 Files to stage:
+
 - `.analysis/done/language/` (all files)
 
 Message: `chore: move raw language material to done after integration into governance system`

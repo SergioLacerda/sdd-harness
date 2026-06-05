@@ -15,10 +15,15 @@ mvn verify         # includes Checkstyle, PMD, tests
 ```
 
 **Rules:**
+
 - Business logic must not live in controllers — delegate to application services.
+
 - Domain classes must not depend on Spring annotations or JPA in the domain layer.
+
 - Exceptions must be caught specifically; cause must be preserved.
+
 - Prefer composition over deep inheritance hierarchies.
+
 - No magic strings — use enums or constants for domain states.
 
 **Maven dependencies:**
@@ -40,7 +45,7 @@ mvn verify         # includes Checkstyle, PMD, tests
 
 See [java-dependency-direction.md](../architecture/examples/java-dependency-direction.md) for full reference including ArchUnit test code.
 
-**Summary:** `domain` and `application` packages must not import `adapters` or `infrastructure`. Use ArchUnit JUnit tests to enforce in CI.
+**Summary:** `domain`and`application`packages must not import`adapters`or`infrastructure`. Use ArchUnit JUnit tests to enforce in CI.
 
 ---
 
@@ -132,16 +137,23 @@ public class CreateUserService {
 **Measure first:**
 
 ```bash
+
 # Add JMH benchmark module to project
+
 # Or use async-profiler / JProfiler for production profiling
 mvn test -Pbenchmark
 ```
 
 **Key rules:**
-- Use `StringBuilder` for string concatenation inside loops — never `+` in a loop.
+
+- Use `StringBuilder`for string concatenation inside loops — never`+` in a loop.
+
 - Avoid N+1 queries — use `@EntityGraph` or explicit JOIN FETCH for associations.
+
 - Use connection pooling (HikariCP — already default in Spring Boot).
-- Avoid `String.format` in hot paths — prefer concatenation or `MessageFormat`.
+
+- Avoid `String.format`in hot paths — prefer concatenation or`MessageFormat`.
+
 - Use `lazy` loading for large associations; fetch eagerly only at use boundaries.
 
 ```java
@@ -188,8 +200,11 @@ src/
 ```
 
 **Rules:**
+
 - Domain package must not import application, adapters, or infrastructure.
-- JPA `@Entity` annotations belong exclusively in `adapters/persistence/` mappers.
+
+- JPA `@Entity`annotations belong exclusively in`adapters/persistence/` mappers.
+
 - `ArchitectureTest.java` is mandatory — see [java-dependency-direction.md](../architecture/examples/java-dependency-direction.md) for code.
 
 ---
@@ -198,6 +213,7 @@ src/
 
 ```bash
 mvn verify          # compiles + Checkstyle + PMD + tests + ArchUnit
+
 # or
 ./gradlew check     # Gradle equivalent
 ```
