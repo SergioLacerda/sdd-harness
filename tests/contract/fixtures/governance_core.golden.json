@@ -133,10 +133,10 @@
         "Confirm formatter was executed (`ruff format .` or `black .` if configured)",
         "Confirm `mypy .` was executed and passes (if mypy is detected)",
         "Confirm `pytest` was executed and passes (if pytest is detected)",
-        "Confirm no git state-modifying command (`add`, `commit`, `push`, `reset`, `rebase`, `merge`) was executed without explicit human authorization in the current message"
+        "Confirm no git state-mutating command (add, commit, push, reset, rebase, merge, stash, stash apply, stash pop, cherry-pick, clean, checkout, switch, branch -D) was executed without explicit per-command user authorization; assume parallel agents may be working in the same repository"
       ],
       "id": "M010",
-      "rationale": "`ruff check` alone verifies but does not remediate. Strict hygiene requires\nauto-fix first, then full revalidation to prevent handing off avoidable style\nand lint debt to human reviewers.\n\nGit autonomy is prohibited because it bypasses human code review, creates\nunintended commits, and breaks auditability. Task completion is NOT authorization\nfor committing \u2014 these are independent lifecycle events.",
+      "rationale": "`ruff check` alone verifies but does not remediate. Strict hygiene requires\nauto-fix first, then full revalidation to prevent handing off avoidable style\nand lint debt to human reviewers.\n\nGit autonomy is prohibited because it bypasses human code review, creates\nunintended commits, and breaks auditability. Task completion is NOT authorization\nfor committing \u2014 these are independent lifecycle events.\n\nShared state assumption: other agents, threads, developers, editors, or automated\nprocesses may be working in the same repository concurrently. Uncommitted changes,\nbranch pointers, stash entries, and index state must be treated as potentially\nbelonging to parallel work. Any mutation of repository state must be treated with\nthe same deliberateness as scope-expanding changes.",
       "requirements": null,
       "status": "active",
       "summary_minimal": "Delivery Hygiene Enforcement",

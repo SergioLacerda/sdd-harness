@@ -35,6 +35,14 @@
     },
     {
       "criticality": "medium",
+      "description": "Operational guidance for git command safety under M010 parallel-state assumption. Before any mutating action: run git status/diff first. Prefer direct file edits over git workflow commands. Do not stash, commit, cherry-pick, or push automatically \u2014 provide a summary and suggested commit message instead. Treat uncommitted work as potentially belonging to parallel agents or developers. Before any restricted command, state what it does, why it is needed, what state it may affect, and whether safer alternatives exist.",
+      "id": "G023",
+      "status": "active",
+      "title": "Git Safety Practices",
+      "type": "GUIDELINE"
+    },
+    {
+      "criticality": "medium",
       "description": "Domain and application classes must not depend on infrastructure adapters, frameworks, or persistence providers directly. Use ArchUnit to enforce layer boundaries in CI.",
       "id": "G03",
       "status": "active",
