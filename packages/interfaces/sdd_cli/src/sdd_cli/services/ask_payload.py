@@ -23,6 +23,9 @@ def build_ask_json_data(
     intake_chunks: int,
     intake_retrieval: str,
     intake_artifact: str,
+    governance_mode: str = "hard",
+    execution_gate: str = "allowed",
+    gate_reason: str | None = None,
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build base canonical `data` payload shared by ask and ask-full."""
@@ -45,7 +48,11 @@ def build_ask_json_data(
         "intake_chunks": intake_chunks,
         "intake_retrieval": intake_retrieval,
         "intake_artifact": intake_artifact,
+        "governance_mode": governance_mode,
+        "execution_gate": execution_gate,
     }
+    if gate_reason is not None:
+        payload["gate_reason"] = gate_reason
     if extra:
         payload.update(extra)
     return payload

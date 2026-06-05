@@ -1123,6 +1123,14 @@ def _ask_cmd_impl(
                 )
             except Exception as exc:
                 _handle_dossier_error(exc)
+        _gate_mode = "hard"
+        _intake_mode = "multi" if organize_used else "none"
+        _execution_gate = "blocked" if _intake_mode == "none" else "allowed"
+        _gate_reason = (
+            "intake_index_mode=none: governance context not indexed; agent must not proceed"
+            if _execution_gate == "blocked"
+            else None
+        )
         data: dict[str, Any] = build_ask_json_data(
             profile=profile,
             query_hash=_hash_query(query),
@@ -1134,10 +1142,13 @@ def _ask_cmd_impl(
             degraded_reason=degrade_reason,
             drift_detected=drift_detected,
             governance_footer=governance_footer,
-            intake_index_mode="multi" if organize_used else "none",
+            intake_index_mode=_intake_mode,
             intake_chunks=organize_chunks,
             intake_retrieval=organize_retrieval,
             intake_artifact=organize_artifact_path or "n/a",
+            governance_mode=_gate_mode,
+            execution_gate=_execution_gate,
+            gate_reason=_gate_reason,
         )
         payload = build_ask_success_payload(
             command="ask",
@@ -1162,11 +1173,19 @@ def _ask_cmd_impl(
             trust_source=trust_source,
         )
     )
+    _pt_intake_mode = "multi" if organize_used else "none"
+    _pt_gate = "blocked" if _pt_intake_mode == "none" else "allowed"
+    _pt_gate_suffix = (
+        "\ngate_reason       : intake_index_mode=none" if _pt_gate == "blocked" else ""
+    )
     typer.echo(
-        f"intake_index_mode : {'multi' if organize_used else 'none'}\n"
+        f"intake_index_mode : {_pt_intake_mode}\n"
         f"intake_chunks     : {organize_chunks}\n"
         f"intake_retrieval  : {organize_retrieval}\n"
-        f"intake_artifact   : {organize_artifact_path or 'n/a'}"
+        f"intake_artifact   : {organize_artifact_path or 'n/a'}\n"
+        f"governance_mode   : hard\n"
+        f"execution_gate    : {_pt_gate}"
+        f"{_pt_gate_suffix}"
     )
 
     # Build dossier if requested (C1: Dossier builder)

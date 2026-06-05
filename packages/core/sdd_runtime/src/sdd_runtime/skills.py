@@ -133,6 +133,36 @@ _REGISTRY: dict[str, SkillDefinition] = {
                 "on_no_provider": "error_no_analysis_provider_registered",
             },
         },
+        hard_mode_protocol={
+            "read_field": "execution_gate",
+            "on_blocked": [
+                {"emit": "GovernanceEvent"},
+                {"action": "report_to_user"},
+                {"action": "stop"},
+            ],
+            "on_allowed": "continue",
+        },
+        hard_mode_invariants={
+            "pre_conditions": [
+                {"gate_check": "execution_gate must be allowed before proceeding"},
+                {
+                    "git_authorization": "git state-modifying commands require explicit user authorization in current message"
+                },
+            ],
+            "post_conditions": [
+                {"no_unauthorized_git": "M010"},
+                {"gate_respected": "M015"},
+            ],
+            "stop_conditions": [
+                "execution_gate=blocked",
+                "governance_mode=hard and intake_index_mode=none",
+            ],
+            "forbidden_behaviors": [
+                "self_authorize_git_on_task_completion",
+                "proceed_when_gate_blocked",
+                "treat_intake_index_mode_none_as_permission",
+            ],
+        },
     ),
     "sdd-diagnose": SkillDefinition(
         name="sdd-diagnose",
@@ -229,6 +259,27 @@ _REGISTRY: dict[str, SkillDefinition] = {
         fallback_to="sdd-diagnose",
         idempotent=True,
         context_policy={"max_context_tokens": 1200, "default_detail": "minimal"},
+        hard_mode_invariants={
+            "pre_conditions": [
+                {"gate_check": "execution_gate must be allowed before proceeding"},
+                {
+                    "git_authorization": "git state-modifying commands require explicit user authorization in current message"
+                },
+            ],
+            "post_conditions": [
+                {"no_unauthorized_git": "M010"},
+                {"gate_respected": "M015"},
+            ],
+            "stop_conditions": [
+                "execution_gate=blocked",
+                "governance_mode=hard and intake_index_mode=none",
+            ],
+            "forbidden_behaviors": [
+                "self_authorize_git_on_task_completion",
+                "proceed_when_gate_blocked",
+                "treat_intake_index_mode_none_as_permission",
+            ],
+        },
     ),
     "sdd-compress-context": SkillDefinition(
         name="sdd-compress-context",
@@ -332,6 +383,27 @@ _REGISTRY: dict[str, SkillDefinition] = {
         ],
         fallback_to="sdd-diagnose",
         idempotent=False,
+        hard_mode_invariants={
+            "pre_conditions": [
+                {"gate_check": "execution_gate must be allowed before proceeding"},
+                {
+                    "git_authorization": "git state-modifying commands require explicit user authorization in current message"
+                },
+            ],
+            "post_conditions": [
+                {"no_unauthorized_git": "M010"},
+                {"gate_respected": "M015"},
+            ],
+            "stop_conditions": [
+                "execution_gate=blocked",
+                "governance_mode=hard and intake_index_mode=none",
+            ],
+            "forbidden_behaviors": [
+                "self_authorize_git_on_task_completion",
+                "proceed_when_gate_blocked",
+                "treat_intake_index_mode_none_as_permission",
+            ],
+        },
     ),
     "sdd-converge": SkillDefinition(
         name="sdd-converge",
@@ -379,6 +451,27 @@ _REGISTRY: dict[str, SkillDefinition] = {
         ],
         fallback_to="sdd-correct",
         idempotent=False,
+        hard_mode_invariants={
+            "pre_conditions": [
+                {"gate_check": "execution_gate must be allowed before proceeding"},
+                {
+                    "git_authorization": "git state-modifying commands require explicit user authorization in current message"
+                },
+            ],
+            "post_conditions": [
+                {"no_unauthorized_git": "M010"},
+                {"gate_respected": "M015"},
+            ],
+            "stop_conditions": [
+                "execution_gate=blocked",
+                "governance_mode=hard and intake_index_mode=none",
+            ],
+            "forbidden_behaviors": [
+                "self_authorize_git_on_task_completion",
+                "proceed_when_gate_blocked",
+                "treat_intake_index_mode_none_as_permission",
+            ],
+        },
     ),
 }
 

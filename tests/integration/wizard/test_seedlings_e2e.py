@@ -561,13 +561,14 @@ def test_seedlings_content_validation() -> None:
 
         agent_content = read_text_utf8(agent_instructions)
 
-        # Check for 6 required sections
+        # Check for 7 required sections
         required_sections_agent = [
             "## 1. Authority Hierarchy",
             "## 2. Mandatory Bootstrap",
             "## 3. Active Mandates",
             "## 4. Pre-Task Checklist",
             "## 5. Enforcement Scope",
+            "## Governance Mode",
             "## 6. Fallback & Escalation",
         ]
 
@@ -579,8 +580,8 @@ def test_seedlings_content_validation() -> None:
             else:
                 print(f"   ⚠️  Missing section: {section}")
 
-        assert sections_found_agent == 6, (
-            f"agent-instructions.md missing sections (found {sections_found_agent}/6)"
+        assert sections_found_agent == 7, (
+            f"agent-instructions.md missing sections (found {sections_found_agent}/7)"
         )
 
         print("\n📋 Validating seed.json references to .sdd/...")
