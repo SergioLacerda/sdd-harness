@@ -42,7 +42,7 @@ poetry add --group dev ruff mypy
 
 ## 2. Architecture & Dependency Direction (G01 — HARD)
 
-See [python-dependency-direction.md](../architecture/examples/python-dependency-direction.md) for full reference.
+See [python-dependency-direction.md](../../guides/architecture/examples/python-dependency-direction.md) for full reference.
 
 **Summary:** `domain/`and`application/`must not import from`infrastructure/`or`adapters/`. Use `import-linter` to enforce in CI.
 

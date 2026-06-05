@@ -17,17 +17,17 @@ Then follow the complete guide:
 ## Start Here
 
 - **Agentes de IA** → [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md)
-- **Master Index** → [`indices/MASTER_INDEX.md`](./indices/MASTER_INDEX.md)
-- **AI Agent Index** → [`.ai-index.md`](./.ai-index.md)
+- **Master navigation** → [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md)
+- **AI agent bootstrap** → [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md)
 
 ## Navigation by intent
 
 | You want to... | Start here |
 |---|---|
 | understand the system architecture | [`architecture/README.md`](./architecture/README.md) |
-| read canonical contracts and mandates | [`spec/canonical/INDEX.md`](./spec/canonical/INDEX.md) |
+| read canonical contracts and mandates | [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md) |
 | follow runtime entrypoints and protocol | [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md) |
-| troubleshoot an operational issue | [`guides/`](./guides/) and [`guides/FAQ.md`](./guides/FAQ.md) |
+| troubleshoot an operational issue | [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md) and [`guides/FAQ.md`](./guides/FAQ.md) |
 | find a decision or history item | [`adr/INDEX.md`](./adr/INDEX.md) |
 
 ## Quatro pilares
@@ -44,6 +44,6 @@ Then follow the complete guide:
    - Protocolo operacional: [`runtime/protocols/AGENT_RUNTIME_PROTOCOL.md`](./runtime/protocols/AGENT_RUNTIME_PROTOCOL.md).
 
 4. **`indices/` — Recuperacao e Busca**
-   - Ponteiros otimizados para reduzir custo de busca. Ver [`indices/MASTER_INDEX.md`](./indices/MASTER_INDEX.md).
+   - Ponteiros otimizados para reduzir custo de busca. Ver [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md).
 
 > Nunca carregar a documentacao inteira. Sempre usar path-based context loading via Master Index.

@@ -63,6 +63,6 @@ These principles become technical obligations when AI agents work on the codebas
 
 ## Related
 
-- Language-specific enforcement: [docs/guidelines/languages/](languages/)
-- DSL guidelines filtered by language: [.sdd/source/guidelines.dsl](../../.sdd/source/guidelines.dsl)
-- Mandate source: [.sdd/source/mandates/mandates.md](../../.sdd/source/mandates/mandates.md) — M018
+- Language-specific enforcement: [Python](languages/python.md) · [Go](languages/go.md) · [Java](languages/java.md) · [TypeScript](languages/typescript.md)
+- DSL guidelines filtered by language: `/.sdd/source/guidelines.dsl`
+- Mandate source: `/.sdd/source/mandates/mandates.md` — M018

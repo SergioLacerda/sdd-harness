@@ -37,7 +37,7 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 ## 2. Architecture & Dependency Direction (G02 — HARD)
 
-See [go-dependency-direction.md](../architecture/examples/go-dependency-direction.md) for full reference.
+See [go-dependency-direction.md](../../guides/architecture/examples/go-dependency-direction.md) for full reference.
 
 **Summary:** `internal/domain/`and`internal/app/`must not import`internal/adapters/`. Use `golangci-lint`with`depguard` to enforce in CI.
 

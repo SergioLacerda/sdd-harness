@@ -657,7 +657,7 @@ poetry add --group dev ruff mypy
 
 ## 2. Architecture & Dependency Direction (G01 — HARD)
 
-See [python-dependency-direction.md](../examples/python-dependency-direction.md) for full reference.
+See [python-dependency-direction.md](../guides/architecture/examples/python-dependency-direction.md) for full reference.
 
 **Summary:** `domain/`and`application/`must not import from`infrastructure/`or`adapters/`. Use `import-linter` to enforce in CI.
 
@@ -791,7 +791,7 @@ import-linter             # architecture boundary check (optional, see G01)
 
 ```
 
-Full CI YAML example: see [python-dependency-direction.md](../examples/python-dependency-direction.md#ci-setup)
+Full CI YAML example: see [python-dependency-direction.md](../guides/architecture/examples/python-dependency-direction.md#tooling-setup)
 ```
 
 **Step 2: Verify file created**

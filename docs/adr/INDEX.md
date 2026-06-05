@@ -1,6 +1,6 @@
 # Architecture Decision Records — SDD Harness Runtime
 
-Local ADRs specific to the SDD Harness runtime layer. These are distinct from `docs/spec/decisions/` which contains framework-level ADRs.
+Local ADRs specific to the SDD Harness runtime layer. These are distinct from the framework-level ADR catalog under `docs/spec/decisions/`.
 
 ---
 
@@ -205,7 +205,7 @@ These artifacts support governance operations but are not ADRs:
 
 ## 📚 Related
 
-- **Framework ADRs:** [docs/spec/decisions/](../spec/decisions/) — ADR-001 through ADR-010
+- **Framework ADRs:** see `docs/spec/decisions/` — ADR-001 through ADR-010
 - **Authority Hierarchy:** [docs/spec/canonical/core/INDEX.md](../spec/canonical/core/INDEX.md) — CORE is immutable kernel
 - **Runtime Layer:** [docs/runtime/protocols/AGENT_ENTRYPOINT.md](../runtime/protocols/AGENT_ENTRYPOINT.md) — Bootstrap protocol
 

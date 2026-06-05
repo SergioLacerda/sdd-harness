@@ -51,7 +51,7 @@ npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslin
 
 ## 2. Architecture & Dependency Direction (G04 — HARD)
 
-See [nodejs-typescript-dependency-direction.md](../architecture/examples/nodejs-typescript-dependency-direction.md) for full ESLint config.
+See [nodejs-typescript-dependency-direction.md](../../guides/architecture/examples/nodejs-typescript-dependency-direction.md) for full ESLint config.
 
 **Summary:** `domain/`and`application/`must not import`adapters/`or`infrastructure/`. Use ESLint `import/no-restricted-paths` to enforce in CI.
 

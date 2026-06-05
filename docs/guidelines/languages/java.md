@@ -43,7 +43,7 @@ mvn verify         # includes Checkstyle, PMD, tests
 
 ## 2. Architecture & Dependency Direction (G03 — HARD)
 
-See [java-dependency-direction.md](../architecture/examples/java-dependency-direction.md) for full reference including ArchUnit test code.
+See [java-dependency-direction.md](../../guides/architecture/examples/java-dependency-direction.md) for full reference including ArchUnit test code.
 
 **Summary:** `domain`and`application`packages must not import`adapters`or`infrastructure`. Use ArchUnit JUnit tests to enforce in CI.
 
@@ -205,7 +205,7 @@ src/
 
 - JPA `@Entity`annotations belong exclusively in`adapters/persistence/` mappers.
 
-- `ArchitectureTest.java` is mandatory — see [java-dependency-direction.md](../architecture/examples/java-dependency-direction.md) for code.
+- `ArchitectureTest.java` is mandatory — see [java-dependency-direction.md](../../guides/architecture/examples/java-dependency-direction.md) for code.
 
 ---
 

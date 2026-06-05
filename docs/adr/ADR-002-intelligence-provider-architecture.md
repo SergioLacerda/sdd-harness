@@ -200,10 +200,10 @@ def create_provider(name: str) -> IntelligenceProvider:
 ## References
 
 - Technical guide: [docs/guides/TECHNICAL_GUIDE.md](../guides/TECHNICAL_GUIDE.md#token-economy)
-- Compression mechanics: [docs/cognition/context-loading/COMPRESSION.md](../cognition/context-loading/COMPRESSION.md)
+- Compression mechanics: see `docs/cognition/context-loading/COMPRESSION.md`
 - Budget zones: [docs/spec/canonical/core/economy/execution-budget.md](../spec/canonical/core/economy/execution-budget.md)
 - Efficiency policy: [docs/spec/canonical/core/economy/efficiency-policy.md](../spec/canonical/core/economy/efficiency-policy.md)
-- Mandate M005: [docs/spec/canonical/core/mandates/M005_TOKEN_ECONOMY.md](../spec/canonical/core/mandates/M005_TOKEN_ECONOMY.md)
+- Mandate M005: see `docs/spec/canonical/core/mandates/M005_TOKEN_ECONOMY.md`
 
 ---
 

@@ -93,10 +93,10 @@ The agent determines the mode at registration time based on what governance it f
 
 - [Plugin Entry Reference](plugin-entry-reference.md) — all registry entry fields
 
-- [M019 Mandate](../../spec/canonical/core/mandates/M019_GOVERNANCE_FEDERATION.md)
+- M019 Mandate: `docs/spec/canonical/core/mandates/M019_GOVERNANCE_FEDERATION.md`
 
-- [M017 Mandate](../../spec/canonical/core/mandates/M017_ANALYSIS_PLUGIN_COMPLIANCE.md)
+- M017 Mandate: `docs/spec/canonical/core/mandates/M017_ANALYSIS_PLUGIN_COMPLIANCE.md`
 
-- [`.sdd/plugins/registry.yaml`](../../../.sdd/plugins/registry.yaml) — live registry
+- `.sdd/plugins/registry.yaml` — live registry
 
-- [`.sdd/plugins/handshake-protocol.md`](../../../.sdd/plugins/handshake-protocol.md) — agent-facing protocol
+- `.sdd/plugins/handshake-protocol.md` — agent-facing protocol

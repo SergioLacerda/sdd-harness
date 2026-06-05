@@ -23,8 +23,8 @@ tools/             # Sovereign Factory: maintenance utilities (PEP 723)
 
 | Topic | Location |
 |---|---|
-| Canonical mandates and policies | [docs/spec/canonical/](../spec/canonical/) |
-| Architecture Decision Records | [docs/spec/decisions/](../spec/decisions/) |
+| Canonical mandates and policies | `docs/spec/canonical/` |
+| Architecture Decision Records | `docs/spec/decisions/` |
 | Agent Runtime Protocol | [docs/runtime/protocols/AGENT_RUNTIME_PROTOCOL.md](../runtime/protocols/AGENT_RUNTIME_PROTOCOL.md) |
 | Security policy | [docs/spec/reference/SECURITY.md](../spec/reference/SECURITY.md) |
 | CLI reference | [docs/spec/reference/commands/cli.md](../spec/reference/commands/cli.md) |
@@ -126,7 +126,7 @@ When budget utilization is 70–90% (YELLOW zone), `ContextLoader` automatically
 
 **Convention:** `compression_ratio = compressed_bytes / original_bytes`. Value < 1.0 = compression applied.
 
-→ See [docs/cognition/context-loading/COMPRESSION.md](../cognition/context-loading/COMPRESSION.md) for detailed provider mechanics and how to extend with custom providers.
+→ See `docs/cognition/context-loading/COMPRESSION.md` for detailed provider mechanics and how to extend with custom providers.
 
 ---
 
@@ -179,5 +179,5 @@ Code modules:
 
 - ADR-001: [Runtime Authority Boundary](../adr/ADR-001-runtime-authority-boundary.md)
 - ADR-002: [Intelligence Provider Architecture](../adr/ADR-002-intelligence-provider-architecture.md)
-- Mandate M005: [Token Economy Enforcement](../spec/canonical/core/mandates/M005_TOKEN_ECONOMY.md)
-- Canonical economy specs: [docs/spec/canonical/core/economy/](../spec/canonical/core/economy/)
+- Mandate M005: `docs/spec/canonical/core/mandates/M005_TOKEN_ECONOMY.md`
+- Canonical economy specs: `docs/spec/canonical/core/economy/`
