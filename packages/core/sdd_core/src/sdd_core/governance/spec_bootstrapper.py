@@ -31,6 +31,15 @@ guideline G022 {
   mandate_ref: M011
   examples: [".analysis note in pt-BR with local-only intent -> CONTEXTUAL", "Canonical governance artifact in pt-BR -> VIOLATION because M011 still applies"]
 }
+
+guideline G023 {
+  type: SOFT
+  title: "Git Safety Practices"
+  description: "Operational guidance for git command safety under M010 parallel-state assumption. Before any mutating action: run git status/diff first. Prefer direct file edits over git workflow commands. Do not stash, commit, cherry-pick, or push automatically — provide a summary and suggested commit message instead. Treat uncommitted work as potentially belonging to parallel agents or developers. Before any restricted command, state what it does, why it is needed, what state it may affect, and whether safer alternatives exist."
+  category: governance
+  mandate_ref: M010
+  examples: ["After completing work: provide summary + suggested commit message, do not run git commit -> OK", "Before git stash: explain impact on parallel work, wait for approval -> OK", "git stash pop without asking -> VIOLATION", "git commit after task completion without explicit user instruction -> VIOLATION", "git status to inspect state before proposing action -> OK"]
+}
 """
 
 

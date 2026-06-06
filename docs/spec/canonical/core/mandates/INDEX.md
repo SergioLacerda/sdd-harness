@@ -22,6 +22,7 @@ Define mandatory behavioral contracts that ALL agents MUST follow.
 | M015 | Bidirectional Agent Handshake  | [M015_BIDIRECTIONAL_HANDSHAKE.md](M015_BIDIRECTIONAL_HANDSHAKE.md) |
 | M016 | Guardrail Non-Regression       | [M016_GUARDRAIL_IMMUTABILITY.md](M016_GUARDRAIL_IMMUTABILITY.md) |
 | M017 | Analysis Plugin Compliance     | [M017_ANALYSIS_PLUGIN_COMPLIANCE.md](M017_ANALYSIS_PLUGIN_COMPLIANCE.md) |
+| M018 | Code Quality Baseline          | [M018_CODE_QUALITY_BASELINE.md](M018_CODE_QUALITY_BASELINE.md) |
 | M019 | Governance Federation          | [M019_GOVERNANCE_FEDERATION.md](M019_GOVERNANCE_FEDERATION.md) |
 
 ---

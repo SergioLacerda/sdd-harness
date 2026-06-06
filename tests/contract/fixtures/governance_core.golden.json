@@ -29,7 +29,7 @@
         "Confirm cache was committed alongside the last code change"
       ],
       "id": "M003",
-      "rationale": "- **Parallelism**: Prevents Agent A from breaking assumptions made by Agent B.\n- **Context Longevity**: Prevents \"forgetting\" the main goal when the token window fills up with implementation details.\n- **Multi-Repo Safety**: Ensures the agent doesn't mix up rules between two different projects open in the same workspace.\n\n---",
+      "rationale": "- **Parallelism**: Prevents Agent A from breaking assumptions made by Agent B. - **Context Longevity**: Prevents \"forgetting\" the main goal when the token window fills up with implementation details. - **Multi-Repo Safety**: Ensures the agent doesn't mix up rules between two different projects open in the same workspace.",
       "requirements": [
         "Mandatory Cache File: Every project must maintain a `.sdd-cache.md` (or `.sdd/task-context.json`) in its root.",
         "Sub-task Checkpoint: Agents MUST update this cache at the end of EVERY sub-task or significant logical block.",
@@ -53,11 +53,11 @@
         "Confirm reflection count never exceeds 2 per decision"
       ],
       "id": "M005",
-      "rationale": "Without enforced budget zones, agents silently overflow the context window, producing\nincomplete or hallucinated responses. Zone-based enforcement gives a graduated response:\ncompression at YELLOW, explicit warning at RED, hard block at BREACH.\n\n---",
+      "rationale": "Without enforced budget zones, agents silently overflow the context window, producing incomplete or hallucinated responses. Zone-based enforcement gives a graduated response: compression at YELLOW, explicit warning at RED, hard block at BREACH.",
       "requirements": null,
       "status": "active",
       "summary_minimal": "Token Economy Enforcement",
-      "summary_runtime": "Ensure every agent respects token budget zones and circuit-breaker thresholds to prevent",
+      "summary_runtime": "Ensure every agent respects token budget zones and circuit-breaker thresholds to prevent context overflow, degraded output, and undetected budget breaches.",
       "title": "Token Economy Enforcement",
       "type": "MANDATE"
     },
@@ -81,7 +81,7 @@
         "Verify all governance metadata is mapped under the `sdd.*` OTEL attribute namespace"
       ],
       "id": "M007",
-      "rationale": "Unrecorded governance decisions are a security risk. Telemetry provides the \"black box\" required to debug agent failures, audit compliance breaches, and optimize token economy efficiency across the entire ecosystem.\n\n---",
+      "rationale": "Unrecorded governance decisions are a security risk. Telemetry provides the \"black box\" required to debug agent failures, audit compliance breaches, and optimize token economy efficiency across the entire ecosystem.",
       "requirements": null,
       "status": "active",
       "summary_minimal": "Telemetry Enforcement",
@@ -99,7 +99,7 @@
         "Verify log file is backed up per the data retention policy"
       ],
       "id": "M008",
-      "rationale": "- **Forensics:** If governance fails, we must be able to replay and understand what happened\n- **Compliance:** Regulators (GDPR, SOC2) require immutable audit trails\n- **Accountability:** Agents must not be able to hide violations after the fact\n- **Detection:** Unusual patterns visible only in unmodified logs\n\n---",
+      "rationale": "- **Forensics:** If governance fails, we must be able to replay and understand what happened - **Compliance:** Regulators (GDPR, SOC2) require immutable audit trails - **Accountability:** Agents must not be able to hide violations after the fact - **Detection:** Unusual patterns visible only in unmodified logs",
       "requirements": null,
       "status": "active",
       "summary_minimal": "Audit Integrity",
@@ -117,7 +117,7 @@
         "If OTEL export is mandatory and exporter is unreachable, confirm operation is blocked and escalated"
       ],
       "id": "M009",
-      "rationale": "- **Distributed Tracing:** Multi-agent systems need to correlate work across agents and services\n- **Compliance:** Audit trails must show causality across system boundaries\n- **Debugging:** When issues arise, need to trace through the full decision chain\n- **SLA Monitoring:** Correlate latency and errors across services\n\n---",
+      "rationale": "- **Distributed Tracing:** Multi-agent systems need to correlate work across agents and services - **Compliance:** Audit trails must show causality across system boundaries - **Debugging:** When issues arise, need to trace through the full decision chain - **SLA Monitoring:** Correlate latency and errors across services",
       "requirements": null,
       "status": "active",
       "summary_minimal": "OpenTelemetry Compliance",
@@ -136,11 +136,11 @@
         "Confirm no git state-mutating command (add, commit, push, reset, rebase, merge, stash, stash apply, stash pop, cherry-pick, clean, checkout, switch, branch -D) was executed without explicit per-command user authorization; assume parallel agents may be working in the same repository"
       ],
       "id": "M010",
-      "rationale": "`ruff check` alone verifies but does not remediate. Strict hygiene requires\nauto-fix first, then full revalidation to prevent handing off avoidable style\nand lint debt to human reviewers.\n\nGit autonomy is prohibited because it bypasses human code review, creates\nunintended commits, and breaks auditability. Task completion is NOT authorization\nfor committing \u2014 these are independent lifecycle events.\n\nShared state assumption: other agents, threads, developers, editors, or automated\nprocesses may be working in the same repository concurrently. Uncommitted changes,\nbranch pointers, stash entries, and index state must be treated as potentially\nbelonging to parallel work. Any mutation of repository state must be treated with\nthe same deliberateness as scope-expanding changes.",
+      "rationale": "`ruff check` alone verifies but does not remediate. Strict hygiene requires auto-fix first, then full revalidation to prevent handing off avoidable style and lint debt to human reviewers. Git autonomy is prohibited because it bypasses human code review, creates unintended commits, and breaks auditability. Task completion is NOT authorization for committing \u2014 these are independent lifecycle events. Shared state assumption: other agents, threads, developers, editors, or automated processes may be working in the same repository concurrently. Uncommitted changes, branch pointers, stash entries, and index state must be treated as potentially belonging to parallel work. Any mutation of repository state must be treated with the same deliberateness as scope-expanding changes.",
       "requirements": null,
       "status": "active",
       "summary_minimal": "Delivery Hygiene Enforcement",
-      "summary_runtime": "Guarantee that every implementation is delivered with updated tests and strict",
+      "summary_runtime": "Guarantee that every implementation is delivered with updated tests and strict quality hygiene, including mandatory auto-fix and revalidation before handoff.",
       "title": "Delivery Hygiene Enforcement",
       "type": "MANDATE"
     },
@@ -158,7 +158,7 @@
       "requirements": null,
       "status": "active",
       "summary_minimal": "English Language Standard",
-      "summary_runtime": "Enforce a single language standard for engineering artifacts to prevent ambiguity,",
+      "summary_runtime": "Enforce a single language standard for engineering artifacts to prevent ambiguity, mixed-language drift, and communication inconsistency across humans and agents.",
       "title": "English Language Standard",
       "type": "MANDATE"
     },
@@ -181,7 +181,7 @@
       ],
       "status": "active",
       "summary_minimal": "Bidirectional Agent Handshake",
-      "summary_runtime": "Ensure every agentic interaction is governed by a formal trust boundary via a",
+      "summary_runtime": "Ensure every agentic interaction is governed by a formal trust boundary via a bidirectional challenge/response protocol before any skill or tool execution begins.",
       "title": "Bidirectional Agent Handshake",
       "type": "MANDATE"
     },
@@ -196,7 +196,7 @@
         "Confirm CI non-regression gate verifies no guardrail surface was reduced relative to the base branch"
       ],
       "id": "M016",
-      "rationale": "Guardrails are governance infrastructure. The system should get safer over\ntime, not weaker. Silent regression through hacks or lazy refactors is\nindistinguishable from no regression \u2014 until a violation slips through.\n\n---",
+      "rationale": "Guardrails are governance infrastructure. The system should get safer over time, not weaker. Silent regression through hacks or lazy refactors is indistinguishable from no regression \u2014 until a violation slips through.",
       "requirements": [
         "Non-regression: Guardrail changes MUST be net-positive or neutral.",
         "Composition over replacement: New capabilities MUST extend guardrail",
@@ -207,7 +207,7 @@
       ],
       "status": "active",
       "summary_minimal": "Guardrail Non-Regression",
-      "summary_runtime": "Ensure that guardrails evolve in a net-positive direction. Increments and",
+      "summary_runtime": "Ensure that guardrails evolve in a net-positive direction. Increments and optimizations are allowed and encouraged. Regression \u2014 any change that removes coverage, weakens enforcement, introduces ha...",
       "title": "Guardrail Non-Regression",
       "type": "MANDATE"
     },
@@ -231,17 +231,59 @@
       ],
       "status": "active",
       "summary_minimal": "Analysis Plugin Compliance",
-      "summary_runtime": "Ensure that analysis plugins respect SDD-injected base_path, execution_provider, and approval_gate. No plugin may write artifacts outside its declared scope, invoke an unauthorized execution provider, or skip the approval gate.",
+      "summary_runtime": "Ensure that analysis plugins respect SDD-injected base_path, execution_provider, and approval_gate.",
       "title": "Analysis Plugin Compliance",
       "type": "MANDATE"
     },
     {
       "criticality": "high",
+      "enforcement_steps": [
+        "Confirm language-appropriate linter was executed and passes",
+        "Confirm formatter was executed and passes",
+        "Confirm static type checker was executed and passes (if available)",
+        "Confirm test suite was executed and passes"
+      ],
       "id": "M018",
+      "rationale": "A consistent code quality baseline prevents style drift, type errors, and regressions from reaching reviewers. Language-specific guidelines (G-series) extend this mandate with toolchain-specific enforcement rules without duplicating the core quality contract.",
+      "requirements": [
+        "All code must pass the language-appropriate linter and formatter before delivery.",
+        "All code must pass static type checking where a type checker is available.",
+        "All code must pass the full test suite before delivery.",
+        "Code quality tools must be run in auto-fix mode first, then revalidated."
+      ],
       "status": "active",
       "summary_minimal": "Code Quality Baseline",
-      "summary_runtime": null,
+      "summary_runtime": "Enforce a universal code quality baseline across all language implementations to ensure consistency, maintainability, and correctness of engineering artifacts. Language-specific enforcement is dele...",
       "title": "Code Quality Baseline",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "enforcement_steps": [
+        "Verify plugin has performed governance handshake before execution",
+        "Verify registry entry exists for plugin in `.sdd/plugins/registry.yaml` (external) or `governance_adherence:` block in `skill.yaml` (internal)",
+        "Verify plugin respects all HARD mandates when mode=governed",
+        "Verify GovernanceEvent emitted on registration and on violation",
+        "Verify internal skills declare `governance_adherence:` in their skill.yaml"
+      ],
+      "id": "M019",
+      "rationale": "M017 covers execution enforcement (write scope, execution_provider, approval_gate) for analysis plugins. M019 covers the federation layer: how any plugin enters the governance environment, declares its contract, and negotiates operating mode. Together they ensure plugins are both correctly declared (M019) and correctly constrained at runtime (M017).",
+      "requirements": [
+        "Plugins MUST perform a governance handshake before execution",
+        "Handshake MUST declare: id, version, risk, capabilities, governance.mode, must_follow",
+        "Plugins MUST NOT override host governance silently",
+        "Plugins MUST NOT invent SDD rules that do not exist",
+        "Plugins MUST stop or degrade safely when governance context is missing",
+        "Plugins operating in governed mode MUST respect all HARD mandates",
+        "Internal SDD skills (under `.sdd/skills/`) MUST declare `governance_adherence: ` in skill.yaml",
+        "External plugins are registered via `.sdd/plugins/registry.yaml` through agent-mediated handshake",
+        "GovernanceEvent MUST be emitted on registration: `type=PLUGIN_REGISTERED`",
+        "GovernanceEvent MUST be emitted on violation: `type=PLUGIN_GOVERNANCE_VIOLATION`"
+      ],
+      "status": "active",
+      "summary_minimal": "Governance Federation",
+      "summary_runtime": "Define how any plugin or skill declares identity, negotiates capabilities, and adheres to host governance before execution inside an SDD-governed environment.",
+      "title": "Governance Federation",
       "type": "MANDATE"
     }
   ],
