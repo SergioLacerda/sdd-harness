@@ -88,10 +88,25 @@ jobs:
         run: |
           uv run python tools/ci/environment_gates.py trusted-keyring-precedence-check --context security --mode warn
           uv run python tools/ci/environment_gates.py signature-mode-policy-check --context security --mode warn
+      - name: Log in to Docker Hub
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772  # v3.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        continue-on-error: true
       - name: Sync Docker ignore rules
         run: cp infrastructure/docker/.dockerignore .dockerignore
       - name: Build image
-        run: docker build -t sdd-framework:scan -f infrastructure/docker/Dockerfile .
+        run: |
+          for attempt in 1 2 3; do
+            docker build -t sdd-framework:scan -f infrastructure/docker/Dockerfile . && break
+            if [ "$attempt" -lt 3 ]; then
+              echo "Attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            else
+              exit 1
+            fi
+          done
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
