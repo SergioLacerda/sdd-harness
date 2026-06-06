@@ -1,16 +1,15 @@
-"""Contract tests for hard-mode governance propagation to agent-instructions.md and skill.yamls."""
+"""Contract tests for hard-mode governance propagation to agent-instructions.md and skill registry."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 import pytest
-import yaml
+from sdd_runtime.skills import _REGISTRY
 
 pytestmark = pytest.mark.unit
 
 _REPO_ROOT = Path(__file__).parent.parent.parent
-_SDD_SKILLS = _REPO_ROOT / ".sdd" / "skills"
 _CONTROLLED_SKILLS = ["sdd-ask", "sdd-converge", "sdd-correct", "sdd-stabilize"]
 
 _GOVERNANCE_SEEDS = (
@@ -50,46 +49,32 @@ class TestAgentInstructionsTemplate:
         assert "not permission" in source.lower() or "surface" in source.lower()
 
 
-class TestSkillYamlInvariants:
+class TestSkillRegistryInvariants:
     def test_sdd_ask_has_hard_mode_protocol(self):
-        """sdd-ask skill.yaml contains hard_mode_protocol block."""
-        skill = yaml.safe_load(
-            (_SDD_SKILLS / "sdd-ask" / "skill.yaml").read_text(encoding="utf-8")
-        )
-        assert "hard_mode_protocol" in skill
+        """sdd-ask registry entry has hard_mode_protocol defined."""
+        assert _REGISTRY["sdd-ask"].hard_mode_protocol is not None
 
     @pytest.mark.parametrize("skill_name", _CONTROLLED_SKILLS)
     def test_controlled_skill_has_hard_mode_invariants(self, skill_name: str):
-        """All four controlled skills contain hard_mode_invariants block."""
-        skill = yaml.safe_load(
-            (_SDD_SKILLS / skill_name / "skill.yaml").read_text(encoding="utf-8")
-        )
-        assert "hard_mode_invariants" in skill, (
-            f"{skill_name}/skill.yaml missing hard_mode_invariants"
+        """All four controlled skills have hard_mode_invariants defined."""
+        assert _REGISTRY[skill_name].hard_mode_invariants is not None, (
+            f"{skill_name} missing hard_mode_invariants in _REGISTRY"
         )
 
     @pytest.mark.parametrize("skill_name", _CONTROLLED_SKILLS)
     def test_hard_mode_invariants_post_conditions_reference_m010(self, skill_name: str):
         """hard_mode_invariants post_conditions reference M010."""
-        skill = yaml.safe_load(
-            (_SDD_SKILLS / skill_name / "skill.yaml").read_text(encoding="utf-8")
-        )
-        invariants = skill["hard_mode_invariants"]
+        invariants = _REGISTRY[skill_name].hard_mode_invariants
         post = invariants.get("post_conditions", [])
-        post_str = str(post)
-        assert "M010" in post_str, (
+        assert "M010" in str(post), (
             f"{skill_name}: M010 not referenced in post_conditions"
         )
 
     @pytest.mark.parametrize("skill_name", _CONTROLLED_SKILLS)
     def test_hard_mode_invariants_post_conditions_reference_m015(self, skill_name: str):
         """hard_mode_invariants post_conditions reference M015."""
-        skill = yaml.safe_load(
-            (_SDD_SKILLS / skill_name / "skill.yaml").read_text(encoding="utf-8")
-        )
-        invariants = skill["hard_mode_invariants"]
+        invariants = _REGISTRY[skill_name].hard_mode_invariants
         post = invariants.get("post_conditions", [])
-        post_str = str(post)
-        assert "M015" in post_str, (
+        assert "M015" in str(post), (
             f"{skill_name}: M015 not referenced in post_conditions"
         )
