@@ -87,6 +87,7 @@ def build_governance_validate_data(
     *,
     path: str,
     checks: list[dict[str, Any]],
+    advisories: list[dict[str, Any]],
     preflight: dict[str, Any],
     consistency_reason: str,
     exit_code: int,
@@ -95,6 +96,7 @@ def build_governance_validate_data(
     return {
         "path": path,
         "checks": checks,
+        "advisories": advisories,
         "preflight": preflight,
         "consistency_reason": consistency_reason,
         "exit_code": exit_code,

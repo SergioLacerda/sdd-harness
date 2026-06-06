@@ -88,11 +88,17 @@ class SkillDefinition:
     )
     # Plugin delegation — M017 Analysis Plugin Compliance
     delegation_policy: dict[str, Any] | None = None
+    # Hard-mode governance enforcement (M010, M015)
+    hard_mode_protocol: dict[str, Any] | None = None
+    hard_mode_invariants: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
         payload["schema_version"] = "1.1.0"
         payload["deprecation_due"] = _is_deprecation_due(self.deprecated_after)
+        for key in ("hard_mode_protocol", "hard_mode_invariants"):
+            if payload.get(key) is None:
+                payload.pop(key, None)
         return payload
 
     def to_yaml(self) -> str:

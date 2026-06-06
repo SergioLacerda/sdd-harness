@@ -68,6 +68,23 @@ class TestRunPhase6SeedlingsGeneration:
         result, _ = _run(tmp_path, _mock_loader(True), _mock_orchestrator(True))
         assert result is True
 
+    def test_default_config_includes_language_context(self, tmp_path: Path) -> None:
+        loader = _mock_loader(True)
+        orchestrator = _mock_orchestrator(True)
+        with (
+            patch(_PATCHES[0], return_value=_FAKE_PATHS),
+            patch(_PATCHES[1], return_value=loader),
+            patch(_PATCHES[2], return_value=orchestrator) as orchestrator_cls,
+        ):
+            result = run_phase6_seedlings_generation(
+                wizard_config_path=tmp_path / "missing.json",
+                output_base=tmp_path,
+                emitter=lambda _msg: None,
+            )
+        assert result is True
+        assert loader.load.called
+        assert "language_context" in orchestrator_cls.call_args.kwargs["config"]
+
     def test_returns_false_when_loader_fails(self, tmp_path: Path) -> None:
         result, messages = _run(tmp_path, _mock_loader(False), _mock_orchestrator(True))
         assert result is False

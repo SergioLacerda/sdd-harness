@@ -210,17 +210,17 @@ Non-breaking architectural changes use only this RFC process.
 
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
-| [ADR-001](../decisions/ADR-001-clean-architecture-8-layer.md) | Clean Architecture 8-Layer Pattern | Implemented ✅ | 2025-06-20 |
-| [ADR-002](../decisions/ADR-002-async-first-no-blocking.md) | Async-First, No Blocking I/O | Implemented ✅ | 2025-06-20 |
-| [ADR-003](../decisions/ADR-003-ports-adapters-pattern.md) | Ports & Adapters Pattern | Implemented ✅ | 2025-06-20 |
-| [ADR-004](../decisions/ADR-004-vector-index-strategy.md) | Vector Index Strategy | Implemented ✅ | 2025-06-20 |
-| [ADR-005](../decisions/ADR-005-thread-isolation-mandatory.md) | Thread Isolation Mandatory | Implemented ✅ | 2025-06-20 |
-| [ADR-006](../decisions/ADR-006-append-only-storage.md) | Append-Only Storage | Implemented ✅ | 2025-06-20 |
-| [ADR-007](../decisions/ADR-007-implementation-guardrails-design-first.md) | Implementation Guardrails: Design-First | Implemented ✅ | 2025-06-20 |
-| [ADR-008](../decisions/ADR-008-code-review-governance.md) | Code Review Governance | Implemented ✅ | 2025-06-20 |
-| [ADR-008-INCIDENT](../decisions/ADR-008-INCIDENT-RESPONSE-2026-04-21.md) | Incident Response Process | Implemented ✅ | 2026-04-21 |
-| [ADR-009](../decisions/ADR-009-test-location-convention.md) | Test Location Convention | Implemented ✅ | 2025-06-20 |
-| [ADR-010](../decisions/ADR-010-spec-compiled-artifact-contract.md) | Spec-Compiled Artifact Contract | Implemented ✅ | 2025-06-20 |
+| `ADR-001` | Clean Architecture 8-Layer Pattern | Implemented ✅ | 2025-06-20 |
+| `ADR-002` | Async-First, No Blocking I/O | Implemented ✅ | 2025-06-20 |
+| `ADR-003` | Ports & Adapters Pattern | Implemented ✅ | 2025-06-20 |
+| `ADR-004` | Vector Index Strategy | Implemented ✅ | 2025-06-20 |
+| `ADR-005` | Thread Isolation Mandatory | Implemented ✅ | 2025-06-20 |
+| `ADR-006` | Append-Only Storage | Implemented ✅ | 2025-06-20 |
+| `ADR-007` | Implementation Guardrails: Design-First | Implemented ✅ | 2025-06-20 |
+| `ADR-008` | Code Review Governance | Implemented ✅ | 2025-06-20 |
+| `ADR-008-INCIDENT` | Incident Response Process | Implemented ✅ | 2026-04-21 |
+| `ADR-009` | Test Location Convention | Implemented ✅ | 2025-06-20 |
+| `ADR-010` | Spec-Compiled Artifact Contract | Implemented ✅ | 2025-06-20 |
 
 Next ADR number: **ADR-011**
 

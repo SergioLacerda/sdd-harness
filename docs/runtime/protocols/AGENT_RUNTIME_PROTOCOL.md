@@ -44,7 +44,7 @@ Ele contém o índice de mandatos com micro-descrição e o bloco de **SELF-EVAL
 - ❌ Não confiante → Leia o detalhamento sob demanda:
   - [M001](../../spec/canonical/features/CLEAN_ARCHITECTURE.md) — Clean Architecture
   - [M002](../../spec/canonical/features/TDD.md) — TDD obrigatório
-  - [M003](../../spec/canonical/core/mandates/M003_CONTEXT_AWARENESS.md) — Context Awareness
+  - `M003` — see `docs/spec/canonical/core/mandates/M003_CONTEXT_AWARENESS.md`
 
 ### Fase 5 — Implementação
 
@@ -66,9 +66,9 @@ sdd runtime status --verbose    # Estado final do workspace
 
 | Fase | O que carregar | Propósito |
 |------|---------------|-----------|
-| Planejamento | [cognition/decision-models/](../../cognition/decision-models/) | Avaliar riscos e confiança |
-| Execução | [cognition/decision-models/TASK_CLASSIFICATION.md](../../cognition/decision-models/TASK_CLASSIFICATION.md) | Selecionar PATH (A-F) adequado |
-| Validação | [spec/canonical/specifications/definition_of_done.md](../../spec/canonical/specifications/definition_of_done.md) | Critérios de qualidade |
+| Planejamento | `docs/cognition/decision-models/` | Avaliar riscos e confiança |
+| Execução | `docs/cognition/decision-models/TASK_CLASSIFICATION.md` | Selecionar PATH (A-F) adequado |
+| Validação | `docs/spec/canonical/specifications/definition_of_done.md` | Critérios de qualidade |
 
 > Nunca carregar a documentação inteira. Usar sempre path-based context loading via Master Index.
 
@@ -76,6 +76,6 @@ sdd runtime status --verbose    # Estado final do workspace
 
 - Entrypoint: [AGENT_ENTRYPOINT.md](./AGENT_ENTRYPOINT.md)
 - CLI Reference: [docs/spec/reference/commands/cli.md](../../spec/reference/commands/cli.md)
-- Master Index: [docs/indices/MASTER_INDEX.md](../../indices/MASTER_INDEX.md)
-- Definition of Done: [docs/spec/canonical/specifications/definition_of_done.md](../../spec/canonical/specifications/definition_of_done.md)
-- PATHs operacionais: [docs/runtime/paths/](../paths/)
+- Navegação mestre: [docs/guides/TECHNICAL_GUIDE.md](../../guides/TECHNICAL_GUIDE.md)
+- Definition of Done: `docs/spec/canonical/specifications/definition_of_done.md`
+- PATHs operacionais: `docs/runtime/paths/`

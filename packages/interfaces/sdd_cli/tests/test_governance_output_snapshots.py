@@ -52,8 +52,27 @@ def _normalize_snapshot_text(text: str) -> str:
     # 3. Strip padding spaces before closing box vertical chars on content lines
     #    (│ text      │ → │ text│). The padding is terminal-width-dependent.
     normalized = re.sub(r" +(│)", r"\1", normalized)
-    # 4. Strip per-line trailing whitespace and overall trailing content.
-    return "\n".join(line.rstrip() for line in normalized.splitlines()).rstrip()
+    # 4. Normalize centered/plain heading lines outside box borders. Rich may
+    #    center table titles with variable left padding depending on console width.
+    lines: list[str] = []
+    for line in normalized.splitlines():
+        if (
+            "│" not in line
+            and "┌" not in line
+            and "┐" not in line
+            and "└" not in line
+            and "┘" not in line
+            and "├" not in line
+            and "┤" not in line
+            and "┬" not in line
+            and "┴" not in line
+            and "┼" not in line
+        ):
+            lines.append(line.strip())
+        else:
+            lines.append(line.rstrip())
+    # 5. Strip overall trailing content.
+    return "\n".join(lines).rstrip()
 
 
 def _assert_snapshot(name: str, actual: str) -> None:
@@ -160,6 +179,10 @@ def test_governance_validate_snapshot(monkeypatch) -> None:
     monkeypatch.setattr(
         "sdd_cli.commands.governance.run_runtime_preflight",
         lambda _: PreflightResult(passed=True, reason="", details={}),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.services.governance_config_handlers._build_language_governance_advisories",
+        lambda **_: [],
     )
     result = runner.invoke(app, ["governance", "validate", "--path", "runtime"])
     assert result.exit_code == 0, result.output

@@ -40,5 +40,5 @@ match exactly.
 ## References
 
 - Economy KPIs: [`economy/metrics.md`](../economy/metrics.md)
-- Context Awareness Mandate: [`mandates/M003_CONTEXT_AWARENESS.md`](../mandates/M003_CONTEXT_AWARENESS.md)
+- Context Awareness Mandate: `docs/spec/canonical/core/mandates/M003_CONTEXT_AWARENESS.md`
 - Telemetry fields: [`telemetry/INDEX.md`](../telemetry/INDEX.md)

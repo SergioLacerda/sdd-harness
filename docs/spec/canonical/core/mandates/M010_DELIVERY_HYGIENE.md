@@ -104,7 +104,7 @@ If any required step fails, delivery is `BLOCKED`.
 - Confirm formatter was executed (`ruff format .` or `black .` if configured)
 - Confirm `mypy .` was executed and passes (if mypy is detected)
 - Confirm `pytest` was executed and passes (if pytest is detected)
-- Confirm no git state-modifying command (`add`, `commit`, `push`, `reset`, `rebase`, `merge`) was executed without explicit human authorization in the current message
+- Confirm no git state-mutating command (add, commit, push, reset, rebase, merge, stash, stash apply, stash pop, cherry-pick, clean, checkout, switch, branch -D) was executed without explicit per-command user authorization; assume parallel agents may be working in the same repository
 
 ---
 
@@ -117,3 +117,9 @@ and lint debt to human reviewers.
 Git autonomy is prohibited because it bypasses human code review, creates
 unintended commits, and breaks auditability. Task completion is NOT authorization
 for committing — these are independent lifecycle events.
+
+Shared state assumption: other agents, threads, developers, editors, or automated
+processes may be working in the same repository concurrently. Uncommitted changes,
+branch pointers, stash entries, and index state must be treated as potentially
+belonging to parallel work. Any mutation of repository state must be treated with
+the same deliberateness as scope-expanding changes.

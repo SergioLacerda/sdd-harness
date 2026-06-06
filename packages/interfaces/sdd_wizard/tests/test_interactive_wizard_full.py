@@ -114,9 +114,16 @@ class TestShowPhaseMenu:
 
 class TestAskUserPreferences:
     def _wizard_with_choices(
-        self, tmp_path: Path, enforcement: str, language: str
+        self,
+        tmp_path: Path,
+        enforcement: str,
+        language: str,
+        interaction_language: str = "1",
+        local_docs_language: str = "3",
     ) -> InteractiveWizard:
-        responses = iter([enforcement, language])
+        responses = iter(
+            [enforcement, language, interaction_language, local_docs_language]
+        )
         return _make_wizard(tmp_path, prompter=lambda _: next(responses))
 
     def test_silent_mode_python(self, tmp_path: Path) -> None:
@@ -143,6 +150,26 @@ class TestAskUserPreferences:
     def test_config_has_generated_at(self, tmp_path: Path) -> None:
         config = self._wizard_with_choices(tmp_path, "1", "1").ask_user_preferences()
         assert "generated_at" in config
+
+    def test_config_has_language_context(self, tmp_path: Path) -> None:
+        config = self._wizard_with_choices(
+            tmp_path, "2", "4", interaction_language="2", local_docs_language="3"
+        ).ask_user_preferences()
+        assert (
+            config["language_context"]["preferred_human_language"]
+            == "Português (Brasil)"
+        )
+        assert (
+            config["language_context"]["preferred_chat_language"]
+            == "Português (Brasil)"
+        )
+        assert (
+            config["language_context"]["preferred_ui_language"] == "Português (Brasil)"
+        )
+        assert (
+            config["language_context"]["preferred_local_docs_language"]
+            == "Português (Brasil)"
+        )
 
 
 class TestSaveConfig:
@@ -237,7 +264,7 @@ class TestPhase1Generate:
 
     def test_success(self, tmp_path: Path) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1"])
+        responses = iter(["2", "1", "1", "3"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": True}
@@ -249,7 +276,7 @@ class TestPhase1Generate:
         assert result["success"] is True
 
     def test_success_in_zero_state_without_docs_meta(self, tmp_path: Path) -> None:
-        responses = iter(["2", "1"])
+        responses = iter(["2", "1", "1", "3"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": True}
@@ -261,7 +288,7 @@ class TestPhase1Generate:
 
     def test_exception_returns_failure(self, tmp_path: Path) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1"])
+        responses = iter(["2", "1", "1", "3"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         sys.modules[
             "sdd_wizard.orchestration.wizard.phase1_generator"
@@ -604,7 +631,7 @@ class TestPhase1GenerateTemplatesFailurePaths:
 
     def test_fails_when_docs_meta_not_ready(self, tmp_path: Path) -> None:
         """Covers lines 291-296: _ensure_docs_meta_ready returns False."""
-        responses = iter(["2", "1"])
+        responses = iter(["2", "1", "1", "3"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         with patch.object(
             wizard, "_ensure_docs_meta_ready", return_value=(False, "no artifacts")
@@ -616,7 +643,7 @@ class TestPhase1GenerateTemplatesFailurePaths:
     def test_generator_failure_records_status(self, tmp_path: Path) -> None:
         """Covers line 338: generator returns success=False."""
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1"])
+        responses = iter(["2", "1", "1", "3"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": False, "error": "gen failed"}

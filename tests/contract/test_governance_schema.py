@@ -21,18 +21,20 @@ from sdd_cli.utils.sdd_authority import compiled_active_dir
 from tests.helpers.text_io import read_text_utf8
 
 REPO_ROOT = Path(__file__).parent.parent.parent
+_REPO_CANONICAL_ARTIFACT = REPO_ROOT / ".sdd" / "compiled" / "governance-core.json"
 _CANONICAL_ARTIFACT = compiled_active_dir() / "governance-core.json"
 _LEGACY_ARTIFACT = (
     REPO_ROOT / "generated" / "master" / "compiled" / "governance-core.json"
 )
 GOLDEN = Path(__file__).parent / "fixtures" / "governance_core.golden.json"
 
+_REPO_CLIENT_ARTIFACT = REPO_ROOT / ".sdd" / "compiled" / "governance-client.json"
 _CLIENT_ARTIFACT = compiled_active_dir() / "governance-client.json"
 _CLIENT_GOLDEN = Path(__file__).parent / "fixtures" / "governance_client.golden.json"
 
 _VOLATILE_KEYS = frozenset({"fingerprint", "generated_at"})
 _CLIENT_VOLATILE_KEYS = _VOLATILE_KEYS | {"fingerprint_core_salt"}
-_ITEM_ID_PATTERN = re.compile(r"^[A-Z]\d{3}$")
+_ITEM_ID_PATTERN = re.compile(r"^[A-Z]\d{2,3}$")
 _FINGERPRINT_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -49,9 +51,18 @@ def _normalise(
 
 def _artifact_path() -> Path:
     """Resolve the compiled artifact after session fixtures have run."""
+    if _REPO_CANONICAL_ARTIFACT.exists():
+        return _REPO_CANONICAL_ARTIFACT
     if _CANONICAL_ARTIFACT.exists():
         return _CANONICAL_ARTIFACT
     return _LEGACY_ARTIFACT
+
+
+def _client_artifact_path() -> Path:
+    """Resolve the compiled client artifact after session fixtures have run."""
+    if _REPO_CLIENT_ARTIFACT.exists():
+        return _REPO_CLIENT_ARTIFACT
+    return _CLIENT_ARTIFACT
 
 
 @pytest.fixture(scope="module")
@@ -110,13 +121,13 @@ class TestGovernanceCoreSchema:
         assert not missing, f"Items at index {missing} are missing 'id'"
 
     def test_item_ids_match_pattern(self, artifact: dict[str, Any]) -> None:
-        """MUST: Item IDs follow pattern [A-Z]NNN (e.g., M001, P042)."""
+        """MUST: Item IDs follow pattern [A-Z]NN or [A-Z]NNN (e.g., G01, M001)."""
         bad = [
             item.get("id")
             for item in artifact["items"]
             if not _ITEM_ID_PATTERN.match(str(item.get("id", "")))
         ]
-        assert not bad, f"IDs do not match [A-Z]\\d{{3}}: {bad}"
+        assert not bad, f"IDs do not match [A-Z]\\d{{2,3}}: {bad}"
 
     def test_fingerprint_is_valid_hash(self, artifact: dict[str, Any]) -> None:
         """MUST: Fingerprint is a valid SHA-256 hex string."""
@@ -241,12 +252,13 @@ class TestGovernanceCoreGoldenFile:
 @pytest.fixture(scope="module")
 def client_artifact() -> dict[str, Any]:
     """Load the compiled governance client artifact once per module."""
-    if not _CLIENT_ARTIFACT.exists():
+    artifact_path = _client_artifact_path()
+    if not artifact_path.exists():
         pytest.skip(
-            f"Client artifact not found: {_CLIENT_ARTIFACT}\n"
+            f"Client artifact not found: {artifact_path}\n"
             "Run: uv run sdd governance compile"
         )
-    return json.loads(read_text_utf8(_CLIENT_ARTIFACT))  # type: ignore[no-any-return]
+    return json.loads(read_text_utf8(artifact_path))  # type: ignore[no-any-return]
 
 
 @pytest.mark.contract
@@ -255,8 +267,9 @@ class TestGovernanceClientSchema:
 
     def test_artifact_exists(self) -> None:
         """MUST: Client artifact is present and readable."""
-        assert _CLIENT_ARTIFACT.exists(), (
-            f"Artifact missing: {_CLIENT_ARTIFACT}\nRun: uv run sdd governance compile"
+        artifact_path = _client_artifact_path()
+        assert artifact_path.exists(), (
+            f"Artifact missing: {artifact_path}\nRun: uv run sdd governance compile"
         )
 
     def test_top_level_structure(self, client_artifact: dict[str, Any]) -> None:
@@ -285,13 +298,13 @@ class TestGovernanceClientSchema:
         assert not missing, f"Items at index {missing} are missing 'id'"
 
     def test_item_ids_match_pattern(self, client_artifact: dict[str, Any]) -> None:
-        """MUST: Item IDs follow pattern [A-Z]NNN."""
+        """MUST: Item IDs follow pattern [A-Z]NN or [A-Z]NNN."""
         bad = [
             item.get("id")
             for item in client_artifact["items"]
             if not _ITEM_ID_PATTERN.match(str(item.get("id", "")))
         ]
-        assert not bad, f"IDs do not match [A-Z]\\d{{3}}: {bad}"
+        assert not bad, f"IDs do not match [A-Z]\\d{{2,3}}: {bad}"
 
     def test_fingerprint_is_valid_hash(self, client_artifact: dict[str, Any]) -> None:
         """MUST: Fingerprint is a valid SHA-256 hex string."""

@@ -15,9 +15,41 @@ priority metadata in compiled format.
 
 # Language tags that identify guidelines relevant to specific languages
 LANGUAGE_TAGS = {
-    "java": {"java", "jvm", "maven", "spring", "gradle"},
-    "python": {"python", "pip", "pytest", "django", "flask", "poetry"},
-    "js": {"javascript", "nodejs", "npm", "typescript", "react", "vue"},
+    "java": {
+        "java",
+        "jvm",
+        "maven",
+        "spring",
+        "gradle",
+        "checkstyle",
+        "pmd",
+        "spotbugs",
+        "archunit",
+    },
+    "python": {
+        "python",
+        "pip",
+        "pytest",
+        "django",
+        "flask",
+        "poetry",
+        "ruff",
+        "mypy",
+        "import-linter",
+    },
+    "js": {
+        "javascript",
+        "nodejs",
+        "npm",
+        "typescript",
+        "react",
+        "vue",
+        "eslint",
+        "tsc",
+        "jest",
+        "vitest",
+    },
+    "go": {"go", "golang", "golangci-lint", "go-vet", "gofmt"},
 }
 
 

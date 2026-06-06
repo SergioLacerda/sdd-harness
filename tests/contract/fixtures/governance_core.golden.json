@@ -133,10 +133,10 @@
         "Confirm formatter was executed (`ruff format .` or `black .` if configured)",
         "Confirm `mypy .` was executed and passes (if mypy is detected)",
         "Confirm `pytest` was executed and passes (if pytest is detected)",
-        "Confirm no git state-modifying command (`add`, `commit`, `push`, `reset`, `rebase`, `merge`) was executed without explicit human authorization in the current message"
+        "Confirm no git state-mutating command (add, commit, push, reset, rebase, merge, stash, stash apply, stash pop, cherry-pick, clean, checkout, switch, branch -D) was executed without explicit per-command user authorization; assume parallel agents may be working in the same repository"
       ],
       "id": "M010",
-      "rationale": "`ruff check` alone verifies but does not remediate. Strict hygiene requires auto-fix first, then full revalidation to prevent handing off avoidable style and lint debt to human reviewers. Git autonomy is prohibited because it bypasses human code review, creates unintended commits, and breaks auditability. Task completion is NOT authorization for committing \u2014 these are independent lifecycle events.",
+      "rationale": "`ruff check` alone verifies but does not remediate. Strict hygiene requires auto-fix first, then full revalidation to prevent handing off avoidable style and lint debt to human reviewers. Git autonomy is prohibited because it bypasses human code review, creates unintended commits, and breaks auditability. Task completion is NOT authorization for committing \u2014 these are independent lifecycle events. Shared state assumption: other agents, threads, developers, editors, or automated processes may be working in the same repository concurrently. Uncommitted changes, branch pointers, stash entries, and index state must be treated as potentially belonging to parallel work. Any mutation of repository state must be treated with the same deliberateness as scope-expanding changes.",
       "requirements": null,
       "status": "active",
       "summary_minimal": "Delivery Hygiene Enforcement",
@@ -233,6 +233,57 @@
       "summary_minimal": "Analysis Plugin Compliance",
       "summary_runtime": "Ensure that analysis plugins respect SDD-injected base_path, execution_provider, and approval_gate.",
       "title": "Analysis Plugin Compliance",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "enforcement_steps": [
+        "Confirm language-appropriate linter was executed and passes",
+        "Confirm formatter was executed and passes",
+        "Confirm static type checker was executed and passes (if available)",
+        "Confirm test suite was executed and passes"
+      ],
+      "id": "M018",
+      "rationale": "A consistent code quality baseline prevents style drift, type errors, and regressions from reaching reviewers. Language-specific guidelines (G-series) extend this mandate with toolchain-specific enforcement rules without duplicating the core quality contract.",
+      "requirements": [
+        "All code must pass the language-appropriate linter and formatter before delivery.",
+        "All code must pass static type checking where a type checker is available.",
+        "All code must pass the full test suite before delivery.",
+        "Code quality tools must be run in auto-fix mode first, then revalidated."
+      ],
+      "status": "active",
+      "summary_minimal": "Code Quality Baseline",
+      "summary_runtime": "Enforce a universal code quality baseline across all language implementations to ensure consistency, maintainability, and correctness of engineering artifacts. Language-specific enforcement is dele...",
+      "title": "Code Quality Baseline",
+      "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "enforcement_steps": [
+        "Verify plugin has performed governance handshake before execution",
+        "Verify registry entry exists for plugin in `.sdd/plugins/registry.yaml` (external) or `governance_adherence:` block in `skill.yaml` (internal)",
+        "Verify plugin respects all HARD mandates when mode=governed",
+        "Verify GovernanceEvent emitted on registration and on violation",
+        "Verify internal skills declare `governance_adherence:` in their skill.yaml"
+      ],
+      "id": "M019",
+      "rationale": "M017 covers execution enforcement (write scope, execution_provider, approval_gate) for analysis plugins. M019 covers the federation layer: how any plugin enters the governance environment, declares its contract, and negotiates operating mode. Together they ensure plugins are both correctly declared (M019) and correctly constrained at runtime (M017).",
+      "requirements": [
+        "Plugins MUST perform a governance handshake before execution",
+        "Handshake MUST declare: id, version, risk, capabilities, governance.mode, must_follow",
+        "Plugins MUST NOT override host governance silently",
+        "Plugins MUST NOT invent SDD rules that do not exist",
+        "Plugins MUST stop or degrade safely when governance context is missing",
+        "Plugins operating in governed mode MUST respect all HARD mandates",
+        "Internal SDD skills (under `.sdd/skills/`) MUST declare `governance_adherence: ` in skill.yaml",
+        "External plugins are registered via `.sdd/plugins/registry.yaml` through agent-mediated handshake",
+        "GovernanceEvent MUST be emitted on registration: `type=PLUGIN_REGISTERED`",
+        "GovernanceEvent MUST be emitted on violation: `type=PLUGIN_GOVERNANCE_VIOLATION`"
+      ],
+      "status": "active",
+      "summary_minimal": "Governance Federation",
+      "summary_runtime": "Define how any plugin or skill declares identity, negotiates capabilities, and adheres to host governance before execution inside an SDD-governed environment.",
+      "title": "Governance Federation",
       "type": "MANDATE"
     }
   ],

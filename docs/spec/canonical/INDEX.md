@@ -29,5 +29,36 @@
 - **TDD Workflow**: [features/TDD.md](./features/TDD.md)
 - **Customization**: [features/CUSTOMIZATION_GOVERNANCE.md](./features/CUSTOMIZATION_GOVERNANCE.md)
 
+## 🌐 Language Adapter Guidelines
+
+*Language-specific enforcement — filtered per client by wizard Phase 4. Canonical layer stays agnostic.*
+
+- **Schema & Contract**: [guides/architecture/language-adapter-guidelines.md](../../../docs/guides/architecture/language-adapter-guidelines.md) — How to write adapter guidelines (mandatory fields, maturity levels, exception policy)
+- **Python example**: [guides/architecture/examples/python-dependency-direction.md](../../../docs/guides/architecture/examples/python-dependency-direction.md)
+- **Go example**: [guides/architecture/examples/go-dependency-direction.md](../../../docs/guides/architecture/examples/go-dependency-direction.md)
+- **Java example**: [guides/architecture/examples/java-dependency-direction.md](../../../docs/guides/architecture/examples/java-dependency-direction.md)
+- **TypeScript example**: [guides/architecture/examples/nodejs-typescript-dependency-direction.md](../../../docs/guides/architecture/examples/nodejs-typescript-dependency-direction.md)
+- **DSL source (G01–G022)**: [.sdd/source/guidelines.dsl](../../../../.sdd/source/guidelines.dsl) — Language adapters plus contextual language-preference guidance
+
+## 📐 Language Engineering Guidelines (M018)
+
+*Full per-language reference. Wizard selects language; compiled output contains relevant guidelines.*
+
+- **Core principles**: [guides/guidelines/core-engineering-principles.md](../../../docs/guidelines/core-engineering-principles.md) — M018 human reference
+- **Python**: [guides/guidelines/languages/python.md](../../../docs/guidelines/languages/python.md)
+- **Go**: [guides/guidelines/languages/go.md](../../../docs/guidelines/languages/go.md)
+- **Java**: [guides/guidelines/languages/java.md](../../../docs/guidelines/languages/java.md)
+- **TypeScript**: [guides/guidelines/languages/typescript.md](../../../docs/guidelines/languages/typescript.md)
+
+## 🔌 Plugin Governance (M019)
+
+*How external plugins and skills declare identity, negotiate capabilities, and adhere to host governance.*
+
+- **Overview**: [guides/plugins/plugin-governance-overview.md](../../../docs/guides/plugins/plugin-governance-overview.md) — Federation model, M017 vs M019, integration modes
+- **Registration Protocol**: [guides/plugins/registration-protocol.md](../../../docs/guides/plugins/registration-protocol.md) — Agent-mediated handshake flow
+- **Entry Reference**: [guides/plugins/plugin-entry-reference.md](../../../docs/guides/plugins/plugin-entry-reference.md) — All registry entry fields
+- **M019 Mandate**: [core/mandates/M019_GOVERNANCE_FEDERATION.md](./core/mandates/M019_GOVERNANCE_FEDERATION.md)
+- **Live registry**: [.sdd/plugins/registry.yaml](../../../../.sdd/plugins/registry.yaml)
+
 ---
 **Note for Agents:** All mandates are strictly enforced via SHA-256 fingerprints compiled into the `.sdd/` control plane. Any modification to `core/meta/` requires running `sdd governance validate` to refresh the session signature.

@@ -52,7 +52,16 @@ def run_phase6_seedlings_generation(
         with open(wizard_config_path, encoding="utf-8") as f:
             config = json.load(f)
     else:
-        config = {"language": "Python", "enforcement_mode": "warn_mode"}
+        config = {
+            "language": "Python",
+            "enforcement_mode": "warn_mode",
+            "language_context": {
+                "preferred_human_language": "English",
+                "preferred_chat_language": "English",
+                "preferred_ui_language": "English",
+                "preferred_local_docs_language": "English",
+            },
+        }
 
     paths = get_sdd_paths()
     governance_core_path, governance_client_path = _resolve_governance_paths(

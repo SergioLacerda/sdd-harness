@@ -368,28 +368,28 @@ class TestRunInteractiveWizard:
 class TestAskUserPreferences:
     def test_returns_config_dict(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
-        with patch("builtins.input", side_effect=["2", "1"]):
+        with patch("builtins.input", side_effect=["2", "1", "1", "1"]):
             config = wizard.ask_user_preferences()
         assert config["language"] == "Python"
         assert config["enforcement_mode"] == "warn_mode"
 
     def test_defaults_for_invalid_choices(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
-        with patch("builtins.input", side_effect=["99", "99"]):
+        with patch("builtins.input", side_effect=["99", "99", "99", "99"]):
             config = wizard.ask_user_preferences()
         assert config["language"] == "Python"
         assert config["enforcement_mode"] == "silent_mode"
 
     def test_strict_mode_choice(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
-        with patch("builtins.input", side_effect=["3", "2"]):
+        with patch("builtins.input", side_effect=["3", "2", "2", "3"]):
             config = wizard.ask_user_preferences()
         assert config["enforcement_mode"] == "strict_mode"
         assert config["language"] == "Java"
 
     def test_supports_go_language_choice(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
-        with patch("builtins.input", side_effect=["1", "4"]):
+        with patch("builtins.input", side_effect=["1", "4", "1", "1"]):
             config = wizard.ask_user_preferences()
         assert config["language"] == "Go"
 
@@ -400,7 +400,7 @@ class TestPhase1GenerateTemplates:
         mock_generator = MagicMock()
         mock_generator.run.return_value = {"success": True}
         with (
-            patch("builtins.input", side_effect=["1", "1"]),
+            patch("builtins.input", side_effect=["1", "1", "1", "1"]),
             patch.object(wizard, "_ensure_docs_meta_ready", return_value=(True, "")),
             patch(
                 "sdd_wizard.orchestration.wizard.phase1_generator.Phase1Generator",
@@ -415,7 +415,7 @@ class TestPhase1GenerateTemplates:
         mock_generator = MagicMock()
         mock_generator.run.return_value = {"success": False}
         with (
-            patch("builtins.input", side_effect=["1", "1"]),
+            patch("builtins.input", side_effect=["1", "1", "1", "1"]),
             patch.object(wizard, "_ensure_docs_meta_ready", return_value=(True, "")),
             patch(
                 "sdd_wizard.orchestration.wizard.phase1_generator.Phase1Generator",
@@ -428,7 +428,7 @@ class TestPhase1GenerateTemplates:
     def test_returns_false_on_exception(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
         with (
-            patch("builtins.input", side_effect=["1", "1"]),
+            patch("builtins.input", side_effect=["1", "1", "1", "1"]),
             patch.object(wizard, "_ensure_docs_meta_ready", return_value=(True, "")),
             patch(
                 "sdd_wizard.orchestration.wizard.phase1_generator.Phase1Generator",
@@ -443,7 +443,7 @@ class TestPhase1GenerateTemplates:
         mock_generator = MagicMock()
         mock_generator.run.return_value = {"success": True}
         with (
-            patch("builtins.input", side_effect=["2", "1"]),
+            patch("builtins.input", side_effect=["2", "1", "1", "1"]),
             patch.object(wizard, "_ensure_docs_meta_ready", return_value=(True, "")),
             patch(
                 "sdd_wizard.orchestration.wizard.phase1_generator.Phase1Generator",
@@ -459,7 +459,7 @@ class TestPhase1GenerateTemplates:
     def test_returns_false_when_docs_meta_bootstrap_fails(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
         with (
-            patch("builtins.input", side_effect=["1", "1"]),
+            patch("builtins.input", side_effect=["1", "1", "1", "1"]),
             patch.object(
                 wizard,
                 "_ensure_docs_meta_ready",
@@ -491,7 +491,7 @@ class TestPhase1GenerateTemplates:
     ) -> None:
         wizard = _make_wizard(tmp_path)
         with (
-            patch("builtins.input", side_effect=["1", "1"]),
+            patch("builtins.input", side_effect=["1", "1", "1", "1"]),
             patch.object(
                 wizard,
                 "_ensure_docs_meta_ready",

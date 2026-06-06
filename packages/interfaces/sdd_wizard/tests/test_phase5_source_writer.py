@@ -94,7 +94,16 @@ def _make_writer(
         guidelines_by_category=guidelines_by_category
         if guidelines_by_category is not None
         else dict(_SAMPLE_BY_CATEGORY),
-        config={"language": "Python", "adoption_level": "FULL"},
+        config={
+            "language": "Python",
+            "adoption_level": "FULL",
+            "language_context": {
+                "preferred_human_language": "English",
+                "preferred_chat_language": "English",
+                "preferred_ui_language": "English",
+                "preferred_local_docs_language": "English",
+            },
+        },
         verbose=verbose,
     )
 
@@ -373,6 +382,16 @@ class TestGenerateSourceReadme:
         writer.generate_source_readme()
         content = read_text_utf8(tmp_path / "out" / ".sdd" / "source" / "README.md")
         assert "testing" in content.lower() or "Testing" in content
+
+    def test_readme_contains_language_context(self, tmp_path: Path) -> None:
+        writer = _make_writer(tmp_path)
+        writer.create_directories()
+        writer.generate_source_readme()
+        content = read_text_utf8(tmp_path / "out" / ".sdd" / "source" / "README.md")
+        assert "Wizard Language Context" in content
+        assert "Local docs: English" in content
+        assert "guidelines.dsl" in content
+        assert ".analysis/" in content
 
     def test_returns_false_on_exception(self, tmp_path: Path) -> None:
         writer = _make_writer(tmp_path)

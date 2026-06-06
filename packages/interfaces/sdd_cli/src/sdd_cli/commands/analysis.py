@@ -20,6 +20,14 @@ def _ctx_json() -> bool:
 
 app = typer.Typer(help="Analysis workspace management")
 
+
+@app.callback(invoke_without_command=True)
+def analysis_default(ctx: typer.Context) -> None:
+    """List missions when called without a subcommand."""
+    if ctx.invoked_subcommand is None:
+        list_missions()
+
+
 _STATES = ("todo", "pending", "refined", "done")
 _DURATION_RE = re.compile(r"^(\d+)(d|h|m)$")
 

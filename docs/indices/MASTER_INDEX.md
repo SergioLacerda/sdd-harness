@@ -20,6 +20,9 @@
 - **`spec/`**: [Governance & Truth](../spec/canonical/INDEX.md)
 - **`cognition/`**: [Decision & Thought Control](../cognition/INDEX.md)
 - **`runtime/`**: [Execution & Action](../runtime/protocols/AGENT_ENTRYPOINT.md)
+- **`guides/architecture/`**: [Language Adapter Guidelines](../guides/architecture/language-adapter-guidelines.md) — Schema for language-specific enforcement (wizard Phase 4)
+- **`guidelines/`**: [Core Engineering Principles](../guidelines/core-engineering-principles.md) (M018) | Languages: [Python](../guidelines/languages/python.md) · [Go](../guidelines/languages/go.md) · [Java](../guidelines/languages/java.md) · [TypeScript](../guidelines/languages/typescript.md)
+- **`guides/plugins/`**: [Plugin Governance](../guides/plugins/plugin-governance-overview.md) (M019) | [Registration Protocol](../guides/plugins/registration-protocol.md) · [Entry Reference](../guides/plugins/plugin-entry-reference.md)
 
 ---
 **Agent Directive:** Always load this index if you are unsure of your next documentation hop. Minimize token usage by loading specific leaves instead of entire directories.

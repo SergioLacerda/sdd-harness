@@ -75,6 +75,7 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
                 "project_metadata": {
                     "adoption_level": self.config.get("adoption_level", "standard"),
                     "language": self.config.get("language", "python"),
+                    "language_context": self.config.get("language_context", {}),
                     "spec_fingerprint": self.spec_fingerprint,
                     "generated_at": self.generated_at,
                     "version": "1.0",
@@ -404,6 +405,36 @@ These constraints are non-negotiable. Violation requires human escalation, not a
 - **M010 (Delivery Hygiene)**: NEVER execute git state-modifying commands (add, commit, push, reset, merge, rebase, branch -D, etc.) autonomously via any tool or shell. ONLY suggest git commands in ready-to-run blocks for human execution.
   - Corollary: Task completion does NOT authorize a commit. Only explicit user request does.
   - Read: `.sdd/source/mandates/mandates.md#M010`
+
+---
+
+## Governance Mode
+
+When operating under SDD via a skill or CLI entry point (`sdd ask`, `sdd-ask`, `sdd-converge`, etc.),
+the execution context is **HARD governance mode**.
+
+| Entry point | Mode |
+|-------------|------|
+| `sdd ask` / `sdd-ask` skill | HARD |
+| `sdd-converge`, `sdd-correct`, `sdd-stabilize` | HARD |
+| Direct API / notebook / ad-hoc | SOFT |
+
+### HARD Mode Rules
+
+**Rule 1 — Execution gate:**
+If `sdd ask` output contains `execution_gate: blocked`, **STOP immediately**.
+Report the `gate_reason` to the user. Do not proceed with any action until the user re-authorizes.
+
+**Rule 2 — Git authorization:**
+Git state-modifying commands (`add`, `commit`, `push`, `reset`, `merge`, `rebase`, etc.)
+are **blocked** unless the current user message contains explicit authorization.
+Task completion is NOT authorization. "Fix the tests" is NOT authorization. Only explicit phrases
+like "commit this", "push to remote", "run git add and commit" constitute authorization.
+
+**Rule 3 — `intake_index_mode: none` is not permission to act:**
+`intake_index_mode: none` means no governance context was indexed.
+This is a **signal to surface to the user and stop** — not a green light to proceed.
+The agent must report the condition and wait for the user to decide how to continue.
 
 ---
 
@@ -798,7 +829,36 @@ Verify bootstrap integrity:
 
 ---
 
-## 6. Fallback & Escalation
+## Governance Mode
+
+When operating under SDD via a skill or CLI entry point (`sdd ask`, `sdd-ask`, `sdd-converge`, etc.),
+the execution context is **HARD governance mode**.
+
+| Entry point | Mode |
+|-------------|------|
+| `sdd ask` / `sdd-ask` skill | HARD |
+| `sdd-converge`, `sdd-correct`, `sdd-stabilize` | HARD |
+| Direct API / notebook / ad-hoc | SOFT |
+
+### HARD Mode Rules
+
+**Rule 1 — Execution gate:**
+If `sdd ask` output contains `execution_gate: blocked`, **STOP immediately**.
+Report the `gate_reason` to the user. Do not proceed with any action until the user re-authorizes.
+
+**Rule 2 — Git authorization:**
+Git state-modifying commands (`add`, `commit`, `push`, `reset`, `merge`, `rebase`, etc.)
+are **blocked** unless the current user message contains explicit authorization.
+Task completion is NOT authorization. Only explicit phrases like "commit this", "push to remote",
+"run git add and commit" constitute authorization.
+
+**Rule 3 — `intake_index_mode: none` is not permission to act:**
+`intake_index_mode: none` means no governance context was indexed.
+Surface this condition to the user and stop. Do not proceed.
+
+---
+
+## 7. Fallback & Escalation
 
 If `.sdd/` is incomplete or inconsistent:
 - **STOP EXECUTION IMMEDIATELY. Do not guess or interpolate.**

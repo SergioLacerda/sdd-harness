@@ -192,7 +192,10 @@ def test_governance_validate_json_success() -> None:
             output_json=True,
             console=Console(),
             validate_path=lambda _p: True,
-            load_config=lambda _p: {"items": []},
+            load_config=lambda _p: {
+                "items": [],
+                "mandates": {"M011": "English Language Standard"},
+            },
             check_files_accessible=lambda _p: True,
             check_fingerprints_valid=lambda _c: True,
             check_no_conflicts=lambda _c: True,
@@ -201,6 +204,52 @@ def test_governance_validate_json_success() -> None:
         )
     payload = emit_json.call_args.args[0]
     assert payload["ok"] is True
+    assert "advisories" in payload["data"]
+
+
+def test_governance_validate_advisories_include_analysis_classification(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path
+    compiled = workspace / ".sdd" / "compiled"
+    compiled.mkdir(parents=True)
+    (workspace / ".analysis").mkdir()
+    (workspace / ".analysis" / "README.md").write_text(
+        "# Analysis Workspace\n", encoding="utf-8"
+    )
+    (workspace / "docs").mkdir()
+    (workspace / "docs" / "README.md").write_text(
+        "Documentação estruturada por papel no sistema.\n", encoding="utf-8"
+    )
+    (workspace / ".sdd" / "source").mkdir(parents=True)
+    (workspace / ".sdd" / "source" / "guidelines.dsl").write_text(
+        "guideline G021 {}\nguideline G022 {}\n", encoding="utf-8"
+    )
+
+    preflight = SimpleNamespace(passed=True, reason="", details={})
+    with patch("sdd_cli.services.governance_config_handlers.emit_json") as emit_json:
+        run_governance_validate(
+            path=str(compiled),
+            skip_handshake=True,
+            output_json=True,
+            console=Console(),
+            validate_path=lambda _p: True,
+            load_config=lambda _p: {
+                "items": [],
+                "mandates": {"M011": "English Language Standard"},
+            },
+            check_files_accessible=lambda _p: True,
+            check_fingerprints_valid=lambda _c: True,
+            check_no_conflicts=lambda _c: True,
+            check_artifact_consistency=lambda _p: (True, ""),
+            run_runtime_preflight_fn=lambda _p: preflight,
+        )
+    advisories = emit_json.call_args.args[0]["data"]["advisories"]
+    checks = {item["check"]: item for item in advisories}
+    assert (
+        checks["Analysis workspace classification"]["surface"] == "workspace_local_docs"
+    )
+    assert checks["Mandatory docs surface language drift"]["status"] == "warn"
 
 
 def test_governance_validate_text_success() -> None:
