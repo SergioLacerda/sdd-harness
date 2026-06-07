@@ -4937,6 +4937,7 @@ dependencies = [
     { name = "sdd-adapters" },
     { name = "sdd-compiler" },
     { name = "sdd-core" },
+    { name = "sdd-integration" },
 ]
 
 [package.metadata]
@@ -4946,6 +4947,7 @@ requires-dist = [
     { name = "sdd-adapters", editable = "packages/features/sdd_adapters" },
     { name = "sdd-compiler", editable = "packages/core/sdd_compiler" },
     { name = "sdd-core", editable = "packages/core/sdd_core" },
+    { name = "sdd-integration", editable = "packages/features/sdd_integration" },
 ]
 
 [[package]]

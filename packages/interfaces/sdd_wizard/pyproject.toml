@@ -18,6 +18,7 @@ dependencies = [
     "sdd-core",
     "sdd-compiler",
     "sdd-adapters",
+    "sdd-integration",
 ]
 
 [project.urls]

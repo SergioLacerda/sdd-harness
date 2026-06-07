@@ -163,3 +163,14 @@ class TestOutputValidatorValidate:
         v.validate()
         captured = capsys.readouterr()
         assert "Validating" in captured.out
+
+    def test_passes_with_cursor_governance_alias_only(self, tmp_path: Path) -> None:
+        _create_all_required_files(tmp_path)
+        (tmp_path / "output" / ".cursor" / "rules" / "spec.mdc").unlink()
+        (tmp_path / "output" / ".cursor" / "rules" / "sdd-governance.mdc").write_text(
+            "# Cursor Governance", encoding="utf-8"
+        )
+        v = _make_validator(tmp_path)
+        is_valid, result = v.validate()
+        assert is_valid is True
+        assert result["checks"]["file: Cursor Rules"] == "OK"

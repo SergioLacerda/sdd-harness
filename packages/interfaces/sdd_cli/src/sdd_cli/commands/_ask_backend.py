@@ -1176,7 +1176,11 @@ def _ask_cmd_impl(
     _pt_intake_mode = "multi" if organize_used else "none"
     _pt_gate = "blocked" if _pt_intake_mode == "none" else "allowed"
     _pt_gate_suffix = (
-        "\ngate_reason       : intake_index_mode=none" if _pt_gate == "blocked" else ""
+        "\ngate_reason       : intake_index_mode=none"
+        f"\nintake_skipped    : {organize_reason} (query {len(query)} chars"
+        " < 6000; pass ≥6000 chars or use: sdd-organize --input-file <path> <query>)"
+        if _pt_gate == "blocked"
+        else ""
     )
     typer.echo(
         f"intake_index_mode : {_pt_intake_mode}\n"
@@ -1432,11 +1436,25 @@ def ask_full_cmd(  # noqa: C901
     )
     if not (json_output or _json_mode()):
         typer.echo(output_text)
+        _fullask_gate = "blocked" if not organize_used else "allowed"
+        _fullask_skipped = (
+            f"\nintake_skipped    : {organize_reason} (query {len(query)} chars"
+            " < 6000; pass ≥6000 chars or use: sdd-organize --input-file <path> <query>)"
+            if _fullask_gate == "blocked"
+            else ""
+        )
+        _fullask_gate_suffix = (
+            f"\ngovernance_mode   : hard\nexecution_gate    : {_fullask_gate}"
+            f"\ngate_reason       : intake_index_mode=none{_fullask_skipped}"
+            if _fullask_gate == "blocked"
+            else ""
+        )
         typer.echo(
             f"intake_index_mode : {'multi' if organize_used else 'none'}\n"
             f"intake_chunks     : {organize_chunks}\n"
             f"intake_retrieval  : {organize_retrieval}\n"
             f"intake_artifact   : {organize_artifact_path or 'n/a'}"
+            f"{_fullask_gate_suffix}"
         )
         typer.echo(governance_footer)
     steps.append(_close(s))

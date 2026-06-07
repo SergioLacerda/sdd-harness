@@ -38,6 +38,16 @@ class OutputValidator:
         if self.verbose:
             self._emit(f"  ℹ️  {message}")
 
+    def _path_exists(self, path: Path) -> bool:
+        return path.exists()
+
+    def _cursor_rules_exist(self) -> bool:
+        cursor_rules_dir = self.output_base / ".cursor" / "rules"
+        return any(
+            self._path_exists(cursor_rules_dir / filename)
+            for filename in ("spec.mdc", "sdd-governance.mdc")
+        )
+
     def validate(self) -> tuple[bool, ValidationDetail]:
         """Return (is_valid, detail_dict) after checking all required paths."""
         self._log("Validating output structure")
@@ -69,7 +79,6 @@ class OutputValidator:
                     "Copilot Instructions",
                 ),
                 (self.output_base / ".vscode" / "ai-rules.md", "VS Code AI Rules"),
-                (self.output_base / ".cursor" / "rules" / "spec.mdc", "Cursor Rules"),
                 (
                     self.output_base / ".claude" / "claude-instructions.md",
                     "Claude Instructions",
@@ -80,11 +89,23 @@ class OutputValidator:
                 ),
             ]
             for req_file, desc in required_files:
-                exists = req_file.exists()
+                exists = self._path_exists(req_file)
                 result["checks"][f"file: {desc}"] = "OK" if exists else "MISSING"
                 if not exists:
                     result["valid"] = False
                     result["errors"].append(f"Missing file: {req_file}")
+
+            cursor_rules_ok = self._cursor_rules_exist()
+            result["checks"]["file: Cursor Rules"] = (
+                "OK" if cursor_rules_ok else "MISSING"
+            )
+            if not cursor_rules_ok:
+                result["valid"] = False
+                result["errors"].append(
+                    "Missing file: expected one of "
+                    f"{self.output_base / '.cursor' / 'rules' / 'spec.mdc'} or "
+                    f"{self.output_base / '.cursor' / 'rules' / 'sdd-governance.mdc'}"
+                )
 
             for category in self.guidelines_by_category:
                 guideline_file = self.guidelines_dir / f"{category}.md"

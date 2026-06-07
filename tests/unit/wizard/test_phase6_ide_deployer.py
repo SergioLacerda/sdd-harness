@@ -187,6 +187,32 @@ class TestCreateIdeTemplates:
         result = d.create_ide_templates()
         assert result is True
 
+    def test_creates_cursor_alias_when_only_spec_exists(self, tmp_path: Path) -> None:
+        d = _make_deployer(tmp_path)
+        template_base = d._template_base
+        rules_dir = template_base / ".cursor" / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
+        (rules_dir / "spec.mdc").write_text("spec", encoding="utf-8")
+
+        result = d.create_ide_templates()
+        assert result is True
+        assert (d.output_base / ".cursor" / "rules" / "spec.mdc").exists()
+        assert (d.output_base / ".cursor" / "rules" / "sdd-governance.mdc").exists()
+
+    def test_uses_embedded_fallback_templates(self, tmp_path: Path) -> None:
+        d = _make_deployer(tmp_path)
+        d._template_base_candidates = lambda: [  # type: ignore[method-assign]
+            tmp_path / "missing-templates",
+            Path(__file__).resolve().parents[3]
+            / "packages/interfaces/sdd_wizard/src/sdd_wizard/templates/bootstrap-fallback",
+        ]
+
+        result = d.create_ide_templates()
+        assert result is True
+        assert (d.output_base / ".vscode" / "ai-rules.md").exists()
+        assert (d.output_base / ".cursor" / "rules" / "spec.mdc").exists()
+        assert (d.output_base / ".claude" / "claude-instructions.md").exists()
+
     def test_does_not_copy_tests_dir_when_present(self, tmp_path: Path) -> None:
         d = _make_deployer(tmp_path)
         template_base = d._template_base

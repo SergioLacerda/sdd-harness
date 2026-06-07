@@ -74,7 +74,23 @@ class IdeTemplateDeployer:
             / "sdd_integration"
             / "templates"
         )
+        candidates.append(
+            Path(__file__).resolve().parent.parent / "templates" / "bootstrap-fallback"
+        )
         return candidates
+
+    def _ensure_cursor_rule_aliases(self) -> None:
+        """Ensure both Cursor rule filenames exist for mixed-runtime compatibility."""
+        cursor_rules_dir = self.output_base / ".cursor" / "rules"
+        spec_file = cursor_rules_dir / "spec.mdc"
+        governance_file = cursor_rules_dir / "sdd-governance.mdc"
+
+        if spec_file.exists() and not governance_file.exists():
+            shutil.copy2(spec_file, governance_file)
+            self._log("Created Cursor governance alias from spec.mdc")
+        elif governance_file.exists() and not spec_file.exists():
+            shutil.copy2(governance_file, spec_file)
+            self._log("Created Cursor spec alias from sdd-governance.mdc")
 
     def copy_templates(self) -> bool:
         """Copy base templates to .github/workflows."""
@@ -147,6 +163,7 @@ class IdeTemplateDeployer:
                 print("  ❌ No template files were copied")  # noqa: T201
                 return False
 
+            self._ensure_cursor_rule_aliases()
             self._log(f"Copied {copied_count} configuration files and project files")
             return True
         except Exception as e:
