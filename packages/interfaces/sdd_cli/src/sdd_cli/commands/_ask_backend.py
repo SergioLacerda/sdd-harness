@@ -895,56 +895,6 @@ def _ask_cli_cmd(
         _JSON_MODE_OVERRIDE.reset(token)
 
 
-@app.command("ask-full")
-def _ask_full_cli_cmd(
-    ctx: typer.Context,
-    query: str = typer.Argument(
-        ..., help="Governance query (text is hashed, never stored)."
-    ),
-    dossier: bool = typer.Option(
-        False, "--dossier", help="Build comprehensive task dossier with analysis."
-    ),
-    skill: str | None = typer.Option(  # noqa: UP045
-        None, "--skill", help="Skill context (e.g., 'diagnose', 'optimize')."
-    ),
-    budget: int | None = typer.Option(  # noqa: UP045
-        None, "--budget", help="Token budget ceiling for this query."
-    ),
-    log_path: str | None = typer.Option(  # noqa: UP045
-        None, "--log-path", help="Custom compliance log path."
-    ),
-    log_format: str = typer.Option(
-        "jsonl", "--log-format", help="Log format: jsonl or compact."
-    ),
-    tokens_input: int | None = typer.Option(  # noqa: UP045
-        None,
-        "--tokens-input",
-        help="LLM API input tokens (overrides SDD_TOKENS_INPUT).",
-    ),
-    tokens_output: int | None = typer.Option(  # noqa: UP045
-        None,
-        "--tokens-output",
-        help="LLM API output tokens (overrides SDD_TOKENS_OUTPUT).",
-    ),
-) -> None:
-    """Compatibility alias for full ask mode."""
-    token = _JSON_MODE_OVERRIDE.set(is_json_mode(ctx))
-    try:
-        ask_cmd(
-            query=query,
-            dossier=dossier,
-            skill=skill,
-            budget=budget,
-            full=True,
-            log_path=log_path,
-            log_format=log_format,
-            tokens_input=tokens_input,
-            tokens_output=tokens_output,
-        )
-    finally:
-        _JSON_MODE_OVERRIDE.reset(token)
-
-
 def ask_cmd(
     query: str,
     dossier: bool = False,
@@ -1425,11 +1375,3 @@ def _check_budget_zone_and_compress(
         logger.debug("Budget zone check failed: %s", exc)
 
     return result_bytes, compression_ratio
-
-
-def ask_full_cmd(**kwargs: Any) -> None:
-    """Backward-compatible alias that forwards to `ask_cmd(..., full=True)`."""
-    if "json_output" in kwargs and "output_json" not in kwargs:
-        kwargs["output_json"] = kwargs.pop("json_output")
-    kwargs["full"] = True
-    ask_cmd(**kwargs)

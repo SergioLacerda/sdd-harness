@@ -1,4 +1,4 @@
-"""Unit tests for sdd ask / sdd ask-full commands."""
+"""Unit tests for sdd ask command."""
 
 from __future__ import annotations
 
@@ -152,7 +152,7 @@ class TestAskCommand:
                 side_effect=Exception("import fail"),
             ),
         ):
-            result = runner.invoke(app, ["ask", "what are the mandates?"])
+            result = runner.invoke(app, ["what are the mandates?"])
 
         assert result.exit_code == 0
         assert "context_source" in result.output
@@ -169,7 +169,7 @@ class TestAskCommand:
                 return_value=("master", "PARTIAL"),
             ),
         ):
-            result = runner.invoke(app, ["ask", "test"])
+            result = runner.invoke(app, ["test"])
 
         assert "SOFT" in result.output or "PARTIAL" in (
             result.output + (result.stderr or "")
@@ -194,7 +194,7 @@ class TestAskCommand:
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log_path)}),
         ):
-            runner.invoke(app, ["ask", "test query"])
+            runner.invoke(app, ["test query"])
 
         log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
         assert log.exists(), "compliance-events.jsonl must be written"
@@ -226,7 +226,7 @@ class TestAskCommand:
                 return_value=None,
             ),
         ):
-            result = runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            result = runner.invoke(app, ["status?"], obj={"output_json": True})
 
         assert result.exit_code == 0, result.output
         payload = _load_json_output(result.output)
@@ -282,7 +282,7 @@ class TestAskCommand:
                 return_value=None,
             ),
         ):
-            result = runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            result = runner.invoke(app, ["status?"], obj={"output_json": True})
 
         assert result.exit_code == 0, result.output
         payload = _load_json_output(result.output)
@@ -353,7 +353,7 @@ class TestAskCommand:
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            runner.invoke(app, ["status?"], obj={"output_json": True})
 
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         ask_events = [e for e in events if e.get("event") == "governance.ask"]
@@ -412,7 +412,7 @@ class TestAskCommand:
                 return_value=None,
             ),
         ):
-            result = runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            result = runner.invoke(app, ["status?"], obj={"output_json": True})
 
         payload = _load_json_output(result.output)
         assert payload["learning_signals"]["scope_violation"] == 2
@@ -451,7 +451,7 @@ class TestAskCommand:
                 "sdd_cli.commands._ask_backend._runtime_drift_check", return_value=True
             ),
         ):
-            result = runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            result = runner.invoke(app, ["status?"], obj={"output_json": True})
 
         payload = _load_json_output(result.output)
         assert payload["learning_signals"]["drift_recent_failures"] >= 1
@@ -494,7 +494,7 @@ class TestAskCommand:
         ):
             result = runner.invoke(
                 app,
-                ["ask", "status?", "--dossier"],
+                ["status?", "--dossier"],
                 obj={"output_json": True},
             )
         payload = _load_json_output(result.output)
@@ -516,9 +516,7 @@ class TestAskFullCommand:
             ),
             patch("sdd_core.governance.compliance.log_ask_event", return_value=None),
         ):
-            result = runner.invoke(
-                app, ["ask-full", "query", "--log-format", "compact"]
-            )
+            result = runner.invoke(app, ["query", "--full", "--log-format", "compact"])
 
         assert result.exit_code == 0
         assert "execution_gate" in result.output
@@ -543,7 +541,7 @@ class TestAskFullCommand:
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            runner.invoke(app, ["ask-full", "test"])
+            runner.invoke(app, ["test", "--full"])
 
         assert log.exists()
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
@@ -574,7 +572,7 @@ class TestAskFullCommand:
                 return_value=("master", "HEALTHY"),
             ),
         ):
-            result = runner.invoke(app, ["ask-full", "q", "--log-path", str(log_file)])
+            result = runner.invoke(app, ["q", "--full", "--log-path", str(log_file)])
 
         assert result.exit_code == 0
 
@@ -634,7 +632,7 @@ class TestAskFullCommand:
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            result = runner.invoke(app, ["ask-full", "runtime check"])
+            result = runner.invoke(app, ["runtime check", "--full"])
 
         assert result.exit_code == 0
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
@@ -668,7 +666,7 @@ class TestAskComplianceIntegration:
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            result = runner.invoke(app, ["ask", "integration test query"])
+            result = runner.invoke(app, ["integration test query"])
 
         assert result.exit_code == 0
         assert log.exists(), "compliance-events.jsonl must be written"
@@ -736,7 +734,7 @@ class TestCheckFingerprintDrift:
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            runner.invoke(app, ["ask", "drift test"])
+            runner.invoke(app, ["drift test"])
 
         assert log.exists()
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]

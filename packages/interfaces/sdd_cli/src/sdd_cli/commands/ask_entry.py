@@ -52,19 +52,6 @@ def ask(
     if not normalized_query or normalized_query.lower() in {"null", "nula"}:
         return
 
-    if full:
-        from sdd_cli.commands._ask_backend import ask_full_cmd
-
-        ask_full_cmd(
-            query=normalized_query,
-            log_path=log_path,
-            log_format=log_format,
-            tokens_input=tokens_input,
-            tokens_output=tokens_output,
-            json_output=is_json_mode(click.get_current_context(silent=True)),
-        )
-        return
-
     from sdd_cli.commands._ask_backend import ask_cmd
 
     ask_cmd(
@@ -72,5 +59,10 @@ def ask(
         dossier=dossier,
         skill=skill,
         budget=budget,
+        full=full,
+        log_path=log_path,
+        log_format=log_format,
+        tokens_input=tokens_input,
+        tokens_output=tokens_output,
         output_json=is_json_mode(click.get_current_context(silent=True)),
     )

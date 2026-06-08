@@ -76,7 +76,7 @@ def test_ask_permission_error_exits_with_code_3() -> None:
         "sdd_cli.commands._ask_backend.build_governed_ask_snapshot",
         side_effect=_raise_permission,
     ):
-        result = runner.invoke(ask_app, ["ask", "test query"])
+        result = runner.invoke(ask_app, ["test query"])
 
     assert result.exit_code == 3
 

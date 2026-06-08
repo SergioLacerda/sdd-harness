@@ -73,10 +73,6 @@ COMMAND_SPECS: dict[str, CommandSpec] = {
         "sdd_cli.commands.ask_entry",
         "Query SDD governance context (governed, minimal output)",
     ),
-    "ask-full": CommandSpec(
-        "sdd_cli.commands.ask_full_entry",
-        "Query SDD governance context (full output compatibility alias)",
-    ),
     "organize": CommandSpec(
         "sdd_cli.commands.organize",
         "Prepare and index large context blocks (sdd-organize)",
@@ -85,7 +81,7 @@ COMMAND_SPECS: dict[str, CommandSpec] = {
 
 # Only these commands require an initialized workspace profile at entrypoint.
 _WORKSPACE_REQUIRED_COMMANDS = frozenset(
-    {"ask", "ask-full", "organize", "runtime", "wizard", "release"}
+    {"ask", "organize", "runtime", "wizard", "release"}
 )
 
 

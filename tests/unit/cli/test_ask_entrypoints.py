@@ -1,4 +1,4 @@
-"""Regression tests for top-level ask/ask-full entrypoints."""
+"""Regression tests for top-level ask entrypoint."""
 
 from __future__ import annotations
 
@@ -32,12 +32,18 @@ def test_ask_top_level_invocation_without_duplication(monkeypatch) -> None:
         dossier: bool = False,
         skill: str | None = None,
         budget: int | None = None,
+        full: bool = False,
+        log_path: str | None = None,
+        log_format: str = "jsonl",
+        tokens_input: int | None = None,
+        tokens_output: int | None = None,
         output_json: bool | None = None,
     ) -> None:
         called["query"] = query
         called["dossier"] = dossier
         called["skill"] = skill
         called["budget"] = budget
+        called["full"] = full
         called["output_json"] = output_json
 
     monkeypatch.setattr("sdd_cli.commands._ask_backend.ask_cmd", _fake_ask_cmd)
@@ -46,6 +52,7 @@ def test_ask_top_level_invocation_without_duplication(monkeypatch) -> None:
     assert result.exit_code == 0, result.output
     assert called["query"] == "prompt"
     assert called["output_json"] is False
+    assert called["full"] is False
 
 
 def test_ask_top_level_noop_when_query_is_empty_or_null(monkeypatch) -> None:
@@ -57,6 +64,12 @@ def test_ask_top_level_noop_when_query_is_empty_or_null(monkeypatch) -> None:
         dossier: bool = False,
         skill: str | None = None,
         budget: int | None = None,
+        full: bool = False,
+        log_path: str | None = None,
+        log_format: str = "jsonl",
+        tokens_input: int | None = None,
+        tokens_output: int | None = None,
+        output_json: bool | None = None,
     ) -> None:
         called["count"] += 1
 
@@ -70,37 +83,40 @@ def test_ask_top_level_noop_when_query_is_empty_or_null(monkeypatch) -> None:
     assert called["count"] == 0
 
 
-def test_ask_full_top_level_invocation_without_duplication(monkeypatch) -> None:
+def test_ask_full_flag_passes_full_true_to_ask_cmd(monkeypatch) -> None:
     _patch_profile_gate(monkeypatch)
     called: dict[str, object] = {}
 
-    def _fake_ask_full_cmd(
+    def _fake_ask_cmd(
         query: str,
+        dossier: bool = False,
+        skill: str | None = None,
+        budget: int | None = None,
+        full: bool = False,
         log_path: str | None = None,
         log_format: str = "jsonl",
         tokens_input: int | None = None,
         tokens_output: int | None = None,
-        json_output: bool = False,
+        output_json: bool | None = None,
     ) -> None:
         called["query"] = query
-        called["log_path"] = log_path
+        called["full"] = full
         called["log_format"] = log_format
         called["tokens_input"] = tokens_input
         called["tokens_output"] = tokens_output
-        called["json_output"] = json_output
+        called["output_json"] = output_json
 
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend.ask_full_cmd", _fake_ask_full_cmd
-    )
+    monkeypatch.setattr("sdd_cli.commands._ask_backend.ask_cmd", _fake_ask_cmd)
 
-    result = CliRunner().invoke(app, ["ask-full", "prompt"])
+    result = CliRunner().invoke(app, ["ask", "--full", "prompt"])
     assert result.exit_code == 0, result.output
     assert called["query"] == "prompt"
+    assert called["full"] is True
 
 
-def test_ask_full_help_shows_canonical_usage(monkeypatch) -> None:
+def test_ask_full_flag_help_shows_canonical_usage(monkeypatch) -> None:
     _patch_profile_gate(monkeypatch)
-    result = CliRunner().invoke(app, ["ask-full", "--help"])
+    result = CliRunner().invoke(app, ["ask", "--help"])
     assert result.exit_code == 0, result.output
-    assert "ask-full [OPTIONS] QUERY" in result.output
-    assert "ask-full ask-full" not in result.output
+    assert "--full" in result.output
+    assert "ask ask" not in result.output
