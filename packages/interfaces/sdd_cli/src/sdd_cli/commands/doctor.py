@@ -2,7 +2,6 @@
 
 import logging
 from pathlib import Path
-from typing import Literal
 
 import typer
 
@@ -154,7 +153,7 @@ def _apply_adherence_gate(adherence_threshold: int) -> None:
 )
 def run(
     spec: Path = typer.Option(None, help="Path to integration flow spec"),  # noqa: B008
-    mode: Literal["isolated", "real"] = typer.Option(
+    mode: str = typer.Option(
         "isolated",
         help="Execution mode for doctor checks",
     ),
@@ -170,6 +169,9 @@ def run(
     ),
 ) -> None:
     """Run SDD diagnostics (integration flow)"""
+    mode = mode.strip().lower()
+    if mode not in {"isolated", "real"}:
+        raise typer.BadParameter("mode must be 'isolated' or 'real'.")
 
     try:
         from sdd_integration.engine.integration_engine import IntegrationEngine

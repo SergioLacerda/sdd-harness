@@ -1,34 +1,12 @@
 {
   "command": "ask",
   "data": {
-    "ask_decision_envelope": {
-      "allowed_paths": [],
-      "allowed_tools": [
-        "sdd ask",
-        "sdd skills run sdd-diagnose",
-        "sdd skills run sdd-correct"
-      ],
-      "envelope_scope_mode": "inferred",
-      "expires_at": "__EXPIRES_AT__",
-      "forbidden_paths": [],
-      "goal": "status?",
-      "issued_at": "__ISSUED_AT__",
-      "min_diagnosis_confidence": 0.8,
-      "requires_diagnosis": true,
-      "rollback_hint": "manual_rollback",
-      "task_id": "__TASK_ID__",
-      "task_type": "analysis",
-      "validation_set": [
-        "sdd governance validate",
-        "sdd runtime status --force"
-      ]
-    },
+    "ahp_state": "HEALTHY",
     "context_source": "compiled",
     "degraded": false,
     "degraded_reason": "",
     "drift_detected": false,
     "execution_gate": "blocked",
-    "exit_code": 0,
     "fingerprint": "fp-1",
     "gate_reason": "intake_index_mode=none: governance context not indexed; agent must not proceed",
     "governance_footer": "SDD GOVERNANCE: drift=none | governance=ok | profile=master",
@@ -37,34 +15,17 @@
     "intake_chunks": 0,
     "intake_index_mode": "none",
     "intake_retrieval": "indexed_only",
-    "learning_context": {
-      "observed_events": 2,
-      "recommendation_policy_version": "ask-learning-v1",
+    "learning_signals": {
+      "diagnosis_inconclusive": 2,
+      "drift_recent_failures": 0,
+      "evidence_insufficient": 1,
+      "observed_events": 3,
+      "scope_violation": 0,
       "window_days": 7
     },
-    "learning_recommendations": {
-      "confidence": 0.6667,
-      "enabled": true,
-      "next_actions": [
-        "sdd skills learning-candidates",
-        "sdd skills learning-status --window-days 7"
-      ],
-      "reason_codes": [
-        "diagnosis.inconclusive.recurrent"
-      ],
-      "requires_human_review": true,
-      "signals": [
-        "diagnosis_inconclusive_recurrent"
-      ]
-    },
     "mandates_loaded": 1,
-    "non_actionable": true,
-    "policy_result": "governance_context_loaded",
     "profile": "master",
     "query_hash": "88d34acb",
-    "reason": "governance context loaded",
-    "reason_code": "diagnosis.inconclusive.recurrent",
-    "state": "ok",
     "trust_source": "verified"
   },
   "error": null,

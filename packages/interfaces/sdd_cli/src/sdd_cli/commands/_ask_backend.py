@@ -1,7 +1,4 @@
-"""sdd ask / sdd ask-full — governed context query commands.
-
-``sdd ask``       — minimal, governed query against compiled SDD context.
-``sdd ask-full``  — full microtransaction telemetry variant with per-step tracing.
+"""sdd ask — governed context query command.
 
 Security:
   - Query text is NEVER logged; only sha256[:8] hash is recorded.
@@ -15,11 +12,11 @@ import hashlib
 import json
 import logging
 import os
-import re
 import time
 import uuid
 from contextvars import ContextVar
-from datetime import datetime, timedelta, timezone
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -73,8 +70,6 @@ from sdd_cli.services.ask_organize import (
 )
 from sdd_cli.services.ask_payload import (
     build_ask_json_data,
-    build_ask_success_payload,
-    derive_non_actionable_reason,
 )
 from sdd_cli.services.ask_telemetry import (
     emit_ask_telemetry as _emit_ask_telemetry_impl,
@@ -98,7 +93,6 @@ from sdd_cli.utils.sdd_authority import (
 __all__ = [
     "app",
     "ask_cmd",
-    "ask_full_cmd",
     "build_governed_ask_snapshot",
     "run_sdd_organize",
     "_should_use_organize",
@@ -127,15 +121,43 @@ __all__ = [
 
 app = typer.Typer(help="Query SDD governance context.")
 logger = logging.getLogger(__name__)
-_LEARNING_POLICY_VERSION = "ask-learning-v1"
 _LEARNING_WINDOW_DAYS = 7
-_ASK_MIN_DIAGNOSIS_CONFIDENCE = 0.80
-_ASK_ENVELOPE_TTL_MINUTES = 30
-_ASK_SCOPE_MODE_DEFAULT = "inferred"
+
+
+@dataclass(frozen=True)
+class _AskInputs:
+    query: str
+    dossier: bool
+    skill: str | None
+    budget: int | None
+    full: bool
+    log_path: str | None
+    log_format: str
+    tokens_input: int | None
+    tokens_output: int | None
+
+
+@dataclass(frozen=True)
+class _AskSessionContext:
+    workspace_root: Path
+    organize_used: bool
+    organize_reason: str
+    organize_artifact_path: str
+    organize_chunks: int
+    organize_retrieval: str
+    profile: str
+    state: str
+    agent_id: str
+    trace_id: str
+    start_mono: float
+    start_ts: str
+
+
 _TRUE_VALUES = {"1", "true", "yes", "on"}
 _JSON_MODE_OVERRIDE: ContextVar[bool | None] = ContextVar(
     "ask_json_mode_override", default=None
 )
+_GOV_CACHE: dict[str, _GovResult] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -183,12 +205,18 @@ def _validate_signature_for_artifact(
 def _load_compiled_governance(
     workspace_root: Path,
 ) -> _GovResult:
-    return _load_compiled_governance_impl(
+    key = str(workspace_root.resolve())
+    cached = _GOV_CACHE.get(key)
+    if cached is not None:
+        return cached
+    result = _load_compiled_governance_impl(
         workspace_root,
         compiled_active_dir_fn=compiled_active_dir,
         logger=logger,
         load_via_runtime_fn=_load_governance_via_runtime,
     )
+    _GOV_CACHE[key] = result
+    return result
 
 
 def _fingerprint_file(path: Path) -> str:
@@ -198,6 +226,15 @@ def _fingerprint_file(path: Path) -> str:
 def _resolve_workspace_root() -> Path:
     root = resolve_authority_workspace_root()
     return enforce_path_policy(root, workspace_root=root, mode="normal")
+
+
+def _get_cached_ahp() -> dict[str, Any] | None:
+    ctx = click.get_current_context(silent=True)
+    if ctx is not None and isinstance(ctx.obj, dict):
+        cached = ctx.obj.get("_ahp")
+        if isinstance(cached, dict):
+            return cached
+    return None
 
 
 def _get_profile_state() -> tuple[str, str]:
@@ -214,6 +251,9 @@ def _get_profile_state() -> tuple[str, str]:
             profile = parser.get("sdd", "type", fallback="").strip()
         except Exception:
             profile = ""
+    cached_ahp = _get_cached_ahp()
+    if cached_ahp is not None:
+        return profile or "default", str(cached_ahp.get("state", "UNKNOWN"))
     try:
         from sdd_core.governance.handshake import AgentHandshakeProtocol
 
@@ -370,122 +410,116 @@ def _safe_parse_iso(value: str) -> datetime | None:
         return None
 
 
-def _load_jsonl_rows(path: Path) -> list[dict[str, Any]]:
+def _update_learning_signals(
+    row: dict[str, Any], signals: dict[str, int], *, from_failures: bool
+) -> None:
+    signals["observed_events"] += 1
+    if from_failures:
+        root_cause = str(row.get("root_cause", ""))
+        if root_cause == "diagnosis.inconclusive":
+            signals["diagnosis_inconclusive"] += 1
+        elif root_cause == "evidence.insufficient":
+            signals["evidence_insufficient"] += 1
+        elif root_cause == "scope.violation":
+            signals["scope_violation"] += 1
+        return
+    status = str(row.get("status", "")).lower()
+    if status in {"warn", "fail", "error"}:
+        signals["drift_recent_failures"] += 1
+
+
+def _load_tail_row(raw: bytes) -> dict[str, Any] | None:
+    if not raw.strip():
+        return None
+    try:
+        parsed = json.loads(raw.decode("utf-8"))
+    except Exception:
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+def _row_is_before_cutoff(row: dict[str, Any], cutoff_ts: float) -> bool | None:
+    ts = _safe_parse_iso(str(row.get("timestamp", "")))
+    if ts is None:
+        return None
+    return ts.timestamp() < cutoff_ts
+
+
+def _process_tail_row(
+    raw: bytes, signals: dict[str, int], cutoff_ts: float, *, from_failures: bool
+) -> bool:
+    row = _load_tail_row(raw)
+    if row is None:
+        return False
+    before_cutoff = _row_is_before_cutoff(row, cutoff_ts)
+    if before_cutoff is None:
+        return False
+    if before_cutoff:
+        return True
+    _update_learning_signals(row, signals, from_failures=from_failures)
+    return False
+
+
+def _process_tail_lines(
+    rows: list[bytes], signals: dict[str, int], cutoff_ts: float, *, from_failures: bool
+) -> bool:
+    for raw in reversed(rows):
+        if _process_tail_row(raw, signals, cutoff_ts, from_failures=from_failures):
+            return True
+    return False
+
+
+def _count_signals_from_tail(
+    path: Path, signals: dict[str, int], cutoff_ts: float, *, from_failures: bool
+) -> None:
     if not path.exists():
-        return []
-    rows: list[dict[str, Any]] = []
-    for raw in path.read_text(encoding="utf-8").splitlines():
-        if not raw.strip():
-            continue
-        try:
-            parsed = json.loads(raw)
-        except Exception:  # nosec B112
-            continue
-        if isinstance(parsed, dict):
-            rows.append(parsed)
-    return rows
+        return
+    with path.open("rb") as handle:
+        handle.seek(0, 2)
+        position = handle.tell()
+        chunk_size = 4096
+        buffer = b""
+        stop = False
+        while position > 0 and not stop:
+            read_size = min(chunk_size, position)
+            position -= read_size
+            handle.seek(position)
+            buffer = handle.read(read_size) + buffer
+            lines = buffer.split(b"\n")
+            buffer = lines[0]
+            stop = _process_tail_lines(
+                lines[1:], signals, cutoff_ts, from_failures=from_failures
+            )
+        if not stop:
+            _process_tail_row(buffer, signals, cutoff_ts, from_failures=from_failures)
 
 
-def _load_recent_jsonl_rows(path: Path, *, cutoff_ts: float) -> list[dict[str, Any]]:
-    """Load JSONL rows newest-first until cutoff_ts, avoiding full-file scans."""
-    if not path.exists():
-        return []
-    lines = path.read_text(encoding="utf-8").splitlines()
-    rows: list[dict[str, Any]] = []
-    for raw in reversed(lines):
-        if not raw.strip():
-            continue
-        try:
-            parsed = json.loads(raw)
-        except Exception:  # nosec B112
-            continue
-        if not isinstance(parsed, dict):
-            continue
-        ts = _safe_parse_iso(str(parsed.get("timestamp", "")))
-        if ts is None:
-            continue
-        if ts.timestamp() < cutoff_ts:
-            break
-        rows.append(parsed)
-    rows.reverse()
-    return rows
-
-
-def _build_learning_recommendation(
-    *,
-    workspace_root: Path,
-    drift_detected: bool,
-    window_days: int = _LEARNING_WINDOW_DAYS,
-) -> tuple[dict[str, Any] | None, dict[str, Any]]:
-    runtime_dir = workspace_root / ".sdd" / "runtime"
-    cutoff = datetime.now(timezone.utc).timestamp() - (window_days * 24 * 3600)
-    recent_failures = _load_recent_jsonl_rows(
-        runtime_dir / "failure-ledger.jsonl", cutoff_ts=cutoff
-    )
-    recent_event_rows = _load_recent_jsonl_rows(
-        runtime_dir / "compliance-events.jsonl", cutoff_ts=cutoff
-    )
-
-    diagnosis_inconclusive = sum(
-        1
-        for row in recent_failures
-        if str(row.get("root_cause", "")) == "diagnosis.inconclusive"
-    )
-    evidence_insufficient = sum(
-        1
-        for row in recent_failures
-        if str(row.get("root_cause", "")) == "evidence.insufficient"
-    )
-    scope_violation = sum(
-        1
-        for row in recent_failures
-        if str(row.get("root_cause", "")) == "scope.violation"
-    )
-
-    recent_fail_or_warn_events = sum(
-        1
-        for row in recent_event_rows
-        if str(row.get("status", "")).lower() in {"warn", "fail", "error"}
-    )
-
-    signals: list[str] = []
-    reason_codes: list[str] = []
-    if diagnosis_inconclusive >= 2:
-        signals.append("diagnosis_inconclusive_recurrent")
-        reason_codes.append("diagnosis.inconclusive.recurrent")
-    if evidence_insufficient >= 2:
-        signals.append("evidence_insufficient_recurrent")
-        reason_codes.append("evidence.insufficient.recurrent")
-    if scope_violation >= 2:
-        signals.append("scope_violation_recurrent")
-        reason_codes.append("scope.violation.recurrent")
-    if drift_detected and recent_fail_or_warn_events >= 1:
-        signals.append("drift_recurrent")
-        reason_codes.append("drift.recurrent.failure_recent")
-
-    context = {
+def _collect_learning_signals(
+    workspace_root: Path, *, window_days: int = _LEARNING_WINDOW_DAYS
+) -> dict[str, int]:
+    cutoff = time.time() - (window_days * 86400)
+    signals: dict[str, int] = {
+        "diagnosis_inconclusive": 0,
+        "evidence_insufficient": 0,
+        "scope_violation": 0,
+        "drift_recent_failures": 0,
+        "observed_events": 0,
         "window_days": window_days,
-        "observed_events": len(recent_failures) + len(recent_event_rows),
-        "recommendation_policy_version": _LEARNING_POLICY_VERSION,
     }
-    if not signals:
-        return None, context
-
-    confidence = min(1.0, len(signals) / 3.0)
-    recommendation = {
-        "enabled": True,
-        "confidence": round(confidence, 4),
-        "signals": signals,
-        "reason_codes": reason_codes,
-        "next_actions": [
-            "sdd skills learning-candidates",
-            f"sdd skills learning-status --window-days {window_days}",
-            'sdd skills learning-approve <candidate-id> --rationale "..."',
-            'sdd skills learning-reject <candidate-id> --rationale "..."',
-        ],
-        "requires_human_review": True,
-    }
-    return recommendation, context
+    runtime_dir = workspace_root / ".sdd" / "runtime"
+    _count_signals_from_tail(
+        runtime_dir / "failure-ledger.jsonl",
+        signals,
+        cutoff,
+        from_failures=True,
+    )
+    _count_signals_from_tail(
+        runtime_dir / "compliance-events.jsonl",
+        signals,
+        cutoff,
+        from_failures=False,
+    )
+    return signals
 
 
 # ---------------------------------------------------------------------------
@@ -531,11 +565,17 @@ def _guard_budget_breach() -> None:
 def _guard_handshake(workspace_root: Path) -> None:
     """Enforce handshake requirement (M015) based on signature mode."""
     try:
-        from sdd_core.governance.handshake import AgentHandshakeProtocol
-
-        ahp = AgentHandshakeProtocol(project_root=workspace_root)
         sig_mode = _signature_mode()
-        if not ahp.is_handshake_valid(strict=sig_mode == "strict"):
+        cached_ahp = _get_cached_ahp()
+        is_valid = (
+            bool(cached_ahp.get("valid")) if isinstance(cached_ahp, dict) else None
+        )
+        if is_valid is None:
+            from sdd_core.governance.handshake import AgentHandshakeProtocol
+
+            ahp = AgentHandshakeProtocol(project_root=workspace_root)
+            is_valid = ahp.is_handshake_valid(strict=sig_mode == "strict")
+        if not is_valid:
             if sig_mode == "strict":
                 typer.echo(
                     "BLOCK [ask]: Missing or incomplete handshake. "
@@ -758,107 +798,6 @@ def _emit_state_warnings(state: str) -> None:
         )
 
 
-def _infer_allowed_paths_from_query(query: str) -> list[str]:
-    explicit_matches = re.findall(
-        r"(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+", query.strip()
-    )
-    normalized: list[str] = []
-    for match in explicit_matches:
-        candidate = match.strip().strip("`\"'")
-        if not candidate:
-            continue
-        if "." in Path(candidate).name:
-            candidate = str(Path(candidate).parent)
-        if candidate and not candidate.endswith("/"):
-            candidate = f"{candidate}/"
-        if candidate and candidate not in normalized and candidate != "./":
-            normalized.append(candidate)
-    if normalized:
-        return normalized
-
-    q = query.lower()
-    inferred: list[str] = []
-    keyword_map = [
-        ("runtime", "packages/core/sdd_runtime/src/"),
-        ("cli", "packages/interfaces/sdd_cli/src/"),
-        ("compiler", "packages/core/sdd_compiler/src/"),
-        ("wizard", "packages/interfaces/sdd_wizard/src/"),
-        ("docs", "docs/"),
-        ("test", "tests/"),
-        ("governance", ".sdd/"),
-    ]
-    for key, path in keyword_map:
-        if key in q and path not in inferred:
-            inferred.append(path)
-    return inferred
-
-
-def _extract_explicit_allowed_paths(query: str) -> list[str]:
-    explicit_matches = re.findall(
-        r"(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+", query.strip()
-    )
-    normalized: list[str] = []
-    for match in explicit_matches:
-        candidate = match.strip().strip("`\"'")
-        if not candidate:
-            continue
-        if "." in Path(candidate).name:
-            candidate = str(Path(candidate).parent)
-        if candidate and not candidate.endswith("/"):
-            candidate = f"{candidate}/"
-        if candidate and candidate not in normalized and candidate != "./":
-            normalized.append(candidate)
-    return normalized
-
-
-def _resolve_envelope_scope_mode() -> str:
-    mode = (
-        os.environ.get("SDD_ENVELOPE_SCOPE_MODE", _ASK_SCOPE_MODE_DEFAULT)
-        .strip()
-        .lower()
-    )
-    if mode not in {"inferred", "explicit_only"}:
-        return _ASK_SCOPE_MODE_DEFAULT
-    return mode
-
-
-def _build_ask_decision_envelope(
-    *,
-    query: str,
-    skill: str | None,
-    organize_used: bool,
-) -> dict[str, Any]:
-    issued_at = datetime.now(timezone.utc)
-    task_type = "diagnostic" if organize_used else "analysis"
-    if skill:
-        task_type = skill
-    scope_mode = _resolve_envelope_scope_mode()
-    allowed_paths = _infer_allowed_paths_from_query(query)
-    if scope_mode == "explicit_only":
-        allowed_paths = _extract_explicit_allowed_paths(query)
-    return {
-        "task_id": f"task-{uuid.uuid4().hex[:12]}",
-        "task_type": task_type,
-        "goal": query.strip() or "unspecified",
-        "allowed_paths": allowed_paths,
-        "forbidden_paths": [],
-        "allowed_tools": [
-            "sdd ask",
-            "sdd skills run sdd-diagnose",
-            "sdd skills run sdd-correct",
-        ],
-        "validation_set": ["sdd governance validate", "sdd runtime status --force"],
-        "rollback_hint": "manual_rollback",
-        "requires_diagnosis": True,
-        "envelope_scope_mode": scope_mode,
-        "min_diagnosis_confidence": _ASK_MIN_DIAGNOSIS_CONFIDENCE,
-        "issued_at": issued_at.isoformat(),
-        "expires_at": (
-            issued_at + timedelta(minutes=_ASK_ENVELOPE_TTL_MINUTES)
-        ).isoformat(),
-    }
-
-
 def build_governed_ask_snapshot(
     *,
     query: str,
@@ -883,15 +822,7 @@ def build_governed_ask_snapshot(
     if _signature_mode() == "strict" and not authenticated:
         raise PermissionError(degrade_reason)
     drift_detected = _runtime_drift_check(root, fingerprint)
-    learning_recommendation, learning_context = _build_learning_recommendation(
-        workspace_root=root,
-        drift_detected=drift_detected,
-    )
-    ask_decision_envelope = _build_ask_decision_envelope(
-        query=query,
-        skill=skill,
-        organize_used=organize_used,
-    )
+    learning_signals = _collect_learning_signals(workspace_root=root)
     return {
         "workspace_root": root,
         "context_source": context_source,
@@ -902,9 +833,7 @@ def build_governed_ask_snapshot(
         "degrade_reason": degrade_reason,
         "trust_source": trust_source,
         "drift_detected": drift_detected,
-        "learning_recommendation": learning_recommendation,
-        "learning_context": learning_context,
-        "ask_decision_envelope": ask_decision_envelope,
+        "learning_signals": learning_signals,
     }
 
 
@@ -922,17 +851,96 @@ def _ask_cli_cmd(
     dossier: bool = typer.Option(
         False, "--dossier", help="Build comprehensive task dossier with analysis."
     ),
-    skill: str | None = typer.Option(
+    skill: str | None = typer.Option(  # noqa: UP045
         None, "--skill", help="Skill context (e.g., 'diagnose', 'optimize')."
     ),
-    budget: int | None = typer.Option(
+    budget: int | None = typer.Option(  # noqa: UP045
         None, "--budget", help="Token budget ceiling for this query."
+    ),
+    full: bool = typer.Option(
+        False, "--full", help="Emit detailed steps and full telemetry payload."
+    ),
+    log_path: str | None = typer.Option(  # noqa: UP045
+        None, "--log-path", help="Custom compliance log path."
+    ),
+    log_format: str = typer.Option(
+        "jsonl", "--log-format", help="Log format: jsonl or compact."
+    ),
+    tokens_input: int | None = typer.Option(  # noqa: UP045
+        None,
+        "--tokens-input",
+        help="LLM API input tokens (overrides SDD_TOKENS_INPUT).",
+    ),
+    tokens_output: int | None = typer.Option(  # noqa: UP045
+        None,
+        "--tokens-output",
+        help="LLM API output tokens (overrides SDD_TOKENS_OUTPUT).",
     ),
 ) -> None:
     """Query SDD governance context — minimal governed output."""
     token = _JSON_MODE_OVERRIDE.set(is_json_mode(ctx))
     try:
-        ask_cmd(query=query, dossier=dossier, skill=skill, budget=budget)
+        ask_cmd(
+            query=query,
+            dossier=dossier,
+            skill=skill,
+            budget=budget,
+            full=full,
+            log_path=log_path,
+            log_format=log_format,
+            tokens_input=tokens_input,
+            tokens_output=tokens_output,
+        )
+    finally:
+        _JSON_MODE_OVERRIDE.reset(token)
+
+
+@app.command("ask-full")
+def _ask_full_cli_cmd(
+    ctx: typer.Context,
+    query: str = typer.Argument(
+        ..., help="Governance query (text is hashed, never stored)."
+    ),
+    dossier: bool = typer.Option(
+        False, "--dossier", help="Build comprehensive task dossier with analysis."
+    ),
+    skill: str | None = typer.Option(  # noqa: UP045
+        None, "--skill", help="Skill context (e.g., 'diagnose', 'optimize')."
+    ),
+    budget: int | None = typer.Option(  # noqa: UP045
+        None, "--budget", help="Token budget ceiling for this query."
+    ),
+    log_path: str | None = typer.Option(  # noqa: UP045
+        None, "--log-path", help="Custom compliance log path."
+    ),
+    log_format: str = typer.Option(
+        "jsonl", "--log-format", help="Log format: jsonl or compact."
+    ),
+    tokens_input: int | None = typer.Option(  # noqa: UP045
+        None,
+        "--tokens-input",
+        help="LLM API input tokens (overrides SDD_TOKENS_INPUT).",
+    ),
+    tokens_output: int | None = typer.Option(  # noqa: UP045
+        None,
+        "--tokens-output",
+        help="LLM API output tokens (overrides SDD_TOKENS_OUTPUT).",
+    ),
+) -> None:
+    """Compatibility alias for full ask mode."""
+    token = _JSON_MODE_OVERRIDE.set(is_json_mode(ctx))
+    try:
+        ask_cmd(
+            query=query,
+            dossier=dossier,
+            skill=skill,
+            budget=budget,
+            full=True,
+            log_path=log_path,
+            log_format=log_format,
+            tokens_input=tokens_input,
+            tokens_output=tokens_output,
+        )
     finally:
         _JSON_MODE_OVERRIDE.reset(token)
 
@@ -942,35 +950,71 @@ def ask_cmd(
     dossier: bool = False,
     skill: str | None = None,
     budget: int | None = None,
+    full: bool = False,
+    log_path: str | None = None,
+    log_format: str = "jsonl",
+    tokens_input: int | None = None,
+    tokens_output: int | None = None,
     *,
     output_json: bool | None = None,
 ) -> None:
     """Query SDD governance context — minimal governed output."""
     token = _JSON_MODE_OVERRIDE.set(output_json) if output_json is not None else None
     try:
-        _ask_cmd_impl(query=query, dossier=dossier, skill=skill, budget=budget)
+        _ask_cmd_impl(
+            query=query,
+            dossier=dossier,
+            skill=skill,
+            budget=budget,
+            full=full,
+            log_path=log_path,
+            log_format=log_format,
+            tokens_input=tokens_input,
+            tokens_output=tokens_output,
+        )
     finally:
         if token is not None:
             _JSON_MODE_OVERRIDE.reset(token)
 
 
-def _ask_cmd_impl(
+def _normalize_ask_inputs(
     *,
     query: str,
     dossier: bool,
     skill: str | None,
     budget: int | None,
-) -> None:
-    dossier = bool(_normalize_typer_value(dossier, False))
-    skill = _normalize_typer_value(skill, None)
-    if not isinstance(skill, str):
-        skill = None
-    budget = _normalize_typer_value(budget, None)
-    if not isinstance(budget, int):
-        budget = None
+    full: bool,
+    log_path: str | None,
+    log_format: str,
+    tokens_input: int | None,
+    tokens_output: int | None,
+) -> _AskInputs:
+    skill_value = _normalize_typer_value(skill, None)
+    budget_value = _normalize_typer_value(budget, None)
+    log_path_value = _normalize_typer_value(log_path, None)
+    log_format_value = _normalize_typer_value(log_format, "jsonl")
+    tokens_input_value = _normalize_typer_value(tokens_input, None)
+    tokens_output_value = _normalize_typer_value(tokens_output, None)
+    return _AskInputs(
+        query=query,
+        dossier=bool(_normalize_typer_value(dossier, False)),
+        skill=skill_value if isinstance(skill_value, str) else None,
+        budget=budget_value if isinstance(budget_value, int) else None,
+        full=bool(_normalize_typer_value(full, False)),
+        log_path=log_path_value if isinstance(log_path_value, str) else None,
+        log_format=log_format_value if isinstance(log_format_value, str) else "jsonl",
+        tokens_input=(
+            tokens_input_value if isinstance(tokens_input_value, int) else None
+        ),
+        tokens_output=(
+            tokens_output_value if isinstance(tokens_output_value, int) else None
+        ),
+    )
 
-    _start_mono = time.monotonic()
-    _start_ts = _now()
+
+def _start_ask_session(query: str) -> _AskSessionContext:
+    start_mono = time.monotonic()
+    start_ts = _now()
     _guard_budget_breach()
     workspace_root = _resolve_workspace_root()
     (
@@ -980,24 +1024,63 @@ def _ask_cmd_impl(
         organize_chunks,
         organize_retrieval,
     ) = _run_organize_intake(workspace_root, query)
-
     _guard_handshake(workspace_root)
     profile, state = _get_profile_state()
-    agent_id = os.environ.get("SDD_AGENT_ID", "unknown")
-    trace_id = str(uuid.uuid4())
     _emit_state_warnings(state)
+    return _AskSessionContext(
+        workspace_root=workspace_root,
+        organize_used=organize_used,
+        organize_reason=organize_reason,
+        organize_artifact_path=organize_artifact_path,
+        organize_chunks=organize_chunks,
+        organize_retrieval=organize_retrieval,
+        profile=profile,
+        state=state,
+        agent_id=os.environ.get("SDD_AGENT_ID", "unknown"),
+        trace_id=str(uuid.uuid4()),
+        start_mono=start_mono,
+        start_ts=start_ts,
+    )
 
+
+def _load_ask_snapshot(
+    inputs: _AskInputs, session: _AskSessionContext
+) -> dict[str, Any]:
     try:
-        ask_snapshot = build_governed_ask_snapshot(
-            query=query,
-            skill=skill,
-            organize_used=organize_used,
-            workspace_root=workspace_root,
+        return build_governed_ask_snapshot(
+            query=inputs.query,
+            skill=inputs.skill,
+            organize_used=session.organize_used,
+            workspace_root=session.workspace_root,
             require_handshake=True,
         )
     except PermissionError as exc:
         typer.echo(f"BLOCK [ask]: {exc}", err=True)
         raise typer.Exit(3) from None
+
+
+def _resolve_runtime_token_metrics(
+    inputs: _AskInputs, output_text: str
+) -> tuple[int | None, int | None, str]:
+    tokens_in, tokens_out, token_source = _capture_effective_tokens_with_source(
+        inputs.tokens_input, inputs.tokens_output
+    )
+    if tokens_in is None or tokens_out is None:
+        est_in, est_out, est_source = _resolve_tokens(inputs.query, output_text)
+        if tokens_in is None:
+            tokens_in = est_in
+        if tokens_out is None:
+            tokens_out = est_out
+        if token_source in {"", "unknown"}:
+            token_source = est_source
+    return tokens_in, tokens_out, token_source
+
+
+def _sync_ask_runtime(
+    inputs: _AskInputs,
+    session: _AskSessionContext,
+    ask_snapshot: dict[str, Any],
+) -> tuple[str, str]:
     context_source = ask_snapshot["context_source"]
     fingerprint = ask_snapshot["fingerprint"]
     mandates_count = ask_snapshot["mandates_count"]
@@ -1006,15 +1089,11 @@ def _ask_cmd_impl(
     degrade_reason = ask_snapshot["degrade_reason"]
     trust_source = ask_snapshot["trust_source"]
     drift_detected = ask_snapshot["drift_detected"]
-    learning_recommendation = ask_snapshot["learning_recommendation"]
-    learning_context = ask_snapshot["learning_context"]
-    ask_decision_envelope = ask_snapshot["ask_decision_envelope"]
-
-    # ── sdd_runtime: emit typed RuntimeEvent to canonical JSONL sink ──────
-    _end_ts = _now()
-    _duration_ms = int((time.monotonic() - _start_mono) * 1000)
-    _output_text = _render_context_output(
-        query,
+    learning_signals = ask_snapshot["learning_signals"]
+    end_ts = _now()
+    duration_ms = int((time.monotonic() - session.start_mono) * 1000)
+    output_text = _render_context_output(
+        inputs.query,
         context_source,
         fingerprint,
         mandates_count,
@@ -1022,192 +1101,258 @@ def _ask_cmd_impl(
         degrade_reason=degrade_reason,
         trust_source=trust_source,
     )
-    _tokens_in, _tokens_out, _token_source = _resolve_tokens(query, _output_text)
-    _path_id = os.environ.get("SDD_PATH_ID") or (
-        "PATH_B" if organize_used else "PATH_A"
+    tokens_in, tokens_out, token_source = _resolve_runtime_token_metrics(
+        inputs, output_text
     )
-    _drift_type = _resolve_ask_drift_type(
+    path_id = os.environ.get("SDD_PATH_ID") or (
+        "PATH_B" if session.organize_used else "PATH_A"
+    )
+    drift_type = _resolve_ask_drift_type(
         drift_detected=drift_detected, authenticated=authenticated
     )
-    _effective_degraded_reason = _resolve_ask_degraded_reason(
+    effective_degraded_reason = _resolve_ask_degraded_reason(
         degraded=degraded, degrade_reason=degrade_reason, authenticated=authenticated
     )
     _emit_ask_telemetry(
         "governance.ask",
         command="ask",
-        workspace_root=workspace_root,
-        trace_id=trace_id,
-        agent_id=agent_id,
+        workspace_root=session.workspace_root,
+        trace_id=session.trace_id,
+        agent_id=session.agent_id,
         fingerprint=fingerprint,
         context_source=context_source,
         mandates_count=mandates_count,
-        profile=profile,
-        state=state,
+        profile=session.profile,
+        state=session.state,
         drift_detected=drift_detected,
-        query_hash=_hash_query(query),
-        path_id=_path_id,
-        start_ts=_start_ts,
-        end_ts=_end_ts,
-        duration_ms=_duration_ms,
-        tokens_input=_tokens_in,
-        tokens_output=_tokens_out,
+        query_hash=_hash_query(inputs.query),
+        path_id=path_id,
+        start_ts=session.start_ts,
+        end_ts=end_ts,
+        duration_ms=duration_ms,
+        tokens_input=tokens_in,
+        tokens_output=tokens_out,
         extra_details={
             "compiled_fingerprint_used": fingerprint,
             "degraded": degraded,
-            "degraded_reason": _effective_degraded_reason,
-            "drift_type": _drift_type,
+            "degraded_reason": effective_degraded_reason,
+            "drift_type": drift_type,
             "trust_source": trust_source,
             "authenticated": authenticated,
-            "intake_route": "heavy" if organize_used else "light",
-            "intake_route_reason": organize_reason,
-            "intake_artifact": organize_artifact_path,
-            "intake_chunks": organize_chunks,
-            "intake_retrieval": organize_retrieval,
-            "token_source": _token_source,
-            "learning_recommendation_emitted": learning_recommendation is not None,
-            "learning_signal_count": len(learning_recommendation["signals"])
-            if learning_recommendation
-            else 0,
+            "intake_route": "heavy" if session.organize_used else "light",
+            "intake_route_reason": session.organize_reason,
+            "intake_artifact": session.organize_artifact_path,
+            "intake_chunks": session.organize_chunks,
+            "intake_retrieval": session.organize_retrieval,
+            "token_source": token_source,
+            "learning_signal_count": sum(
+                value
+                for key, value in learning_signals.items()
+                if key not in {"observed_events", "window_days"}
+            ),
+            "full_mode": inputs.full,
+            "log_format": inputs.log_format,
+            "log_path": inputs.log_path or "default",
         },
     )
-
-    # Update last_ask in runtime cache
     _write_runtime_cache(
-        workspace_root,
+        session.workspace_root,
         {
             "ts": _now(),
-            "trace_id": trace_id,
+            "trace_id": session.trace_id,
             "context_source": context_source,
             "compiled_fingerprint_used": fingerprint,
             "mandates_loaded": mandates_count,
-            "agent_id": agent_id,
+            "agent_id": session.agent_id,
             "degraded": degraded,
-            "degraded_reason": _effective_degraded_reason,
+            "degraded_reason": effective_degraded_reason,
             "trust_source": trust_source,
         },
     )
-
-    # ── sdd_runtime: upsert canonical session state ───────────────────────
-    _upsert_ask_session(workspace_root, agent_id, "ask", fingerprint)
-
-    governance_footer = _governance_footer_for_state(
-        state=state,
-        profile=profile,
+    _upsert_ask_session(session.workspace_root, session.agent_id, "ask", fingerprint)
+    return output_text, _governance_footer_for_state(
+        state=session.state,
+        profile=session.profile,
         drift_detected=drift_detected,
     )
-    if _json_mode():
-        dossier_lines: list[str] = []
-        if dossier:
-            try:
-                from sdd_runtime.context import ContextLoader, ContextRequest
 
-                dossier_budget = _resolve_dossier_budget(budget)
-                budget_utilization_pct = 50.0
-                artifact = _load_dossier_artifact(workspace_root)
-                context_result = ContextLoader().load_result(
-                    ContextRequest(
-                        query=query,
-                        artifact=artifact,
-                        max_items=mandates_count,
-                        budget_utilization_pct=budget_utilization_pct,
-                        prefer_full_summary=_prefer_full_summary(),
-                    )
-                )
-                dossier_lines = _build_dossier_lines(
-                    query=query,
-                    skill=skill,
-                    budget=dossier_budget,
-                    mandates_count=mandates_count,
-                    budget_utilization_pct=budget_utilization_pct,
-                    context_result=context_result,
-                )
-            except Exception as exc:
-                _handle_dossier_error(exc)
-        _gate_mode = "hard"
-        _intake_mode = "multi" if organize_used else "none"
-        _execution_gate = "blocked" if _intake_mode == "none" else "allowed"
-        _gate_reason = (
-            "intake_index_mode=none: governance context not indexed; agent must not proceed"
-            if _execution_gate == "blocked"
-            else None
-        )
-        data: dict[str, Any] = build_ask_json_data(
-            profile=profile,
-            query_hash=_hash_query(query),
-            context_source=context_source,
-            fingerprint=fingerprint,
-            mandates_loaded=mandates_count,
-            trust_source=trust_source,
-            degraded=degraded,
-            degraded_reason=degrade_reason,
-            drift_detected=drift_detected,
-            governance_footer=governance_footer,
-            intake_index_mode=_intake_mode,
-            intake_chunks=organize_chunks,
-            intake_retrieval=organize_retrieval,
-            intake_artifact=organize_artifact_path or "n/a",
-            governance_mode=_gate_mode,
-            execution_gate=_execution_gate,
-            gate_reason=_gate_reason,
-        )
-        payload = build_ask_success_payload(
-            command="ask",
-            base_data=data,
-            ask_decision_envelope=ask_decision_envelope,
-            learning_context=learning_context,
-            learning_recommendation=learning_recommendation,
-            include_empty_recommendations=False,
-            dossier_lines=dossier_lines,
-        )
-        emit_json(payload)
-        return
 
-    typer.echo(
-        _render_context_output(
-            query,
-            context_source,
-            fingerprint,
-            mandates_count,
-            degraded=degraded,
-            degrade_reason=degrade_reason,
-            trust_source=trust_source,
-        )
-    )
-    _pt_intake_mode = "multi" if organize_used else "none"
-    _pt_gate = "blocked" if _pt_intake_mode == "none" else "allowed"
-    _pt_gate_suffix = (
-        "\ngate_reason       : intake_index_mode=none"
-        f"\nintake_skipped    : {organize_reason} (query {len(query)} chars"
-        " < 6000; pass ≥6000 chars or use: sdd-organize --input-file <path> <query>)"
-        if _pt_gate == "blocked"
-        else ""
-    )
-    typer.echo(
-        f"intake_index_mode : {_pt_intake_mode}\n"
-        f"intake_chunks     : {organize_chunks}\n"
-        f"intake_retrieval  : {organize_retrieval}\n"
-        f"intake_artifact   : {organize_artifact_path or 'n/a'}\n"
-        f"governance_mode   : hard\n"
-        f"execution_gate    : {_pt_gate}"
-        f"{_pt_gate_suffix}"
-    )
+def _build_json_dossier_lines(
+    inputs: _AskInputs, session: _AskSessionContext, mandates_count: int
+) -> list[str]:
+    if not inputs.dossier:
+        return []
+    try:
+        from sdd_runtime.context import ContextLoader, ContextRequest
 
-    # Build dossier if requested (C1: Dossier builder)
-    if dossier:
-        _build_and_output_dossier(
-            query=query,
-            skill=skill,
-            budget=budget,
+        dossier_budget = _resolve_dossier_budget(inputs.budget)
+        budget_utilization_pct = 50.0
+        artifact = _load_dossier_artifact(session.workspace_root)
+        context_result = ContextLoader().load_result(
+            ContextRequest(
+                query=inputs.query,
+                artifact=artifact,
+                max_items=mandates_count,
+                budget_utilization_pct=budget_utilization_pct,
+                prefer_full_summary=_prefer_full_summary(),
+            )
+        )
+        return _build_dossier_lines(
+            query=inputs.query,
+            skill=inputs.skill,
+            budget=dossier_budget,
             mandates_count=mandates_count,
-            workspace_root=workspace_root,
+            budget_utilization_pct=budget_utilization_pct,
+            context_result=context_result,
         )
+    except Exception as exc:
+        _handle_dossier_error(exc)
+        return []
 
+
+def _emit_ask_json_response(
+    inputs: _AskInputs,
+    session: _AskSessionContext,
+    ask_snapshot: dict[str, Any],
+    governance_footer: str,
+) -> None:
+    context_source = ask_snapshot["context_source"]
+    fingerprint = ask_snapshot["fingerprint"]
+    mandates_count = ask_snapshot["mandates_count"]
+    degraded = ask_snapshot["degraded"]
+    degrade_reason = ask_snapshot["degrade_reason"]
+    trust_source = ask_snapshot["trust_source"]
+    drift_detected = ask_snapshot["drift_detected"]
+    learning_signals = ask_snapshot["learning_signals"]
+    dossier_lines = _build_json_dossier_lines(inputs, session, mandates_count)
+    execution_gate = "allowed" if session.organize_used else "blocked"
+    gate_reason = (
+        None
+        if execution_gate == "allowed"
+        else "intake_index_mode=none: governance context not indexed; agent must not proceed"
+    )
+    data = build_ask_json_data(
+        profile=session.profile,
+        query_hash=_hash_query(inputs.query),
+        context_source=context_source,
+        fingerprint=fingerprint,
+        mandates_loaded=mandates_count,
+        trust_source=trust_source,
+        degraded=degraded,
+        degraded_reason=degrade_reason,
+        drift_detected=drift_detected,
+        governance_footer=governance_footer,
+        intake_index_mode="multi" if session.organize_used else "none",
+        intake_chunks=session.organize_chunks,
+        intake_retrieval=session.organize_retrieval,
+        intake_artifact=session.organize_artifact_path or "n/a",
+        governance_mode="hard",
+        execution_gate=execution_gate,
+        gate_reason=gate_reason,
+        ahp_state=session.state,
+        learning_signals=learning_signals,
+        full=inputs.full,
+        steps=[
+            {
+                "step_id": "PARSE",
+                "ok": True,
+                "ts_start": session.start_ts,
+                "ts_end": _now(),
+            },
+            {
+                "step_id": "CONTEXT_LOAD",
+                "ok": True,
+                "context_source": context_source,
+                "fingerprint": fingerprint,
+            },
+        ]
+        if inputs.full
+        else None,
+        extra={"log_format": inputs.log_format} if inputs.full else None,
+    )
+    if dossier_lines:
+        data["dossier"] = {"lines": dossier_lines}
+    emit_json(
+        {
+            "status": "ok",
+            "command": "ask",
+            "ok": True,
+            "error": None,
+            "data": data,
+        }
+    )
+
+
+def _emit_ask_text_response(
+    inputs: _AskInputs,
+    session: _AskSessionContext,
+    ask_snapshot: dict[str, Any],
+    output_text: str,
+    governance_footer: str,
+) -> None:
+    mandates_count = ask_snapshot["mandates_count"]
+    typer.echo(output_text)
+    pt_intake_mode = "multi" if session.organize_used else "none"
+    pt_gate = "allowed" if session.organize_used else "blocked"
+    pt_gate_suffix = (
+        ""
+        if pt_gate == "allowed"
+        else "\ngate_reason       : intake_index_mode=none"
+        f"\nintake_skipped    : {session.organize_reason} (query {len(inputs.query)} chars"
+        " < 6000; pass ≥6000 chars or use: sdd-organize --input-file <path> <query>)"
+    )
+    typer.echo(
+        f"intake_index_mode : {pt_intake_mode}\n"
+        f"intake_chunks     : {session.organize_chunks}\n"
+        f"intake_retrieval  : {session.organize_retrieval}\n"
+        f"intake_artifact   : {session.organize_artifact_path or 'n/a'}\n"
+        f"governance_mode   : hard\n"
+        f"execution_gate    : {pt_gate}"
+        f"{pt_gate_suffix}"
+    )
+    if inputs.dossier:
+        _build_and_output_dossier(
+            query=inputs.query,
+            skill=inputs.skill,
+            budget=inputs.budget,
+            mandates_count=mandates_count,
+            workspace_root=session.workspace_root,
+        )
     typer.echo(governance_footer)
 
 
-# ---------------------------------------------------------------------------
-# sdd ask-full
-# ---------------------------------------------------------------------------
+def _ask_cmd_impl(
+    *,
+    query: str,
+    dossier: bool,
+    skill: str | None,
+    budget: int | None,
+    full: bool,
+    log_path: str | None,
+    log_format: str,
+    tokens_input: int | None,
+    tokens_output: int | None,
+) -> None:
+    inputs = _normalize_ask_inputs(
+        query=query,
+        dossier=dossier,
+        skill=skill,
+        budget=budget,
+        full=full,
+        log_path=log_path,
+        log_format=log_format,
+        tokens_input=tokens_input,
+        tokens_output=tokens_output,
+    )
+    session = _start_ask_session(inputs.query)
+    ask_snapshot = _load_ask_snapshot(inputs, session)
+    output_text, governance_footer = _sync_ask_runtime(inputs, session, ask_snapshot)
+    if _json_mode():
+        _emit_ask_json_response(inputs, session, ask_snapshot, governance_footer)
+        return
+    _emit_ask_text_response(
+        inputs, session, ask_snapshot, output_text, governance_footer
+    )
 
 
 def _capture_effective_tokens(
@@ -1282,307 +1427,9 @@ def _check_budget_zone_and_compress(
     return result_bytes, compression_ratio
 
 
-@app.command("ask-full")
-def ask_full_cmd(  # noqa: C901
-    query: str = typer.Argument(
-        ..., help="Governance query (text is hashed, never stored)."
-    ),
-    log_path: str | None = typer.Option(
-        None, "--log-path", help="Custom compliance log path."
-    ),
-    log_format: str = typer.Option(
-        "jsonl", "--log-format", help="Log format: jsonl or compact."
-    ),
-    tokens_input: int | None = typer.Option(
-        None,
-        "--tokens-input",
-        help="LLM API input tokens (overrides SDD_TOKENS_INPUT).",
-    ),
-    tokens_output: int | None = typer.Option(
-        None,
-        "--tokens-output",
-        help="LLM API output tokens (overrides SDD_TOKENS_OUTPUT).",
-    ),
-    json_output: bool = typer.Option(
-        False,
-        "--json-output",
-        help="Emit canonical JSON envelope instead of plain-text output.",
-    ),
-) -> None:
-    """Query SDD governance context with full microtransaction telemetry."""
-    log_path = _normalize_typer_value(log_path, None)
-    if not isinstance(log_path, str):
-        log_path = None
-    log_format = _normalize_typer_value(log_format, "jsonl")
-    if not isinstance(log_format, str):
-        log_format = "jsonl"
-    tokens_input = _normalize_typer_value(tokens_input, None)
-    if not isinstance(tokens_input, int):
-        tokens_input = None
-    tokens_output = _normalize_typer_value(tokens_output, None)
-    if not isinstance(tokens_output, int):
-        tokens_output = None
-    json_output = bool(_normalize_typer_value(json_output, False))
-
-    _guard_budget_breach()
-    workspace_root = _resolve_workspace_root()
-    organize_used, organize_reason = _should_use_organize(query)
-
-    organize_artifact_path = ""
-    organize_chunks = 0
-    organize_retrieval = "indexed_only"
-    if organize_used:
-        try:
-            organize_artifact, organize_path = run_sdd_organize(
-                workspace_root=workspace_root,
-                query=query,
-                source_text=query,
-                route_reason=organize_reason,
-            )
-            organize_artifact_path = str(organize_path)
-            organize_chunks = len(organize_artifact.get("chunks", []))
-            organize_retrieval = str(
-                organize_artifact.get("retrieval_policy", "indexed_only")
-            )
-        except Exception as exc:
-            logger.debug("sdd-organize failed in ask-full: %s", exc)
-            organize_retrieval = "degraded"
-    _guard_handshake(workspace_root)
-    trace_id = str(uuid.uuid4())
-    agent_id = os.environ.get("SDD_AGENT_ID", "unknown")
-    steps: list[dict[str, Any]] = []
-
-    # Capture effective tokens from CLI or env
-    effective_tokens_input, effective_tokens_output, token_source = (
-        _capture_effective_tokens_with_source(tokens_input, tokens_output)
-    )
-
-    def _step(step_id: str, extra: dict[str, Any] | None = None) -> dict[str, Any]:
-        rec: dict[str, Any] = {"step_id": step_id, "ts_start": _now()}
-        if extra:
-            rec.update(extra)
-        return rec
-
-    def _close(rec: dict[str, Any], ok: bool = True, **kw: Any) -> dict[str, Any]:
-        rec["ts_end"] = _now()
-        rec["ok"] = ok
-        rec.update(kw)
-        return rec
-
-    # STEP: PARSE
-    s = _step("PARSE")
-    query_hash = _hash_query(query)
-    steps.append(_close(s))
-
-    # STEP: CONTEXT_LOAD
-    s = _step("CONTEXT_LOAD")
-    (
-        context_source,
-        fingerprint,
-        mandates_count,
-        authenticated,
-        degraded,
-        degrade_reason,
-        trust_source,
-    ) = _load_compiled_governance(workspace_root)
-    if _signature_mode() == "strict" and not authenticated:
-        typer.echo(f"BLOCK [ask-full]: {degrade_reason}", err=True)
-        raise typer.Exit(3)
-    steps.append(_close(s, context_source=context_source, fingerprint=fingerprint))
-
-    # STEP: GOV_CHECK
-    s = _step("GOV_CHECK")
-    profile, state = _get_profile_state()
-    gate_result = (
-        "PASS" if state == "HEALTHY" else ("SOFT" if state == "PARTIAL" else "BLOCK")
-    )
-    steps.append(_close(s, gate_result=gate_result))
-
-    if gate_result == "BLOCK":
-        typer.echo(
-            f"SOFT [ask-full]: workspace {state} — cannot load governance. "
-            "Run 'sdd init' then 'sdd governance compile'.",
-            err=True,
-        )
-
-    # STEP: ANSWER_RENDER
-    s = _step("ANSWER_RENDER")
-    output_text = _render_context_output(
-        query,
-        context_source,
-        fingerprint,
-        mandates_count,
-        degraded=degraded,
-        degrade_reason=degrade_reason,
-        trust_source=trust_source,
-    )
-    if effective_tokens_input is None or effective_tokens_output is None:
-        est_in, est_out, est_source = _resolve_tokens(query, output_text)
-        if effective_tokens_input is None:
-            effective_tokens_input = est_in
-        if effective_tokens_output is None:
-            effective_tokens_output = est_out
-        if token_source in {"", "unknown"}:
-            token_source = est_source
-    steps.append(_close(s, model_confidence=None))
-
-    # STEP: OUTPUT_WRITE
-    s = _step("OUTPUT_WRITE")
-    drift_detected = _runtime_drift_check(workspace_root, fingerprint)
-    governance_footer = _governance_footer_for_state(
-        state=state,
-        profile=profile,
-        drift_detected=drift_detected,
-    )
-    if not (json_output or _json_mode()):
-        typer.echo(output_text)
-        _fullask_gate = "blocked" if not organize_used else "allowed"
-        _fullask_skipped = (
-            f"\nintake_skipped    : {organize_reason} (query {len(query)} chars"
-            " < 6000; pass ≥6000 chars or use: sdd-organize --input-file <path> <query>)"
-            if _fullask_gate == "blocked"
-            else ""
-        )
-        _fullask_gate_suffix = (
-            f"\ngovernance_mode   : hard\nexecution_gate    : {_fullask_gate}"
-            f"\ngate_reason       : intake_index_mode=none{_fullask_skipped}"
-            if _fullask_gate == "blocked"
-            else ""
-        )
-        typer.echo(
-            f"intake_index_mode : {'multi' if organize_used else 'none'}\n"
-            f"intake_chunks     : {organize_chunks}\n"
-            f"intake_retrieval  : {organize_retrieval}\n"
-            f"intake_artifact   : {organize_artifact_path or 'n/a'}"
-            f"{_fullask_gate_suffix}"
-        )
-        typer.echo(governance_footer)
-    steps.append(_close(s))
-
-    # Determine effective log path
-    effective_log: Path | None = Path(log_path) if log_path else None
-
-    # ── Token Economy: Estimate context bytes and check budget utilization ──
-    estimated_context_bytes = max(100, mandates_count * 500)
-    estimated_context_bytes, compression_ratio = _check_budget_zone_and_compress(
-        query, estimated_context_bytes, mandates_count
-    )
-
-    path_id = os.environ.get("SDD_PATH_ID", "")
-
-    # ── sdd_runtime: emit typed RuntimeEvent to canonical JSONL sink ──────
-    _emit_ask_telemetry(
-        "governance.ask.full",
-        command="ask-full",
-        workspace_root=workspace_root,
-        trace_id=trace_id,
-        agent_id=agent_id,
-        fingerprint=fingerprint,
-        context_source=context_source,
-        mandates_count=mandates_count,
-        profile=profile,
-        state=state,
-        drift_detected=drift_detected,
-        query_hash=query_hash,
-        path_id=path_id,
-        context_bytes_loaded=estimated_context_bytes,
-        tokens_input=effective_tokens_input,
-        tokens_output=effective_tokens_output,
-        retry_count=0,  # ask-full is initial request, no retries
-        compression_ratio=compression_ratio,
-        extra_details={
-            "compiled_fingerprint_used": fingerprint,
-            "steps": steps,
-            "log_path": str(effective_log) if effective_log else "default",
-            "log_format": log_format,
-            "gate_result": gate_result,
-            "degraded": degraded,
-            "degraded_reason": _resolve_ask_degraded_reason(
-                degraded=degraded,
-                degrade_reason=degrade_reason,
-                authenticated=authenticated,
-            ),
-            "drift_type": _resolve_ask_drift_type(
-                drift_detected=drift_detected,
-                authenticated=authenticated,
-            ),
-            "trust_source": trust_source,
-            "authenticated": authenticated,
-            "token_source": token_source,
-            "intake_route": "heavy" if organize_used else "light",
-            "intake_route_reason": organize_reason,
-            "intake_artifact": organize_artifact_path,
-            "intake_chunks": organize_chunks,
-            "intake_retrieval": organize_retrieval,
-        },
-    )
-
-    # Update last_ask in runtime cache
-    _write_runtime_cache(
-        workspace_root,
-        {
-            "ts": _now(),
-            "trace_id": trace_id,
-            "context_source": context_source,
-            "compiled_fingerprint_used": fingerprint,
-            "mandates_loaded": mandates_count,
-            "agent_id": agent_id,
-            "degraded": degraded,
-            "degraded_reason": _resolve_ask_degraded_reason(
-                degraded=degraded,
-                degrade_reason=degrade_reason,
-                authenticated=authenticated,
-            ),
-            "trust_source": trust_source,
-        },
-    )
-
-    # ── sdd_runtime: upsert canonical session state ───────────────────────
-    _upsert_ask_session(workspace_root, agent_id, "ask-full", fingerprint)
-
-    # Compact summary line if requested
-    if log_format == "compact":
-        compact = (
-            f"ask-full|{trace_id[:8]}|{query_hash}|{context_source}|"
-            f"{fingerprint}|{mandates_count}|{gate_result}"
-        )
-        if not (json_output or _json_mode()):
-            typer.echo(compact)
-
-    if json_output or _json_mode():
-        learning_recommendation, learning_context = _build_learning_recommendation(
-            workspace_root=workspace_root,
-            drift_detected=drift_detected,
-        )
-        non_actionable, _ = derive_non_actionable_reason(learning_recommendation)
-        data = build_ask_json_data(
-            profile=profile,
-            query_hash=query_hash,
-            context_source=context_source,
-            fingerprint=fingerprint,
-            mandates_loaded=mandates_count,
-            trust_source=trust_source,
-            degraded=degraded,
-            degraded_reason=degrade_reason,
-            drift_detected=drift_detected,
-            governance_footer=governance_footer,
-            intake_index_mode="multi" if organize_used else "none",
-            intake_chunks=organize_chunks,
-            intake_retrieval=organize_retrieval,
-            intake_artifact=organize_artifact_path or "n/a",
-            extra={
-                "steps": steps,
-                "log_format": log_format,
-                "non_actionable": non_actionable,
-            },
-        )
-        payload = build_ask_success_payload(
-            command="ask-full",
-            base_data=data,
-            ask_decision_envelope={},
-            learning_context=learning_context,
-            learning_recommendation=learning_recommendation,
-            include_empty_recommendations=False,
-        )
-        emit_json(payload)
-        return
+def ask_full_cmd(**kwargs: Any) -> None:
+    """Backward-compatible alias that forwards to `ask_cmd(..., full=True)`."""
+    if "json_output" in kwargs and "output_json" not in kwargs:
+        kwargs["output_json"] = kwargs.pop("json_output")
+    kwargs["full"] = True
+    ask_cmd(**kwargs)

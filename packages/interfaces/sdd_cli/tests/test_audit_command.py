@@ -66,7 +66,7 @@ def _write_view_events(path: Path) -> None:
         },
         {
             "event": "VIOLATION",
-            "command": "ask-full",
+            "command": "ask",
             "status": "warn",
             "start_ts": "2025-06-15T09:00:00Z",
             "artifact_fingerprint": "eeeeffff11112222",
@@ -186,7 +186,7 @@ def test_audit_view_filters_by_since_and_event_type(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.output
     assert "matched events: 1" in result.output
-    assert "ask-full" in result.output
+    assert "ask" in result.output
     assert "runtime status" not in result.output
 
 
@@ -216,7 +216,7 @@ def test_audit_export_csv_and_manifest(tmp_path: Path) -> None:
         "timestamp,event,command,status,drift_type,cause,artifact_fingerprint,tokens_input,tokens_output"
         in result.output
     )
-    assert "VIOLATION,ask-full,warn,session_drift" in result.output
+    assert "VIOLATION,ask,warn,session_drift" in result.output
     assert manifest_file.exists()
     manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
     assert manifest["format"] == "csv"

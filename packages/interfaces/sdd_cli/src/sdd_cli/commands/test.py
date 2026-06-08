@@ -85,7 +85,7 @@ def run(
     coverage: bool = typer.Option(
         True, "--coverage/--no-coverage", help="Show project coverage summary"
     ),
-    cov_fail_under: int | None = typer.Option(
+    cov_fail_under: int | None = typer.Option(  # noqa: UP045
         None,
         "--cov-fail-under",
         help="Fail when coverage is below this percentage (default: 80)",

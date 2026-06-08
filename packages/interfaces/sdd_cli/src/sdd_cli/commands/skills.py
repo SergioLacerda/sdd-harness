@@ -7,7 +7,7 @@ import os
 import shutil
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import click
 import typer
@@ -508,7 +508,7 @@ def run(
                     "reason": message,
                     "error": {"type": "PermissionError", "message": message},
                     "exit_code": 1,
-                    "next_action": "sdd pipeline <query>",
+                    "next_action": "sdd skills run sdd-pipeline",
                 },
                 ok=False,
                 error_code="pipeline_required_for_sdd_correct",
@@ -517,7 +517,7 @@ def run(
             )
         else:
             typer.echo(
-                "ERROR: sdd-correct direto bloqueado por política. Use: sdd pipeline <query>",
+                "ERROR: sdd-correct direto bloqueado por política. Use: sdd skills run sdd-pipeline",
                 err=True,
             )
         raise typer.Exit(1)
@@ -559,11 +559,19 @@ def run(
 
 @app.command("export")
 def export(
-    format: Literal["json", "openai", "langchain", "crewai", "autogen"] = typer.Option(
-        "json", "--format", "-f", help="Export format"
+    format: str = typer.Option(
+        "json",
+        "--format",
+        "-f",
+        help="Export format",
     ),
 ) -> None:
     """Export skill definitions in a machine-consumable format."""
+    format = format.strip().lower()
+    if format not in {"json", "openai", "langchain", "crewai", "autogen"}:
+        raise typer.BadParameter(
+            "format must be one of: json, openai, langchain, crewai, autogen."
+        )
     payload = export_skills_payload(format)
     if _ctx_json() or format == "json":
         _emit_skills_json(

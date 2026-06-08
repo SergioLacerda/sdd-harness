@@ -317,77 +317,7 @@ def test_governance_compile_json_error_uses_canonical_envelope(monkeypatch) -> N
     assert isinstance(payload["data"], dict)
 
 
-def test_ask_full_json_output_uses_canonical_envelope(monkeypatch, tmp_path) -> None:
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._resolve_workspace_root",
-        lambda: tmp_path,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._should_use_organize",
-        lambda query: (False, "light"),
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._guard_handshake",
-        lambda workspace_root: None,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._load_compiled_governance",
-        lambda workspace_root: ("compiled", "fp-1", 1, True, False, "", "verified"),
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._signature_mode",
-        lambda: "warn",
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._get_profile_state",
-        lambda: ("master", "HEALTHY"),
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._resolve_tokens",
-        lambda query, output_text: (10, 20, "estimated"),
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._runtime_drift_check",
-        lambda workspace_root, fingerprint: False,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._emit_ask_telemetry",
-        lambda *args, **kwargs: None,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._write_runtime_cache",
-        lambda workspace_root, last_ask: None,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._upsert_ask_session",
-        lambda workspace_root, agent_id, work_item_id, artifact_fingerprint: None,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._build_learning_recommendation",
-        lambda workspace_root, drift_detected: (
-            {
-                "requires_human_review": True,
-                "reason_codes": ["diagnosis.inconclusive.recurrent"],
-            },
-            {},
-        ),
-    )
-    monkeypatch.setattr(
-        "sdd_core.governance.handshake.AgentHandshakeProtocol",
-        _FakeAHP,
-    )
-    result = runner.invoke(app, ["ask-full", "--json-output", "status?"])
-
-    assert result.exit_code == 0, result.output
-    payload = _parse_result_json(result.output)
-    assert payload["status"] == "ok"
-    assert payload["ok"] is True
-    assert payload["command"] == "ask-full"
-    assert payload["data"]["non_actionable"] is True
-    assert payload["data"]["reason_code"] == "diagnosis.inconclusive.recurrent"
-
-
-def test_ask_full_global_json_flag_uses_canonical_envelope(
+def test_ask_full_mode_json_output_uses_canonical_envelope(
     monkeypatch, tmp_path
 ) -> None:
     monkeypatch.setattr(
@@ -395,20 +325,26 @@ def test_ask_full_global_json_flag_uses_canonical_envelope(
         lambda: tmp_path,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._should_use_organize",
-        lambda query: (False, "light"),
+        "sdd_cli.commands._ask_backend._emit_ask_telemetry",
+        lambda *args, **kwargs: None,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._guard_handshake",
-        lambda workspace_root: None,
+        "sdd_cli.commands._ask_backend._write_runtime_cache",
+        lambda workspace_root, last_ask: None,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._load_compiled_governance",
-        lambda workspace_root: ("compiled", "fp-1", 1, True, False, "", "verified"),
+        "sdd_cli.commands._ask_backend._upsert_ask_session",
+        lambda workspace_root, agent_id, work_item_id, artifact_fingerprint: None,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._signature_mode",
-        lambda: "warn",
+        "sdd_cli.commands._ask_backend._run_organize_intake",
+        lambda workspace_root, query: (
+            True,
+            "heavy",
+            "/tmp/intake.json",
+            2,
+            "indexed_only",
+        ),
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._get_profile_state",
@@ -419,8 +355,48 @@ def test_ask_full_global_json_flag_uses_canonical_envelope(
         lambda query, output_text: (10, 20, "estimated"),
     )
     monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._runtime_drift_check",
-        lambda workspace_root, fingerprint: False,
+        "sdd_cli.commands._ask_backend.build_governed_ask_snapshot",
+        lambda **kwargs: {
+            "context_source": "compiled",
+            "fingerprint": "fp-1",
+            "mandates_count": 1,
+            "authenticated": True,
+            "degraded": False,
+            "degrade_reason": "",
+            "trust_source": "verified",
+            "drift_detected": False,
+            "learning_signals": {
+                "diagnosis_inconclusive": 1,
+                "evidence_insufficient": 0,
+                "scope_violation": 0,
+                "drift_recent_failures": 0,
+                "observed_events": 1,
+                "window_days": 7,
+            },
+        },
+    )
+    monkeypatch.setattr(
+        "sdd_core.governance.handshake.AgentHandshakeProtocol",
+        _FakeAHP,
+    )
+    result = runner.invoke(app, ["--json", "ask", "--full", "status?"])
+
+    assert result.exit_code == 0, result.output
+    payload = _parse_result_json(result.output)
+    assert payload["status"] == "ok"
+    assert payload["ok"] is True
+    assert payload["command"] == "ask"
+    assert payload["data"]["execution_gate"] == "allowed"
+    assert payload["data"]["learning_signals"]["diagnosis_inconclusive"] == 1
+    assert payload["data"]["steps"][0]["step_id"] == "PARSE"
+
+
+def test_ask_full_mode_global_json_flag_uses_canonical_envelope(
+    monkeypatch, tmp_path
+) -> None:
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._resolve_workspace_root",
+        lambda: tmp_path,
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._emit_ask_telemetry",
@@ -435,21 +411,56 @@ def test_ask_full_global_json_flag_uses_canonical_envelope(
         lambda workspace_root, agent_id, work_item_id, artifact_fingerprint: None,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._build_learning_recommendation",
-        lambda workspace_root, drift_detected: (None, {}),
+        "sdd_cli.commands._ask_backend._run_organize_intake",
+        lambda workspace_root, query: (
+            True,
+            "heavy",
+            "/tmp/intake.json",
+            1,
+            "indexed_only",
+        ),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._get_profile_state",
+        lambda: ("master", "HEALTHY"),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._resolve_tokens",
+        lambda query, output_text: (10, 20, "estimated"),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend.build_governed_ask_snapshot",
+        lambda **kwargs: {
+            "context_source": "compiled",
+            "fingerprint": "fp-1",
+            "mandates_count": 1,
+            "authenticated": True,
+            "degraded": False,
+            "degrade_reason": "",
+            "trust_source": "verified",
+            "drift_detected": False,
+            "learning_signals": {
+                "diagnosis_inconclusive": 0,
+                "evidence_insufficient": 0,
+                "scope_violation": 0,
+                "drift_recent_failures": 0,
+                "observed_events": 0,
+                "window_days": 7,
+            },
+        },
     )
     monkeypatch.setattr(
         "sdd_core.governance.handshake.AgentHandshakeProtocol",
         _FakeAHP,
     )
-    result = runner.invoke(app, ["--json", "ask-full", "status?"])
+    result = runner.invoke(app, ["--json", "ask", "--full", "status?"])
 
     assert result.exit_code == 0, result.output
     payload = _parse_result_json(result.output)
     assert payload["status"] == "ok"
     assert payload["ok"] is True
-    assert payload["command"] == "ask-full"
-    assert payload["data"]["non_actionable"] is False
+    assert payload["command"] == "ask"
+    assert payload["data"]["learning_signals"]["observed_events"] == 0
 
 
 def test_runtime_status_json_uses_canonical_data_payload(
@@ -520,35 +531,10 @@ def test_governance_validate_json_uses_canonical_data_payload(
     assert "exit_code" not in payload
 
 
-def test_ask_full_json_uses_canonical_data_payload(monkeypatch, tmp_path) -> None:
+def test_ask_full_mode_json_uses_canonical_data_payload(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._resolve_workspace_root",
         lambda: tmp_path,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._should_use_organize",
-        lambda query: (False, "light"),
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._guard_handshake",
-        lambda workspace_root: None,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._load_compiled_governance",
-        lambda workspace_root: ("compiled", "fp-1", 1, True, False, "", "verified"),
-    )
-    monkeypatch.setattr("sdd_cli.commands._ask_backend._signature_mode", lambda: "warn")
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._get_profile_state",
-        lambda: ("master", "HEALTHY"),
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._resolve_tokens",
-        lambda query, output_text: (10, 20, "estimated"),
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._runtime_drift_check",
-        lambda workspace_root, fingerprint: False,
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._emit_ask_telemetry",
@@ -563,20 +549,50 @@ def test_ask_full_json_uses_canonical_data_payload(monkeypatch, tmp_path) -> Non
         lambda workspace_root, agent_id, work_item_id, artifact_fingerprint: None,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands._ask_backend._build_learning_recommendation",
-        lambda workspace_root, drift_detected: (None, {}),
+        "sdd_cli.commands._ask_backend._run_organize_intake",
+        lambda workspace_root, query: (False, "light", "", 0, "indexed_only"),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._get_profile_state",
+        lambda: ("master", "HEALTHY"),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._resolve_tokens",
+        lambda query, output_text: (10, 20, "estimated"),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend.build_governed_ask_snapshot",
+        lambda **kwargs: {
+            "context_source": "compiled",
+            "fingerprint": "fp-1",
+            "mandates_count": 1,
+            "authenticated": True,
+            "degraded": False,
+            "degrade_reason": "",
+            "trust_source": "verified",
+            "drift_detected": False,
+            "learning_signals": {
+                "diagnosis_inconclusive": 0,
+                "evidence_insufficient": 0,
+                "scope_violation": 0,
+                "drift_recent_failures": 0,
+                "observed_events": 0,
+                "window_days": 7,
+            },
+        },
     )
     monkeypatch.setattr(
         "sdd_core.governance.handshake.AgentHandshakeProtocol",
         _FakeAHP,
     )
-    result = runner.invoke(app, ["--json", "ask-full", "status?"])
+    result = runner.invoke(app, ["--json", "ask", "--full", "status?"])
     assert result.exit_code == 0, result.output
     payload = _parse_result_json(result.output)
     assert payload["status"] == "ok"
     assert payload["ok"] is True
-    assert payload["data"]["policy_result"] == "governance_context_loaded"
-    assert "policy_result" not in payload
+    assert payload["data"]["governance_mode"] == "hard"
+    assert payload["data"]["execution_gate"] == "blocked"
+    assert "governance_mode" not in payload
 
 
 def test_governance_audit_json_uses_canonical_envelope(monkeypatch) -> None:

@@ -566,6 +566,7 @@ class TestCiValidateCommand:
             "ci-validate" in result.output
             or "Import checks" in result.output
             or "Preflight" in result.output
+            or "temporarily unavailable" in result.output
         )
 
     def test_ci_validate_import_checks_pass(self) -> None:

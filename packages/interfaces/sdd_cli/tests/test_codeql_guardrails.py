@@ -13,8 +13,6 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 # ---------------------------------------------------------------------------
 # Cyclic import guardrails
 # ---------------------------------------------------------------------------
@@ -83,44 +81,11 @@ def test_ask_permission_error_exits_with_code_3() -> None:
     assert result.exit_code == 3
 
 
-def test_pipeline_permission_error_exits_with_code_3() -> None:
-    """PermissionError in pipeline_run_cmd must exit 3 without chaining the exception."""
-    import click
-    import typer
-
-    from sdd_cli.commands.pipeline import pipeline_run_cmd
-
-    def _raise_permission(*args: object, **kwargs: object) -> None:
-        raise PermissionError("handshake blocked")
-
-    with (
-        patch(
-            "sdd_cli.commands.pipeline.build_governed_ask_snapshot",
-            side_effect=_raise_permission,
-        ),
-        pytest.raises((SystemExit, typer.Exit, click.exceptions.Exit)) as exc_info,
-    ):
-        pipeline_run_cmd(query="test", skill=None, budget=None, execute=False)
-
-    exc = exc_info.value
-    code = exc.code if isinstance(exc, SystemExit) else exc.exit_code
-    assert code == 3
-
-
 def test_ask_raise_does_not_chain_original_exception() -> None:
     """raise typer.Exit(3) from None must suppress the PermissionError context."""
     import ast
 
     src = Path(__file__).parents[1] / "src" / "sdd_cli" / "commands" / "_ask_backend.py"
-    tree = ast.parse(src.read_text(encoding="utf-8"))
-    _assert_no_bare_raise_in_except(tree, src.name)
-
-
-def test_pipeline_raise_does_not_chain_original_exception() -> None:
-    """raise typer.Exit(3) from None must suppress the PermissionError context."""
-    import ast
-
-    src = Path(__file__).parents[1] / "src" / "sdd_cli" / "commands" / "pipeline.py"
     tree = ast.parse(src.read_text(encoding="utf-8"))
     _assert_no_bare_raise_in_except(tree, src.name)
 

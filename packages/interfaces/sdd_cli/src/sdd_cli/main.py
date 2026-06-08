@@ -11,12 +11,12 @@ import logging
 import sys
 import warnings
 from dataclasses import dataclass
+from pathlib import Path
 from typing import cast
 
 import click
 import typer
 from dotenv import load_dotenv
-from typer._click.exceptions import Exit as TyperClickExit
 from typer.main import get_command as typer_get_command
 
 if sys.platform == "win32":
@@ -75,21 +75,17 @@ COMMAND_SPECS: dict[str, CommandSpec] = {
     ),
     "ask-full": CommandSpec(
         "sdd_cli.commands.ask_full_entry",
-        "Query SDD governance context with full microtransaction telemetry",
+        "Query SDD governance context (full output compatibility alias)",
     ),
     "organize": CommandSpec(
         "sdd_cli.commands.organize",
         "Prepare and index large context blocks (sdd-organize)",
     ),
-    "pipeline": CommandSpec(
-        "sdd_cli.commands.pipeline",
-        "Run strict ask->diagnose->correct->converge orchestration",
-    ),
 }
 
 # Only these commands require an initialized workspace profile at entrypoint.
 _WORKSPACE_REQUIRED_COMMANDS = frozenset(
-    {"ask", "ask-full", "organize", "pipeline", "runtime", "wizard", "release"}
+    {"ask", "ask-full", "organize", "runtime", "wizard", "release"}
 )
 
 
@@ -183,13 +179,38 @@ class LazyCommandGroup(click.Group):
             else:
                 ctx.obj = {}
 
+        if requested_command in _WORKSPACE_REQUIRED_COMMANDS and isinstance(
+            ctx.obj, dict
+        ):
+            try:
+                from sdd_core.governance.handshake import AgentHandshakeProtocol
+
+                workspace_root = ctx.obj.get("root")
+                ahp = AgentHandshakeProtocol(
+                    project_root=Path(workspace_root) if workspace_root else None
+                )
+                state, report = ahp.validate(output_mode="silent")
+                ctx.obj["_ahp"] = {
+                    "state": state,
+                    "report": report,
+                    "valid": ahp.is_handshake_valid(),
+                }
+            except Exception:
+                ctx.obj["_ahp"] = {
+                    "state": "UNKNOWN",
+                    "report": None,
+                    "valid": False,
+                }
+
         from sdd_cli.utils.profile import governance_gate
 
         governance_gate(ctx)
         try:
             return super().invoke(ctx)
-        except TyperClickExit as exc:
+        except click.exceptions.Exit as exc:
             raise click.exceptions.Exit(int(exc.exit_code)) from None
+        except typer.Exit as exc:
+            raise click.exceptions.Exit(exc.exit_code) from None
 
 
 def _profile_option_callback(
@@ -277,7 +298,7 @@ def main() -> int:
         )
     try:
         app(standalone_mode=False)
-    except (click.exceptions.Exit, typer.Exit, TyperClickExit) as exc:
+    except (click.exceptions.Exit, typer.Exit) as exc:
         return int(exc.exit_code)
     return 0
 

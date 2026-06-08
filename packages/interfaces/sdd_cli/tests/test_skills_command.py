@@ -498,7 +498,7 @@ def test_reconcile_root_seed_artifacts_prunes_stale_files(tmp_path) -> None:
             {
                 "commands": [
                     {"id": "sdd-ask"},
-                    {"id": "sdd-ask-full"},
+                    {"id": "sdd-pipeline"},
                 ]
             }
         ),
@@ -516,7 +516,7 @@ def test_reconcile_root_seed_artifacts_prunes_stale_files(tmp_path) -> None:
 
     codex_skills = tmp_path / ".codex" / "skills"
     codex_skills.mkdir(parents=True, exist_ok=True)
-    (codex_skills / "sdd-ask-full.prompt.md").write_text("ok", encoding="utf-8")
+    (codex_skills / "sdd-pipeline.prompt.md").write_text("ok", encoding="utf-8")
     (codex_skills / "sdd-legacy.prompt.md").write_text("stale", encoding="utf-8")
 
     claude_cmds = tmp_path / ".claude" / "commands"

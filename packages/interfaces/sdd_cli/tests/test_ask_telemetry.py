@@ -310,6 +310,7 @@ def test_ask_runtime_cache_uses_effective_degraded_reason(
                 "degrade_reason": "",
                 "trust_source": "none",
                 "drift_detected": False,
+                "learning_signals": {},
                 "learning_recommendation": None,
                 "learning_context": {},
                 "ask_decision_envelope": {},

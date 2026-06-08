@@ -16,13 +16,6 @@ _CLI_COMMANDS = [
         "targets": ["claude", "codex", "copilot", "antigravity"],
     },
     {
-        "id": "sdd-ask-full",
-        "slash": "/sdd-ask-full",
-        "routes_to": {"type": "cli", "command": "sdd ask-full"},
-        "description": "Query SDD governance with full context, compression, and per-step telemetry.",
-        "targets": ["claude", "codex", "copilot", "antigravity"],
-    },
-    {
         "id": "sdd-organize",
         "slash": "/sdd-organize",
         "routes_to": {"type": "cli", "command": "sdd organize"},

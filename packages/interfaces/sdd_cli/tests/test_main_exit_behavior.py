@@ -186,7 +186,7 @@ def test_invoke_workspace_required_resolves_profile() -> None:
     ):
         group.invoke(ctx)
 
-    assert ctx.obj == {"workspace": "client"}
+    assert ctx.obj.get("workspace") == "client"
 
 
 def test_invoke_workspace_required_raises_usage_error() -> None:

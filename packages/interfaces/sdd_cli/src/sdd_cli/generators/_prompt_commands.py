@@ -13,7 +13,7 @@ _COMMANDS_TABLE = (
     "| Validate governance | `sdd governance validate` |\n"
     "| Compile governance | `sdd governance compile` |\n"
     "| Runtime status | `sdd runtime status` |\n"
-    '| Query context | `sdd ask-full "<question>"` |\n'
+    '| Query context | `sdd ask --full "<question>"` |\n'
     '| Organize large context | `sdd organize "<context>"` |\n'
     "| Diagnostics | `sdd doctor run --mode real` |\n"
     "| Generate agent seeds | `sdd governance generate` |\n"
@@ -34,14 +34,14 @@ _AUDIT_JSON_NOTE = (
     "\nAudit JSON policy:\n"
     "- `.sdd/compiled/audit/*.json` is human/audit oriented.\n"
     "- Agents should prefer `.sdd/source/*` for human-readable governance context and\n"
-    "  runtime checks (`sdd runtime status`, `sdd ask-full`) for operational state.\n"
+    "  runtime checks (`sdd runtime status`, `sdd ask --full`) for operational state.\n"
 )
 
 _ASK_500_FALLBACK_NOTE = (
     "\nOperational fallback (IDE/API failures):\n"
     "- If the IDE/provider returns `API Error: 5xx`, stop IDE retry loops for this turn.\n"
     "- Run local fallback immediately in terminal:\n"
-    '  `sdd ask-full "$QUERY"`\n'
+    '  `sdd ask --full "$QUERY"`\n'
     "- Capture and report the provider `request_id` for incident triage.\n"
 )
 
@@ -64,21 +64,23 @@ def _load_slash_aliases(output_dir: Path) -> list[tuple[str, str]]:
     except Exception:
         aliases = []
 
-    if aliases:
-        return aliases
+    if not aliases:
+        aliases = [
+            ("/sdd-diagnose", "sdd-diagnose"),
+            ("/sdd-validate-governance", "sdd-validate-governance"),
+            ("/sdd-stabilize", "sdd-stabilize"),
+            ("/sdd-compress-context", "sdd-compress-context"),
+            ("/sdd-review-architecture", "sdd-review-architecture"),
+            ("/sdd-correct", "sdd-correct"),
+            ("/sdd-converge", "sdd-converge"),
+            ("/sdd-ask", "sdd-ask"),
+            ("/sdd-ask-full", "sdd-ask-full"),
+            ("/sdd-organize", "sdd-organize"),
+        ]
 
-    return [
-        ("/sdd-diagnose", "sdd-diagnose"),
-        ("/sdd-validate-governance", "sdd-validate-governance"),
-        ("/sdd-stabilize", "sdd-stabilize"),
-        ("/sdd-compress-context", "sdd-compress-context"),
-        ("/sdd-review-architecture", "sdd-review-architecture"),
-        ("/sdd-correct", "sdd-correct"),
-        ("/sdd-converge", "sdd-converge"),
-        ("/sdd-ask", "sdd-ask"),
-        ("/sdd-ask-full", "sdd-ask-full"),
-        ("/sdd-organize", "sdd-organize"),
-    ]
+    alias_map = {slash: cmd_id for slash, cmd_id in aliases}
+    alias_map.setdefault("/sdd-ask-full", "sdd-ask-full")
+    return [(slash, cmd_id) for slash, cmd_id in alias_map.items()]
 
 
 def _load_command_entries(output_dir: Path) -> list[dict[str, Any]]:
@@ -98,12 +100,32 @@ def _load_command_entries(output_dir: Path) -> list[dict[str, Any]]:
                 if slash and cmd_id and isinstance(routes, dict):
                     out.append(cmd)
             if out:
-                return out
+                return _ensure_compat_command_entries(out)
     except (OSError, ValueError):
-        return _default_command_entries()
+        return _ensure_compat_command_entries(_default_command_entries())
 
     # Fallback for early bootstrap without registry available.
-    return _default_command_entries()
+    return _ensure_compat_command_entries(_default_command_entries())
+
+
+def _ensure_compat_command_entries(
+    commands: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Ensure compatibility aliases remain available in generated prompts."""
+    by_id = {
+        str(command.get("id", "")).strip(): command
+        for command in commands
+        if isinstance(command, dict)
+    }
+    by_id.setdefault(
+        "sdd-ask-full",
+        {
+            "id": "sdd-ask-full",
+            "slash": "/sdd-ask-full",
+            "routes_to": {"type": "cli", "command": 'sdd ask --full "$QUERY"'},
+        },
+    )
+    return list(by_id.values())
 
 
 def _default_command_entries() -> list[dict[str, Any]]:
@@ -117,7 +139,7 @@ def _default_command_entries() -> list[dict[str, Any]]:
         {
             "id": "sdd-ask-full",
             "slash": "/sdd-ask-full",
-            "routes_to": {"type": "cli", "command": "sdd ask-full"},
+            "routes_to": {"type": "cli", "command": 'sdd ask --full "$QUERY"'},
         },
         {
             "id": "sdd-organize",
@@ -152,12 +174,12 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
             "Query SDD governance context",
             "agent",
             "Query the SDD governance context with the user's question.\n\n"
-            'Execute in the terminal:\n```bash\nsdd runtime status\nsdd governance validate\nsdd ask-full "$QUERY"\n```\n\n'
+            'Execute in the terminal:\n```bash\nsdd runtime status\nsdd governance validate\nsdd ask --full "$QUERY"\n```\n\n'
             "Replace `$QUERY` with the user's question.\n\n"
             "HARD contract for this command:\n"
             "- Run preflight in order (`sdd runtime status` then `sdd governance validate`).\n"
             "- If preflight fails, do not continue; return governance-blocked status.\n"
-            "- Only continue to `sdd ask-full` when preflight is healthy.\n"
+            "- Only continue to `sdd ask --full` when preflight is healthy.\n"
             '- For large/noisy input, run `sdd organize "$QUERY"` first and consume indexed chunks only.\n\n'
             "Response contract:\n"
             "- Show `fingerprint`, `context_source`, and `mandates_loaded` from runtime output.\n"
@@ -168,10 +190,15 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
     if slug == "sdd-ask-full":
         return (
             slug,
-            "Query SDD governance context (full telemetry)",
+            "Query SDD governance context (full output)",
             "agent",
-            "Run the full governed ask path with telemetry.\n\n"
-            'Execute in the terminal:\n```bash\nsdd runtime status\nsdd governance validate\nsdd ask-full "$QUERY"\n```\n',
+            "Query the SDD governance context with the user's question.\n\n"
+            'Execute in the terminal:\n```bash\nsdd runtime status\nsdd governance validate\nsdd ask --full "$QUERY"\n```\n\n'
+            "Replace `$QUERY` with the user's question.\n\n"
+            "Response contract:\n"
+            "- Use the canonical full-output path via `sdd ask --full`.\n"
+            "- Do not emit duplicated `ask-full` invocations.\n"
+            + _ASK_500_FALLBACK_NOTE,
         )
 
     if slug == "sdd-organize":

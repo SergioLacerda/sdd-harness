@@ -4,7 +4,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import click
 import typer
@@ -69,7 +69,6 @@ __all__ = ["render_governance_compile_table", "Table"]
 
 app = typer.Typer(help="Governance management commands")
 console = Console()
-SignatureMode = Literal["off", "warn", "strict"]
 logger = logging.getLogger(__name__)
 
 
@@ -245,7 +244,7 @@ def reconcile_registries_cmd(
     next_hint="check .sdd/source artifacts or run 'sdd governance validate'",
 )
 def compile(
-    profile: str | None = typer.Option(
+    profile: str | None = typer.Option(  # noqa: UP045
         None,
         "--profile",
         "-p",
@@ -386,10 +385,9 @@ def validate(  # noqa: C901
         ".sdd/compiled",
         help="Path to governance configuration (default: .sdd/compiled)",
     ),
-    signature_mode: SignatureMode = typer.Option(
+    signature_mode: str = typer.Option(
         "warn",
         help="Signature enforcement mode: off|warn|strict",
-        case_sensitive=False,
     ),
     skip_handshake: bool = typer.Option(
         False,
@@ -398,6 +396,9 @@ def validate(  # noqa: C901
     ),
 ) -> None:
     """Validate governance integrity (structure + runtime preflight)."""
+    signature_mode = signature_mode.strip().lower()
+    if signature_mode not in {"off", "warn", "strict"}:
+        raise typer.BadParameter("signature_mode must be off, warn, or strict.")
     if not _ctx_json():
         console.print(
             Panel(
@@ -658,7 +659,7 @@ def _generate_artifacts(
 @app.command()
 @handle_cli_errors(command_name="governance generate")
 def generate(
-    output_dir: str | None = typer.Option(
+    output_dir: str | None = typer.Option(  # noqa: UP045
         None, help="Output directory for generated files (defaults to workspace root)"
     ),
     path: str = typer.Option(
@@ -1003,8 +1004,10 @@ def keygen(
 @handle_cli_errors(command_name="governance sign")
 def sign(
     key_id: str = typer.Option("auditor-01", help="Key ID to use for signing"),
-    key_path: str | None = typer.Option(None, help="Path to private key (.key file)"),
-    compiled_dir: str | None = typer.Option(
+    key_path: str | None = typer.Option(  # noqa: UP045
+        None, help="Path to private key (.key file)"
+    ),
+    compiled_dir: str | None = typer.Option(  # noqa: UP045
         None, help="Directory containing artifacts to sign (default: .sdd/compiled)"
     ),
     source: bool = typer.Option(
@@ -1066,7 +1069,7 @@ def audit(
 @app.command()
 @handle_cli_errors(command_name="governance handshake")
 def handshake(
-    response: str | None = typer.Option(
+    response: str | None = typer.Option(  # noqa: UP045
         None, "--response", "-r", help="Agent Handshake Response (JSON string)"
     ),
     init: bool = typer.Option(

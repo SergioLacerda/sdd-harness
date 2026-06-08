@@ -105,7 +105,7 @@ def _load_events(events_file: Path) -> list[dict[str, Any]]:
 
 def _is_ask_event(event: dict[str, Any]) -> bool:
     command = str(event.get("command", "")).strip()
-    if command in {"ask", "ask-full"}:
+    if command == "ask":
         return True
     event_name = str(event.get("event", "")).strip()
     return event_name.startswith("governance.ask")

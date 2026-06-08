@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+import atexit
 import os
+import queue
+import threading
+from collections.abc import Callable
+from contextlib import suppress
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -21,6 +26,37 @@ from sdd_cli.utils.telemetry_paths import resolve_compliance_events_path
 class _EventSink(Protocol):
     def emit(self, event: RuntimeEvent) -> None:
         pass
+
+
+_TELEMETRY_QUEUE: queue.Queue[Callable[[], None] | None] = queue.Queue()
+
+
+def _telemetry_worker() -> None:
+    while True:
+        callback = _TELEMETRY_QUEUE.get()
+        if callback is None:
+            break
+        with suppress(Exception):
+            callback()
+
+
+_TELEMETRY_WORKER = threading.Thread(target=_telemetry_worker, daemon=True)
+_TELEMETRY_WORKER.start()
+
+
+def _shutdown_telemetry_worker() -> None:
+    _TELEMETRY_QUEUE.put(None)
+    _TELEMETRY_WORKER.join(timeout=2)
+
+
+atexit.register(_shutdown_telemetry_worker)
+
+
+def enqueue_flush(sink: Any) -> None:
+    """Flush telemetry asynchronously when the sink exposes a flush method."""
+    flush = getattr(sink, "flush", None)
+    if callable(flush):
+        _TELEMETRY_QUEUE.put(flush)
 
 
 def resolve_tokens(query: str, output_text: str) -> tuple[int | None, int | None, str]:
@@ -132,6 +168,7 @@ def emit_ask_telemetry(
                 details=details,
             )
         )
+        enqueue_flush(sink)
     except Exception as exc:
         if logger is not None:
             logger.debug("Failed to emit ask telemetry: %s", exc)

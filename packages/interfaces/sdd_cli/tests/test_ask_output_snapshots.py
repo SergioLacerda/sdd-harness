@@ -19,17 +19,7 @@ def _load_json_output(raw: str) -> dict:
 
 
 def _normalize_ask_payload(payload: dict) -> dict:
-    normalized = json.loads(json.dumps(payload))
-    # ask --json does not include trace_id, but envelope task_id/timestamps are dynamic.
-    envelope = normalized.get("data", {}).get("ask_decision_envelope", {})
-    if isinstance(envelope, dict):
-        if "task_id" in envelope:
-            envelope["task_id"] = "__TASK_ID__"
-        if "issued_at" in envelope:
-            envelope["issued_at"] = "__ISSUED_AT__"
-        if "expires_at" in envelope:
-            envelope["expires_at"] = "__EXPIRES_AT__"
-    return normalized
+    return json.loads(json.dumps(payload))
 
 
 def _assert_json_snapshot(name: str, payload: dict) -> None:
@@ -58,7 +48,6 @@ def test_ask_run_json_snapshot(tmp_path) -> None:
         patch(
             "sdd_cli.commands._ask_backend.build_governed_ask_snapshot",
             return_value={
-                "workspace_root": tmp_path,
                 "context_source": "compiled",
                 "fingerprint": "fp-1",
                 "mandates_count": 1,
@@ -67,33 +56,13 @@ def test_ask_run_json_snapshot(tmp_path) -> None:
                 "degrade_reason": "",
                 "trust_source": "verified",
                 "drift_detected": False,
-                "learning_recommendation": None,
-                "learning_context": {
-                    "window_days": 7,
+                "learning_signals": {
+                    "diagnosis_inconclusive": 0,
+                    "evidence_insufficient": 0,
+                    "scope_violation": 0,
+                    "drift_recent_failures": 0,
                     "observed_events": 0,
-                    "recommendation_policy_version": "ask-learning-v1",
-                },
-                "ask_decision_envelope": {
-                    "task_id": "task-1",
-                    "task_type": "analysis",
-                    "goal": "status?",
-                    "allowed_paths": [],
-                    "forbidden_paths": [],
-                    "allowed_tools": [
-                        "sdd ask",
-                        "sdd skills run sdd-diagnose",
-                        "sdd skills run sdd-correct",
-                    ],
-                    "validation_set": [
-                        "sdd governance validate",
-                        "sdd runtime status --force",
-                    ],
-                    "rollback_hint": "manual_rollback",
-                    "requires_diagnosis": True,
-                    "envelope_scope_mode": "inferred",
-                    "min_diagnosis_confidence": 0.8,
-                    "issued_at": "2099-01-01T00:00:00+00:00",
-                    "expires_at": "2099-01-01T00:30:00+00:00",
+                    "window_days": 7,
                 },
             },
         ),
@@ -125,7 +94,6 @@ def test_ask_run_json_with_learning_snapshot(tmp_path) -> None:
         patch(
             "sdd_cli.commands._ask_backend.build_governed_ask_snapshot",
             return_value={
-                "workspace_root": tmp_path,
                 "context_source": "compiled",
                 "fingerprint": "fp-1",
                 "mandates_count": 1,
@@ -134,43 +102,13 @@ def test_ask_run_json_with_learning_snapshot(tmp_path) -> None:
                 "degrade_reason": "",
                 "trust_source": "verified",
                 "drift_detected": False,
-                "learning_recommendation": {
-                    "enabled": True,
-                    "confidence": 0.6667,
-                    "signals": ["diagnosis_inconclusive_recurrent"],
-                    "reason_codes": ["diagnosis.inconclusive.recurrent"],
-                    "next_actions": [
-                        "sdd skills learning-candidates",
-                        "sdd skills learning-status --window-days 7",
-                    ],
-                    "requires_human_review": True,
-                },
-                "learning_context": {
+                "learning_signals": {
+                    "diagnosis_inconclusive": 2,
+                    "evidence_insufficient": 1,
+                    "scope_violation": 0,
+                    "drift_recent_failures": 0,
+                    "observed_events": 3,
                     "window_days": 7,
-                    "observed_events": 2,
-                    "recommendation_policy_version": "ask-learning-v1",
-                },
-                "ask_decision_envelope": {
-                    "task_id": "task-1",
-                    "task_type": "analysis",
-                    "goal": "status?",
-                    "allowed_paths": [],
-                    "forbidden_paths": [],
-                    "allowed_tools": [
-                        "sdd ask",
-                        "sdd skills run sdd-diagnose",
-                        "sdd skills run sdd-correct",
-                    ],
-                    "validation_set": [
-                        "sdd governance validate",
-                        "sdd runtime status --force",
-                    ],
-                    "rollback_hint": "manual_rollback",
-                    "requires_diagnosis": True,
-                    "envelope_scope_mode": "inferred",
-                    "min_diagnosis_confidence": 0.8,
-                    "issued_at": "2099-01-01T00:00:00+00:00",
-                    "expires_at": "2099-01-01T00:30:00+00:00",
                 },
             },
         ),

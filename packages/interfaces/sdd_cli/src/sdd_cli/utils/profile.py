@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import click
-from typer._click.exceptions import Exit as TyperClickExit
 
 
 @dataclass(frozen=True)
@@ -42,7 +41,6 @@ MasterAdapter = ProfilePolicy(
             "runtime",
             "version",
             "ask",
-            "ask-full",
         }
     ),
     warned_commands={
@@ -66,7 +64,6 @@ ClientAdapter = ProfilePolicy(
             "runtime",
             "version",
             "ask",
-            "ask-full",
         }
     ),
     warned_commands={},
@@ -154,7 +151,7 @@ def _extract_invocation(ctx: click.Context) -> tuple[str, str]:
 
 def _is_sensitive_command(cmd: str, subcmd: str) -> bool:
     """Commands that require stronger SOFT governance directives."""
-    if cmd in {"release", "wizard", "ask", "ask-full"}:
+    if cmd in {"release", "wizard", "ask"}:
         return True
     return bool(cmd == "governance" and subcmd in {"compile", "generate"})
 
@@ -189,15 +186,15 @@ def _collect_gate_directives(
                 "profile-wizard-master",
             )
         )
-    if invoked in {"ask", "ask-full"} and state == "NOT_INITIALIZED":
+    if invoked == "ask" and state == "NOT_INITIALIZED":
         directives.append(
             (
-                "HARD [governance]: 'ask' / 'ask-full' require compiled governance. Workspace NOT_INITIALIZED.",
+                "HARD [governance]: 'ask' requires compiled governance. Workspace NOT_INITIALIZED.",
                 "sdd governance compile && sdd runtime status --force",
                 "ask-not-initialized",
             )
         )
-    elif invoked in {"ask", "ask-full"} and state == "PARTIAL":
+    elif invoked == "ask" and state == "PARTIAL":
         directives.append(
             (
                 "SOFT [governance]: governanca PARTIAL — precisao do ask pode ser reduzida.",
@@ -256,14 +253,20 @@ def governance_gate(ctx: click.Context) -> None:
 
         from sdd_runtime.telemetry import RuntimeEvent, TelemetrySink
 
-        from sdd_core.governance.handshake import AgentHandshakeProtocol
+        from sdd_cli.services.ask_telemetry import enqueue_flush
 
         root = ctx.obj.get("root") if isinstance(ctx.obj, dict) else None
         profile = ctx.obj.get("profile", "") if isinstance(ctx.obj, dict) else ""
-        from pathlib import Path
+        cached_ahp = ctx.obj.get("_ahp") if isinstance(ctx.obj, dict) else None
+        if isinstance(cached_ahp, dict):
+            state = str(cached_ahp.get("state", "UNKNOWN"))
+        else:
+            from pathlib import Path
 
-        ahp = AgentHandshakeProtocol(project_root=Path(root) if root else None)
-        state, _report = ahp.validate(output_mode="silent")
+            from sdd_core.governance.handshake import AgentHandshakeProtocol
+
+            ahp = AgentHandshakeProtocol(project_root=Path(root) if root else None)
+            state, _report = ahp.validate(output_mode="silent")
 
         # Determine logging mode based on profile (active for master, passive for client)
         logging_mode = "active" if profile == "master" else "passive"
@@ -313,14 +316,18 @@ def governance_gate(ctx: click.Context) -> None:
                     },
                 )
             )
-            sink.flush()
+            enqueue_flush(sink)
             if is_hard:
                 raise click.exceptions.Exit(1)
 
-        sink.flush()
+        enqueue_flush(sink)
         # HEALTHY / NOT_CONNECTED with no profile directive → silent
-    except (click.exceptions.Exit, TyperClickExit):
+    except click.exceptions.Exit:
         raise
-    except Exception:  # nosec B110
+    except Exception as _exc:  # nosec B110
+        # typer.Exit (and typer._click.exceptions.Exit) must propagate — hard-block exits
+        # must not be silenced even when the broader exception handler is active.
+        if type(_exc).__name__ == "Exit" and hasattr(_exc, "exit_code"):
+            raise
         # Gate must never block legitimate commands due to import errors.
         pass

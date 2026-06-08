@@ -473,6 +473,41 @@ _REGISTRY: dict[str, SkillDefinition] = {
             ],
         },
     ),
+    "sdd-pipeline": SkillDefinition(
+        name="sdd-pipeline",
+        version="1.0.0",
+        category="orchestrator",
+        description="Orchestrate ask -> diagnose -> correct -> converge as a governed skill pipeline.",
+        when_to_use=[
+            "strict end-to-end correction flow",
+            "pipeline orchestration",
+            "multi-stage governed remediation",
+        ],
+        outcomes=["ask_result", "diagnosis_report", "gate_decision", "delta_report"],
+        allowed_tools=[
+            "sdd ask",
+            "sdd skills run sdd-diagnose",
+            "sdd skills run sdd-correct",
+            "sdd skills run sdd-converge",
+        ],
+        cli_fallback=[
+            "sdd ask --full",
+            "sdd skills run sdd-diagnose",
+            "sdd skills run sdd-correct",
+            "sdd skills run sdd-converge",
+        ],
+        required_permissions=["workspace-read", "workspace-write-controlled"],
+        risk_score="controlled",
+        tags=["pipeline", "orchestration", "governance"],
+        triggers=["pipeline", "orchestrate", "ask diagnose correct converge"],
+        forbidden=[
+            "skip ask stage",
+            "skip diagnosis attestation",
+            "bypass governance gates",
+        ],
+        fallback_to="sdd-ask",
+        idempotent=False,
+    ),
 }
 
 

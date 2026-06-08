@@ -111,7 +111,7 @@ def generate_cli_commands_index(
                 "requires_handshake": True,
             },
             {
-                "name": "sdd ask-full",
+                "name": "sdd ask --full",
                 "group": "governance",
                 "purpose": "Query governance with full context and compression",
                 "flags": [],

@@ -47,7 +47,7 @@ def init(
         "-t",
         help="Workspace type: master (framework) or client (project instance).",
     ),
-    name: str | None = typer.Option(
+    name: str | None = typer.Option(  # noqa: UP045
         None,
         "--name",
         "-n",
