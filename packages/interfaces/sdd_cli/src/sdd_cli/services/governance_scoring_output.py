@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import typer
@@ -91,3 +92,82 @@ def render_governance_adherence_output(
 
     if score < threshold:
         raise typer.Exit(1)
+
+
+def run_governance_score(
+    *,
+    ws_root: Path,
+    verbose: bool,
+    threshold: int,
+    console: Console,
+) -> None:
+    """Execute governance score checks and render output."""
+    from sdd_cli.utils.sdd_authority import compiled_active_dir
+    from sdd_core.governance.handshake import AgentHandshakeProtocol
+    from sdd_core.governance.scoring import compute_governance_score
+    from sdd_core.utils.environment import WorkspaceNotInitializedError, resolve_profile
+
+    checks: list[tuple[str, bool, int]] = []
+
+    # Check 1 (30): .sdd/profile present + valid type
+    try:
+        profile_ctx = resolve_profile(root=ws_root)
+        checks.append((".sdd/profile valid", True, 30))
+    except WorkspaceNotInitializedError:
+        checks.append((".sdd/profile valid", False, 30))
+        profile_ctx = None
+
+    # Check 2 (30): governance artifacts compiled
+    artifact_candidates = [compiled_active_dir(ws_root) / "governance-core.json"]
+    artifacts_ok = any(p.exists() for p in artifact_candidates)
+    checks.append(("governance artifacts compiled", artifacts_ok, 30))
+
+    # Check 3 (20): AHP confidence >= 50%
+    ahp = AgentHandshakeProtocol(project_root=ws_root)
+    ahp_state, ahp_report = ahp.validate(output_mode="silent", force_recheck=True)
+    confidence_ok = ahp_report.confidence >= 50.0
+    checks.append(
+        (
+            f"AHP confidence >= 50% (actual: {ahp_report.confidence:.1f}%)",
+            confidence_ok,
+            20,
+        )
+    )
+
+    # Check 4 (20): core_hash in profile matches compiled artifact
+    hash_ok = False
+    if profile_ctx is not None and profile_ctx.core_hash and artifacts_ok:
+        try:
+            import hashlib
+            import json as _json
+
+            art_path = next(p for p in artifact_candidates if p.exists())
+            raw = art_path.read_bytes()
+            data = _json.loads(raw)
+            artifact_fp = str(data.get("fingerprint", "")).strip()
+
+            if artifact_fp:
+                hash_ok = artifact_fp[:16] == profile_ctx.core_hash
+            else:
+                # Backward compatibility for artifacts without embedded fingerprint.
+                clean = {
+                    k: v
+                    for k, v in data.items()
+                    if k not in {"_signature", "fingerprint"}
+                }
+                computed = hashlib.sha256(
+                    _json.dumps(clean, sort_keys=True).encode()
+                ).hexdigest()[:16]
+                hash_ok = computed == profile_ctx.core_hash
+        except Exception:
+            hash_ok = False
+    checks.append(("core_hash matches artifact", hash_ok, 20))
+
+    final_score = compute_governance_score(checks)
+    render_governance_score_output(
+        checks=checks,
+        final_score=final_score,
+        threshold=threshold,
+        verbose=verbose,
+        console=console,
+    )

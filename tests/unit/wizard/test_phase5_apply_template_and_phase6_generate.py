@@ -353,6 +353,17 @@ class TestGenerateBuildFiles:
         assert success is True
         assert (project_dir / "package.json").exists()
 
+    def test_generates_go_files(self, tmp_path: Path) -> None:
+        from sdd_wizard.orchestration.phase_6_generate_project import (
+            _generate_build_files,
+        )
+
+        project_dir = tmp_path / "project"
+        project_dir.mkdir()
+        success, _ = _generate_build_files(project_dir, "go", METADATA)
+        assert success is True
+        assert (project_dir / "go.mod").exists()
+
     def test_no_files_for_unknown_language(self, tmp_path: Path) -> None:
         from sdd_wizard.orchestration.phase_6_generate_project import (
             _generate_build_files,
@@ -442,6 +453,17 @@ class TestPhase6GenerateProject:
             MANDATES, GUIDELINES, MANDATE_TEXT, GUIDELINES_TEXT, METADATA, output, "js"
         )
         assert (output / "package.json").exists()
+
+    def test_generates_go_build_files(self, tmp_path: Path) -> None:
+        from sdd_wizard.orchestration.phase_6_generate_project import (
+            phase_6_generate_project,
+        )
+
+        output = tmp_path / "project"
+        phase_6_generate_project(
+            MANDATES, GUIDELINES, MANDATE_TEXT, GUIDELINES_TEXT, METADATA, output, "go"
+        )
+        assert (output / "go.mod").exists()
 
     def test_data_contains_output_dir(self, tmp_path: Path) -> None:
         from sdd_wizard.orchestration.phase_6_generate_project import (

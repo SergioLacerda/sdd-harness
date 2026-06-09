@@ -97,6 +97,9 @@ def _make_writer(
         config={
             "language": "Python",
             "adoption_level": "FULL",
+            "locale": "en",
+            "docs_language": "English",
+            "docs_locale": "en",
             "language_context": {
                 "preferred_human_language": "English",
                 "preferred_chat_language": "English",
@@ -258,6 +261,29 @@ class TestGenerateMandatesFile:
         )
         assert "desc fallback" in content
 
+    def test_m011_renders_language_policy_summary(self, tmp_path: Path) -> None:
+        writer = _make_writer(
+            tmp_path,
+            mandates=[
+                {
+                    "id": "M011",
+                    "title": "English Language Standard",
+                    "criticality": "HIGH",
+                    "content": "English is mandatory for technical artifacts.",
+                }
+            ],
+        )
+        writer.create_directories()
+        writer.generate_mandates_file()
+        content = read_text_utf8(
+            tmp_path / "out" / ".sdd" / "source" / "mandates" / "mandates.md"
+        )
+        assert "Mandatory surfaces" in content
+        assert "technical_docs" in content
+        assert "Contextual surfaces" in content
+        assert "workspace_local_docs" in content
+        assert "Guideline anchors" in content
+
     def test_mandate_missing_title_uses_default(self, tmp_path: Path) -> None:
         writer = _make_writer(
             tmp_path, mandates=[{"id": "M001", "criticality": "HIGH"}]
@@ -389,6 +415,8 @@ class TestGenerateSourceReadme:
         writer.generate_source_readme()
         content = read_text_utf8(tmp_path / "out" / ".sdd" / "source" / "README.md")
         assert "Wizard Language Context" in content
+        assert "Interaction locale: en" in content
+        assert "Docs locale: en" in content
         assert "Local docs: English" in content
         assert "guidelines.dsl" in content
         assert ".analysis/" in content
@@ -416,6 +444,8 @@ class TestGenerateRuntimeReadme:
         writer.generate_runtime_readme()
         content = read_text_utf8(tmp_path / "out" / ".sdd" / "runtime" / "README.md")
         assert "Pre-Cache" in content or "pre-cache" in content.lower()
+        assert "Interaction locale: en" in content
+        assert "Docs locale: en" in content
 
     def test_returns_false_on_exception(self, tmp_path: Path) -> None:
         writer = _make_writer(tmp_path)

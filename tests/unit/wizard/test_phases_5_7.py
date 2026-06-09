@@ -147,6 +147,7 @@ class TestPhase6GenerateProject:
             ("java", "pom.xml"),
             ("python", "requirements.txt"),
             ("js", "package.json"),
+            ("go", "go.mod"),
         ]
 
         for language, expected_file in languages_and_files:

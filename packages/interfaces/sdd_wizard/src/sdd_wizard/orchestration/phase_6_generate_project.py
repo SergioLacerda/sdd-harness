@@ -140,7 +140,7 @@ def _generate_build_files(
 
     Args:
         project_dir: Project output directory
-        language: Target language (java|python|js)
+        language: Target language (java|python|js|go)
         metadata: Project metadata
 
     Returns:
@@ -220,6 +220,15 @@ dev = ["pytest>=7.0"]
             package_file.write_text(package_content, encoding="utf-8")
             messages.append(f"Generated: {package_file.relative_to(project_dir)}")
 
+        elif language == "go":
+            go_mod_content = """module sdd-project-seed
+
+go 1.22
+"""
+            go_mod_file = project_dir / "go.mod"
+            go_mod_file.write_text(go_mod_content, encoding="utf-8")
+            messages.append(f"Generated: {go_mod_file.relative_to(project_dir)}")
+
         return (True, messages)
     except Exception as e:
         return (False, [f"Error generating build files: {e}"])
@@ -284,7 +293,7 @@ This project was generated from SDD v3.0 specifications.
 1. Review specifications in `.sdd/CANONICAL/`
 2. Check guidelines in `guidelines/`
 3. Follow the architecture patterns
-4. Run tests: `pytest` (Python) or `mvn test` (Java) or `npm test` (JS)
+4. Run tests: `pytest` (Python) or `mvn test` (Java) or `npm test` (JS) or `go test ./...` (Go)
 
 ### Guidelines
 

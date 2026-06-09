@@ -41,35 +41,28 @@ def test_loader_accepts_canonical_schema(tmp_path: Path):
 def test_degraded_output_shows_warning():
     # Act
     output = _render_context_output(
-        query="test",
-        context_source="compiled",
         fingerprint="fp123",
         mandates_count=5,
         degraded=True,
         degrade_reason="invalid signature",
-        trust_source="none",
     )
 
-    # Assert
-    assert "⚠ Governance loaded in DEGRADED mode" in output
-    assert "degraded        : yes" in output
-    assert "degraded_reason : invalid signature" in output
-    assert "Governance is active" not in output
+    # Assert — M020 compact format
+    assert "governance=degraded" in output
+    assert "[DEGRADED:" in output
+    assert "invalid signature" in output
+    assert "governance=active" not in output
 
 
 def test_verified_output_shows_active():
     # Act
     output = _render_context_output(
-        query="test",
-        context_source="compiled",
         fingerprint="fp123",
         mandates_count=5,
         degraded=False,
         degrade_reason="",
-        trust_source="canonical",
     )
 
-    # Assert
-    assert "Governance is active" in output
-    assert "degraded        : no" in output
-    assert "⚠ Governance loaded in DEGRADED mode" not in output
+    # Assert — M020 compact format
+    assert "governance=active" in output
+    assert "[DEGRADED:" not in output

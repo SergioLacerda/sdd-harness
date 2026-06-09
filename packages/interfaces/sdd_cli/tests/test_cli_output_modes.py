@@ -198,22 +198,23 @@ def test_governance_generate_json_uses_canonical_envelope(
     monkeypatch, tmp_path
 ) -> None:
     monkeypatch.setattr(
-        "sdd_cli.commands.governance.validate_governance_path", lambda _: True
+        "sdd_cli.services.governance_generate_handlers.validate_governance_path",
+        lambda _: True,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance.load_governance_config",
+        "sdd_cli.services.governance_generate_handlers.load_governance_config",
         lambda _: {"items": [{"id": "M001"}]},
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._resolve_output_base",
+        "sdd_cli.services.governance_generate_handlers.resolve_output_base",
         lambda _output_dir: tmp_path,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._generate_seeds",
+        "sdd_cli.services.governance_generate_handlers.generate_seeds",
         lambda output_dir, config: ([("copilot", tmp_path / "a.md", "ok")], tmp_path),
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._run_generate_phases",
+        "sdd_cli.services.governance_generate_handlers.run_generate_phases",
         lambda output_base, config: (True, True, True),
     )
     result = runner.invoke(app, ["--json", "governance", "generate"])
@@ -229,7 +230,8 @@ def test_governance_generate_json_uses_canonical_envelope(
 
 def test_governance_generate_json_error_uses_canonical_envelope(monkeypatch) -> None:
     monkeypatch.setattr(
-        "sdd_cli.commands.governance.validate_governance_path", lambda _: False
+        "sdd_cli.services.governance_generate_handlers.validate_governance_path",
+        lambda _: False,
     )
     result = runner.invoke(app, ["--json", "governance", "generate"])
 
@@ -256,23 +258,23 @@ def test_governance_compile_json_uses_canonical_envelope(monkeypatch) -> None:
     }
     monkeypatch.setattr(
         "sdd_cli.commands.governance._run_compilation",
-        lambda profile=None: mock_result,
+        lambda profile=None, *, console: mock_result,
     )
     monkeypatch.setattr(
         "sdd_cli.commands.governance._update_profile_hash",
-        lambda core_fingerprint: None,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands.governance._resolve_generate_path",
-        lambda path: "runtime/compiled",
+        lambda core_fingerprint, *, console: None,
     )
     monkeypatch.setattr(
         "sdd_cli.commands.governance._check_artifact_consistency",
         lambda path: (True, "ok"),
     )
     monkeypatch.setattr(
+        "sdd_cli.commands.governance._emit_compile_telemetry",
+        lambda **_: None,
+    )
+    monkeypatch.setattr(
         "sdd_cli.commands.governance._regenerate_seeds",
-        lambda: None,
+        lambda *, console: None,
     )
     result = runner.invoke(app, ["--json", "governance", "compile"])
 
@@ -293,19 +295,19 @@ def test_governance_compile_json_error_uses_canonical_envelope(monkeypatch) -> N
     }
     monkeypatch.setattr(
         "sdd_cli.commands.governance._run_compilation",
-        lambda profile=None: mock_result,
+        lambda profile=None, *, console: mock_result,
     )
     monkeypatch.setattr(
         "sdd_cli.commands.governance._update_profile_hash",
-        lambda core_fingerprint: None,
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands.governance._resolve_generate_path",
-        lambda path: "runtime/compiled",
+        lambda core_fingerprint, *, console: None,
     )
     monkeypatch.setattr(
         "sdd_cli.commands.governance._check_artifact_consistency",
         lambda path: (False, "bad metadata"),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands.governance._emit_compile_telemetry",
+        lambda **_: None,
     )
     result = runner.invoke(app, ["--json", "governance", "compile"])
 

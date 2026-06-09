@@ -639,6 +639,38 @@ class TestPhase4GenerateProject:
             result = wizard.phase_4_generate_project()
         assert result["success"] is True
 
+    def test_go_selection_reaches_phase4_generator(self, tmp_path: Path) -> None:
+        wizard = _make_wizard(tmp_path)
+        wizard.client_build_dir.mkdir(parents=True, exist_ok=True)
+        wizard.client_compiled_dir.mkdir(parents=True, exist_ok=True)
+
+        with patch("builtins.input", side_effect=["1", "4", "1", "1"]):
+            config = wizard.ask_user_preferences()
+        wizard.save_config(config)
+
+        mock_result = {
+            "success": True,
+            "mandates": 2,
+            "guidelines": 1,
+            "categories": ["testing"],
+        }
+        with (
+            patch("builtins.input", return_value=""),
+            patch(
+                "sdd_wizard.orchestration.phase_4_5_6_generator.run_phase_4_5_6_generator",
+                return_value=mock_result,
+            ) as mock_run,
+            patch.object(
+                wizard,
+                "_consolidate_final_template",
+                return_value={"success": True, "moved_items": 1},
+            ),
+        ):
+            result = wizard.phase_4_generate_project()
+
+        assert result["success"] is True
+        assert mock_run.call_args.args[2]["language"] == "Go"
+
     def test_returns_false_when_consolidate_fails(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
         wizard.client_build_dir.mkdir(parents=True, exist_ok=True)

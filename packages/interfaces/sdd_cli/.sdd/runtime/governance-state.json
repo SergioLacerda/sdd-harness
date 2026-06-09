@@ -5,8 +5,8 @@
   "spec_fingerprint": "",
   "mandates_loaded": [],
   "skill_profile": "default",
-  "confidence": 18.2,
-  "last_check": "2026-06-04T08:12:58.778698",
+  "confidence": 27.3,
+  "last_check": "2026-06-09T11:17:50.334246",
   "state": "PARTIAL",
   "checks": [
     {
@@ -53,8 +53,8 @@
     },
     {
       "name": "state cache",
-      "passed": false,
-      "message": "Cache not created",
+      "passed": true,
+      "message": "Cache initialized",
       "layer": "RUNTIME_VALIDATION"
     },
     {

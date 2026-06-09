@@ -1175,7 +1175,7 @@ class TestGovernanceSeedsGeneratorGeneratePromptCommands:
                 return [("Codex/commands.md", out_file)]
 
         with patch(
-            "sdd_wizard.orchestration.seedlings.governance_seeds.import_module",
+            "sdd_wizard.orchestration.seedlings.guideline_seeds.import_module",
             return_value=_FakeModule(),
         ):
             success = gen.generate_prompt_commands()

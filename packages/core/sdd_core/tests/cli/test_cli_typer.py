@@ -272,23 +272,35 @@ class TestGenerateCommand:
     def test_generate_with_valid_path(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test generate with valid wizard path."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: True
+            "sdd_cli.services.governance_generate_handlers.validate_governance_path",
+            lambda x: True,
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.load_governance_config",
+            "sdd_cli.services.governance_generate_handlers.load_governance_config",
             lambda x: {"items": [{"id": "M001", "type": "MANDATE", "title": "Test"}]},
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.get_governance_summary",
-            lambda x, config=None: {},
+            "sdd_cli.services.governance_generate_handlers.generate_seeds",
+            lambda output_dir, config: (
+                [],
+                __import__("pathlib").Path(output_dir) / ".vscode" / "agents",
+            ),
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.generate_agent_instruction_files",
-            lambda output_root, config: [],
+            "sdd_cli.services.governance_generate_handlers.run_generate_phases",
+            lambda output_base, config: (False, False, False),
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.generate_agent_prompt_commands",
-            lambda output_root, config=None: [],
+            "sdd_cli.services.governance_generate_handlers.write_instruction_files_safe",
+            lambda *a, **k: None,
+        )
+        monkeypatch.setattr(
+            "sdd_cli.services.governance_generate_handlers.write_prompt_commands_safe",
+            lambda *a, **k: None,
+        )
+        monkeypatch.setattr(
+            "sdd_cli.services.governance_generate_handlers.generate_adapters_safe",
+            lambda *a, **k: None,
         )
         result = runner.invoke(app, ["governance", "generate", "--path", "runtime"])
         assert result.exit_code == 0
@@ -296,7 +308,8 @@ class TestGenerateCommand:
     def test_generate_with_invalid_path(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test generate with invalid path."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: False
+            "sdd_cli.services.governance_generate_handlers.validate_governance_path",
+            lambda x: False,
         )
         result = runner.invoke(
             app, ["governance", "generate", "--path", "/nonexistent/path"]
@@ -503,19 +516,35 @@ class TestCommandExecutions:
     def test_generate_execution(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test generate command execution."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: True
+            "sdd_cli.services.governance_generate_handlers.validate_governance_path",
+            lambda x: True,
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.load_governance_config",
+            "sdd_cli.services.governance_generate_handlers.load_governance_config",
             lambda x: {"items": [{"id": "D1", "type": "MANDATE", "title": "Rule"}]},
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.get_governance_summary",
-            lambda x, config=None: {},
+            "sdd_cli.services.governance_generate_handlers.generate_seeds",
+            lambda output_dir, config: (
+                [],
+                __import__("pathlib").Path(output_dir) / ".vscode" / "agents",
+            ),
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance._write_instruction_files_safe",
-            lambda output_base, config: None,
+            "sdd_cli.services.governance_generate_handlers.run_generate_phases",
+            lambda output_base, config: (False, False, False),
+        )
+        monkeypatch.setattr(
+            "sdd_cli.services.governance_generate_handlers.write_instruction_files_safe",
+            lambda *a, **k: None,
+        )
+        monkeypatch.setattr(
+            "sdd_cli.services.governance_generate_handlers.write_prompt_commands_safe",
+            lambda *a, **k: None,
+        )
+        monkeypatch.setattr(
+            "sdd_cli.services.governance_generate_handlers.generate_adapters_safe",
+            lambda *a, **k: None,
         )
         result = runner.invoke(app, ["governance", "generate"])
         assert result.exit_code == 0
@@ -525,10 +554,11 @@ class TestCommandExecutions:
     ) -> None:
         """generate must fail when compiled governance has no items."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: True
+            "sdd_cli.services.governance_generate_handlers.validate_governance_path",
+            lambda x: True,
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.load_governance_config",
+            "sdd_cli.services.governance_generate_handlers.load_governance_config",
             lambda x: {"items": []},
         )
         result = runner.invoke(app, ["governance", "generate"])

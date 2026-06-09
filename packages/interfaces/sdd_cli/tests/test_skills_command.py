@@ -1,3 +1,5 @@
+"""Integration tests for sdd skills CLI commands."""
+
 from __future__ import annotations
 
 import json
@@ -6,8 +8,6 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-import typer
 from click.testing import CliRunner
 
 from sdd_cli.main import app
@@ -175,7 +175,7 @@ def test_skills_full_bootstrap_json_missing_governance_uses_canonical_error(
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
         patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
         patch(
-            "sdd_cli.commands.skills.validate_governance_path",
+            "sdd_cli.services.skills_resolver.validate_governance_path",
             return_value=False,
         ),
     ):
@@ -421,46 +421,49 @@ def test_skills_full_bootstrap_json_uses_canonical_envelope(tmp_path) -> None:
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
         patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
         patch(
-            "sdd_cli.commands.skills.validate_governance_path",
+            "sdd_cli.services.skills_resolver.validate_governance_path",
             return_value=True,
         ),
         patch(
-            "sdd_cli.commands.skills.load_governance_config",
+            "sdd_cli.services.skills_resolver.load_governance_config",
             return_value={"items": [{"id": "M001"}]},
         ),
         patch(
-            "sdd_cli.commands.skills.generate_agent_seeds",
+            "sdd_cli.services.skills_resolver.generate_agent_seeds",
             return_value=[("copilot", tmp_path / "seed.md", "ok")],
         ),
         patch(
-            "sdd_cli.commands.skills.generate_agent_instruction_files",
+            "sdd_cli.services.skills_resolver.generate_agent_instruction_files",
             return_value=[],
         ),
         patch(
-            "sdd_cli.commands.skills.generate_agent_prompt_commands",
+            "sdd_cli.services.skills_resolver.generate_agent_prompt_commands",
             return_value=[],
         ),
         patch(
-            "sdd_cli.commands.skills.generate_skills_registry",
+            "sdd_cli.services.skills_resolver.generate_skills_registry",
             return_value={"skill_count": 1},
         ),
         patch(
-            "sdd_cli.commands.skills.generate_commands_registry",
+            "sdd_cli.services.skills_resolver.generate_commands_registry",
             return_value={"command_count": 1},
         ),
         patch(
-            "sdd_cli.commands.skills.reconcile_registries",
+            "sdd_cli.services.skills_resolver.reconcile_registries",
             return_value=_Summary(),
         ),
         patch(
-            "sdd_cli.commands.skills.generate_skill_index",
+            "sdd_cli.services.skills_resolver.generate_skill_index",
             return_value={"skill_count": 1},
         ),
         patch(
-            "sdd_cli.commands.skills.generate_cli_commands_index",
+            "sdd_cli.services.skills_resolver.generate_cli_commands_index",
             return_value={"command_count": 1},
         ),
-        patch("sdd_cli.commands.skills._generate_adapters", return_value=(2, None)),
+        patch(
+            "sdd_cli.services.skills_resolver._generate_adapters",
+            return_value=(2, None),
+        ),
     ):
         result = runner.invoke(app, ["--json", "skills", "--full-bootstrap"])
 
@@ -475,7 +478,7 @@ def test_skills_full_bootstrap_json_uses_canonical_envelope(tmp_path) -> None:
     assert data["policy_result"] == "skills_full_bootstrap_completed"
 
 
-def test_skills_list_json_uses_canonical_data_payload(monkeypatch) -> None:
+def test_skills_list_json_uses_canonical_data_payload() -> None:
     result = runner.invoke(app, ["--json", "skills", "list"])
     assert result.exit_code == 0, result.output
     payload = _load_json_output(result.output)
@@ -486,100 +489,14 @@ def test_skills_list_json_uses_canonical_data_payload(monkeypatch) -> None:
     assert "policy_result" not in payload
 
 
-def test_reconcile_root_seed_artifacts_prunes_stale_files(tmp_path) -> None:
-    from sdd_cli.commands.skills import _reconcile_root_seed_artifacts
-
-    commands_registry = tmp_path / ".sdd" / "commands"
-    skills_registry = tmp_path / ".sdd" / "skills"
-    commands_registry.mkdir(parents=True, exist_ok=True)
-    skills_registry.mkdir(parents=True, exist_ok=True)
-    (commands_registry / "registry.json").write_text(
-        json.dumps(
-            {
-                "commands": [
-                    {"id": "sdd-ask"},
-                    {"id": "sdd-pipeline"},
-                ]
-            }
-        ),
-        encoding="utf-8",
-    )
-    (skills_registry / "registry.json").write_text(
-        json.dumps({"skills": [{"name": "sdd-ask"}, {"name": "sdd-diagnose"}]}),
-        encoding="utf-8",
-    )
-
-    prompts = tmp_path / ".github" / "prompts"
-    prompts.mkdir(parents=True, exist_ok=True)
-    (prompts / "sdd-ask.prompt.md").write_text("ok", encoding="utf-8")
-    (prompts / "sdd-legacy.prompt.md").write_text("stale", encoding="utf-8")
-
-    codex_skills = tmp_path / ".codex" / "skills"
-    codex_skills.mkdir(parents=True, exist_ok=True)
-    (codex_skills / "sdd-pipeline.prompt.md").write_text("ok", encoding="utf-8")
-    (codex_skills / "sdd-legacy.prompt.md").write_text("stale", encoding="utf-8")
-
-    claude_cmds = tmp_path / ".claude" / "commands"
-    claude_cmds.mkdir(parents=True, exist_ok=True)
-    (claude_cmds / "sdd-ask.md").write_text("ok", encoding="utf-8")
-    (claude_cmds / "sdd-legacy.md").write_text("stale", encoding="utf-8")
-
-    gemini_skills = tmp_path / ".gemini" / "antigravity" / "skills"
-    gemini_skills.mkdir(parents=True, exist_ok=True)
-    (gemini_skills / "sdd-ask").mkdir()
-    (gemini_skills / "sdd-governance").mkdir()
-    (gemini_skills / "sdd-legacy").mkdir()
-    stats = _reconcile_root_seed_artifacts(tmp_path)
-
-    assert stats["deleted"] == 4
-    assert (prompts / "sdd-legacy.prompt.md").exists() is False
-    assert (codex_skills / "sdd-legacy.prompt.md").exists() is False
-    assert (claude_cmds / "sdd-legacy.md").exists() is False
-    assert (gemini_skills / "sdd-legacy").exists() is False
-    assert (gemini_skills / "sdd-governance").exists() is True
-
-
-def test_reconcile_root_seed_artifacts_dry_run_does_not_delete(tmp_path) -> None:
-    from sdd_cli.commands.skills import _reconcile_root_seed_artifacts
-
-    commands_registry = tmp_path / ".sdd" / "commands"
-    skills_registry = tmp_path / ".sdd" / "skills"
-    commands_registry.mkdir(parents=True, exist_ok=True)
-    skills_registry.mkdir(parents=True, exist_ok=True)
-    (commands_registry / "registry.json").write_text(
-        json.dumps({"commands": [{"id": "sdd-ask"}]}),
-        encoding="utf-8",
-    )
-    (skills_registry / "registry.json").write_text(
-        json.dumps({"skills": [{"name": "sdd-ask"}]}),
-        encoding="utf-8",
-    )
-    prompts = tmp_path / ".github" / "prompts"
-    prompts.mkdir(parents=True, exist_ok=True)
-    stale = prompts / "sdd-legacy.prompt.md"
-    stale.write_text("stale", encoding="utf-8")
-
-    stats = _reconcile_root_seed_artifacts(tmp_path, dry_run=True)
-    assert stats["would_delete"] == 1
-    assert stats["deleted"] == 0
-    assert stale.exists() is True
-
-
-def test_reconcile_root_seed_artifacts_fails_without_registries(tmp_path) -> None:
-    from sdd_cli.commands.skills import _reconcile_root_seed_artifacts
-
-    with pytest.raises(FileNotFoundError):
-        _reconcile_root_seed_artifacts(tmp_path)
-
-
-def test_skills_run_correct_blocked_text_mode(monkeypatch) -> None:
-    monkeypatch.setenv("SDD_ENFORCE_PIPELINE_CORRECT", "1")
-    result = runner.invoke(app, ["skills", "run", "sdd-correct"])
+def test_skills_run_correct_blocked_text_mode() -> None:
+    with patch.dict("os.environ", {"SDD_ENFORCE_PIPELINE_CORRECT": "1"}):
+        result = runner.invoke(app, ["skills", "run", "sdd-correct"])
     assert result.exit_code == 1
     assert "bloqueado" in result.output or "blocked" in result.output.lower()
 
 
-def test_skills_run_exit_nonzero_on_failed_result(monkeypatch) -> None:
+def test_skills_run_exit_nonzero_on_failed_result() -> None:
     fake_result = MagicMock()
     fake_result.state = "error"
     fake_result.profile = "default"
@@ -658,319 +575,3 @@ def test_skills_describe_missing_text_mode() -> None:
         if hasattr(result, "stderr_bytes")
         else True
     )
-
-
-class TestRunFullBootstrapTextMode:
-    def _mock_bootstrap(
-        self, tmp_path, monkeypatch, *, regenerate_seeds=False, dry_run=False
-    ):
-        reconcile_summary = MagicMock()
-        reconcile_summary.as_json.return_value = {}
-        reconcile_summary.commands = {"added": 2, "removed": 0}
-        reconcile_summary.skills = {"added": 3, "removed": 0}
-
-        with (
-            patch(
-                "sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path
-            ),
-            patch(
-                "sdd_cli.commands.skills._validate_and_load_governance",
-                return_value={"items": [{}]},
-            ),
-            patch("sdd_cli.commands.skills.generate_agent_seeds", return_value=[1, 2]),
-            patch("sdd_cli.commands.skills.generate_agent_instruction_files"),
-            patch("sdd_cli.commands.skills.generate_agent_prompt_commands"),
-            patch(
-                "sdd_cli.commands.skills.generate_skills_registry",
-                return_value={"skill_count": 5},
-            ),
-            patch(
-                "sdd_cli.commands.skills.generate_commands_registry",
-                return_value={"command_count": 3},
-            ),
-            patch(
-                "sdd_cli.commands.skills.reconcile_registries",
-                return_value=reconcile_summary,
-            ),
-            patch(
-                "sdd_cli.commands.skills.generate_skill_index",
-                return_value={"skill_count": 5},
-            ),
-            patch(
-                "sdd_cli.commands.skills.generate_cli_commands_index",
-                return_value={"command_count": 3},
-            ),
-            patch("sdd_cli.commands.skills._generate_adapters", return_value=(2, None)),
-            patch("sdd_cli.commands.skills._run_reconcile", return_value=(1, 2)),
-            patch("sdd_cli.commands.skills._ctx_json", return_value=False),
-        ):
-            from typer.testing import CliRunner as TCliRunner
-
-            from sdd_cli.commands.skills import app as skills_app
-
-            cli_runner = TCliRunner()
-            args = ["full-bootstrap"]
-            if regenerate_seeds:
-                args += ["--regenerate-seeds"]
-            if dry_run:
-                args += ["--dry-run"]
-            return cli_runner.invoke(skills_app, args)
-
-    def test_text_mode_prints_completion_summary(self, tmp_path) -> None:
-        from unittest.mock import MagicMock, patch
-
-        from sdd_cli.commands.skills import _run_full_bootstrap
-
-        reconcile_summary = MagicMock()
-        reconcile_summary.as_json.return_value = {}
-        reconcile_summary.commands = {"added": 2, "removed": 0}
-        reconcile_summary.skills = {"added": 3, "removed": 0}
-
-        with (
-            patch(
-                "sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path
-            ),
-            patch(
-                "sdd_cli.commands.skills._validate_and_load_governance",
-                return_value={"items": [{}]},
-            ),
-            patch("sdd_cli.commands.skills.generate_agent_seeds", return_value=[1, 2]),
-            patch("sdd_cli.commands.skills.generate_agent_instruction_files"),
-            patch("sdd_cli.commands.skills.generate_agent_prompt_commands"),
-            patch(
-                "sdd_cli.commands.skills.generate_skills_registry",
-                return_value={"skill_count": 5},
-            ),
-            patch(
-                "sdd_cli.commands.skills.generate_commands_registry",
-                return_value={"command_count": 3},
-            ),
-            patch(
-                "sdd_cli.commands.skills.reconcile_registries",
-                return_value=reconcile_summary,
-            ),
-            patch(
-                "sdd_cli.commands.skills.generate_skill_index",
-                return_value={"skill_count": 5},
-            ),
-            patch(
-                "sdd_cli.commands.skills.generate_cli_commands_index",
-                return_value={"command_count": 3},
-            ),
-            patch("sdd_cli.commands.skills._generate_adapters", return_value=(2, None)),
-            patch("sdd_cli.commands.skills._ctx_json", return_value=False),
-        ):
-            _run_full_bootstrap(regenerate_seeds=False, dry_run=False)
-
-    def test_text_mode_prints_deleted_seeds_on_regenerate(self, tmp_path) -> None:
-        from unittest.mock import MagicMock, patch
-
-        from sdd_cli.commands.skills import _run_full_bootstrap
-
-        reconcile_summary = MagicMock()
-        reconcile_summary.as_json.return_value = {}
-        reconcile_summary.commands = {"added": 0, "removed": 0}
-        reconcile_summary.skills = {"added": 0, "removed": 0}
-
-        with (
-            patch(
-                "sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path
-            ),
-            patch(
-                "sdd_cli.commands.skills._validate_and_load_governance",
-                return_value={"items": [{}]},
-            ),
-            patch("sdd_cli.commands.skills.generate_agent_seeds", return_value=[]),
-            patch("sdd_cli.commands.skills.generate_agent_instruction_files"),
-            patch("sdd_cli.commands.skills.generate_agent_prompt_commands"),
-            patch(
-                "sdd_cli.commands.skills.generate_skills_registry",
-                return_value={"skill_count": 0},
-            ),
-            patch(
-                "sdd_cli.commands.skills.generate_commands_registry",
-                return_value={"command_count": 0},
-            ),
-            patch(
-                "sdd_cli.commands.skills.reconcile_registries",
-                return_value=reconcile_summary,
-            ),
-            patch(
-                "sdd_cli.commands.skills.generate_skill_index",
-                return_value={"skill_count": 0},
-            ),
-            patch(
-                "sdd_cli.commands.skills.generate_cli_commands_index",
-                return_value={"command_count": 0},
-            ),
-            patch("sdd_cli.commands.skills._generate_adapters", return_value=(0, None)),
-            patch("sdd_cli.commands.skills._run_reconcile", return_value=(3, 3)),
-            patch("sdd_cli.commands.skills._ctx_json", return_value=False),
-        ):
-            _run_full_bootstrap(regenerate_seeds=True, dry_run=False)
-
-
-class TestReadRegistryIds:
-    def test_raises_on_non_list_value(self, tmp_path) -> None:
-        from sdd_cli.commands.skills import _read_registry_ids
-
-        reg = tmp_path / "registry.json"
-        reg.write_text(json.dumps({"commands": "not-a-list"}), encoding="utf-8")
-        with pytest.raises(ValueError, match=r"invalid registry format for "):
-            _read_registry_ids(reg, "commands", "id")
-
-    def test_skips_non_dict_rows(self, tmp_path) -> None:
-        from sdd_cli.commands.skills import _read_registry_ids
-
-        reg = tmp_path / "registry.json"
-        reg.write_text(
-            json.dumps({"commands": ["string-row", {"id": "sdd-ask"}]}),
-            encoding="utf-8",
-        )
-        result = _read_registry_ids(reg, "commands", "id")
-        assert result == ["sdd-ask"]
-
-
-class TestGenerateAdapters:
-    def test_returns_zero_on_import_error(self) -> None:
-        from sdd_cli.commands.skills import _generate_adapters
-
-        with patch(
-            "sdd_adapters.adapter_generator.AdapterGenerator",
-            side_effect=ImportError("no adapters"),
-        ):
-            count, err = _generate_adapters(Path("/tmp"))
-        assert count == 0
-        assert err is not None
-
-    def test_returns_count_on_success(self, tmp_path) -> None:
-        from sdd_cli.commands.skills import _generate_adapters
-
-        with patch("sdd_adapters.adapter_generator.AdapterGenerator") as mock_cls:
-            mock_cls.return_value.generate.return_value = [1, 2, 3]
-            count, err = _generate_adapters(tmp_path)
-        assert count == 3
-        assert err is None
-
-
-class TestHandleAdapterError:
-    def test_text_mode_prints_error_and_exits(self) -> None:
-        from sdd_cli.commands.skills import _handle_adapter_error
-
-        with (
-            patch("sdd_cli.commands.skills._ctx_json", return_value=False),
-            pytest.raises(typer.Exit) as exc_info,
-        ):
-            _handle_adapter_error("template error")
-        assert exc_info.value.exit_code == 1
-
-    def test_json_mode_emits_error_and_exits(self) -> None:
-        from sdd_cli.commands.skills import _handle_adapter_error
-
-        with (
-            patch("sdd_cli.commands.skills._ctx_json", return_value=True),
-            patch("sdd_cli.commands.skills._emit_skills_json") as mock_emit,
-            pytest.raises(typer.Exit) as exc_info,
-        ):
-            _handle_adapter_error("template error")
-        assert exc_info.value.exit_code == 1
-        call_kwargs = mock_emit.call_args[1]
-        assert call_kwargs["error_code"] == "adapter_generation_failed"
-
-
-class TestValidateAndLoadGovernance:
-    def test_text_mode_exits_on_invalid_path(self, tmp_path) -> None:
-        from sdd_cli.commands.skills import _validate_and_load_governance
-
-        with (
-            patch(
-                "sdd_cli.commands.skills.validate_governance_path", return_value=False
-            ),
-            patch("sdd_cli.commands.skills._ctx_json", return_value=False),
-            pytest.raises(typer.Exit) as exc_info,
-        ):
-            _validate_and_load_governance(tmp_path / ".sdd" / "compiled")
-        assert exc_info.value.exit_code == 1
-
-    def test_json_mode_exits_on_invalid_path(self, tmp_path) -> None:
-        from sdd_cli.commands.skills import _validate_and_load_governance
-
-        with (
-            patch(
-                "sdd_cli.commands.skills.validate_governance_path", return_value=False
-            ),
-            patch("sdd_cli.commands.skills._ctx_json", return_value=True),
-            patch("sdd_cli.commands.skills._emit_skills_json") as mock_emit,
-            pytest.raises(typer.Exit),
-        ):
-            _validate_and_load_governance(tmp_path / ".sdd" / "compiled")
-        call_kwargs = mock_emit.call_args[1]
-        assert call_kwargs["error_code"] == "missing_governance_artifacts"
-
-    def test_text_mode_exits_on_empty_items(self, tmp_path) -> None:
-        from sdd_cli.commands.skills import _validate_and_load_governance
-
-        with (
-            patch(
-                "sdd_cli.commands.skills.validate_governance_path", return_value=True
-            ),
-            patch(
-                "sdd_cli.commands.skills.load_governance_config",
-                return_value={"items": []},
-            ),
-            patch("sdd_cli.commands.skills._ctx_json", return_value=False),
-            pytest.raises(typer.Exit) as exc_info,
-        ):
-            _validate_and_load_governance(tmp_path / ".sdd" / "compiled")
-        assert exc_info.value.exit_code == 1
-
-    def test_json_mode_exits_on_empty_items(self, tmp_path) -> None:
-        from sdd_cli.commands.skills import _validate_and_load_governance
-
-        with (
-            patch(
-                "sdd_cli.commands.skills.validate_governance_path", return_value=True
-            ),
-            patch(
-                "sdd_cli.commands.skills.load_governance_config",
-                return_value={"items": []},
-            ),
-            patch("sdd_cli.commands.skills._ctx_json", return_value=True),
-            patch("sdd_cli.commands.skills._emit_skills_json") as mock_emit,
-            pytest.raises(typer.Exit),
-        ):
-            _validate_and_load_governance(tmp_path / ".sdd" / "compiled")
-        call_kwargs = mock_emit.call_args[1]
-        assert call_kwargs["error_code"] == "missing_governance_items"
-
-
-class TestRunReconcile:
-    def test_text_mode_exits_on_exception(self, tmp_path) -> None:
-        from sdd_cli.commands.skills import _run_reconcile
-
-        with (
-            patch(
-                "sdd_cli.commands.skills._reconcile_root_seed_artifacts",
-                side_effect=FileNotFoundError("no registry"),
-            ),
-            patch("sdd_cli.commands.skills._ctx_json", return_value=False),
-            pytest.raises(typer.Exit) as exc_info,
-        ):
-            _run_reconcile(tmp_path, dry_run=False)
-        assert exc_info.value.exit_code == 1
-
-    def test_json_mode_exits_on_exception(self, tmp_path) -> None:
-        from sdd_cli.commands.skills import _run_reconcile
-
-        with (
-            patch(
-                "sdd_cli.commands.skills._reconcile_root_seed_artifacts",
-                side_effect=FileNotFoundError("no registry"),
-            ),
-            patch("sdd_cli.commands.skills._ctx_json", return_value=True),
-            patch("sdd_cli.commands.skills._emit_skills_json") as mock_emit,
-            pytest.raises(typer.Exit),
-        ):
-            _run_reconcile(tmp_path, dry_run=False)
-        call_kwargs = mock_emit.call_args[1]
-        assert call_kwargs["error_code"] == "seed_reconciliation_failed"

@@ -9,7 +9,6 @@ Security:
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import os
 import time
@@ -26,6 +25,18 @@ from sdd_runtime import OtelBridge, TelemetrySink
 from sdd_runtime.otel import OtlpHttpExporter
 from typer.models import OptionInfo
 
+from sdd_cli.services.ask_context import (
+    check_fingerprint_drift as _check_fingerprint_drift_impl,
+)
+from sdd_cli.services.ask_context import (
+    get_profile_state as _get_profile_state_impl,
+)
+from sdd_cli.services.ask_context import (
+    load_compiled_governance as _load_compiled_governance_from_ctx,
+)
+from sdd_cli.services.ask_context import (
+    write_runtime_cache as _write_runtime_cache_impl,
+)
 from sdd_cli.services.ask_dossier import (
     build_and_output_dossier as _build_and_output_dossier_impl,
 )
@@ -41,17 +52,17 @@ from sdd_cli.services.ask_dossier import (
 from sdd_cli.services.ask_dossier import (
     resolve_dossier_budget as _resolve_dossier_budget_impl,
 )
+from sdd_cli.services.ask_filter import (
+    collect_learning_signals as _collect_learning_signals_impl,
+)
+from sdd_cli.services.ask_filter import (
+    count_signals_from_tail as _count_signals_from_tail_impl,
+)
 from sdd_cli.services.ask_governance import (
     GovResult as _GovResult,
 )
 from sdd_cli.services.ask_governance import (
     fingerprint_file as _fingerprint_file_impl,
-)
-from sdd_cli.services.ask_governance import (
-    load_compiled_governance as _load_compiled_governance_impl,
-)
-from sdd_cli.services.ask_governance import (
-    load_governance_via_runtime as _load_governance_via_runtime,
 )
 from sdd_cli.services.ask_governance import (
     signature_mode as _signature_mode_impl,
@@ -71,6 +82,12 @@ from sdd_cli.services.ask_organize import (
 from sdd_cli.services.ask_payload import (
     build_ask_json_data,
 )
+from sdd_cli.services.ask_renderer import (
+    render_context_header as _render_context_header,
+)
+from sdd_cli.services.ask_renderer import (
+    render_governance_footer as _render_governance_footer_impl,
+)
 from sdd_cli.services.ask_telemetry import (
     emit_ask_telemetry as _emit_ask_telemetry_impl,
 )
@@ -84,7 +101,6 @@ from sdd_cli.utils.output import emit_json, is_json_mode
 from sdd_cli.utils.sdd_authority import (
     compiled_active_dir,
     enforce_path_policy,
-    profile_active_path,
 )
 from sdd_cli.utils.sdd_authority import (
     resolve_workspace_root as resolve_authority_workspace_root,
@@ -157,7 +173,6 @@ _TRUE_VALUES = {"1", "true", "yes", "on"}
 _JSON_MODE_OVERRIDE: ContextVar[bool | None] = ContextVar(
     "ask_json_mode_override", default=None
 )
-_GOV_CACHE: dict[str, _GovResult] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -202,21 +217,8 @@ def _validate_signature_for_artifact(
     )
 
 
-def _load_compiled_governance(
-    workspace_root: Path,
-) -> _GovResult:
-    key = str(workspace_root.resolve())
-    cached = _GOV_CACHE.get(key)
-    if cached is not None:
-        return cached
-    result = _load_compiled_governance_impl(
-        workspace_root,
-        compiled_active_dir_fn=compiled_active_dir,
-        logger=logger,
-        load_via_runtime_fn=_load_governance_via_runtime,
-    )
-    _GOV_CACHE[key] = result
-    return result
+def _load_compiled_governance(workspace_root: Path) -> _GovResult:
+    return _load_compiled_governance_from_ctx(workspace_root)
 
 
 def _fingerprint_file(path: Path) -> str:
@@ -239,48 +241,11 @@ def _get_cached_ahp() -> dict[str, Any] | None:
 
 def _get_profile_state() -> tuple[str, str]:
     """Return (profile, state) best-effort; never raises."""
-    workspace_root = _resolve_workspace_root()
-    profile = ""
-    profile_path = profile_active_path(workspace_root)
-    if profile_path.exists():
-        try:
-            import configparser
-
-            parser = configparser.ConfigParser()
-            parser.read(profile_path)
-            profile = parser.get("sdd", "type", fallback="").strip()
-        except Exception:
-            profile = ""
-    cached_ahp = _get_cached_ahp()
-    if cached_ahp is not None:
-        return profile or "default", str(cached_ahp.get("state", "UNKNOWN"))
-    try:
-        from sdd_core.governance.handshake import AgentHandshakeProtocol
-
-        ahp = AgentHandshakeProtocol(project_root=workspace_root)
-        state, _ = ahp.validate(output_mode="silent")
-        return profile or "default", state
-    except Exception:
-        return profile or "default", "UNKNOWN"
+    return _get_profile_state_impl(_resolve_workspace_root())
 
 
 def _write_runtime_cache(workspace_root: Path, last_ask: dict[str, Any]) -> None:
-    """Update last_ask block in governance-state.json."""
-    try:
-        state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
-        data: dict[str, Any] = {}
-        if state_path.exists():
-            try:
-                data = json.loads(state_path.read_text(encoding="utf-8"))
-            except Exception:
-                data = {}
-        data["last_ask"] = last_ask
-        state_path.parent.mkdir(parents=True, exist_ok=True)
-        state_path.write_text(
-            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
-        )
-    except Exception as exc:
-        logger.debug("Failed to update runtime cache: %s", exc)
+    _write_runtime_cache_impl(workspace_root, last_ask)
 
 
 def _runtime_drift_check(workspace_root: Path, loaded_fingerprint: str) -> bool:
@@ -316,62 +281,22 @@ def _resolve_ask_degraded_reason(
 
 
 def _check_fingerprint_drift(workspace_root: Path, loaded_fingerprint: str) -> bool:
-    """Return True if the loaded governance fingerprint differs from the cached state.
-
-    Compares the first 8 chars of the fingerprint used to load governance
-    against the first 8 chars of ``spec_fingerprint`` in governance-state.json.
-    Returns False (no drift) when the state file is absent or has no fingerprint.
-    """
-    if not loaded_fingerprint:
-        return False
-    try:
-        state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
-        if not state_path.exists():
-            return False
-        data = json.loads(state_path.read_text(encoding="utf-8"))
-        cached_fp = str(data.get("spec_fingerprint", "")).strip()
-        if not cached_fp:
-            return False
-        return loaded_fingerprint[:8] != cached_fp[:8]
-    except Exception:
-        return False
+    return _check_fingerprint_drift_impl(workspace_root, loaded_fingerprint)
 
 
 def _render_context_output(
-    query: str,
-    context_source: str,
     fingerprint: str,
     mandates_count: int,
     *,
     degraded: bool,
     degrade_reason: str,
-    trust_source: str,
 ) -> str:
-    """Build plain-text governed context block for the query."""
-    if degraded:
-        status_line = (
-            "\u26a0 Governance loaded in DEGRADED mode (untrusted context). "
-            "Run `sdd governance validate` to investigate."
-        )
-    else:
-        status_line = (
-            "Governance is active. Respond in compliance with loaded mandates."
-        )
-    lines = [
-        "=== SDD Governance Context ===",
-        f"query_hash      : {_hash_query(query)}",
-        f"context_source  : {context_source}",
-        f"fingerprint     : {fingerprint or 'n/a'}",
-        f"mandates_loaded : {mandates_count}",
-        f"trust_source    : {trust_source}",
-        f"degraded        : {'yes' if degraded else 'no'}",
-        "",
-        status_line,
-        "Run `sdd governance validate` to confirm workspace state.",
-    ]
-    if degrade_reason:
-        lines.append(f"degraded_reason : {degrade_reason}")
-    return "\n".join(lines)
+    return _render_context_header(
+        fingerprint,
+        mandates_count,
+        degraded=degraded,
+        degrade_reason=degrade_reason,
+    )
 
 
 def _governance_footer_for_state(
@@ -380,14 +305,8 @@ def _governance_footer_for_state(
     profile: str,
     drift_detected: bool,
 ) -> str:
-    from sdd_runtime import format_governance_footer
-
-    governance = "ok" if state in {"HEALTHY", "PARTIAL"} else "warn"
-    drift = "detected" if drift_detected else "none"
-    return format_governance_footer(
-        drift=drift,
-        governance=governance,
-        profile=profile or "default",
+    return _render_governance_footer_impl(
+        state=state, profile=profile, drift_detected=drift_detected
     )
 
 
@@ -403,123 +322,16 @@ def _json_mode() -> bool:
     return False
 
 
-def _safe_parse_iso(value: str) -> datetime | None:
-    try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except Exception:
-        return None
-
-
-def _update_learning_signals(
-    row: dict[str, Any], signals: dict[str, int], *, from_failures: bool
-) -> None:
-    signals["observed_events"] += 1
-    if from_failures:
-        root_cause = str(row.get("root_cause", ""))
-        if root_cause == "diagnosis.inconclusive":
-            signals["diagnosis_inconclusive"] += 1
-        elif root_cause == "evidence.insufficient":
-            signals["evidence_insufficient"] += 1
-        elif root_cause == "scope.violation":
-            signals["scope_violation"] += 1
-        return
-    status = str(row.get("status", "")).lower()
-    if status in {"warn", "fail", "error"}:
-        signals["drift_recent_failures"] += 1
-
-
-def _load_tail_row(raw: bytes) -> dict[str, Any] | None:
-    if not raw.strip():
-        return None
-    try:
-        parsed = json.loads(raw.decode("utf-8"))
-    except Exception:
-        return None
-    return parsed if isinstance(parsed, dict) else None
-
-
-def _row_is_before_cutoff(row: dict[str, Any], cutoff_ts: float) -> bool | None:
-    ts = _safe_parse_iso(str(row.get("timestamp", "")))
-    if ts is None:
-        return None
-    return ts.timestamp() < cutoff_ts
-
-
-def _process_tail_row(
-    raw: bytes, signals: dict[str, int], cutoff_ts: float, *, from_failures: bool
-) -> bool:
-    row = _load_tail_row(raw)
-    if row is None:
-        return False
-    before_cutoff = _row_is_before_cutoff(row, cutoff_ts)
-    if before_cutoff is None:
-        return False
-    if before_cutoff:
-        return True
-    _update_learning_signals(row, signals, from_failures=from_failures)
-    return False
-
-
-def _process_tail_lines(
-    rows: list[bytes], signals: dict[str, int], cutoff_ts: float, *, from_failures: bool
-) -> bool:
-    for raw in reversed(rows):
-        if _process_tail_row(raw, signals, cutoff_ts, from_failures=from_failures):
-            return True
-    return False
-
-
 def _count_signals_from_tail(
     path: Path, signals: dict[str, int], cutoff_ts: float, *, from_failures: bool
 ) -> None:
-    if not path.exists():
-        return
-    with path.open("rb") as handle:
-        handle.seek(0, 2)
-        position = handle.tell()
-        chunk_size = 4096
-        buffer = b""
-        stop = False
-        while position > 0 and not stop:
-            read_size = min(chunk_size, position)
-            position -= read_size
-            handle.seek(position)
-            buffer = handle.read(read_size) + buffer
-            lines = buffer.split(b"\n")
-            buffer = lines[0]
-            stop = _process_tail_lines(
-                lines[1:], signals, cutoff_ts, from_failures=from_failures
-            )
-        if not stop:
-            _process_tail_row(buffer, signals, cutoff_ts, from_failures=from_failures)
+    _count_signals_from_tail_impl(path, signals, cutoff_ts, from_failures=from_failures)
 
 
 def _collect_learning_signals(
     workspace_root: Path, *, window_days: int = _LEARNING_WINDOW_DAYS
 ) -> dict[str, int]:
-    cutoff = time.time() - (window_days * 86400)
-    signals: dict[str, int] = {
-        "diagnosis_inconclusive": 0,
-        "evidence_insufficient": 0,
-        "scope_violation": 0,
-        "drift_recent_failures": 0,
-        "observed_events": 0,
-        "window_days": window_days,
-    }
-    runtime_dir = workspace_root / ".sdd" / "runtime"
-    _count_signals_from_tail(
-        runtime_dir / "failure-ledger.jsonl",
-        signals,
-        cutoff,
-        from_failures=True,
-    )
-    _count_signals_from_tail(
-        runtime_dir / "compliance-events.jsonl",
-        signals,
-        cutoff,
-        from_failures=False,
-    )
-    return signals
+    return _collect_learning_signals_impl(workspace_root, window_days=window_days)
 
 
 # ---------------------------------------------------------------------------
@@ -1043,13 +855,10 @@ def _sync_ask_runtime(
     end_ts = _now()
     duration_ms = int((time.monotonic() - session.start_mono) * 1000)
     output_text = _render_context_output(
-        inputs.query,
-        context_source,
         fingerprint,
         mandates_count,
         degraded=degraded,
         degrade_reason=degrade_reason,
-        trust_source=trust_source,
     )
     tokens_in, tokens_out, token_source = _resolve_runtime_token_metrics(
         inputs, output_text
@@ -1175,7 +984,12 @@ def _emit_ask_json_response(
     drift_detected = ask_snapshot["drift_detected"]
     learning_signals = ask_snapshot["learning_signals"]
     dossier_lines = _build_json_dossier_lines(inputs, session, mandates_count)
-    execution_gate = "allowed" if session.organize_used else "blocked"
+    # light_input means the query is too small to need indexing — allow it through.
+    # Block only when organize was expected but did not run (non-light reason).
+    _gate_blocked = (
+        not session.organize_used and session.organize_reason != "light_input"
+    )
+    execution_gate = "blocked" if _gate_blocked else "allowed"
     gate_reason = (
         None
         if execution_gate == "allowed"
@@ -1243,7 +1057,10 @@ def _emit_ask_text_response(
     mandates_count = ask_snapshot["mandates_count"]
     typer.echo(output_text)
     pt_intake_mode = "multi" if session.organize_used else "none"
-    pt_gate = "allowed" if session.organize_used else "blocked"
+    _gate_blocked = (
+        not session.organize_used and session.organize_reason != "light_input"
+    )
+    pt_gate = "blocked" if _gate_blocked else "allowed"
     pt_gate_suffix = (
         ""
         if pt_gate == "allowed"

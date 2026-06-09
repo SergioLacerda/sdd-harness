@@ -8,7 +8,7 @@ from sdd_wizard.orchestration.phase6_output_validator import OutputValidator
 
 
 def _make_validator(
-    tmp_path: Path, categories: list[str] | None = None
+    tmp_path: Path, categories: list[str] | None = None, config: dict | None = None
 ) -> OutputValidator:
     sdd = tmp_path / ".sdd"
     return OutputValidator(
@@ -19,6 +19,7 @@ def _make_validator(
         mandates_dir=sdd / "source" / "mandates",
         guidelines_dir=sdd / "source" / "guidelines",
         guidelines_by_category={c: [] for c in (categories or [])},
+        config=config or {},
         verbose=False,
     )
 
@@ -68,6 +69,19 @@ class TestOutputValidatorAllPresent:
         is_valid, _ = validator.validate()
         assert is_valid is True
 
+    def test_optional_hooks_required_when_enabled(self, tmp_path: Path) -> None:
+        _create_all_required(tmp_path)
+        (tmp_path / ".github" / "setup-precommit-hook.sh").write_text(
+            "#!/bin/sh\n", encoding="utf-8"
+        )
+        (tmp_path / ".pre-commit-config.yaml").write_text(
+            "repos: []\n", encoding="utf-8"
+        )
+        validator = _make_validator(tmp_path, config={"include_optional_hooks": True})
+        is_valid, result = validator.validate()
+        assert is_valid is True
+        assert result["checks"]["optional: setup-precommit-hook.sh"] == "OK"
+
 
 class TestOutputValidatorMissingFiles:
     def test_invalid_when_dirs_missing(self, tmp_path: Path) -> None:
@@ -99,6 +113,13 @@ class TestOutputValidatorMissingFiles:
         is_valid, result = validator.validate()
         assert is_valid is False
         assert any("security" in e for e in result["errors"])
+
+    def test_optional_hooks_missing_invalid_when_enabled(self, tmp_path: Path) -> None:
+        _create_all_required(tmp_path)
+        validator = _make_validator(tmp_path, config={"include_optional_hooks": True})
+        is_valid, result = validator.validate()
+        assert is_valid is False
+        assert any("Missing optional-enabled file" in e for e in result["errors"])
 
 
 class TestOutputValidatorVerbose:

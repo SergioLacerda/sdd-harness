@@ -14,17 +14,20 @@ class TestRunWizard:
     def test_success_returns_normally(self, tmp_path: Path) -> None:
         """Completes without exception when wizard succeeds."""
         with patch(
-            "sdd_wizard.src.interactive_mode.run_interactive_wizard", return_value=True
+            "sdd_wizard.main.run_wizard_contract",
+            return_value=type("Result", (), {"success": True})(),
         ) as mock:
             run_wizard(repo_root=tmp_path, output_dir=tmp_path / "out")
-        mock.assert_called_once_with(tmp_path, output_dir=tmp_path / "out")
+        invocation = mock.call_args.args[0]
+        assert invocation.project_root == tmp_path
+        assert invocation.output_path == tmp_path / "out"
 
     def test_failure_exits_with_code_1(self, tmp_path: Path) -> None:
         """Calls sys.exit(1) when wizard returns False."""
         with (
             patch(
-                "sdd_wizard.src.interactive_mode.run_interactive_wizard",
-                return_value=False,
+                "sdd_wizard.main.run_wizard_contract",
+                return_value=type("Result", (), {"success": False})(),
             ),
             pytest.raises(SystemExit) as exc_info,
         ):
@@ -38,14 +41,11 @@ class TestRunWizard:
         monkeypatch.chdir(tmp_path)
         recorded: list = []
 
-        def _capture(root: Path, output_dir=None) -> bool:
-            recorded.append((root, output_dir))
-            return True
+        def _capture(invocation) -> object:
+            recorded.append((invocation.project_root, invocation.output_path))
+            return type("Result", (), {"success": True})()
 
-        with patch(
-            "sdd_wizard.src.interactive_mode.run_interactive_wizard",
-            side_effect=_capture,
-        ):
+        with patch("sdd_wizard.main.run_wizard_contract", side_effect=_capture):
             run_wizard()
 
         assert recorded[0][0] == tmp_path
@@ -56,14 +56,11 @@ class TestRunWizard:
         out = tmp_path / "custom_output"
         recorded: list = []
 
-        def _capture(root: Path, output_dir=None) -> bool:
-            recorded.append(output_dir)
-            return True
+        def _capture(invocation) -> object:
+            recorded.append(invocation.output_path)
+            return type("Result", (), {"success": True})()
 
-        with patch(
-            "sdd_wizard.src.interactive_mode.run_interactive_wizard",
-            side_effect=_capture,
-        ):
+        with patch("sdd_wizard.main.run_wizard_contract", side_effect=_capture):
             run_wizard(repo_root=tmp_path, output_dir=out)
 
         assert recorded[0] == out
@@ -72,14 +69,11 @@ class TestRunWizard:
         """output_dir=None is the default and is forwarded correctly."""
         recorded: list = []
 
-        def _capture(root: Path, output_dir=None) -> bool:
-            recorded.append(output_dir)
-            return True
+        def _capture(invocation) -> object:
+            recorded.append(invocation.output_path)
+            return type("Result", (), {"success": True})()
 
-        with patch(
-            "sdd_wizard.src.interactive_mode.run_interactive_wizard",
-            side_effect=_capture,
-        ):
+        with patch("sdd_wizard.main.run_wizard_contract", side_effect=_capture):
             run_wizard(repo_root=tmp_path)
 
         assert recorded[0] is None

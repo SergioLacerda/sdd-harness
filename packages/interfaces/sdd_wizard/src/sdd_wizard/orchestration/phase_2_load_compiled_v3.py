@@ -25,6 +25,38 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
+def _calculate_fingerprint(data: dict[str, Any]) -> str:
+    """Calculate SHA256 fingerprint of data dict, excluding fingerprint fields."""
+    data_copy = {
+        k: v
+        for k, v in data.items()
+        if k not in ["fingerprint", "fingerprintpackages_salt"]
+    }
+    return hashlib.sha256(
+        json.dumps(data_copy, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+
+
+def _calculate_client_fp(client_data: dict[str, Any]) -> str:
+    """Calculate client fingerprint with salt included (PipelineBuilder convention)."""
+    data = {k: v for k, v in client_data.items() if k != "fingerprint"}
+    return hashlib.sha256(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def _load_governance_metadata(
+    compiled_dir: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Load audit metadata JSON files; raises on failure."""
+    metadata_core = compiled_dir / "audit" / "metadata-core.json"
+    if not metadata_core.exists():
+        metadata_core = compiled_dir / "metadata-core.json"
+    with open(metadata_core, encoding="utf-8") as f:
+        meta_core: dict[str, Any] = json.load(f)
+    with open(compiled_dir / "metadata-client.json", encoding="utf-8") as f:
+        meta_client: dict[str, Any] = json.load(f)
+    return meta_core, meta_client
+
+
 class GovernanceLoader:
     """Load and validate governance files from compiled/"""
 
@@ -74,17 +106,10 @@ class GovernanceLoader:
             self.log(f"❌ JSON parse error in governance-client.json: {e}", "ERROR")
             return False
 
-        # Load metadata files
         try:
-            metadata_core = self.compiled_dir / "audit" / "metadata-core.json"
-            if not metadata_core.exists():
-                metadata_core = self.compiled_dir / "metadata-core.json"
-            with open(metadata_core, encoding="utf-8") as f:
-                self.metadatapackages = json.load(f)
-            with open(
-                self.compiled_dir / "metadata-client.json", encoding="utf-8"
-            ) as f:
-                self.metadata_client = json.load(f)
+            self.metadatapackages, self.metadata_client = _load_governance_metadata(
+                self.compiled_dir
+            )
         except Exception as e:
             self.log(f"⚠️  Could not load metadata files: {e}", "WARN")
 
@@ -109,7 +134,7 @@ class GovernanceLoader:
 
         # Verify core fingerprint
         core_fp_stored = str(self.core_data.get("fingerprint") or "")
-        core_fp_calculated = self._calculate_fingerprint(self.core_data)
+        core_fp_calculated = _calculate_fingerprint(self.core_data)
 
         if core_fp_stored == core_fp_calculated:
             self.log("✓ Core fingerprint valid")
@@ -124,22 +149,8 @@ class GovernanceLoader:
         # Verify client fingerprint (SALT strategy)
         client_fp_stored = str(self.client_data.get("fingerprint") or "")
         client_salt = str(self.client_data.get("fingerprintpackages_salt") or "")
-
-        # Remove fingerprints from data for validation
         # NOTE: Client FP is calculated WITH the salt included (from PipelineBuilder)
-        client_data_for_validation = {
-            k: v
-            for k, v in self.client_data.items()
-            if k
-            not in ["fingerprint"]  # Include fingerprintpackages_salt in calculation
-        }
-
-        # Calculate expected client fingerprint (same way as PipelineBuilder)
-        # The salt is included in the data being hashed
-        hash_input = json.dumps(client_data_for_validation, sort_keys=True).encode(
-            "utf-8"
-        )
-        client_fp_calculated = hashlib.sha256(hash_input).hexdigest()
+        client_fp_calculated = _calculate_client_fp(self.client_data)
 
         if client_fp_stored == client_fp_calculated:
             self.log("✓ Client fingerprint valid")
@@ -163,17 +174,6 @@ class GovernanceLoader:
             return False, report
 
         return True, report
-
-    def _calculate_fingerprint(self, data: dict[str, Any]) -> str:
-        """Calculate SHA256 fingerprint of data"""
-        # Remove fingerprint fields for calculation
-        data_copy = {
-            k: v
-            for k, v in data.items()
-            if k not in ["fingerprint", "fingerprintpackages_salt"]
-        }
-        hash_input = json.dumps(data_copy, sort_keys=True).encode("utf-8")
-        return hashlib.sha256(hash_input).hexdigest()
 
     def extract_mandates(self) -> dict[str, dict[str, Any]]:
         """Extract mandates from sdd_core"""

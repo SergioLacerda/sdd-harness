@@ -33,4 +33,5 @@ def test_generate_metadata_includes_language_policy(tmp_path: Path) -> None:
     assert metadata["guidelines_count"] == 2
     assert metadata["language_policy"]["mandate_anchor"] == "M011"
     assert "workspace_local_docs" in metadata["language_policy"]["contextual_surfaces"]
+    assert "analysis_docs" in metadata["language_policy"]["contextual_surfaces"]
     assert metadata["language_policy"]["workspace_local_docs_paths"] == [".analysis/"]

@@ -109,7 +109,7 @@ def test_border_normalize_covers_all_snapshot_chars() -> None:
 def test_governance_compile_snapshot(monkeypatch) -> None:
     monkeypatch.setattr(
         "sdd_cli.commands.governance._run_compilation",
-        lambda profile=None: {
+        lambda profile=None, *, console: {
             "full_pipeline_success": True,
             "phase_1": {
                 "core_item_count": 3,
@@ -123,13 +123,19 @@ def test_governance_compile_snapshot(monkeypatch) -> None:
         },
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._update_profile_hash", lambda _: None
+        "sdd_cli.commands.governance._update_profile_hash", lambda _, *, console: None
     )
     monkeypatch.setattr(
         "sdd_cli.commands.governance._check_artifact_consistency",
         lambda _: (True, ""),
     )
-    monkeypatch.setattr("sdd_cli.commands.governance._regenerate_seeds", lambda: None)
+    monkeypatch.setattr(
+        "sdd_cli.commands.governance._emit_compile_telemetry",
+        lambda **_: None,
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands.governance._regenerate_seeds", lambda *, console: None
+    )
     result = runner.invoke(app, ["governance", "compile"])
     assert result.exit_code == 0, result.output
     _assert_snapshot("governance_compile.txt", result.output)

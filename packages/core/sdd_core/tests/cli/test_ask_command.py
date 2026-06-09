@@ -103,7 +103,7 @@ class TestLoadCompiledGovernance:
         )
         # Mock out runtime path so JSON fallback inside .sdd/compiled is exercised
         with patch(
-            "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+            "sdd_cli.services.ask_context._load_governance_via_runtime",
             return_value=None,
         ):
             source, fp, count, *_rest = _load_compiled_governance(tmp_path)
@@ -126,7 +126,7 @@ class TestLoadCompiledGovernance:
         )
 
         with patch(
-            "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+            "sdd_cli.services.ask_context._load_governance_via_runtime",
             return_value=None,
         ):
             source, fp, count, *_rest = _load_compiled_governance(tmp_path)
@@ -155,8 +155,9 @@ class TestAskCommand:
             result = runner.invoke(app, ["what are the mandates?"])
 
         assert result.exit_code == 0
-        assert "context_source" in result.output
-        assert "mandates_loaded" in result.output
+        # M020 compact format: verbose labels replaced by key=value compact form
+        assert "governance=" in result.output
+        assert "mandates=" in result.output
 
     def test_ask_partial_state_shows_soft_directive(self, tmp_path: Path) -> None:
         with (
@@ -189,7 +190,7 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log_path)}),
@@ -222,7 +223,7 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
         ):
@@ -278,7 +279,7 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
         ):
@@ -348,7 +349,7 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
@@ -408,7 +409,7 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
         ):
@@ -444,7 +445,7 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch(
@@ -468,7 +469,7 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch(
@@ -536,7 +537,7 @@ class TestAskFullCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
@@ -627,7 +628,7 @@ class TestAskFullCommand:
                 return_value=mock_ahp,
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
@@ -729,7 +730,7 @@ class TestCheckFingerprintDrift:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),

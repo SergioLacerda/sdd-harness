@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SDD Selector</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <h1>SDD Selector</h1>
+      <p>Select governed items and export a JSON artifact.</p>
+    </header>
+    <section class="controls">
+      <input id="search" type="search" placeholder="Search items">
+      <div id="filters" class="filters"></div>
+    </section>
+    <section id="warnings" class="warnings hidden"></section>
+    <section id="status" class="status hidden"></section>
+    <section id="items" class="grid"></section>
+    <footer class="actions">
+      <span id="summary">0 selected</span>
+      <button id="export" type="button">Export JSON</button>
+      <button id="import" type="button">Import JSON</button>
+      <button id="clear" type="button">Clear</button>
+      <input id="import-file" type="file" accept="application/json" class="hidden">
+    </footer>
+  </main>
+  <script src="selector.js"></script>
+</body>
+</html>

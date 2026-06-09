@@ -6,7 +6,9 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from sdd_cli.commands.governance import _compute_compliance_score
+from sdd_cli.services.governance_compile_handlers import (
+    compute_compliance_score as _compute_compliance_score,
+)
 from sdd_core.utils.text_io import read_text_utf8
 
 # ---------------------------------------------------------------------------
@@ -130,10 +132,6 @@ def test_event_emitted_after_compile(tmp_path: Path) -> None:
             return_value={"phase_1": phase1, "phase_2": phase2},
         ),
         patch(
-            "sdd_cli.commands.governance._resolve_generate_path",
-            return_value=ws_root / ".sdd" / "compiled",
-        ),
-        patch(
             "sdd_cli.commands.governance._check_artifact_consistency",
             return_value=(True, ""),
         ),
@@ -153,11 +151,6 @@ def test_event_emitted_after_compile(tmp_path: Path) -> None:
             ),
         ),
         patch("sdd_cli.commands.governance.render_governance_compile_table"),
-        patch(
-            "sdd_cli.commands.governance.find_workspace_root",
-            return_value=ws_root,
-            create=True,
-        ),
         patch("sdd_core.utils.environment.find_workspace_root", return_value=ws_root),
     ):
         from click.testing import CliRunner
@@ -199,10 +192,6 @@ def test_emit_failure_does_not_block_compile(tmp_path: Path, monkeypatch) -> Non
         patch(
             "sdd_cli.commands.governance._run_compilation",
             return_value={"phase_1": phase1, "phase_2": phase2},
-        ),
-        patch(
-            "sdd_cli.commands.governance._resolve_generate_path",
-            return_value=ws_root / ".sdd" / "compiled",
         ),
         patch(
             "sdd_cli.commands.governance._check_artifact_consistency",

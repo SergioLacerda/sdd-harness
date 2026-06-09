@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
-import contextlib
 import json
 import os
 from collections import Counter
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import click
 import typer
 
+from sdd_cli.services.telemetry_handler import (
+    _event_ts,  # noqa: F401  backward-compat re-export for unit tests
+    _parse_ts,  # noqa: F401  backward-compat re-export for unit tests
+    _read_events,
+    apply_time_filter,
+    filter_events,
+)
 from sdd_cli.shared.contracts import (
     build_error_result,
     build_ok_result,
@@ -58,36 +63,6 @@ def _resolve_events_path(command: str) -> Path:
         raise typer.Exit(1) from exc
 
 
-def _read_events(path: Path) -> list[dict[str, Any]]:
-    if not path.exists():
-        return []
-    events: list[dict[str, Any]] = []
-    with path.open(encoding="utf-8") as fh:
-        for line in fh:
-            stripped = line.strip()
-            if stripped:
-                with contextlib.suppress(json.JSONDecodeError):
-                    events.append(json.loads(stripped))
-    return events
-
-
-def _event_ts(event: dict[str, Any]) -> str:
-    for key in ("end_ts", "start_ts", "ts", "timestamp"):
-        value = str(event.get(key, "")).strip()
-        if value:
-            return value
-    return ""
-
-
-def _parse_ts(ts: str) -> datetime | None:
-    if not ts:
-        return None
-    try:
-        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-
-
 def _ctx_json() -> bool:
     return is_json_mode(click.get_current_context(silent=True))
 
@@ -107,7 +82,7 @@ def _print_status() -> None:
     if not events:
         hint = None if path.exists() else "run `sdd telemetry init` to create the sink"
         if _ctx_json():
-            data = {
+            data: dict[str, Any] = {
                 "events_file": str(path),
                 "total_events": 0,
                 "errors": 0,
@@ -196,13 +171,7 @@ def dump(
             typer.echo(f"Invalid --format value: {fmt!r}", err=True)
         raise typer.Exit(1)
     events = _read_events(path)
-
-    if event_type:
-        events = [
-            e for e in events if str(e.get("event", "")).lower() == event_type.lower()
-        ]
-    if trace_id:
-        events = [e for e in events if str(e.get("trace_id", "")) == trace_id]
+    events = filter_events(events, event_type=event_type, trace_id=trace_id)
 
     selected = events[-limit:]
     if _ctx_json():
@@ -227,7 +196,7 @@ def dump(
 
 
 @app.command()
-def query(  # noqa: C901
+def query(
     event_type: str | None = typer.Option(
         None, "--event-type", "-t", help="Filter by event_type (case-insensitive)."
     ),
@@ -258,72 +227,46 @@ def query(  # noqa: C901
     """Query telemetry events with optional filters (all filters are AND)."""
     path = _resolve_events_path("telemetry query")
     events = _read_events(path)
+    events = filter_events(
+        events,
+        event_type=event_type,
+        status_filter=status_filter,
+        level=level,
+        trace_id=trace_id,
+        work_item=work_item,
+    )
 
-    if event_type:
-        events = [
-            e for e in events if str(e.get("event", "")).lower() == event_type.lower()
-        ]
-    if status_filter:
-        events = [
-            e
-            for e in events
-            if str(e.get("status", "")).lower() == status_filter.lower()
-        ]
-    if level:
-        events = [e for e in events if str(e.get("level", "")).upper() == level.upper()]
-    if trace_id:
-        events = [e for e in events if str(e.get("trace_id", "")) == trace_id]
+    events, since_error, until_error = apply_time_filter(events, since, until)
 
-    if since:
-        since_dt = _parse_ts(since)
-        if since_dt is None:
-            if _ctx_json():
-                data = {"since": since, "exit_code": 1}
-                payload = build_error_result(
+    if since_error is not None:
+        if _ctx_json():
+            emit_json(
+                build_error_result(
                     "telemetry query",
                     code="invalid_since",
-                    message=f"Invalid --since value: {since!r}",
-                    data=data,
-                )
-                emit_json(payload, err=True)
-                raise typer.Exit(1)
-            typer.echo(f"Invalid --since value: {since!r}", err=True)
+                    message=f"Invalid --since value: {since_error!r}",
+                    data={"since": since_error, "exit_code": 1},
+                ),
+                err=True,
+            )
             raise typer.Exit(1)
-        filtered_since: list[dict[str, Any]] = []
-        for e in events:
-            event_dt = _parse_ts(_event_ts(e))
-            if event_dt is not None and event_dt >= since_dt:
-                filtered_since.append(e)
-        events = filtered_since
+        typer.echo(f"Invalid --since value: {since_error!r}", err=True)
+        raise typer.Exit(1)
 
-    if until:
-        until_dt = _parse_ts(until)
-        if until_dt is None:
-            if _ctx_json():
-                data = {"until": until, "exit_code": 1}
-                payload = build_error_result(
+    if until_error is not None:
+        if _ctx_json():
+            emit_json(
+                build_error_result(
                     "telemetry query",
                     code="invalid_until",
-                    message=f"Invalid --until value: {until!r}",
-                    data=data,
-                )
-                emit_json(payload, err=True)
-                raise typer.Exit(1)
-            typer.echo(f"Invalid --until value: {until!r}", err=True)
+                    message=f"Invalid --until value: {until_error!r}",
+                    data={"until": until_error, "exit_code": 1},
+                ),
+                err=True,
+            )
             raise typer.Exit(1)
-        filtered_until: list[dict[str, Any]] = []
-        for e in events:
-            event_dt = _parse_ts(_event_ts(e))
-            if event_dt is not None and event_dt <= until_dt:
-                filtered_until.append(e)
-        events = filtered_until
-
-    if work_item:
-        events = [
-            e
-            for e in events
-            if str(e.get("work_item_id", "")).lower() == work_item.lower()
-        ]
+        typer.echo(f"Invalid --until value: {until_error!r}", err=True)
+        raise typer.Exit(1)
 
     selected = events[-limit:]
     if _ctx_json():
@@ -371,7 +314,6 @@ def init() -> None:
         typer.echo(f"Created {path}")
         return
 
-    # File exists — validate each line is valid JSON.
     invalid_line: int | None = None
     with path.open(encoding="utf-8") as fh:
         for lineno, raw in enumerate(fh, start=1):

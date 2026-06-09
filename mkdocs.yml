@@ -56,6 +56,7 @@ nav:
     - Security Policy: spec/reference/SECURITY.md
   - Guides:
     - Client Onboarding: guides/CLIENT_ONBOARDING.md
+    - Frontend Selector: guides/FRONTEND_SELECTOR.md
     - Technical Guide: guides/TECHNICAL_GUIDE.md
     - Runtime API Integration: guides/RUNTIME_API_INTEGRATION.md
     - Agent Entry Point: guides/AGENT_GUIDE.md

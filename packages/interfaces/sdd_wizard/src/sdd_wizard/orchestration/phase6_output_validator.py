@@ -21,6 +21,7 @@ class OutputValidator:
         mandates_dir: Path,
         guidelines_dir: Path,
         guidelines_by_category: dict[str, list[dict[str, Any]]],
+        config: dict[str, Any] | None = None,
         verbose: bool = False,
         emitter: Callable[[str], None] | None = None,
     ) -> None:
@@ -31,6 +32,7 @@ class OutputValidator:
         self.mandates_dir = mandates_dir
         self.guidelines_dir = guidelines_dir
         self.guidelines_by_category = guidelines_by_category
+        self.config = config or {}
         self.verbose = verbose
         self._emit = emitter or print
 
@@ -47,6 +49,29 @@ class OutputValidator:
             self._path_exists(cursor_rules_dir / filename)
             for filename in ("spec.mdc", "sdd-governance.mdc")
         )
+
+    def _optional_hooks_enabled(self) -> bool:
+        """Return whether optional hook artifacts are required."""
+        return bool(self.config.get("include_optional_hooks", False))
+
+    def _validate_optional_hook_files(self, result: ValidationDetail) -> None:
+        """Validate optional hook artifacts only when explicitly enabled."""
+        if not self._optional_hooks_enabled():
+            return
+        optional_files = [
+            self.output_base / ".pre-commit-config.yaml",
+            self.output_base / ".github" / "setup-precommit-hook.sh",
+        ]
+        for optional_file in optional_files:
+            exists = self._path_exists(optional_file)
+            result["checks"][f"optional: {optional_file.name}"] = (
+                "OK" if exists else "MISSING"
+            )
+            if not exists:
+                result["valid"] = False
+                result["errors"].append(
+                    f"Missing optional-enabled file: {optional_file}"
+                )
 
     def validate(self) -> tuple[bool, ValidationDetail]:
         """Return (is_valid, detail_dict) after checking all required paths."""
@@ -106,6 +131,8 @@ class OutputValidator:
                     f"{self.output_base / '.cursor' / 'rules' / 'spec.mdc'} or "
                     f"{self.output_base / '.cursor' / 'rules' / 'sdd-governance.mdc'}"
                 )
+
+            self._validate_optional_hook_files(result)
 
             for category in self.guidelines_by_category:
                 guideline_file = self.guidelines_dir / f"{category}.md"

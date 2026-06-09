@@ -1,0 +1,192 @@
+"""Workspace-facing helpers for the interactive wizard application layer."""
+
+from __future__ import annotations
+
+import shutil
+from pathlib import Path
+from typing import Any
+
+from sdd_wizard.orchestration.wizard.selector_bridge import load_selector_selection
+
+
+def load_selector_selection_ids(
+    selector_output_path: Path,
+    *,
+    available_ids: set[str] | None = None,
+) -> list[str]:
+    """Load selector IDs when an export artifact is present."""
+    if not selector_output_path.exists():
+        return []
+    return load_selector_selection(selector_output_path, available_ids=available_ids)
+
+
+def build_selector_selection_config(selector_output_path: Path) -> dict[str, Any]:
+    """Return selector metadata when an export artifact exists."""
+    selected_ids = load_selector_selection_ids(selector_output_path)
+    if not selected_ids:
+        return {}
+    return {
+        "selected_ids": selected_ids,
+        "resolved_ids": selected_ids,
+        "source_path": str(selector_output_path),
+    }
+
+
+def emit_selector_phase1_hint(
+    emitter: Any,
+    *,
+    selector_output_path: Path,
+    selector_site_path: Path,
+    selector_selection: dict[str, Any],
+) -> None:
+    """Emit selector discovery guidance without changing phase semantics."""
+    if selector_selection:
+        resolved = selector_selection.get("resolved_ids", [])
+        emitter(
+            f"  🔎 Loaded selector selection: {len(resolved)} item(s) from {selector_output_path}"
+        )
+        return
+    if selector_site_path.exists():
+        emitter(f"  ℹ️  Optional pre-filter available at {selector_site_path}")
+
+
+def build_selector_discovery_config(
+    *,
+    selector_output_path: Path,
+    selector_site_path: Path,
+    selector_selection: dict[str, Any],
+) -> dict[str, Any]:
+    """Persist selector discovery context for auditability."""
+    discovery: dict[str, Any] = {
+        "selection_artifact_path": str(selector_output_path),
+        "selection_loaded": bool(selector_selection),
+    }
+    if selector_site_path.exists():
+        discovery["published_site_path"] = str(selector_site_path)
+    if selector_selection:
+        discovery["selected_count"] = len(selector_selection.get("selected_ids", []))
+        discovery["resolved_count"] = len(selector_selection.get("resolved_ids", []))
+        discovery["source_path"] = selector_selection.get(
+            "source_path", str(selector_output_path)
+        )
+    return discovery
+
+
+def docs_meta_ready(client_build_dir: Path) -> bool:
+    """Return True when legacy docs-meta contains mandate and guideline files."""
+    docs_meta = client_build_dir / "docs-meta"
+    has_mandate = any(
+        (docs_meta / name).exists() for name in ("mandate.spec", "mandate.md")
+    )
+    has_guidelines = any(
+        (docs_meta / name).exists() for name in ("guidelines.dsl", "guidelines.md")
+    )
+    return has_mandate and has_guidelines
+
+
+def source_spec_ready(paths: dict[str, Any], client_build_dir: Path) -> bool:
+    """Return True when unified source_spec contains mandate and guideline files."""
+    source_spec = Path(paths.get("source_spec", client_build_dir / "docs-meta"))
+    has_mandate = any(
+        (source_spec / name).exists() for name in ("mandate.spec", "mandate.md")
+    )
+    has_guidelines = any(
+        (source_spec / name).exists() for name in ("guidelines.dsl", "guidelines.md")
+    )
+    return has_mandate and has_guidelines
+
+
+def ensure_onboarding_scaffold(
+    *,
+    client_build_dir: Path,
+    phase1_choices_dir: Path,
+    phase2_input_dir: Path,
+    baseline_mandate: str,
+    baseline_guidelines: str,
+) -> tuple[bool, str]:
+    """Create the minimal scaffold required for first-run onboarding."""
+    try:
+        client_build_dir.mkdir(parents=True, exist_ok=True)
+        phase1_choices_dir.mkdir(parents=True, exist_ok=True)
+        phase2_input_dir.mkdir(parents=True, exist_ok=True)
+        docs_meta = client_build_dir / "docs-meta"
+        docs_meta.mkdir(parents=True, exist_ok=True)
+        if not any(
+            (docs_meta / name).exists() for name in ("mandate.spec", "mandate.md")
+        ):
+            (docs_meta / "mandate.md").write_text(baseline_mandate, encoding="utf-8")
+        if not any(
+            (docs_meta / name).exists() for name in ("guidelines.dsl", "guidelines.md")
+        ):
+            (docs_meta / "guidelines.dsl").write_text(
+                baseline_guidelines,
+                encoding="utf-8",
+            )
+        return True, ""
+    except OSError as exc:
+        return False, f"Failed to create onboarding scaffold: {exc}"
+
+
+def ensure_docs_meta_ready(
+    *,
+    paths: dict[str, Any],
+    client_build_dir: Path,
+    phase1_choices_dir: Path,
+    phase2_input_dir: Path,
+    baseline_mandate: str,
+    baseline_guidelines: str,
+) -> tuple[bool, str]:
+    """Ensure Phase 1 inputs exist in docs-meta or unified source_spec."""
+    scaffold_ok, scaffold_reason = ensure_onboarding_scaffold(
+        client_build_dir=client_build_dir,
+        phase1_choices_dir=phase1_choices_dir,
+        phase2_input_dir=phase2_input_dir,
+        baseline_mandate=baseline_mandate,
+        baseline_guidelines=baseline_guidelines,
+    )
+    if not scaffold_ok:
+        return False, scaffold_reason
+    if docs_meta_ready(client_build_dir) or source_spec_ready(paths, client_build_dir):
+        return True, ""
+    docs_meta = client_build_dir / "docs-meta"
+    source_spec = Path(paths.get("source_spec", client_build_dir / "docs-meta"))
+    locations = [str(docs_meta)]
+    if source_spec != docs_meta:
+        locations.append(str(source_spec))
+    return (
+        False,
+        f"Phase 1 source artifacts are missing at {', '.join(locations)}. "
+        "Run 'sdd governance compile' to regenerate governance artifacts.",
+    )
+
+
+def cleanup_post_generation_artifacts(
+    *,
+    repo_root: Path,
+    client_build_dir: Path,
+    client_compiled_dir: Path,
+    final_template_dir: Path,
+    wizard_config_path: Path,
+    temp_build_dirs: tuple[str, ...],
+    temp_compiled_dirs: tuple[str, ...],
+) -> list[str]:
+    """Remove wizard temporary artifacts while preserving final-template."""
+    cleaned: list[str] = []
+    candidates: list[Path] = []
+    candidates.extend(client_build_dir / name for name in temp_build_dirs)
+    candidates.append(wizard_config_path)
+    candidates.extend(client_compiled_dir / name for name in temp_compiled_dirs)
+    for path in candidates:
+        if path == final_template_dir or final_template_dir in path.parents:
+            continue
+        if not path.exists():
+            continue
+        try:
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
+            cleaned.append(str(path.relative_to(repo_root)))
+        except OSError:
+            continue
+    return cleaned

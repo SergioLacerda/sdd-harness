@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from sdd_wizard.src.interactive_mode import InteractiveWizard
+from sdd_wizard.application.interactive_wizard import InteractiveWizard
 
 
 def _make_wizard(tmp_path: Path) -> InteractiveWizard:
@@ -16,7 +16,9 @@ def _make_wizard(tmp_path: Path) -> InteractiveWizard:
         "master_compiled": tmp_path / "generated" / "master" / "compiled",
         "packages": tmp_path / "packages",
     }
-    with patch("sdd_wizard.src.interactive_mode.get_sdd_paths", return_value=paths):
+    with patch(
+        "sdd_wizard.application.interactive_wizard.get_sdd_paths", return_value=paths
+    ):
         return InteractiveWizard(repo_root=tmp_path, prompter=lambda _: "1")
 
 
