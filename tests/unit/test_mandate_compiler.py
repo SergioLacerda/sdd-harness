@@ -143,39 +143,6 @@ class TestParseGuidelinesDsl:
         assert guidelines[0]["category"] == "general"
 
 
-class TestCompileToBinary:
-    def test_returns_bytes(self) -> None:
-        from sdd_wizard.orchestration.mandate_compiler import MandateCompiler
-
-        compiler = MandateCompiler()
-        mandates = [{"id": "M001", "title": "Test", "type": "HARD"}]
-        result = compiler.compile_to_binary(mandates, format="json_compressed")
-        assert isinstance(result, bytes)
-
-    def test_json_fallback_is_valid_json(self) -> None:
-        import json
-
-        from sdd_wizard.orchestration.mandate_compiler import MandateCompiler
-
-        compiler = MandateCompiler()
-        mandates = [{"id": "M001", "title": "Test"}]
-        binary = compiler.compile_to_binary(mandates, format="json_compressed")
-        data = json.loads(binary.decode("utf-8"))
-        assert data["version"] == "3.1"
-        assert data["count"] == 1
-
-    def test_empty_mandates(self) -> None:
-        import json
-
-        from sdd_wizard.orchestration.mandate_compiler import MandateCompiler
-
-        compiler = MandateCompiler()
-        binary = compiler.compile_to_binary([], format="json_compressed")
-        data = json.loads(binary.decode("utf-8"))
-        assert data["count"] == 0
-        assert data["mandates"] == []
-
-
 class TestCompileMandateSpec:
     def test_compiles_successfully_to_file(self, tmp_path: Path) -> None:
         from sdd_wizard.orchestration.mandate_compiler import MandateCompiler

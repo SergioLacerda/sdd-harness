@@ -348,25 +348,6 @@ class Phase456Generator:
                 return False
         return True
 
-    def _compile_artifacts(
-        self,
-        mandates: list[dict[str, Any]],
-        guidelines: dict[str, dict[str, Any]],
-        guidelines_by_category: dict[str, list[dict[str, Any]]],
-    ) -> tuple[bool, Any]:
-        """Compile artifacts."""
-        return _compile_artifacts(
-            self.repo_root,
-            self.dir,
-            self.runtime_dir,
-            mandates,
-            guidelines,
-            guidelines_by_category,
-            self.config,
-            self.verbose,
-            self._emit,
-        )
-
     def _generate_seedlings(
         self,
         mandates: list[dict[str, Any]],
@@ -389,21 +370,6 @@ class Phase456Generator:
             return False
         return True
 
-    def _validate_output(
-        self,
-        guidelines_by_category: dict[str, list[dict[str, Any]]],
-        result: Phase456RunResult,
-    ) -> bool:
-        """Validate output (Phase 6)."""
-        return _validate_output(
-            self.output_base,
-            guidelines_by_category,
-            self.config,
-            self.verbose,
-            self._emit,
-            result,
-        )
-
     def run(self) -> Phase456RunResult:
         """Execute Phase 4-6 generation."""
         self._emit("\n🏗️  PHASE 4-6: Generate Project Structure")
@@ -424,8 +390,16 @@ class Phase456Generator:
         ):
             return result
 
-        success, compiler = self._compile_artifacts(
-            mandates, guidelines, guidelines_by_category
+        success, compiler = _compile_artifacts(
+            self.repo_root,
+            self.dir,
+            self.runtime_dir,
+            mandates,
+            guidelines,
+            guidelines_by_category,
+            self.config,
+            self.verbose,
+            self._emit,
         )
         if not success:
             result["errors"].append("Failed to generate metadata")
@@ -446,7 +420,14 @@ class Phase456Generator:
 
         _generate_adapters(self.output_base, self._emit)
 
-        if not self._validate_output(guidelines_by_category, result):
+        if not _validate_output(
+            self.output_base,
+            guidelines_by_category,
+            self.config,
+            self.verbose,
+            self._emit,
+            result,
+        ):
             return result
 
         result["success"] = True

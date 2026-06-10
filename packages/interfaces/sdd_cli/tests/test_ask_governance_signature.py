@@ -77,16 +77,13 @@ def test_validate_signature_result_ok_with_deprecation(tmp_path: Path) -> None:
     result.deprecation_warning = "old key"
     result.trust_source = "signed"
     mock_validate = MagicMock(return_value=result)
-    with (
-        patch.dict(
-            sys.modules,
-            {
-                "sdd_runtime": MagicMock(
-                    signatures=MagicMock(validate_artifact_signature=mock_validate)
-                )
-            },
-        ),
-        patch("sdd_runtime.signatures.validate_artifact_signature", mock_validate),
+    mock_signatures_module = MagicMock(validate_artifact_signature=mock_validate)
+    with patch.dict(
+        sys.modules,
+        {
+            "sdd_runtime": MagicMock(),
+            "sdd_runtime.signatures": mock_signatures_module,
+        },
     ):
         auth, deg, reason, trust = validate_signature_for_artifact(
             f, signature_mode_value="warn"

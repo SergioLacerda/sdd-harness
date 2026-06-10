@@ -1,21 +1,16 @@
 """Test."""
 
-import json
 import sys
 from pathlib import Path
-from typing import Any
 
 import typer
 
 from sdd_cli.services.test_handler import (
     _check_import,
-    _find_artifact,
-    _print_diff,
-    _resolve_golden_path,
     _run_cli,
     _run_pytest,
     _run_script,
-    _save_golden,
+    run_review_golden,
 )
 from sdd_cli.utils.environment import detect_repo_root
 
@@ -221,19 +216,6 @@ def ci_validate(  # noqa: C901
     typer.echo("\nAll checks passed")
 
 
-def _load_golden_ast(golden_path: Path) -> Any:
-    """Load golden AST from file; raise typer.Exit(1) on error."""
-    from sdd_compiler.ast import GovernanceAST
-
-    try:
-        return GovernanceAST.from_dict(
-            json.loads(golden_path.read_text(encoding="utf-8"))
-        )
-    except Exception as exc:
-        typer.echo(f"ERROR: Failed to load golden snapshot: {exc}", err=True)
-        raise typer.Exit(1) from exc
-
-
 @app.command(name="review-golden")
 def review_golden(
     update: bool = typer.Option(
@@ -266,59 +248,10 @@ def review_golden(
 
     Use --update to refresh the golden baseline intentionally.
     """
-    try:
-        from sdd_compiler.ast import GovernanceAST
-    except ImportError:
-        typer.echo(
-            "ERROR: sdd_compiler is not installed. Run 'sdd setup run'.",
-            err=True,
-        )
-        raise typer.Exit(1) from None
-
-    root = detect_repo_root()
-    golden_path = golden or _resolve_golden_path(root)
-    artifact_path = artifact or _find_artifact(root)
-
-    if artifact_path is None:
-        typer.echo(
-            "ERROR: No compiled artifact found. Run 'sdd governance compile' first.",
-            err=True,
-        )
-        typer.echo("  Next: run 'sdd governance compile' to build artifacts", err=True)
-        raise typer.Exit(1)
-
-    try:
-        current_ast = GovernanceAST.from_compiled_json(artifact_path)
-    except Exception as exc:
-        typer.echo(f"ERROR: Failed to load artifact: {exc}", err=True)
-        raise typer.Exit(1) from exc
-
-    if update:
-        _save_golden(golden_path, current_ast)
-        return
-
-    if not golden_path.exists():
-        _save_golden(golden_path, current_ast)
-        typer.echo(f"Golden baseline initialised: {golden_path} (status: new)")
-        return
-
-    golden_ast = _load_golden_ast(golden_path)
-    diff = golden_ast.diff(current_ast)
-
-    typer.echo(
-        f"Comparing artifact ({artifact_path.name}) against golden ({golden_path.name}):"
+    run_review_golden(
+        root=detect_repo_root(),
+        update=update,
+        fail_on_breaking=fail_on_breaking,
+        artifact=artifact,
+        golden=golden,
     )
-    typer.echo(f"  Summary: {diff.summary()}")
-
-    if diff.is_clean:
-        typer.echo("  Status: CLEAN — no changes detected.")
-        return
-
-    _print_diff(diff)
-
-    if diff.has_breaking_changes and fail_on_breaking:
-        typer.echo(
-            "\n  Next: review breaking changes above, then run 'sdd test review-golden --update' to accept",
-            err=True,
-        )
-        raise typer.Exit(1)

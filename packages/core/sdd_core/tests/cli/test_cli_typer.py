@@ -174,14 +174,14 @@ class TestLoadCommand:
     def test_load_with_valid_path(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test load with valid wizard path."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: True
+            "sdd_cli.utils.loader.validate_governance_path", lambda x: True
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.load_governance_config",
+            "sdd_cli.utils.loader.load_governance_config",
             lambda x: {"items": []},
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.get_governance_summary",
+            "sdd_cli.utils.loader.get_governance_summary",
             lambda x, config=None: {},
         )
         result = runner.invoke(app, ["governance", "load", "--path", "runtime"])
@@ -190,7 +190,7 @@ class TestLoadCommand:
     def test_load_with_invalid_path(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test load with invalid path."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: False
+            "sdd_cli.utils.loader.validate_governance_path", lambda x: False
         )
         result = runner.invoke(
             app, ["governance", "load", "--path", "/nonexistent/path"]
@@ -205,23 +205,26 @@ class TestValidateCommand:
     def test_validate_with_valid_path(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test validate with valid wizard path."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: True
+            "sdd_cli.utils.loader.validate_governance_path", lambda x: True
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.load_governance_config",
+            "sdd_cli.utils.loader.load_governance_config",
             lambda x: {"items": []},
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance._check_files_accessible", lambda x: True
+            "sdd_cli.services.governance_config_reader.check_files_accessible",
+            lambda x: True,
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance._check_fingerprints_valid", lambda x: True
+            "sdd_cli.services.governance_config_reader.check_fingerprints_valid",
+            lambda x: True,
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance._check_no_conflicts", lambda x: True
+            "sdd_cli.services.governance_config_reader.check_no_conflicts",
+            lambda x: True,
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance._check_artifact_consistency",
+            "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",
             lambda x: (True, ""),
         )
         monkeypatch.setattr(
@@ -229,7 +232,7 @@ class TestValidateCommand:
             type("MockAHP", (), {"is_handshake_valid": lambda self: True}),
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.run_runtime_preflight",
+            "sdd_cli.services.runtime_preflight.run_runtime_preflight",
             lambda x: type(
                 "MockPreflight", (), {"passed": True, "reason": "", "details": {}}
             )(),
@@ -250,7 +253,7 @@ class TestValidateCommand:
     def test_validate_with_invalid_path(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test validate with invalid path."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: False
+            "sdd_cli.utils.loader.validate_governance_path", lambda x: False
         )
         result = runner.invoke(
             app,
@@ -463,14 +466,14 @@ class TestCommandExecutions:
     def test_load_execution(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test load command execution."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: True
+            "sdd_cli.utils.loader.validate_governance_path", lambda x: True
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.load_governance_config",
+            "sdd_cli.utils.loader.load_governance_config",
             lambda x: {"items": []},
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.get_governance_summary",
+            "sdd_cli.utils.loader.get_governance_summary",
             lambda x, config=None: {},
         )
         result = runner.invoke(app, ["governance", "load"])
@@ -479,23 +482,26 @@ class TestCommandExecutions:
     def test_validate_execution(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test validate command execution."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: True
+            "sdd_cli.utils.loader.validate_governance_path", lambda x: True
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.load_governance_config",
+            "sdd_cli.utils.loader.load_governance_config",
             lambda x: {"items": []},
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance._check_files_accessible", lambda x: True
+            "sdd_cli.services.governance_config_reader.check_files_accessible",
+            lambda x: True,
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance._check_fingerprints_valid", lambda x: True
+            "sdd_cli.services.governance_config_reader.check_fingerprints_valid",
+            lambda x: True,
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance._check_no_conflicts", lambda x: True
+            "sdd_cli.services.governance_config_reader.check_no_conflicts",
+            lambda x: True,
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance._check_artifact_consistency",
+            "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",
             lambda x: (True, ""),
         )
         monkeypatch.setattr(
@@ -503,7 +509,7 @@ class TestCommandExecutions:
             type("MockAHP", (), {"is_handshake_valid": lambda self: True}),
         )
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.run_runtime_preflight",
+            "sdd_cli.services.runtime_preflight.run_runtime_preflight",
             lambda x: type(
                 "MockPreflight", (), {"passed": True, "reason": "", "details": {}}
             )(),
@@ -577,7 +583,7 @@ class TestPathErrorHandling:
     def test_missing_governance_path(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test handling of missing governance path."""
         monkeypatch.setattr(
-            "sdd_cli.commands.governance.validate_governance_path", lambda x: False
+            "sdd_cli.utils.loader.validate_governance_path", lambda x: False
         )
         result = runner.invoke(
             app, ["governance", "load", "--path", "path/that/does/not/exist"]

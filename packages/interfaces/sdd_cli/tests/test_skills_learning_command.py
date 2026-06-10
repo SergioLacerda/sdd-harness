@@ -26,7 +26,10 @@ def _payload_data(payload: dict) -> dict:
 def test_skills_learning_candidates_json(tmp_path) -> None:
     with (
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
-        patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
+        patch(
+            "sdd_cli.commands.skills_learning.resolve_workspace_root",
+            return_value=tmp_path,
+        ),
     ):
         result = runner.invoke(app, ["--json", "skills", "learning-candidates"])
     assert result.exit_code == 0, result.output
@@ -44,7 +47,10 @@ def test_skills_learning_candidates_json(tmp_path) -> None:
 def test_skills_learning_approve_and_rules_json(tmp_path) -> None:
     with (
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
-        patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
+        patch(
+            "sdd_cli.commands.skills_learning.resolve_workspace_root",
+            return_value=tmp_path,
+        ),
     ):
         runtime_dir = tmp_path / ".sdd" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -108,7 +114,10 @@ def test_skills_learning_approve_and_rules_json(tmp_path) -> None:
 def test_skills_learning_impact_json(tmp_path) -> None:
     with (
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
-        patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
+        patch(
+            "sdd_cli.commands.skills_learning.resolve_workspace_root",
+            return_value=tmp_path,
+        ),
     ):
         result = runner.invoke(
             app,
@@ -139,7 +148,10 @@ def test_skills_learning_impact_json(tmp_path) -> None:
 def test_skills_learning_status_json(tmp_path) -> None:
     with (
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
-        patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
+        patch(
+            "sdd_cli.commands.skills_learning.resolve_workspace_root",
+            return_value=tmp_path,
+        ),
     ):
         runtime_dir = tmp_path / ".sdd" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -205,8 +217,13 @@ def test_skills_learning_status_json(tmp_path) -> None:
 
 def test_skills_learning_candidates_text_mode(tmp_path) -> None:
     with (
-        patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
-        patch("sdd_cli.commands.skills.SupervisedLearningStore") as mock_store_cls,
+        patch(
+            "sdd_cli.commands.skills_learning.resolve_workspace_root",
+            return_value=tmp_path,
+        ),
+        patch(
+            "sdd_cli.commands.skills_learning.SupervisedLearningStore"
+        ) as mock_store_cls,
     ):
         mock_store_cls.return_value.generate_candidates_from_ledger.return_value = []
         result = runner.invoke(app, ["skills", "learning-candidates"])
@@ -222,8 +239,13 @@ def test_skills_learning_candidates_text_mode_with_existing(tmp_path) -> None:
         encoding="utf-8",
     )
     with (
-        patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
-        patch("sdd_cli.commands.skills.SupervisedLearningStore") as mock_store_cls,
+        patch(
+            "sdd_cli.commands.skills_learning.resolve_workspace_root",
+            return_value=tmp_path,
+        ),
+        patch(
+            "sdd_cli.commands.skills_learning.SupervisedLearningStore"
+        ) as mock_store_cls,
     ):
         mock_store_cls.return_value.generate_candidates_from_ledger.return_value = []
         result = runner.invoke(app, ["skills", "learning-candidates"])

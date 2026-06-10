@@ -285,6 +285,40 @@
       "summary_runtime": "Define how any plugin or skill declares identity, negotiates capabilities, and adheres to host governance before execution inside an SDD-governed environment.",
       "title": "Governance Federation",
       "type": "MANDATE"
+    },
+    {
+      "criticality": "high",
+      "enforcement_steps": [
+        "Verify LLM-facing governance context (`render_context_header` or equivalent) emits \u22642 lines when healthy, \u22643 lines when degraded, using canonical key=value form",
+        "Verify user-facing blocked/allowed output blocks are capped at 3 lines / 2 lines respectively",
+        "Verify DEBUG/TRACE telemetry events are emitted as structured JSON and bypass profile renderers",
+        "Verify profile renderers (pragmatic, epic) do not alter `decision`, `artifact_path`, `level`, `governance_state`, or `degraded` fields",
+        "Verify error/precondition output paths cap console messages to 2 lines plus an artifact reference"
+      ],
+      "id": "M020",
+      "rationale": "Governance operations historically produced verbose, narrative-style content on both sides of the agent boundary: input context sent to the LLM (query_hash, trust_source, repeated instructions) and output sent to the user (multi-line intake blocks mixing labels, reasons, and instructions). Both inflate token usage, degrade UX, and obscure the actionable signal \u2014 state, decision, artifact, next action. M020 fixes this symmetrically: governance defines what happened, the profile defines how to show it, for both input and output, while telemetry and persisted artifacts retain full detail for audit.",
+      "requirements": [
+        "Derive all LLM input context from canonical fields (governance state, fingerprint, mandates count). Base form: max 2 lines, key=value compact",
+        "Derive all user-facing output from a canonical event (phase, status, decision, artifact_path, next_action). Base output: max 3 lines, max 120 chars per line",
+        "Persist full diagnostic evidence in `.sdd/runtime/` artifacts, not in console output",
+        "Emit DEBUG/TRACE as structured JSON telemetry, bypassing all profile renderers",
+        "Deduplicate repeated findings before rendering",
+        "Include artifact paths for auditability on every finding or decision event",
+        "Stop and emit a BLOCKER event when evidence is unreliable",
+        "Profiles MUST NOT change meaning, severity, status, decision, artifact path, or governance state \u2014 they may only change presentation",
+        "Agents MUST NOT send verbose governance metadata (query hash, trust source labels, repeated instructions) as LLM input when a compact canonical form suffices",
+        "Agents MUST NOT stream internal reasoning chains as console output",
+        "Agents MUST NOT use verbose first-person analysis as operational output",
+        "Agents MUST NOT repeat uncertainty loops without producing a decision",
+        "Agents MUST NOT mix user-facing logs with raw JSON telemetry",
+        "Agents MUST NOT use log volume as a substitute for evidence artifacts",
+        "A profile renderer MUST NOT alter governance state or decision content"
+      ],
+      "status": "active",
+      "summary_minimal": "Governed Compact Logging",
+      "summary_runtime": "All agent interfaces \u2014 both input to the LLM and output to the user \u2014 MUST follow the Simple Governed IO pattern: a canonical event or context produces a simple base form, with an optional profile ...",
+      "title": "Governed Compact Logging",
+      "type": "MANDATE"
     }
   ],
   "version": "3.0"

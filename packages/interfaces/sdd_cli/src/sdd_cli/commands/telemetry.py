@@ -6,7 +6,6 @@ import json
 import os
 from collections import Counter
 from pathlib import Path
-from typing import Any
 
 import click
 import typer
@@ -16,6 +15,8 @@ from sdd_cli.services.telemetry_handler import (
     _parse_ts,  # noqa: F401  backward-compat re-export for unit tests
     _read_events,
     apply_time_filter,
+    build_init_result,
+    build_status_data,
     filter_events,
 )
 from sdd_cli.shared.contracts import (
@@ -67,6 +68,24 @@ def _ctx_json() -> bool:
     return is_json_mode(click.get_current_context(silent=True))
 
 
+def _abort_invalid_time_filter(field: str, value: str) -> None:
+    """Report an invalid --since/--until value and raise typer.Exit(1)."""
+    message = f"Invalid --{field} value: {value!r}"
+    if _ctx_json():
+        emit_json(
+            build_error_result(
+                "telemetry query",
+                code=f"invalid_{field}",
+                message=message,
+                data={field: value, "exit_code": 1},
+            ),
+            err=True,
+        )
+        raise typer.Exit(1)
+    typer.echo(message, err=True)
+    raise typer.Exit(1)
+
+
 @app.callback()
 def telemetry_default(ctx: typer.Context) -> None:
     """Show telemetry status summary (default when no subcommand given)."""
@@ -77,63 +96,32 @@ def telemetry_default(ctx: typer.Context) -> None:
 
 def _print_status() -> None:
     path = _resolve_events_path("telemetry status")
-    events = _read_events(path)
+    data = build_status_data(path)
 
-    if not events:
-        hint = None if path.exists() else "run `sdd telemetry init` to create the sink"
+    if data["total_events"] == 0:
         if _ctx_json():
-            data: dict[str, Any] = {
-                "events_file": str(path),
-                "total_events": 0,
-                "errors": 0,
-                "first_event": None,
-                "last_event": None,
-                "events_by_type": {},
-                "exit_code": 0,
-            }
-            if hint:
-                data["hint"] = hint
-            payload = build_ok_result("telemetry status", data)
+            payload = build_ok_result("telemetry status", {**data, "exit_code": 0})
             emit_json(payload)
             return
         typer.echo(f"No events found at {path}")
+        hint = data.get("hint")
         if hint:
             typer.echo(f"Hint: {hint}")
         return
 
-    total = len(events)
-    type_counts: Counter[str] = Counter(str(e.get("event", "unknown")) for e in events)
-    error_statuses = {"error", "failed", "failure"}
-    errors = sum(
-        1 for e in events if str(e.get("status", "")).lower() in error_statuses
-    )
-
-    timestamps = [ts for e in events if (ts := _event_ts(e))]
-    first_ts = min(timestamps) if timestamps else "—"
-    last_ts = max(timestamps) if timestamps else "—"
-
     if _ctx_json():
-        data = {
-            "events_file": str(path),
-            "total_events": total,
-            "errors": errors,
-            "first_event": first_ts,
-            "last_event": last_ts,
-            "events_by_type": dict(type_counts),
-            "exit_code": 0,
-        }
-        payload = build_ok_result("telemetry status", data)
+        payload = build_ok_result("telemetry status", {**data, "exit_code": 0})
         emit_json(payload)
         return
 
-    typer.echo(f"File:         {path}")
-    typer.echo(f"Total events: {total}")
-    typer.echo(f"Errors:       {errors}")
-    typer.echo(f"First event:  {first_ts}")
-    typer.echo(f"Last event:   {last_ts}")
+    typer.echo(f"File:         {data['events_file']}")
+    typer.echo(f"Total events: {data['total_events']}")
+    typer.echo(f"Errors:       {data['errors']}")
+    typer.echo(f"First event:  {data['first_event']}")
+    typer.echo(f"Last event:   {data['last_event']}")
     typer.echo("")
     typer.echo("Events by type:")
-    for event_type, count in type_counts.most_common():
+    for event_type, count in Counter(data["events_by_type"]).most_common():
         typer.echo(f"  {event_type:<35} {count}")
 
 
@@ -239,34 +227,9 @@ def query(
     events, since_error, until_error = apply_time_filter(events, since, until)
 
     if since_error is not None:
-        if _ctx_json():
-            emit_json(
-                build_error_result(
-                    "telemetry query",
-                    code="invalid_since",
-                    message=f"Invalid --since value: {since_error!r}",
-                    data={"since": since_error, "exit_code": 1},
-                ),
-                err=True,
-            )
-            raise typer.Exit(1)
-        typer.echo(f"Invalid --since value: {since_error!r}", err=True)
-        raise typer.Exit(1)
-
+        _abort_invalid_time_filter("since", since_error)
     if until_error is not None:
-        if _ctx_json():
-            emit_json(
-                build_error_result(
-                    "telemetry query",
-                    code="invalid_until",
-                    message=f"Invalid --until value: {until_error!r}",
-                    data={"until": until_error, "exit_code": 1},
-                ),
-                err=True,
-            )
-            raise typer.Exit(1)
-        typer.echo(f"Invalid --until value: {until_error!r}", err=True)
-        raise typer.Exit(1)
+        _abort_invalid_time_filter("until", until_error)
 
     selected = events[-limit:]
     if _ctx_json():
@@ -299,42 +262,20 @@ def query(
 def init() -> None:
     """Initialize telemetry storage (.sdd/runtime/ dir + empty JSONL file)."""
     path = _resolve_events_path("telemetry init")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if not path.exists():
-        path.touch()
+    result = build_init_result(path)
+    invalid_line = result["invalid_line"]
+
+    if result["created"]:
         if _ctx_json():
-            data = {
-                "events_file": str(path),
-                "created": True,
-                "valid": True,
-                "exit_code": 0,
-            }
+            data = {"events_file": str(path), **result, "exit_code": 0}
             emit_json(build_ok_result("telemetry init", data))
             return
         typer.echo(f"Created {path}")
         return
 
-    invalid_line: int | None = None
-    with path.open(encoding="utf-8") as fh:
-        for lineno, raw in enumerate(fh, start=1):
-            stripped = raw.strip()
-            if not stripped:
-                continue
-            try:
-                json.loads(stripped)
-            except json.JSONDecodeError:
-                invalid_line = lineno
-                break
-
     if invalid_line is not None:
         if _ctx_json():
-            data = {
-                "events_file": str(path),
-                "created": False,
-                "valid": False,
-                "invalid_line": invalid_line,
-                "exit_code": 1,
-            }
+            data = {"events_file": str(path), **result, "exit_code": 1}
             emit_json(
                 build_error_result(
                     "telemetry init",
@@ -349,12 +290,7 @@ def init() -> None:
         raise typer.Exit(1)
 
     if _ctx_json():
-        data = {
-            "events_file": str(path),
-            "created": False,
-            "valid": True,
-            "exit_code": 0,
-        }
+        data = {"events_file": str(path), **result, "exit_code": 0}
         emit_json(build_ok_result("telemetry init", data))
         return
     typer.echo(f"Already exists (valid): {path}")

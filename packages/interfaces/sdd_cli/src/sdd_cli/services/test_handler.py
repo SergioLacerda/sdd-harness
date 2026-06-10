@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -95,3 +96,81 @@ def _print_diff(diff: Any) -> None:
         typer.echo(f"\n  Added ({len(diff.added_items)}):")
         for entry in diff.added_items:
             typer.echo(f"    + [{entry.item_id}] {entry.after}")
+
+
+def _load_golden_ast(golden_path: Path) -> Any:
+    """Load golden AST from file; raise typer.Exit(1) on error."""
+    from sdd_compiler.ast import GovernanceAST
+
+    try:
+        return GovernanceAST.from_dict(
+            json.loads(golden_path.read_text(encoding="utf-8"))
+        )
+    except Exception as exc:
+        typer.echo(f"ERROR: Failed to load golden snapshot: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+
+def run_review_golden(
+    root: Path,
+    update: bool,
+    fail_on_breaking: bool,
+    artifact: Path | None,
+    golden: Path | None,
+) -> None:
+    """Compare current compiled artifact against the golden AST snapshot."""
+    try:
+        from sdd_compiler.ast import GovernanceAST
+    except ImportError:
+        typer.echo(
+            "ERROR: sdd_compiler is not installed. Run 'sdd setup run'.",
+            err=True,
+        )
+        raise typer.Exit(1) from None
+
+    golden_path = golden or _resolve_golden_path(root)
+    artifact_path = artifact or _find_artifact(root)
+
+    if artifact_path is None:
+        typer.echo(
+            "ERROR: No compiled artifact found. Run 'sdd governance compile' first.",
+            err=True,
+        )
+        typer.echo("  Next: run 'sdd governance compile' to build artifacts", err=True)
+        raise typer.Exit(1)
+
+    try:
+        current_ast = GovernanceAST.from_compiled_json(artifact_path)
+    except Exception as exc:
+        typer.echo(f"ERROR: Failed to load artifact: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    if update:
+        _save_golden(golden_path, current_ast)
+        return
+
+    if not golden_path.exists():
+        _save_golden(golden_path, current_ast)
+        typer.echo(f"Golden baseline initialised: {golden_path} (status: new)")
+        return
+
+    golden_ast = _load_golden_ast(golden_path)
+    diff = golden_ast.diff(current_ast)
+
+    typer.echo(
+        f"Comparing artifact ({artifact_path.name}) against golden ({golden_path.name}):"
+    )
+    typer.echo(f"  Summary: {diff.summary()}")
+
+    if diff.is_clean:
+        typer.echo("  Status: CLEAN — no changes detected.")
+        return
+
+    _print_diff(diff)
+
+    if diff.has_breaking_changes and fail_on_breaking:
+        typer.echo(
+            "\n  Next: review breaking changes above, then run 'sdd test review-golden --update' to accept",
+            err=True,
+        )
+        raise typer.Exit(1)

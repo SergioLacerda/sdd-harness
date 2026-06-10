@@ -79,14 +79,17 @@ from sdd_cli.services.ask_organize import (
 from sdd_cli.services.ask_organize import (
     should_use_organize as _should_use_organize,
 )
-from sdd_cli.services.ask_payload import (
-    build_ask_json_data,
-)
 from sdd_cli.services.ask_renderer import (
     render_context_header as _render_context_header,
 )
 from sdd_cli.services.ask_renderer import (
     render_governance_footer as _render_governance_footer_impl,
+)
+from sdd_cli.services.ask_response import (
+    emit_ask_json_response as _emit_ask_json_response,
+)
+from sdd_cli.services.ask_response import (
+    emit_ask_text_response as _emit_ask_text_response,
 )
 from sdd_cli.services.ask_telemetry import (
     emit_ask_telemetry as _emit_ask_telemetry_impl,
@@ -97,7 +100,7 @@ from sdd_cli.services.ask_telemetry import (
 from sdd_cli.services.ask_telemetry import (
     upsert_ask_session as _upsert_ask_session_impl,
 )
-from sdd_cli.utils.output import emit_json, is_json_mode
+from sdd_cli.utils.output import is_json_mode
 from sdd_cli.utils.sdd_authority import (
     compiled_active_dir,
     enforce_path_policy,
@@ -936,158 +939,6 @@ def _sync_ask_runtime(
     )
 
 
-def _build_json_dossier_lines(
-    inputs: _AskInputs, session: _AskSessionContext, mandates_count: int
-) -> list[str]:
-    if not inputs.dossier:
-        return []
-    try:
-        from sdd_runtime.context import ContextLoader, ContextRequest
-
-        dossier_budget = _resolve_dossier_budget(inputs.budget)
-        budget_utilization_pct = 50.0
-        artifact = _load_dossier_artifact(session.workspace_root)
-        context_result = ContextLoader().load_result(
-            ContextRequest(
-                query=inputs.query,
-                artifact=artifact,
-                max_items=mandates_count,
-                budget_utilization_pct=budget_utilization_pct,
-                prefer_full_summary=_prefer_full_summary(),
-            )
-        )
-        return _build_dossier_lines(
-            query=inputs.query,
-            skill=inputs.skill,
-            budget=dossier_budget,
-            mandates_count=mandates_count,
-            budget_utilization_pct=budget_utilization_pct,
-            context_result=context_result,
-        )
-    except Exception as exc:
-        _handle_dossier_error(exc)
-        return []
-
-
-def _emit_ask_json_response(
-    inputs: _AskInputs,
-    session: _AskSessionContext,
-    ask_snapshot: dict[str, Any],
-    governance_footer: str,
-) -> None:
-    context_source = ask_snapshot["context_source"]
-    fingerprint = ask_snapshot["fingerprint"]
-    mandates_count = ask_snapshot["mandates_count"]
-    degraded = ask_snapshot["degraded"]
-    degrade_reason = ask_snapshot["degrade_reason"]
-    trust_source = ask_snapshot["trust_source"]
-    drift_detected = ask_snapshot["drift_detected"]
-    learning_signals = ask_snapshot["learning_signals"]
-    dossier_lines = _build_json_dossier_lines(inputs, session, mandates_count)
-    # light_input means the query is too small to need indexing — allow it through.
-    # Block only when organize was expected but did not run (non-light reason).
-    _gate_blocked = (
-        not session.organize_used and session.organize_reason != "light_input"
-    )
-    execution_gate = "blocked" if _gate_blocked else "allowed"
-    gate_reason = (
-        None
-        if execution_gate == "allowed"
-        else "intake_index_mode=none: governance context not indexed; agent must not proceed"
-    )
-    data = build_ask_json_data(
-        profile=session.profile,
-        query_hash=_hash_query(inputs.query),
-        context_source=context_source,
-        fingerprint=fingerprint,
-        mandates_loaded=mandates_count,
-        trust_source=trust_source,
-        degraded=degraded,
-        degraded_reason=degrade_reason,
-        drift_detected=drift_detected,
-        governance_footer=governance_footer,
-        intake_index_mode="multi" if session.organize_used else "none",
-        intake_chunks=session.organize_chunks,
-        intake_retrieval=session.organize_retrieval,
-        intake_artifact=session.organize_artifact_path or "n/a",
-        governance_mode="hard",
-        execution_gate=execution_gate,
-        gate_reason=gate_reason,
-        ahp_state=session.state,
-        learning_signals=learning_signals,
-        full=inputs.full,
-        steps=[
-            {
-                "step_id": "PARSE",
-                "ok": True,
-                "ts_start": session.start_ts,
-                "ts_end": _now(),
-            },
-            {
-                "step_id": "CONTEXT_LOAD",
-                "ok": True,
-                "context_source": context_source,
-                "fingerprint": fingerprint,
-            },
-        ]
-        if inputs.full
-        else None,
-        extra={"log_format": inputs.log_format} if inputs.full else None,
-    )
-    if dossier_lines:
-        data["dossier"] = {"lines": dossier_lines}
-    emit_json(
-        {
-            "status": "ok",
-            "command": "ask",
-            "ok": True,
-            "error": None,
-            "data": data,
-        }
-    )
-
-
-def _emit_ask_text_response(
-    inputs: _AskInputs,
-    session: _AskSessionContext,
-    ask_snapshot: dict[str, Any],
-    output_text: str,
-    governance_footer: str,
-) -> None:
-    mandates_count = ask_snapshot["mandates_count"]
-    typer.echo(output_text)
-    pt_intake_mode = "multi" if session.organize_used else "none"
-    _gate_blocked = (
-        not session.organize_used and session.organize_reason != "light_input"
-    )
-    pt_gate = "blocked" if _gate_blocked else "allowed"
-    pt_gate_suffix = (
-        ""
-        if pt_gate == "allowed"
-        else "\ngate_reason       : intake_index_mode=none"
-        f"\nintake_skipped    : {session.organize_reason} (query {len(inputs.query)} chars"
-        " < 6000; pass ≥6000 chars or use: sdd-organize --input-file <path> <query>)"
-    )
-    typer.echo(
-        f"intake_index_mode : {pt_intake_mode}\n"
-        f"intake_chunks     : {session.organize_chunks}\n"
-        f"intake_retrieval  : {session.organize_retrieval}\n"
-        f"intake_artifact   : {session.organize_artifact_path or 'n/a'}\n"
-        f"governance_mode   : hard\n"
-        f"execution_gate    : {pt_gate}"
-        f"{pt_gate_suffix}"
-    )
-    if inputs.dossier:
-        _build_and_output_dossier(
-            query=inputs.query,
-            skill=inputs.skill,
-            budget=inputs.budget,
-            mandates_count=mandates_count,
-            workspace_root=session.workspace_root,
-        )
-    typer.echo(governance_footer)
-
-
 def _ask_cmd_impl(
     *,
     query: str,
@@ -1115,10 +966,25 @@ def _ask_cmd_impl(
     ask_snapshot = _load_ask_snapshot(inputs, session)
     output_text, governance_footer = _sync_ask_runtime(inputs, session, ask_snapshot)
     if _json_mode():
-        _emit_ask_json_response(inputs, session, ask_snapshot, governance_footer)
+        _emit_ask_json_response(
+            inputs,
+            session,
+            ask_snapshot,
+            governance_footer,
+            resolve_dossier_budget_fn=_resolve_dossier_budget,
+            load_dossier_artifact_fn=_load_dossier_artifact,
+            build_dossier_lines_fn=_build_dossier_lines,
+            handle_dossier_error_fn=_handle_dossier_error,
+            prefer_full_summary_fn=_prefer_full_summary,
+        )
         return
     _emit_ask_text_response(
-        inputs, session, ask_snapshot, output_text, governance_footer
+        inputs,
+        session,
+        ask_snapshot,
+        output_text,
+        governance_footer,
+        build_and_output_dossier_fn=_build_and_output_dossier,
     )
 
 

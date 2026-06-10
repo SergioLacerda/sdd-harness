@@ -19,6 +19,12 @@ import typer
 from dotenv import load_dotenv
 from typer.main import get_command as typer_get_command
 
+from sdd_cli.utils.cli_callbacks import (
+    json_option_callback,
+    profile_option_callback,
+    verbose_option_callback,
+)
+
 if sys.platform == "win32":
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -209,37 +215,9 @@ class LazyCommandGroup(click.Group):
             raise click.exceptions.Exit(exc.exit_code) from None
 
 
-def _profile_option_callback(
-    ctx: click.Context, param: click.Parameter, value: str | None
-) -> str | None:
-    del param
-    if ctx.obj is None:
-        ctx.obj = {}
-    if value:
-        ctx.obj["profile"] = value
-        ctx.obj["is_master"] = value == "master"
-        ctx.obj["is_client"] = value == "client"
-    return value
-
-
-def _json_option_callback(
-    ctx: click.Context, param: click.Parameter, value: bool
-) -> bool:
-    del param
-    if ctx.obj is None:
-        ctx.obj = {}
-    ctx.obj["output_json"] = bool(value)
-    return value
-
-
-def _verbose_option_callback(
-    ctx: click.Context, param: click.Parameter, value: bool
-) -> bool:
-    del param
-    if ctx.obj is None:
-        ctx.obj = {}
-    ctx.obj["verbose"] = bool(value)
-    return value
+_profile_option_callback = profile_option_callback
+_json_option_callback = json_option_callback
+_verbose_option_callback = verbose_option_callback
 
 
 app = LazyCommandGroup(

@@ -14,6 +14,7 @@ import pytest
 import typer
 
 from sdd_cli.commands import runtime as runtime_mod
+from sdd_cli.services.runtime_handler import _read_workspace_id
 
 
 def _install_fake_sdd_runtime(  # noqa: C901
@@ -160,11 +161,11 @@ def test_emit_runtime_status_success_and_drift(
 ) -> None:
     root = _make_root(tmp_path)
     monkeypatch.setattr(
-        runtime_mod, "compiled_active_dir", lambda root: root / ".sdd" / "compiled"
+        "sdd_cli.services.runtime_handler.compiled_active_dir",
+        lambda root: root / ".sdd" / "compiled",
     )
     monkeypatch.setattr(
-        runtime_mod,
-        "resolve_compliance_events_path",
+        "sdd_cli.services.runtime_handler.resolve_compliance_events_path",
         lambda workspace_root: workspace_root / "events.jsonl",
     )
     monkeypatch.setattr(
@@ -187,11 +188,11 @@ def test_emit_runtime_status_no_drift_and_generic_error(
 ) -> None:
     root = _make_root(tmp_path)
     monkeypatch.setattr(
-        runtime_mod, "compiled_active_dir", lambda root: root / ".sdd" / "compiled"
+        "sdd_cli.services.runtime_handler.compiled_active_dir",
+        lambda root: root / ".sdd" / "compiled",
     )
     monkeypatch.setattr(
-        runtime_mod,
-        "resolve_compliance_events_path",
+        "sdd_cli.services.runtime_handler.resolve_compliance_events_path",
         lambda workspace_root: workspace_root / "events.jsonl",
     )
     monkeypatch.setattr(
@@ -211,13 +212,11 @@ def test_emit_runtime_status_filenotfound_and_exception(
 ) -> None:
     root = _make_root(tmp_path)
     monkeypatch.setattr(
-        runtime_mod,
-        "compiled_active_dir",
+        "sdd_cli.services.runtime_handler.compiled_active_dir",
         lambda root: root / ".sdd" / "compiled-missing",
     )
     monkeypatch.setattr(
-        runtime_mod,
-        "resolve_compliance_events_path",
+        "sdd_cli.services.runtime_handler.resolve_compliance_events_path",
         lambda workspace_root: workspace_root / "events.jsonl",
     )
     monkeypatch.setattr(
@@ -255,7 +254,7 @@ def test_runtime_helpers_and_rendering(
     monkeypatch.setattr(
         runtime_mod, "profile_active_path", lambda root: root / ".sdd" / "profile"
     )
-    assert runtime_mod._read_workspace_id(root) == "ws-1"
+    assert _read_workspace_id(root) == "ws-1"
     assert runtime_mod._read_profile(root) == "client"
     assert runtime_mod._check_cache_staleness(root)["missing"] is True
     assert (
@@ -291,11 +290,11 @@ def test_runtime_read_helpers_and_error_paths(
         "[sdd]\nworkspace_id = ws-2\ntype = client\n", encoding="utf-8"
     )
     monkeypatch.setattr(runtime_mod, "profile_active_path", lambda root: profile_path)
-    assert runtime_mod._read_workspace_id(root) == "ws-2"
+    assert _read_workspace_id(root) == "ws-2"
     assert runtime_mod._read_profile(root) == "client"
 
     profile_path.write_text("not a config", encoding="utf-8")
-    assert runtime_mod._read_workspace_id(root) == "unknown"
+    assert _read_workspace_id(root) == "unknown"
     assert runtime_mod._read_profile(root) == ""
 
     cache = root / ".sdd" / "runtime" / ".sdd-cache.md"

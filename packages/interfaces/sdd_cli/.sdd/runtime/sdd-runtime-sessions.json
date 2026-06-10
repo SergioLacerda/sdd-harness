@@ -1,0 +1,14 @@
+[
+  {
+    "workspace_id": "unknown",
+    "agent_id": "unknown",
+    "work_item_id": "ask",
+    "artifact_fingerprint": "",
+    "schema_version": "",
+    "policy_set_version": "",
+    "parent_session_id": null,
+    "decomposition_level": 0,
+    "session_type": "long",
+    "last_validation_ts": "2026-06-10T20:13:20+00:00"
+  }
+]

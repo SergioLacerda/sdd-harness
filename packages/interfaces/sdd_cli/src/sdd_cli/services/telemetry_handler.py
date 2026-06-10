@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -107,3 +108,70 @@ def apply_time_filter(
         ]
 
     return events, None, None
+
+
+def build_status_data(path: Path) -> dict[str, Any]:
+    """Build the data payload for `sdd telemetry status` (JSON and text modes)."""
+    events = _read_events(path)
+
+    if not events:
+        hint = None if path.exists() else "run `sdd telemetry init` to create the sink"
+        data: dict[str, Any] = {
+            "events_file": str(path),
+            "total_events": 0,
+            "errors": 0,
+            "first_event": None,
+            "last_event": None,
+            "events_by_type": {},
+        }
+        if hint:
+            data["hint"] = hint
+        return data
+
+    type_counts: Counter[str] = Counter(str(e.get("event", "unknown")) for e in events)
+    error_statuses = {"error", "failed", "failure"}
+    errors = sum(
+        1 for e in events if str(e.get("status", "")).lower() in error_statuses
+    )
+
+    timestamps = [ts for e in events if (ts := _event_ts(e))]
+    first_ts = min(timestamps) if timestamps else "—"
+    last_ts = max(timestamps) if timestamps else "—"
+
+    return {
+        "events_file": str(path),
+        "total_events": len(events),
+        "errors": errors,
+        "first_event": first_ts,
+        "last_event": last_ts,
+        "events_by_type": dict(type_counts),
+    }
+
+
+def build_init_result(path: Path) -> dict[str, Any]:
+    """Create or validate the telemetry JSONL sink; return a result dict.
+
+    Keys: `created` (bool), `valid` (bool), `invalid_line` (int | None).
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        path.touch()
+        return {"created": True, "valid": True, "invalid_line": None}
+
+    invalid_line: int | None = None
+    with path.open(encoding="utf-8") as fh:
+        for lineno, raw in enumerate(fh, start=1):
+            stripped = raw.strip()
+            if not stripped:
+                continue
+            try:
+                json.loads(stripped)
+            except json.JSONDecodeError:
+                invalid_line = lineno
+                break
+
+    return {
+        "created": False,
+        "valid": invalid_line is None,
+        "invalid_line": invalid_line,
+    }

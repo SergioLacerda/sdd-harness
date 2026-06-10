@@ -238,6 +238,7 @@ addopts = """
 --import-mode=importlib
 --timeout=30
 --timeout-method=thread
+-m "not perf"
 """
 
 filterwarnings = [
@@ -252,6 +253,7 @@ markers = [
     "contract: architectural compliance tests",
     "e2e: full-system tests",
     "slow: expensive execution",
+    "perf: performance/benchmark tests with wall-clock assertions — excluded from default runs, use 'make test-perf'",
     "governance: governance validation tests",
     "encoding_edge: tests that intentionally exercise malformed text bytes via permissive decode helper",
 ]
