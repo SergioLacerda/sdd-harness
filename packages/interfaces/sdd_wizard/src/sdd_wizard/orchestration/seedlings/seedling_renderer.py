@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ._governance_templates import (
+from sdd_wizard.templates.seedling_templates import (
     build_activation_guide,
     build_agent_instructions,
     build_agents_md,

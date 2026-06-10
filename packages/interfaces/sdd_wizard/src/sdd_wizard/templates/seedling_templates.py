@@ -1,8 +1,4 @@
-"""Large inline templates extracted from GovernanceSeedsGenerator.
-
-Each function returns a rendered string given the dynamic values that were
-previously interpolated inside the generator methods.
-"""
+"""Seedling output templates: ACTIVATION_GUIDE.md, verify.py, agent-instructions.md, AGENTS.md."""
 
 from __future__ import annotations
 
@@ -18,6 +14,7 @@ def build_activation_guide(
     guidelines_list: str,
     mandate_ids_joined: str,
 ) -> str:
+    """Render ACTIVATION_GUIDE.md content."""
     return f"""# Governance Activation Guide
 <!-- Governance fingerprint: {fingerprint} -->
 <!-- Generated: {generated_at} -->
@@ -346,6 +343,7 @@ Once activated, your project will:
 
 
 def build_verification_script(mandate_ids_str: str) -> str:
+    """Render verify.py content."""
     return f'''#!/usr/bin/env python3
 """Governance Activation Verification Script
 
@@ -584,6 +582,7 @@ def build_agent_instructions(
     generated_at: str,
     mandates_list: str,
 ) -> str:
+    """Render .sdd/agent-instructions.md content."""
     return f"""# SDD Agent Instructions — Authority & Bootstrap
 
 **This workspace is governed by Spec Driven Development (SDD).**
@@ -736,6 +735,7 @@ def build_agents_md(
     mandate_count: int,
     ids_preview: str,
 ) -> str:
+    """Render root AGENTS.md content."""
     preview_str = f" ({ids_preview})" if ids_preview else ""
     return f"""# Agent Bootstrap Paths
 <!-- Governance fingerprint: {spec_fingerprint} -->

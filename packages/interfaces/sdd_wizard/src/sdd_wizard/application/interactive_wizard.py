@@ -296,13 +296,6 @@ class InteractiveWizard:
         """Build phase-1 status block persisted to wizard-config.json."""
         return _build_phase1_status(status, reason, artifacts)
 
-    def _docs_meta_ready(self) -> bool:
-        return docs_meta_ready(self.client_build_dir)
-
-    def _source_spec_ready(self) -> bool:
-        """Return True when unified source_spec contains mandate/guideline files."""
-        return source_spec_ready(self.paths, self.client_build_dir)
-
     def _ensure_onboarding_scaffold(self) -> tuple[bool, str]:
         """Create minimal wizard scaffold for first-run onboarding."""
         return ensure_onboarding_scaffold(
@@ -319,8 +312,8 @@ class InteractiveWizard:
         return _ensure_docs_meta_ready(
             scaffold_ok,
             scaffold_reason,
-            self._docs_meta_ready(),
-            self._source_spec_ready(),
+            docs_meta_ready(self.client_build_dir),
+            source_spec_ready(self.paths, self.client_build_dir),
             self.client_build_dir,
             self.paths,
         )

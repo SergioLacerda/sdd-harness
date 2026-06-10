@@ -30,3 +30,16 @@ from sdd_cli.extensions.framework.registry import (  # noqa: F401
     get_registry,
     register_extension,
 )
+
+__all__ = [
+    "BaseExtension",
+    "ExtensionMetadata",
+    "Category",
+    "CustomGuideline",
+    "CustomMandate",
+    "ItemType",
+    "ExtensionRegistry",
+    "get_extension",
+    "get_registry",
+    "register_extension",
+]

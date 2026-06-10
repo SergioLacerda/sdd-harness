@@ -28,7 +28,7 @@ class TestGovernanceCompileNextStep:
         runner = CliRunner()
 
         with patch(
-            "sdd_cli.commands.governance._run_compilation",
+            "sdd_cli.commands.governance.run_compile",
             side_effect=RuntimeError("unexpected failure"),
         ):
             result = runner.invoke(governance_app, ["compile"])
@@ -37,12 +37,11 @@ class TestGovernanceCompileNextStep:
         assert "Next:" in result.output
 
     def test_pipeline_failure_emits_next_step(self) -> None:
-        """When pipeline returns failure flag, Next: hint is emitted."""
+        """When pipeline raises, Next: hint is emitted via handle_cli_errors."""
         runner = CliRunner()
 
-        # Patch _run_compilation to simulate pipeline failure (full_pipeline_success=False)
         with patch(
-            "sdd_cli.commands.governance._run_compilation",
+            "sdd_cli.commands.governance.run_compile",
             side_effect=RuntimeError("pipeline returned failure"),
         ):
             result = runner.invoke(governance_app, ["compile"])
@@ -64,26 +63,31 @@ class TestGovernanceValidateNextStep:
 
         with (
             patch(
-                "sdd_cli.commands.governance.validate_governance_path",
+                "sdd_cli.utils.loader.validate_governance_path",
                 return_value=False,
             ),
             patch(
-                "sdd_cli.commands.governance._check_files_accessible",
+                "sdd_cli.services.governance_config_reader.check_files_accessible",
                 return_value=False,
             ),
             patch(
-                "sdd_cli.commands.governance._check_fingerprints_valid",
+                "sdd_cli.services.governance_config_reader.check_fingerprints_valid",
                 return_value=False,
             ),
             patch(
-                "sdd_cli.commands.governance._check_no_conflicts", return_value=False
+                "sdd_cli.services.governance_config_reader.check_no_conflicts",
+                return_value=False,
             ),
             patch(
-                "sdd_cli.commands.governance.run_runtime_preflight",
+                "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",
+                return_value=(False, "inconsistent artifacts"),
+            ),
+            patch(
+                "sdd_cli.services.runtime_preflight.run_runtime_preflight",
                 return_value=PreflightResult(passed=False, reason="drift"),
             ),
         ):
-            result = runner.invoke(governance_app, ["validate"])
+            result = runner.invoke(governance_app, ["validate", "--skip-handshake"])
 
         assert result.exit_code != 0
         assert "Next:" in result.output
@@ -92,7 +96,7 @@ class TestGovernanceValidateNextStep:
         runner = CliRunner()
 
         with patch(
-            "sdd_cli.commands.governance.validate_governance_path",
+            "sdd_cli.commands.governance.run_governance_validate_cmd",
             side_effect=RuntimeError("disk error"),
         ):
             result = runner.invoke(governance_app, ["validate"])

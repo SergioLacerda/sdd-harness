@@ -171,3 +171,49 @@ def run_governance_score(
         verbose=verbose,
         console=console,
     )
+
+
+def run_governance_score_cmd(
+    *, verbose: bool, threshold: int, console: Console
+) -> None:
+    """Resolve workspace root and run governance score."""
+    from sdd_cli.utils.sdd_authority import enforce_path_policy, resolve_workspace_root
+
+    ws_root = resolve_workspace_root()
+    if ws_root is None:
+        Console(stderr=True).print("[red]ERROR: No workspace found.[/red]")
+        import typer
+
+        raise typer.Exit(1)
+    ws_root = enforce_path_policy(ws_root, workspace_root=ws_root, mode="normal")
+    run_governance_score(
+        ws_root=ws_root, verbose=verbose, threshold=threshold, console=console
+    )
+
+
+def run_governance_adherence_cmd(
+    *, verbose: bool, threshold: int, window: int, console: Console
+) -> None:
+    """Compute and render governance adherence score."""
+    from sdd_cli.utils.sdd_authority import resolve_workspace_root
+    from sdd_core.governance.compliance import compute_governance_adherence
+
+    ws_root = resolve_workspace_root()
+    try:
+        result = compute_governance_adherence(
+            workspace_root=ws_root, window_hours=window
+        )
+    except Exception as exc:
+        Console(stderr=True).print(
+            f"[red]ERROR computing governance adherence: {exc}[/red]"
+        )
+        import typer
+
+        raise typer.Exit(1) from exc
+    render_governance_adherence_output(
+        result=result,
+        threshold=threshold,
+        window=window,
+        verbose=verbose,
+        console=console,
+    )

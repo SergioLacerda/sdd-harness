@@ -5,7 +5,7 @@ from __future__ import annotations
 import importlib
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 
 @dataclass(frozen=True)
@@ -41,7 +41,7 @@ def run_wizard(invocation: WizardInvocation) -> WizardResult:
     """Run the wizard through the canonical application boundary."""
     module = importlib.import_module("sdd_wizard.application.session_bootstrap")
     session_bootstrap_cls = module.SessionBootstrap
-    return session_bootstrap_cls(invocation).run()
+    return cast(WizardResult, session_bootstrap_cls(invocation).run())
 
 
 def generate_agent_instructions_from_config(

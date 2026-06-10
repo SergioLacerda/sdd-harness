@@ -221,3 +221,74 @@ def regenerate_seeds(*, console: Console | None = None) -> None:
         console.print(
             f"[yellow]WARN: could not auto-regenerate agent files: {_gen_err}[/yellow]"
         )
+
+
+def run_compile(
+    *, profile: str | None, output_json: bool, console: Console | None = None
+) -> None:
+    """Run full compile orchestration: compile → profile hash → consistency → output → telemetry → seeds."""
+    if console is None:
+        console = Console()
+    from rich.panel import Panel
+
+    from sdd_cli.services.governance_artifact_handlers import (
+        check_artifact_consistency,
+        run_governance_compile_json,
+    )
+    from sdd_cli.services.governance_command_output import handle_compile_output
+    from sdd_cli.utils.sdd_authority import resolve_workspace_root
+
+    if not output_json:
+        console.print(
+            Panel(
+                "[bold cyan]Compiling Governance Artifacts[/bold cyan]",
+                border_style="cyan",
+            )
+        )
+
+    if profile is not None and profile not in ("master", "client"):
+        from rich.console import Console as _Console
+
+        _Console(stderr=True).print(
+            f"[red]ERROR: Invalid profile '{profile}'. Use 'master' or 'client'.[/red]"
+        )
+        import typer as _typer
+
+        raise _typer.Exit(1)
+
+    result = run_compilation(profile=profile, console=console)
+    phase_1 = result.get("phase_1", {})
+    phase_2 = result.get("phase_2", {})
+    core_fingerprint = str(phase_1.get("core_fingerprint", ""))
+
+    update_profile_hash(core_fingerprint, console=console)
+
+    ws_root = resolve_workspace_root()
+    compiled_path = str(ws_root / ".sdd" / "compiled") if ws_root else ""
+    consistency_ok, consistency_reason = check_artifact_consistency(compiled_path)
+
+    payload, is_error = run_governance_compile_json(
+        phase_1=phase_1,
+        phase_2=phase_2,
+        core_fingerprint=core_fingerprint,
+        consistency_ok=consistency_ok,
+        consistency_reason=consistency_reason,
+    )
+    handle_compile_output(
+        output_json=output_json,
+        payload=payload,
+        is_error=is_error,
+        phase_1=phase_1,
+        phase_2=phase_2,
+        core_fingerprint=core_fingerprint,
+        consistency_reason=consistency_reason,
+        console=console,
+        artifact_path=compiled_path,
+    )
+    emit_compile_telemetry(
+        core_fingerprint=core_fingerprint,
+        is_error=is_error,
+        consistency_ok=consistency_ok,
+        profile=profile,
+    )
+    regenerate_seeds(console=console)

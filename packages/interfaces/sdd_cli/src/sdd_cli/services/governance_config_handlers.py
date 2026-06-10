@@ -181,3 +181,76 @@ def run_governance_validate(  # noqa: C901
         if not structure_ok or not consistency_ok or not preflight_ok:
             console.print("  Next: run 'sdd governance compile' to rebuild artifacts")
         raise typer.Exit(1)
+
+
+def run_governance_load_cmd(*, path: str, output_json: bool, console: Any) -> None:
+    """Convenience wrapper for run_governance_load with default dependency injection."""
+    from rich.panel import Panel
+
+    from sdd_cli.utils.loader import (
+        get_governance_summary,
+        load_governance_config,
+        validate_governance_path,
+    )
+
+    if not output_json:
+        console.print(
+            Panel(
+                f"[bold cyan]Governance Configuration Loaded[/bold cyan]\n{path}",
+                border_style="cyan",
+            )
+        )
+    run_governance_load(
+        path=path,
+        output_json=output_json,
+        console=console,
+        validate_path=validate_governance_path,
+        load_config=load_governance_config,
+        get_summary=get_governance_summary,
+    )
+
+
+def run_governance_validate_cmd(
+    *,
+    path: str,
+    signature_mode: str,
+    skip_handshake: bool,
+    output_json: bool,
+    console: Any,
+) -> None:
+    """Convenience wrapper for run_governance_validate with default dependency injection."""
+    import typer
+    from rich.panel import Panel
+
+    from sdd_cli.services.governance_artifact_handlers import check_artifact_consistency
+    from sdd_cli.services.governance_config_reader import (
+        check_files_accessible,
+        check_fingerprints_valid,
+        check_no_conflicts,
+    )
+    from sdd_cli.services.runtime_preflight import run_runtime_preflight
+    from sdd_cli.utils.loader import load_governance_config, validate_governance_path
+
+    signature_mode = signature_mode.strip().lower()
+    if signature_mode not in {"off", "warn", "strict"}:
+        raise typer.BadParameter("signature_mode must be off, warn, or strict.")
+    if not output_json:
+        console.print(
+            Panel(
+                f"[bold cyan]Validating Governance[/bold cyan]\n{path}",
+                border_style="cyan",
+            )
+        )
+    run_governance_validate(
+        path=path,
+        skip_handshake=skip_handshake,
+        output_json=output_json,
+        console=console,
+        validate_path=validate_governance_path,
+        load_config=load_governance_config,
+        check_files_accessible=check_files_accessible,
+        check_fingerprints_valid=check_fingerprints_valid,
+        check_no_conflicts=check_no_conflicts,
+        check_artifact_consistency=check_artifact_consistency,
+        run_runtime_preflight_fn=run_runtime_preflight,
+    )

@@ -108,7 +108,7 @@ def test_border_normalize_covers_all_snapshot_chars() -> None:
 
 def test_governance_compile_snapshot(monkeypatch) -> None:
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._run_compilation",
+        "sdd_cli.services.governance_compile_handlers.run_compilation",
         lambda profile=None, *, console: {
             "full_pipeline_success": True,
             "phase_1": {
@@ -123,18 +123,20 @@ def test_governance_compile_snapshot(monkeypatch) -> None:
         },
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._update_profile_hash", lambda _, *, console: None
+        "sdd_cli.services.governance_compile_handlers.update_profile_hash",
+        lambda _, *, console: None,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._check_artifact_consistency",
+        "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",
         lambda _: (True, ""),
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._emit_compile_telemetry",
+        "sdd_cli.services.governance_compile_handlers.emit_compile_telemetry",
         lambda **_: None,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._regenerate_seeds", lambda *, console: None
+        "sdd_cli.services.governance_compile_handlers.regenerate_seeds",
+        lambda *, console: None,
     )
     result = runner.invoke(app, ["governance", "compile"])
     assert result.exit_code == 0, result.output
@@ -142,14 +144,10 @@ def test_governance_compile_snapshot(monkeypatch) -> None:
 
 
 def test_governance_load_snapshot(monkeypatch) -> None:
+    monkeypatch.setattr("sdd_cli.utils.loader.validate_governance_path", lambda _: True)
+    monkeypatch.setattr("sdd_cli.utils.loader.load_governance_config", lambda _: {})
     monkeypatch.setattr(
-        "sdd_cli.commands.governance.validate_governance_path", lambda _: True
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands.governance.load_governance_config", lambda _: {}
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands.governance.get_governance_summary",
+        "sdd_cli.utils.loader.get_governance_summary",
         lambda p, config=None: {"items": 8, "profile": "client"},
     )
     result = runner.invoke(app, ["governance", "load", "--path", "runtime"])
@@ -158,24 +156,24 @@ def test_governance_load_snapshot(monkeypatch) -> None:
 
 
 def test_governance_validate_snapshot(monkeypatch) -> None:
+    monkeypatch.setattr("sdd_cli.utils.loader.validate_governance_path", lambda _: True)
     monkeypatch.setattr(
-        "sdd_cli.commands.governance.validate_governance_path", lambda _: True
-    )
-    monkeypatch.setattr(
-        "sdd_cli.commands.governance.load_governance_config",
+        "sdd_cli.utils.loader.load_governance_config",
         lambda _: {"core_fingerprint": "a", "client_fingerprint": "b"},
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._check_files_accessible", lambda _: True
+        "sdd_cli.services.governance_config_reader.check_files_accessible",
+        lambda _: True,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._check_fingerprints_valid", lambda _: True
+        "sdd_cli.services.governance_config_reader.check_fingerprints_valid",
+        lambda _: True,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._check_no_conflicts", lambda _: True
+        "sdd_cli.services.governance_config_reader.check_no_conflicts", lambda _: True
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance._check_artifact_consistency",
+        "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",
         lambda _: (True, ""),
     )
     monkeypatch.setattr(
@@ -183,7 +181,7 @@ def test_governance_validate_snapshot(monkeypatch) -> None:
         _FakeAHP,
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.governance.run_runtime_preflight",
+        "sdd_cli.services.runtime_preflight.run_runtime_preflight",
         lambda _: PreflightResult(passed=True, reason="", details={}),
     )
     monkeypatch.setattr(

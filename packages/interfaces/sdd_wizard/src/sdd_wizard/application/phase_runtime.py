@@ -7,7 +7,7 @@ import json
 import shutil
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 from sdd_wizard.contracts import WizardInvocation
 from sdd_wizard.orchestration.wizard.messages import phase2_instructions_message
@@ -42,7 +42,7 @@ class PhaseRuntime:
 
     def _load_runner(self) -> Callable[..., bool]:
         module = importlib.import_module("sdd_wizard.application.interactive_wizard")
-        return module.run_interactive_wizard
+        return cast(Callable[..., bool], module.run_interactive_wizard)
 
 
 class PhaseOneContext(Protocol):

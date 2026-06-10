@@ -128,17 +128,17 @@ def test_event_emitted_after_compile(tmp_path: Path) -> None:
 
     with (
         patch(
-            "sdd_cli.commands.governance._run_compilation",
+            "sdd_cli.services.governance_compile_handlers.run_compilation",
             return_value={"phase_1": phase1, "phase_2": phase2},
         ),
         patch(
-            "sdd_cli.commands.governance._check_artifact_consistency",
+            "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",
             return_value=(True, ""),
         ),
-        patch("sdd_cli.commands.governance._update_profile_hash"),
-        patch("sdd_cli.commands.governance._regenerate_seeds"),
+        patch("sdd_cli.services.governance_compile_handlers.update_profile_hash"),
+        patch("sdd_cli.services.governance_compile_handlers.regenerate_seeds"),
         patch(
-            "sdd_cli.commands.governance.run_governance_compile_json",
+            "sdd_cli.services.governance_artifact_handlers.run_governance_compile_json",
             return_value=(
                 {
                     "status": "ok",
@@ -190,17 +190,17 @@ def test_emit_failure_does_not_block_compile(tmp_path: Path, monkeypatch) -> Non
 
     with (
         patch(
-            "sdd_cli.commands.governance._run_compilation",
+            "sdd_cli.services.governance_compile_handlers.run_compilation",
             return_value={"phase_1": phase1, "phase_2": phase2},
         ),
         patch(
-            "sdd_cli.commands.governance._check_artifact_consistency",
+            "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",
             return_value=(True, ""),
         ),
-        patch("sdd_cli.commands.governance._update_profile_hash"),
-        patch("sdd_cli.commands.governance._regenerate_seeds"),
+        patch("sdd_cli.services.governance_compile_handlers.update_profile_hash"),
+        patch("sdd_cli.services.governance_compile_handlers.regenerate_seeds"),
         patch(
-            "sdd_cli.commands.governance.run_governance_compile_json",
+            "sdd_cli.services.governance_artifact_handlers.run_governance_compile_json",
             return_value=(
                 {
                     "status": "ok",

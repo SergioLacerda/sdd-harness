@@ -252,3 +252,47 @@ def generate_artifacts(
         write_instruction_files_safe(output_base, config, console=console)
         write_prompt_commands_safe(output_base, config, console=console)
         generate_adapters_safe(output_base, console=console)
+
+
+def run_generate(
+    *,
+    output_dir: str | None,
+    path: str,
+    full_bootstrap: bool,
+    key_id: str,
+    profile: str,
+    output_json: bool,
+    console: Console,
+    compile_fn: Any = None,
+    keygen_fn: Any = None,
+    sign_fn: Any = None,
+) -> None:
+    """Orchestrate the generate command (with optional full-bootstrap sequence)."""
+    if not isinstance(full_bootstrap, bool):
+        full_bootstrap = False
+    if not isinstance(key_id, str):
+        key_id = "dev-01"
+    if not isinstance(profile, str):
+        profile = "client"
+
+    if not full_bootstrap:
+        generate_artifacts(
+            output_dir=output_dir, path=path, output_json=output_json, console=console
+        )
+        return
+
+    if not output_json:
+        console.print(
+            Panel(
+                "[bold cyan]Full Bootstrap[/bold cyan]\n"
+                "Running compile + generate + keygen + sign steps",
+                border_style="cyan",
+            )
+        )
+    if compile_fn is not None:
+        compile_fn(profile=profile)
+    generate_artifacts(
+        output_dir=output_dir, path=path, output_json=output_json, console=console
+    )
+    run_bootstrap_signing(key_id, keygen_fn=keygen_fn, sign_fn=sign_fn)
+    complete_bootstrap_handshake()

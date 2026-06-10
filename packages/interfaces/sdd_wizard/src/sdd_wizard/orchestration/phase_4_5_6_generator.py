@@ -35,13 +35,16 @@ from typing import Any
 from sdd_adapters import AdapterGenerator
 from sdd_core.utils.environment import get_sdd_paths
 
+from .deployer.seedling_injector import SeedlingInjector
+from .deployer.template_deployer import TemplateDeployer
 from .phase4_governance_loader import GovernanceLoader
 from .phase5_artifact_compiler import ArtifactCompiler
-from .phase5_source_writer import SddSourceWriter
-from .phase6_ide_deployer import IdeTemplateDeployer
 from .phase6_output_validator import OutputValidator
 from .phase6_seedlings_orchestrator import SeedlingsOrchestrator
 from .wizard.models import Phase456RunResult
+from .writers.guidelines_writer import GuidelinesWriter
+from .writers.mandates_writer import MandatesWriter
+from .writers.readme_writer import ReadmeWriter
 
 
 def _resolve_governance_inputs(
@@ -138,11 +141,14 @@ def _deploy_ide_templates(
     result: Phase456RunResult,
 ) -> bool:
     """Deploy IDE templates and inject bootstrap metadata (Phase 6)."""
-    deployer = IdeTemplateDeployer(
+    deployer = TemplateDeployer(
         repo_root=repo_root,
         output_base=output_base,
         config=config,
         verbose=verbose,
+    )
+    injector = SeedlingInjector(
+        repo_root=repo_root, output_base=output_base, verbose=verbose
     )
     if not deployer.copy_templates():
         result["errors"].append("Failed to copy templates")
@@ -150,12 +156,12 @@ def _deploy_ide_templates(
     if not deployer.create_ide_templates():
         result["errors"].append("Failed to copy configuration templates")
         return False
-    deployer.inject_bootstrap_metadata(
+    injector.inject_bootstrap_metadata(
         fingerprint=compiler.governance_fingerprint,
         generated_at=compiler.generated_at,
         mandates_count=len(compiler.mandates),
     )
-    deployer.populate_ide_rules(
+    injector.populate_ide_rules(
         mandates=compiler.mandates,
         fingerprint=compiler.governance_fingerprint,
     )
@@ -191,6 +197,46 @@ def _validate_output(
         return False
     result["validation"] = validation_result["checks"]
     return True
+
+
+def _create_source_directories(
+    output_base: Path,
+    mandates_dir: Path,
+    guidelines_dir: Path,
+    runtime_dir: Path,
+) -> bool:
+    """Create .sdd output directory structure."""
+    try:
+        mandates_dir.mkdir(parents=True, exist_ok=True)
+        guidelines_dir.mkdir(parents=True, exist_ok=True)
+        runtime_dir.mkdir(parents=True, exist_ok=True)
+        (output_base / ".github" / "workflows").mkdir(parents=True, exist_ok=True)
+        return True
+    except Exception as e:
+        print(f"  ❌ Failed to create directories: {e}")  # noqa: T201
+        return False
+
+
+def _generate_plugin_workspace_dirs(
+    output_base: Path,
+    config: dict[str, Any],
+) -> bool:
+    """Generate plugin workspace: .sdd/plugins, .sdd/contracts, .sdd/analysis, .sdd/docs."""
+    try:
+        from sdd_cli.generators._contracts import generate_contracts
+        from sdd_cli.generators._plugins import generate_plugins_registry
+
+        generate_plugins_registry(str(output_base), config)
+        generate_contracts(str(output_base), config)
+        for state in ("todo", "pending", "refined", "done"):
+            (output_base / ".sdd" / "analysis" / state).mkdir(
+                parents=True, exist_ok=True
+            )
+        (output_base / ".sdd" / "docs").mkdir(parents=True, exist_ok=True)
+        return True
+    except Exception as e:
+        print(f"  ❌ Failed to generate plugin workspace: {e}")  # noqa: T201
+        return False
 
 
 def _generate_adapters(output_base: Path, emit: Callable[[str], None]) -> None:
@@ -241,24 +287,6 @@ class Phase456Generator:
             self.repo_root, self.paths, output_base
         )
 
-    def log(self, message: str) -> None:
-        """Log."""
-        if self.verbose:
-            self._emit(f"  ℹ️  {message}")
-
-    def _load_governance(
-        self,
-    ) -> tuple[
-        list[dict[str, Any]],
-        dict[str, dict[str, Any]],
-        dict[str, list[dict[str, Any]]],
-        Phase456RunResult,
-    ]:
-        """Load governance (Phase 4)."""
-        return _load_governance(
-            self.governance_core_path, self.governance_client, self.verbose, self.dir
-        )
-
     def _write_sources(
         self,
         mandates: list[dict[str, Any]],
@@ -267,26 +295,54 @@ class Phase456Generator:
         result: Phase456RunResult,
     ) -> bool:
         """Write source files (Phase 5)."""
-        writer = SddSourceWriter(
-            output_base=self.output_base,
-            source_dir=self.source_dir,
-            runtime_dir=self.runtime_dir,
-            mandates_dir=self.mandates_dir,
-            guidelines_dir=self.guidelines_dir,
-            mandates=mandates,
-            guidelines=guidelines,
-            guidelines_by_category=guidelines_by_category,
-            config=self.config,
-            verbose=self.verbose,
+        import os
+
+        from sdd_core.utils.environment import is_repo_root
+
+        if os.environ.get("SDD_TEST_OUTPUT_DIR"):
+            try:
+                if is_repo_root(self.output_base.resolve()):
+                    result["errors"].append(
+                        f"SDD_ISOLATION_ERROR: Mutation of repo root blocked ({self.output_base})"
+                    )
+                    return False
+            except (OSError, ValueError):
+                pass
+        mandates_wr = MandatesWriter(
+            self.mandates_dir, mandates, self.config, self.verbose
         )
-        for step, label in [
-            (writer.create_directories, "Failed to create directories"),
-            (writer.generate_mandates_file, "Failed to generate mandates"),
-            (writer.generate_guidelines_files, "Failed to generate guidelines"),
-            (writer.generate_source_readme, "Failed to generate source README"),
-            (writer.generate_runtime_readme, "Failed to generate runtime README"),
-            (writer.generate_plugin_workspace, "Failed to generate plugin workspace"),
-        ]:
+        guidelines_wr = GuidelinesWriter(
+            self.guidelines_dir, guidelines_by_category, self.verbose
+        )
+        readme_wr = ReadmeWriter(
+            self.source_dir,
+            self.runtime_dir,
+            mandates,
+            guidelines,
+            guidelines_by_category,
+            self.config,
+            self.verbose,
+        )
+        steps: list[tuple[Callable[[], bool], str]] = [
+            (
+                lambda: _create_source_directories(
+                    self.output_base,
+                    self.mandates_dir,
+                    self.guidelines_dir,
+                    self.runtime_dir,
+                ),
+                "Failed to create directories",
+            ),
+            (mandates_wr.generate, "Failed to generate mandates"),
+            (guidelines_wr.generate, "Failed to generate guidelines"),
+            (readme_wr.generate_source_readme, "Failed to generate source README"),
+            (readme_wr.generate_runtime_readme, "Failed to generate runtime README"),
+            (
+                lambda: _generate_plugin_workspace_dirs(self.output_base, self.config),
+                "Failed to generate plugin workspace",
+            ),
+        ]
+        for step, label in steps:
             if not step():
                 result["errors"].append(label)
                 return False
@@ -311,17 +367,6 @@ class Phase456Generator:
             self._emit,
         )
 
-    def _deploy_ide_templates(self, compiler: Any, result: Phase456RunResult) -> bool:
-        """Deploy IDE templates (Phase 6)."""
-        return _deploy_ide_templates(
-            self.repo_root,
-            self.output_base,
-            self.config,
-            self.verbose,
-            compiler,
-            result,
-        )
-
     def _generate_seedlings(
         self,
         mandates: list[dict[str, Any]],
@@ -344,10 +389,6 @@ class Phase456Generator:
             return False
         return True
 
-    def _generate_adapters(self) -> None:
-        """Generate Level 2 adapters (skills/commands per agent)."""
-        _generate_adapters(self.output_base, self._emit)
-
     def _validate_output(
         self,
         guidelines_by_category: dict[str, list[dict[str, Any]]],
@@ -368,7 +409,9 @@ class Phase456Generator:
         self._emit("\n🏗️  PHASE 4-6: Generate Project Structure")
         self._emit("=" * 70)
 
-        mandates, guidelines, guidelines_by_category, result = self._load_governance()
+        mandates, guidelines, guidelines_by_category, result = _load_governance(
+            self.governance_core_path, self.governance_client, self.verbose, self.dir
+        )
         if result["errors"]:
             return result
 
@@ -388,13 +431,20 @@ class Phase456Generator:
             result["errors"].append("Failed to generate metadata")
             return result
 
-        if not self._deploy_ide_templates(compiler, result):
+        if not _deploy_ide_templates(
+            self.repo_root,
+            self.output_base,
+            self.config,
+            self.verbose,
+            compiler,
+            result,
+        ):
             return result
 
         if not self._generate_seedlings(mandates, guidelines_by_category, result):
             return result
 
-        self._generate_adapters()
+        _generate_adapters(self.output_base, self._emit)
 
         if not self._validate_output(guidelines_by_category, result):
             return result

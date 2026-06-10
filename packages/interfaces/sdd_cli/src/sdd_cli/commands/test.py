@@ -207,7 +207,7 @@ def ci_validate(  # noqa: C901
     if soak_threads:
         typer.echo("\n=== Thread soak ===")
         soak_args = [
-            "packages/interfaces/sdd_cli/tests/test_metrics_commands.py",
+            "packages/interfaces/sdd_cli/tests/test_metrics_reload_worker.py",
             "-k",
             "soak_restart_cycles",
         ]

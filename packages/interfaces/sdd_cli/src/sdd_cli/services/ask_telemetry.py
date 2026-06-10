@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import atexit
+import json
 import os
 import queue
 import threading
@@ -21,11 +22,30 @@ from sdd_runtime import (
 from sdd_runtime.otel import OtlpHttpExporter
 
 from sdd_cli.utils.telemetry_paths import resolve_compliance_events_path
+from sdd_core.output.canonical_event import CanonicalLogEvent, ProfileRenderer
+
+_TELEMETRY_LEVELS = ("debug", "trace")
 
 
 class _EventSink(Protocol):
     def emit(self, event: RuntimeEvent) -> None:
         pass
+
+
+def route_canonical_event(
+    event: CanonicalLogEvent,
+    *,
+    renderer: ProfileRenderer | None = None,
+) -> str:
+    """Route a canonical event per M020.
+
+    `level=debug` and `level=trace` events always emit structured JSON via
+    `to_telemetry_dict()`, bypassing the profile renderer. Other levels are
+    rendered through `ProfileRenderer.render()` (compact `simple_output()`).
+    """
+    if event.level in _TELEMETRY_LEVELS:
+        return json.dumps(event.to_telemetry_dict())
+    return (renderer or ProfileRenderer()).render(event)
 
 
 _TELEMETRY_QUEUE: queue.Queue[Callable[[], None] | None] = queue.Queue()

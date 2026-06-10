@@ -1,0 +1,201 @@
+"""Audit event parsing: loading, filtering, basic predicates, scoring helpers."""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+
+@dataclass
+class DriftRow:
+    """Represents a single drift event row in the audit log."""
+
+    ts: str
+    drift_type: str
+    command: str
+    status: str
+    fingerprint_short: str
+    cause: str
+
+
+def _parse_int(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped.isdigit():
+            return int(stripped)
+    return None
+
+
+def _event_ts(event: dict[str, Any]) -> str:
+    for key in ("end_ts", "start_ts", "timestamp"):
+        value = str(event.get(key, "")).strip()
+        if value:
+            return value
+    return ""
+
+
+def _parse_ts(ts: str) -> datetime | None:
+    if not ts:
+        return None
+    normalized = ts.replace("Z", "+00:00")
+    try:
+        dt = datetime.fromisoformat(normalized)
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except ValueError:
+        return None
+
+
+def _ts_sort_key(ts: str) -> tuple[int, str]:
+    if not ts:
+        return (0, "")
+    normalized = ts.replace("Z", "+00:00")
+    try:
+        dt = datetime.fromisoformat(normalized)
+        return (1, dt.isoformat())
+    except ValueError:
+        return (1, ts)
+
+
+def _load_events(events_file: Path) -> list[dict[str, Any]]:
+    if not events_file.exists():
+        return []
+    events: list[dict[str, Any]] = []
+    with events_file.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                data = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(data, dict):
+                events.append(data)
+    return events
+
+
+def _is_ask_event(event: dict[str, Any]) -> bool:
+    command = str(event.get("command", "")).strip()
+    if command == "ask":
+        return True
+    event_name = str(event.get("event", "")).strip()
+    return event_name.startswith("governance.ask")
+
+
+def _is_drift_event(event: dict[str, Any]) -> bool:
+    if str(event.get("event", "")).strip() == "runtime.drift.detected":
+        return True
+    details = event.get("details", {})
+    if isinstance(details, dict):
+        if bool(details.get("drift_detected")):
+            return True
+        drift_type = str(details.get("drift_type", "")).strip().lower()
+        if drift_type and drift_type != "none":
+            return True
+    return False
+
+
+def _drift_type(event: dict[str, Any]) -> str:
+    details = event.get("details", {})
+    if isinstance(details, dict):
+        value = str(details.get("drift_type", "")).strip()
+        if value:
+            return value
+    return "missing_drift_type"
+
+
+def _drift_cause(event: dict[str, Any]) -> str:
+    details = event.get("details", {})
+    if isinstance(details, dict):
+        for key in (
+            "drift_cause",
+            "reason",
+            "remediation_command",
+            "degraded_reason",
+        ):
+            value = str(details.get(key, "")).strip()
+            if value:
+                return value
+    return ""
+
+
+def _window_events(
+    events: list[dict[str, Any]], *, now_utc: datetime, days: int
+) -> list[dict[str, Any]]:
+    start = now_utc - timedelta(days=days)
+    out: list[dict[str, Any]] = []
+    for event in events:
+        dt = _parse_ts(_event_ts(event))
+        if dt is None:
+            continue
+        if dt >= start:
+            out.append(event)
+    return out
+
+
+def _token_totals(events: list[dict[str, Any]]) -> tuple[int, int, int]:
+    total_in = 0
+    total_out = 0
+    with_tokens = 0
+    for event in events:
+        tokens_in = _parse_int(event.get("tokens_input"))
+        tokens_out = _parse_int(event.get("tokens_output"))
+        if tokens_in is None or tokens_out is None:
+            continue
+        with_tokens += 1
+        total_in += tokens_in
+        total_out += tokens_out
+    return total_in, total_out, with_tokens
+
+
+def _as_score(value: Any) -> float:
+    if isinstance(value, bool):
+        return 1.0 if value else 0.0
+    if isinstance(value, int | float):
+        return max(0.0, min(1.0, float(value)))
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "pass", "passed", "ok", "accepted", "yes"}:
+            return 1.0
+        if lowered in {"false", "fail", "failed", "rejected", "no"}:
+            return 0.0
+    return 0.0
+
+
+def _quality_score(events: list[dict[str, Any]]) -> float | None:
+    tests: list[float] = []
+    acceptance: list[float] = []
+    for event in events:
+        details = event.get("details", {})
+        if not isinstance(details, dict):
+            continue
+        if "tests_passed" in details:
+            tests.append(_as_score(details.get("tests_passed")))
+        if "human_accepted" in details:
+            acceptance.append(_as_score(details.get("human_accepted")))
+    if not tests and not acceptance:
+        return None
+    test_avg = (sum(tests) / len(tests)) if tests else 0.0
+    acceptance_avg = (sum(acceptance) / len(acceptance)) if acceptance else 0.0
+    return round((0.6 * test_avg + 0.4 * acceptance_avg) * 100.0, 2)
+
+
+def _has_quality_signals(events: list[dict[str, Any]]) -> bool:
+    for event in events:
+        details = event.get("details", {})
+        if not isinstance(details, dict):
+            continue
+        if "tests_passed" in details or "human_accepted" in details:
+            return True
+    return False

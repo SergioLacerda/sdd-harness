@@ -1,206 +1,29 @@
-"""Audit core data processing: event loading, drift classification, window analytics."""
+"""Audit analytics: window classification, correlation, summary aggregation."""
 
 from __future__ import annotations
 
-import json
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from sdd_cli.services.audit_event_parser import (
+    DriftRow,  # noqa: F401 — backward-compat re-export
+    _as_score,  # noqa: F401 — backward-compat re-export
+    _drift_cause,  # noqa: F401 — backward-compat re-export
+    _drift_type,  # noqa: F401 — backward-compat re-export
+    _event_ts,  # noqa: F401 — backward-compat re-export
+    _has_quality_signals,  # noqa: F401 — backward-compat re-export
+    _is_ask_event,
+    _is_drift_event,
+    _load_events,  # noqa: F401 — backward-compat re-export
+    _parse_int,  # noqa: F401 — backward-compat re-export
+    _parse_ts,  # noqa: F401 — backward-compat re-export
+    _quality_score,
+    _token_totals,
+    _ts_sort_key,  # noqa: F401 — backward-compat re-export
+    _window_events,
+)
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
-
-
-@dataclass
-class DriftRow:
-    """Represents a single drift event row in the audit log."""
-
-    ts: str
-    drift_type: str
-    command: str
-    status: str
-    fingerprint_short: str
-    cause: str
-
-
-def _parse_int(value: Any) -> int | None:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float):
-        return int(value)
-    if isinstance(value, str):
-        stripped = value.strip()
-        if stripped.isdigit():
-            return int(stripped)
-    return None
-
-
-def _event_ts(event: dict[str, Any]) -> str:
-    for key in ("end_ts", "start_ts", "timestamp"):
-        value = str(event.get(key, "")).strip()
-        if value:
-            return value
-    return ""
-
-
-def _parse_ts(ts: str) -> datetime | None:
-    if not ts:
-        return None
-    normalized = ts.replace("Z", "+00:00")
-    try:
-        dt = datetime.fromisoformat(normalized)
-        if dt.tzinfo is None:
-            return dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(timezone.utc)
-    except ValueError:
-        return None
-
-
-def _ts_sort_key(ts: str) -> tuple[int, str]:
-    if not ts:
-        return (0, "")
-    normalized = ts.replace("Z", "+00:00")
-    try:
-        dt = datetime.fromisoformat(normalized)
-        return (1, dt.isoformat())
-    except ValueError:
-        return (1, ts)
-
-
-def _load_events(events_file: Path) -> list[dict[str, Any]]:
-    if not events_file.exists():
-        return []
-    events: list[dict[str, Any]] = []
-    with events_file.open("r", encoding="utf-8") as handle:
-        for line in handle:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                data = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if isinstance(data, dict):
-                events.append(data)
-    return events
-
-
-def _is_ask_event(event: dict[str, Any]) -> bool:
-    command = str(event.get("command", "")).strip()
-    if command == "ask":
-        return True
-    event_name = str(event.get("event", "")).strip()
-    return event_name.startswith("governance.ask")
-
-
-def _is_drift_event(event: dict[str, Any]) -> bool:
-    if str(event.get("event", "")).strip() == "runtime.drift.detected":
-        return True
-    details = event.get("details", {})
-    if isinstance(details, dict):
-        if bool(details.get("drift_detected")):
-            return True
-        drift_type = str(details.get("drift_type", "")).strip().lower()
-        if drift_type and drift_type != "none":
-            return True
-    return False
-
-
-def _drift_type(event: dict[str, Any]) -> str:
-    details = event.get("details", {})
-    if isinstance(details, dict):
-        value = str(details.get("drift_type", "")).strip()
-        if value:
-            return value
-    return "missing_drift_type"
-
-
-def _drift_cause(event: dict[str, Any]) -> str:
-    details = event.get("details", {})
-    if isinstance(details, dict):
-        for key in (
-            "drift_cause",
-            "reason",
-            "remediation_command",
-            "degraded_reason",
-        ):
-            value = str(details.get(key, "")).strip()
-            if value:
-                return value
-    return ""
-
-
-def _window_events(
-    events: list[dict[str, Any]], *, now_utc: datetime, days: int
-) -> list[dict[str, Any]]:
-    start = now_utc - timedelta(days=days)
-    out: list[dict[str, Any]] = []
-    for event in events:
-        dt = _parse_ts(_event_ts(event))
-        if dt is None:
-            continue
-        if dt >= start:
-            out.append(event)
-    return out
-
-
-def _token_totals(events: list[dict[str, Any]]) -> tuple[int, int, int]:
-    total_in = 0
-    total_out = 0
-    with_tokens = 0
-    for event in events:
-        tokens_in = _parse_int(event.get("tokens_input"))
-        tokens_out = _parse_int(event.get("tokens_output"))
-        if tokens_in is None or tokens_out is None:
-            continue
-        with_tokens += 1
-        total_in += tokens_in
-        total_out += tokens_out
-    return total_in, total_out, with_tokens
-
-
-def _as_score(value: Any) -> float:
-    if isinstance(value, bool):
-        return 1.0 if value else 0.0
-    if isinstance(value, int | float):
-        return max(0.0, min(1.0, float(value)))
-    if isinstance(value, str):
-        lowered = value.strip().lower()
-        if lowered in {"true", "pass", "passed", "ok", "accepted", "yes"}:
-            return 1.0
-        if lowered in {"false", "fail", "failed", "rejected", "no"}:
-            return 0.0
-    return 0.0
-
-
-def _quality_score(events: list[dict[str, Any]]) -> float | None:
-    tests: list[float] = []
-    acceptance: list[float] = []
-    for event in events:
-        details = event.get("details", {})
-        if not isinstance(details, dict):
-            continue
-        if "tests_passed" in details:
-            tests.append(_as_score(details.get("tests_passed")))
-        if "human_accepted" in details:
-            acceptance.append(_as_score(details.get("human_accepted")))
-    if not tests and not acceptance:
-        return None
-    test_avg = (sum(tests) / len(tests)) if tests else 0.0
-    acceptance_avg = (sum(acceptance) / len(acceptance)) if acceptance else 0.0
-    return round((0.6 * test_avg + 0.4 * acceptance_avg) * 100.0, 2)
-
-
-def _has_quality_signals(events: list[dict[str, Any]]) -> bool:
-    for event in events:
-        details = event.get("details", {})
-        if not isinstance(details, dict):
-            continue
-        if "tests_passed" in details or "human_accepted" in details:
-            return True
-    return False
 
 
 def _window_confidence(token_coverage: float, drift_classified_coverage: float) -> str:
@@ -270,7 +93,9 @@ def _window_correlation(
 
     classified = 0
     for event in drifts:
-        if _drift_type(event) != "missing_drift_type":
+        from sdd_cli.services.audit_event_parser import _drift_type as _dt
+
+        if _dt(event) != "missing_drift_type":
             classified += 1
     drift_classified_coverage = (classified / len(drifts)) if drifts else 1.0
     current_drift_rate = (len(drifts) * 100.0 / len(asks)) if asks else 0.0
@@ -333,6 +158,11 @@ def _window_correlation(
 
 
 def _compute_base_summary(events: list[dict[str, Any]], top: int) -> dict[str, Any]:
+    from sdd_cli.services.audit_event_parser import _drift_cause as _dc
+    from sdd_cli.services.audit_event_parser import _drift_type as _dt
+    from sdd_cli.services.audit_event_parser import _event_ts as _ets
+    from sdd_cli.services.audit_event_parser import _ts_sort_key as _tsk
+
     drifts = [event for event in events if _is_drift_event(event)]
 
     events_by_command: dict[str, int] = {}
@@ -342,7 +172,7 @@ def _compute_base_summary(events: list[dict[str, Any]], top: int) -> dict[str, A
         command = str(event.get("command", "")).strip() or "unknown"
         events_by_command[command] = events_by_command.get(command, 0) + 1
     for event in drifts:
-        dtype = _drift_type(event)
+        dtype = _dt(event)
         drift_by_type[dtype] = drift_by_type.get(dtype, 0) + 1
         if dtype == "missing_drift_type":
             unclassified_drifts += 1
@@ -352,15 +182,15 @@ def _compute_base_summary(events: list[dict[str, Any]], top: int) -> dict[str, A
         fingerprint = str(event.get("artifact_fingerprint", "")).strip()
         rows.append(
             DriftRow(
-                ts=_event_ts(event),
-                drift_type=_drift_type(event),
+                ts=_ets(event),
+                drift_type=_dt(event),
                 command=str(event.get("command", "")).strip() or "unknown",
                 status=str(event.get("status", "")).strip() or "unknown",
                 fingerprint_short=fingerprint[:8] if fingerprint else "",
-                cause=_drift_cause(event),
+                cause=_dc(event),
             )
         )
-    rows = sorted(rows, key=lambda item: _ts_sort_key(item.ts), reverse=True)[:top]
+    rows = sorted(rows, key=lambda item: _tsk(item.ts), reverse=True)[:top]
     total_in, total_out, with_tokens = _token_totals(events)
     ratio = (total_out / total_in) if total_in > 0 else 0.0
     missing_tokens = len(events) - with_tokens

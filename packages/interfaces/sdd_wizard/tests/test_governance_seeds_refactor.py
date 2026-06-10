@@ -10,13 +10,13 @@ import inspect
 from pathlib import Path
 
 from sdd_core.utils.text_io import read_text_utf8
-from sdd_wizard.orchestration.seedlings._governance_templates import (
-    build_activation_guide,
-    build_verification_script,
-)
 from sdd_wizard.orchestration.seedlings.governance_seeds import (
     GovernanceSeedsGenerator,
     generate_agent_instructions_from_config,
+)
+from sdd_wizard.templates.seedling_templates import (
+    build_activation_guide,
+    build_verification_script,
 )
 
 FINGERPRINT = "abc12345"
@@ -111,5 +111,5 @@ def test_governance_seeds_module_size_reduced() -> None:
     lines = source.splitlines()
     assert len(lines) < 900, (
         f"governance_seeds.py grew to {len(lines)} lines — "
-        "verify that templates are still in _governance_templates.py"
+        "verify that templates are still in templates/seedling_templates.py"
     )

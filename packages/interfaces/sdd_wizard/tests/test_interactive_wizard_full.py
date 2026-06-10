@@ -14,6 +14,7 @@ from sdd_wizard.application.interactive_wizard import (
     InteractiveWizard,
     run_interactive_wizard,
 )
+from sdd_wizard.application.workspace_runtime import docs_meta_ready, source_spec_ready
 
 # Prevent the large orchestration phase modules from being imported as a side
 # effect of test patches. This keeps them out of the coverage denominator so
@@ -24,8 +25,6 @@ _LARGE_PHASE_MODULES = [
     "sdd_wizard.orchestration.wizard.phase3_compiler",
     "sdd_wizard.orchestration.phase_4_5_6_generator",
     "sdd_wizard.orchestration.phase5_artifact_compiler",
-    "sdd_wizard.orchestration.phase5_source_writer",
-    "sdd_wizard.orchestration.phase6_ide_deployer",
 ]
 
 
@@ -210,15 +209,18 @@ class TestDocsMetaReady:
         (docs_meta / dsl).write_text("x", encoding="utf-8")
 
     def test_false_when_missing(self, tmp_path: Path) -> None:
-        assert _make_wizard(tmp_path)._docs_meta_ready() is False
+        wizard = _make_wizard(tmp_path)
+        assert docs_meta_ready(wizard.client_build_dir) is False
 
     def test_true_with_spec_and_dsl(self, tmp_path: Path) -> None:
         self._make_docs_meta(tmp_path)
-        assert _make_wizard(tmp_path)._docs_meta_ready() is True
+        wizard = _make_wizard(tmp_path)
+        assert docs_meta_ready(wizard.client_build_dir) is True
 
     def test_true_with_md_files(self, tmp_path: Path) -> None:
         self._make_docs_meta(tmp_path, "mandate.md", "guidelines.md")
-        assert _make_wizard(tmp_path)._docs_meta_ready() is True
+        wizard = _make_wizard(tmp_path)
+        assert docs_meta_ready(wizard.client_build_dir) is True
 
 
 class TestEnsureDocsMeta:
@@ -722,7 +724,7 @@ class TestShowPhaseMenuFallback:
 class TestSourceSpecReady:
     def test_false_when_source_spec_missing(self, tmp_path: Path) -> None:
         wizard = _make_wizard_with_source_spec(tmp_path, source_spec=tmp_path / "spec")
-        assert wizard._source_spec_ready() is False
+        assert source_spec_ready(wizard.paths, wizard.client_build_dir) is False
 
     def test_true_with_mandate_and_guidelines(self, tmp_path: Path) -> None:
         spec = tmp_path / "spec"
@@ -730,14 +732,14 @@ class TestSourceSpecReady:
         (spec / "mandate.spec").write_text("x", encoding="utf-8")
         (spec / "guidelines.dsl").write_text("x", encoding="utf-8")
         wizard = _make_wizard_with_source_spec(tmp_path, source_spec=spec)
-        assert wizard._source_spec_ready() is True
+        assert source_spec_ready(wizard.paths, wizard.client_build_dir) is True
 
     def test_false_without_guidelines(self, tmp_path: Path) -> None:
         spec = tmp_path / "spec"
         spec.mkdir(parents=True)
         (spec / "mandate.md").write_text("x", encoding="utf-8")
         wizard = _make_wizard_with_source_spec(tmp_path, source_spec=spec)
-        assert wizard._source_spec_ready() is False
+        assert source_spec_ready(wizard.paths, wizard.client_build_dir) is False
 
 
 class TestEnsureOnboardingScaffoldOSError:
@@ -768,8 +770,14 @@ class TestEnsureDocsMetaReadyFailures:
             patch.object(
                 wizard, "_ensure_onboarding_scaffold", return_value=(True, "")
             ),
-            patch.object(wizard, "_docs_meta_ready", return_value=False),
-            patch.object(wizard, "_source_spec_ready", return_value=False),
+            patch(
+                "sdd_wizard.application.interactive_wizard.docs_meta_ready",
+                return_value=False,
+            ),
+            patch(
+                "sdd_wizard.application.interactive_wizard.source_spec_ready",
+                return_value=False,
+            ),
         ):
             ok, reason = wizard._ensure_docs_meta_ready()
         assert ok is False
