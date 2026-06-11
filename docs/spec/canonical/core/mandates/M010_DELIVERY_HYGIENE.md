@@ -53,11 +53,11 @@ unambiguous human instruction** in the current message. Examples:
 
 | Phrase | Authorized? |
 |--------|-------------|
-| "commita", "commit isso", "faz o commit" | ✅ Yes |
-| "push", "manda pro remote" | ✅ Yes |
-| "aplicar", "aplicar soluções" | ❌ No — implements code, not git |
-| "continuar", "seguir", "pronto", "ok" | ❌ No — completion, not git |
-| "seguir com implementação" | ❌ No — implements, not git |
+| "commit", "commit this", "make the commit" | ✅ Yes |
+| "push", "push to remote" | ✅ Yes |
+| "apply", "apply the fixes" | ❌ No — implements code, not git |
+| "continue", "go ahead", "done", "ok" | ❌ No — completion, not git |
+| "proceed with the implementation" | ❌ No — implements, not git |
 | tests passing / make check passing | ❌ No — quality gate, not git auth |
 | task completion feeling | ❌ No — never infer git authorization |
 

@@ -45,13 +45,18 @@ def _build_language_governance_advisories(
     """Build non-blocking language governance advisories from mandates/guidelines/context."""
     advisories: list[dict[str, Any]] = []
     config = config or {}
-    mandates = config.get("mandates", {})
+    items = config.get("items", [])
     language_context = config.get("language_context", {})
     workspace_root = _workspace_root_from_governance_path(path)
     docs_root = workspace_root / "docs"
     analysis_root = workspace_root / ".analysis"
 
-    m011_active = isinstance(mandates, dict) and "M011" in mandates
+    m011_active = any(
+        isinstance(item, dict)
+        and item.get("id") == "M011"
+        and item.get("type") == "MANDATE"
+        for item in items
+    )
     advisories.append(
         {
             "check": "Language mandate core (M011)",
@@ -63,11 +68,16 @@ def _build_language_governance_advisories(
         }
     )
 
-    source_guidelines = Path(path).resolve().parent / "source" / "guidelines.dsl"
-    has_language_guidelines = False
-    if source_guidelines.exists():
-        content = source_guidelines.read_text(encoding="utf-8")
-        has_language_guidelines = all(gid in content for gid in ("G021", "G022"))
+    source_dir = Path(path).resolve().parent / "source"
+    source_guidelines_candidates = [source_dir / "guidelines.dsl"]
+    guidelines_dir = source_dir / "guidelines"
+    if guidelines_dir.is_dir():
+        source_guidelines_candidates.extend(sorted(guidelines_dir.glob("*.md")))
+    has_language_guidelines = any(
+        all(gid in candidate.read_text(encoding="utf-8") for gid in ("G021", "G022"))
+        for candidate in source_guidelines_candidates
+        if candidate.exists()
+    )
     advisories.append(
         {
             "check": "Language preference guidelines",
@@ -75,7 +85,8 @@ def _build_language_governance_advisories(
             "status": "pass" if has_language_guidelines else "warn",
             "message": "Universal language preference guidelines are present."
             if has_language_guidelines
-            else "Language preference guidelines were not found in .sdd/source/guidelines.dsl.",
+            else "Language preference guidelines were not found in "
+            ".sdd/source/guidelines.dsl or .sdd/source/guidelines/*.md.",
         }
     )
 

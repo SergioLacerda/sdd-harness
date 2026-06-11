@@ -12,17 +12,17 @@ Maximize convergence speed while minimizing cognitive expansion.
 
 ## MUST NOT
 
-- Expand architectural scope sem evidência.
-- Carregar documentação completa por padrão.
-- Repetir tentativas sem nova informação.
+- Expand architectural scope without evidence.
+- Load full documentation by default.
+- Repeat attempts without new information.
 
 ## INVALID
 
-- Executar full-suite por padrão sem prova de impacto.
-- Introduzir redesign fora do escopo classificado.
+- Run the full test suite by default without proof of impact.
+- Introduce a redesign outside the classified scope.
 
 ## Escalation/Recovery
 
-- Reduzir escopo para o menor comportamento reproduzível.
-- Reclassificar PATH quando o risco mudar.
-- Escalar para revisão humana quando houver bloqueio recorrente.
+- Reduce scope to the smallest reproducible behavior.
+- Reclassify the PATH when risk changes.
+- Escalate to human review when there is a recurring blocker.

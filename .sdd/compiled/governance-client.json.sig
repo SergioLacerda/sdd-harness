@@ -4,7 +4,7 @@
   "key_id": "dev-01",
   "artifact_name": "governance-client.json",
   "profile": "client",
-  "payload_hash": "394130091258e21fdd26e35e3990b1fcb03d589bc380e1431633247d569e025c",
-  "signature": "XmNsvXDpHUZ29B1h2SjwA+m5G0qzJwlG/CZiqkzHZA4OsAUBQ/QsuxISzjIumxFcescoh5S6GRDxF/9t8msBDA==",
-  "signed_at": "2026-05-31T22:57:16.439212Z"
+  "payload_hash": "d92deb798250d88f628b8b6d1ed43f73aa11e12a1c862be27d1eccc0aac6b80f",
+  "signature": "az3nLe7kkwprKjv+B6JbmiKXMznhk6SWiweBXmTZ3n7iMAKLE8XEOGfqXJ0iSCyAsODS/bsifizsbLecoEDMBA==",
+  "signed_at": "2026-06-10T23:39:41.099233Z"
 }

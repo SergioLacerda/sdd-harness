@@ -377,6 +377,6 @@ class InteractiveWizard:
         return InteractiveFlowRuntime(self).execute()
 
 
-def run_interactive_wizard(repo_root: Path) -> bool:
+def run_interactive_wizard(repo_root: Path, output_dir: Path | None = None) -> bool:
     """Create an InteractiveWizard and run the main interactive flow."""
-    return InteractiveWizard(repo_root=repo_root).run()
+    return InteractiveWizard(repo_root=repo_root, output_dir=output_dir).run()

@@ -1,232 +1,232 @@
 # 🔄 SPEC Reusability Guide
 
-Como usar o framework SPEC (Sistema de Princípios e Especificações) em múltiplos projetos mantendo qualidade "world-class".
+How to use the SPEC framework (System of Principles and Specifications) across multiple projects while maintaining "world-class" quality.
 
-## 🎯 Princípios
+## 🎯 Principles
 
-1. **CANONICAL/ = Imutável** — Todas as regras, arquitetura, decisões compartilhadas
-2. **custom/ = Especialização** — Cada projeto especializa estado e execução
-3. **DRY = Verdadeiro** — ~30% duplicação (aceitável), vs 100% alternativas
-4. **Zero Degradação de Qualidade** — Todos projetos = mesma qualidade
+1. **CANONICAL/ = Immutable** — All shared rules, architecture, and decisions
+2. **custom/ = Specialization** — Each project specializes its own state and execution
+3. **DRY = True** — ~30% duplication (acceptable) vs. 100% with the alternatives
+4. **Zero Quality Degradation** — All projects = same quality
 
-## 📋 Layers e Reusabilidade
+## 📋 Layers and Reusability
 
-### CANONICAL/ ✅ Reutilização: 100%
+### CANONICAL/ ✅ Reuse: 100%
 
-**Todos os projetos usam EXATAMENTE IGUAL**
+**All projects use it EXACTLY THE SAME**
 
 ```
 /EXECUTION/spec/CANONICAL/
-├── rules/                 # Aplicável a TODOS projetos
-├── specifications/        # Aplicável a TODOS projetos
-└── decisions/            # Histórico de TODOS projetos
+├── rules/                 # Applies to ALL projects
+├── specifications/        # Applies to ALL projects
+└── decisions/            # History shared by ALL projects
 ```
 
-**O que você PODE fazer:**
+**What you CAN do:**
 
-- ✅ Adicionar novas regras/specs em CANONICAL/ (todos herdam)
-- ✅ Criar novo ADR em CANONICAL/ (aplicável globalmente)
-- ✅ Expandir seções (e.g., observability.md para incluir mais projetos)
+- ✅ Add new rules/specs to CANONICAL/ (everyone inherits them)
+- ✅ Create a new ADR in CANONICAL/ (applies globally)
+- ✅ Expand sections (e.g., observability.md to cover more projects)
 
-**O que você NÃO PODE fazer:**
+**What you CANNOT do:**
 
-- ❌ Modificar CANONICAL/ por projeto específico
-- ❌ Ter "exceções" em um projeto
-- ❌ Criar versões diferentes do mesmo arquivo
+- ❌ Modify CANONICAL/ for a specific project
+- ❌ Have "exceptions" in one project
+- ❌ Create different versions of the same file
 
-### custom/ 🎨 Reutilização: ~70%
+### custom/ 🎨 Reuse: ~70%
 
-**Cada projeto especializa conforme necessário**
+**Each project specializes as needed**
 
 ```
 /EXECUTION/spec/custom/
-├── _TEMPLATE/           # Modelo para novos projetos (100% reutilizável)
-└── [PROJECT_NAME]/      # Implementação específica
-    ├── development/     # Estado de execução ativo (muda frequentemente)
-    └── reality/         # Estado observado do projeto
+├── _TEMPLATE/           # Template for new projects (100% reusable)
+└── [PROJECT_NAME]/      # Project-specific implementation
+    ├── development/     # Active execution state (changes frequently)
+    └── reality/         # Observed state of the project
 ```
 
-**O que você PODE fazer:**
+**What you CAN do:**
 
-- ✅ Criar novo projeto copiando `_TEMPLATE/`
-- ✅ Especializar `reality/` conforme estado do projeto
-- ✅ Especializar `development/` conforme trabalho ativo
+- ✅ Create a new project by copying `_TEMPLATE/`
+- ✅ Specialize `reality/` according to the project's state
+- ✅ Specialize `development/` according to active work
 
-**O que você NÃO PODE fazer:**
+**What you CANNOT do:**
 
-- ❌ Contradizer CANONICAL/
-- ❌ Copiar arquivos em vez de reutilizar template
-- ❌ Criar dependências entre projetos
+- ❌ Contradict CANONICAL/
+- ❌ Copy files instead of reusing the template
+- ❌ Create dependencies between projects
 
-### ARCHIVE/ 📚 Reutilização: 0% (read-only)
+### ARCHIVE/ 📚 Reuse: 0% (read-only)
 
-**Histórico. Consultar, não modificar.**
+**History. Consult, do not modify.**
 
 ```
 docs/spec/ARCHIVE/
-├── working-sessions/     # Análises completadas
-├── deprecated-decisions/ # ADRs antigas
-└── project-migrations/   # Histórico de integrações
+├── working-sessions/     # Completed analyses
+├── deprecated-decisions/ # Old ADRs
+└── project-migrations/   # Integration history
 ```
 
-## 🚀 Como Iniciar Novo Projeto
+## 🚀 How to Start a New Project
 
-### Step 1: Criar estrutura (2 min)
+### Step 1: Create the structure (2 min)
 
 ```bash
 cp -r docs/ia/custom/_TEMPLATE docs/ia/custom/my-new-project
 ```
 
-### Step 2: Preencher metadados (5 min)
+### Step 2: Fill in metadata (5 min)
 
 ```bash
-# Editar:
-# - docs/ia/custom/my-new-project/README.md (nome, descrição)
+# Edit:
+# - docs/ia/custom/my-new-project/README.md (name, description)
 # - docs/ia/custom/my-new-project/INTEGRATION_RESULTS.md
 ```
 
-### Step 3: Documentar estado atual (2-4 horas)
+### Step 3: Document the current state (2-4 hours)
 
 ```bash
-# Documentar:
-# - reality/current-system-state/ (como é hoje)
-# - reality/limitations/ (o que não funciona)
-# - development/execution-state/_current.md (trabalho ativo)
+# Document:
+# - reality/current-system-state/ (how it is today)
+# - reality/limitations/ (what doesn't work)
+# - development/execution-state/_current.md (active work)
 ```
 
-### Step 4: Validar herança (30 min)
+### Step 4: Validate inheritance (30 min)
 
 ```bash
-# Verificar:
-# - Todos CANONICAL/ files presente e igual
-# - Caminhos em ia-rules.md apontam para correto projeto
-# - _INDEX.md lista novo projeto
+# Check:
+# - All CANONICAL/ files are present and identical
+# - Paths in ia-rules.md point to the correct project
+# - _INDEX.md lists the new project
 ```
 
-**Tempo total:** ~4 horas (documentação é o bulk)
+**Total time:** ~4 hours (documentation is the bulk of it)
 
-## 📊 Matriz de Reutilização
+## 📊 Reuse Matrix
 
-| Componente | Reuso | Nível | Projeto A | Projeto B | Projeto C |
+| Component | Reuse | Level | Project A | Project B | Project C |
 |-----------|-------|-------|----------|----------|----------|
-| ADRs | 100% | CANONICAL | ✅ Igual | ✅ Igual | ✅ Igual |
-| Architecture | 100% | CANONICAL | ✅ Igual | ✅ Igual | ✅ Igual |
-| Definition of Done | 100% | CANONICAL | ✅ Igual | ✅ Igual | ✅ Igual |
-| Testing patterns | 100% | CANONICAL | ✅ Igual | ✅ Igual | ✅ Igual |
+| ADRs | 100% | CANONICAL | ✅ Same | ✅ Same | ✅ Same |
+| Architecture | 100% | CANONICAL | ✅ Same | ✅ Same | ✅ Same |
+| Definition of Done | 100% | CANONICAL | ✅ Same | ✅ Same | ✅ Same |
+| Testing patterns | 100% | CANONICAL | ✅ Same | ✅ Same | ✅ Same |
 | Services description | ~30% | custom/ | ⚠️ Similar | ⚠️ Similar | ⚠️ Similar |
-| Limitations | ~20% | custom/ | ❌ Diferente | ❌ Diferente | ❌ Diferente |
-| Current work | 0% | custom/ | 🔄 Ativo | ⚠️ Pausado | ❌ Parado |
+| Limitations | ~20% | custom/ | ❌ Different | ❌ Different | ❌ Different |
+| Current work | 0% | custom/ | 🔄 Active | ⚠️ Paused | ❌ Stopped |
 
 ## 🔐 Enforcement Rules
 
-### Regra 1: CANONICAL é imutável
+### Rule 1: CANONICAL is immutable
 
 ```
-❌ NÃO faça: git rm CANONICAL/rules/constitution.md
-✅ FAÇA: Estender constitution.md com novas seções
+❌ DON'T: git rm CANONICAL/rules/constitution.md
+✅ DO: Extend constitution.md with new sections
 ```
 
-### Regra 2: Cada projeto tem seu custom/
+### Rule 2: Each project has its own custom/
 
 ```
-❌ NÃO faça: custom/[PROJECT_NAME]/reality/another-project-notes.md
-✅ FAÇA: custom/[PROJECT_NAME]/reality/ SOMENTE [PROJECT_NAME]
+❌ DON'T: custom/[PROJECT_NAME]/reality/another-project-notes.md
+✅ DO: custom/[PROJECT_NAME]/reality/ ONLY for [PROJECT_NAME]
 ```
 
-### Regra 3: Template é sagrado
+### Rule 3: The template is sacred
 
 ```
-❌ NÃO faça: Modificar custom/_TEMPLATE/ para teste
-✅ FAÇA: Usar custom/_TEMPLATE/ como modelo (cp -r)
+❌ DON'T: Modify custom/_TEMPLATE/ for testing
+✅ DO: Use custom/_TEMPLATE/ as a model (cp -r)
 ```
 
-### Regra 4: ARCHIVE nunca sofre push mutação
+### Rule 4: ARCHIVE never receives a mutation push
 
 ```
-❌ NÃO faça: git push com mudanças em ARCHIVE/
-✅ FAÇA: Mover arquivos de DEVELOPMENT/ → ARCHIVE/ (apenas completados)
+❌ DON'T: git push with changes under ARCHIVE/
+✅ DO: Move files from DEVELOPMENT/ → ARCHIVE/ (only completed work)
 ```
 
-### Regra 5: Melhorias vão em CANONICAL primeiro
+### Rule 5: Improvements go to CANONICAL first
 
 ```
-❌ NÃO faça: Adicionar observability.md em custom/[PROJECT_NAME]/
-✅ FAÇA: Adicionar CANONICAL/specifications/observability.md (todos herdam)
+❌ DON'T: Add observability.md under custom/[PROJECT_NAME]/
+✅ DO: Add CANONICAL/specifications/observability.md (everyone inherits it)
 ```
 
-## 🎓 Exemplo: Integração Passo-a-Passo
+## 🎓 Example: Step-by-Step Integration
 
-### Novo projeto: "[PROJECT_NAME]"
+### New project: "[PROJECT_NAME]"
 
 #### 1. Setup
 
 ```bash
 cd /home/my-projects/[PROJECT_NAME]
 
-# Copiar SPEC
+# Copy SPEC
 cp -r /home/[PROJECT_NAME]/docs/ia /docs/ia
 
-# Estruturar para reutilização
+# Structure for reuse
 mkdir -p /EXECUTION/spec/custom/_TEMPLATE/{development,reality}
 ```
 
-#### 2. Herdar CANONICAL
+#### 2. Inherit CANONICAL
 
 ```bash
-# CANONICAL é 100% compartilhado (não altere!)
+# CANONICAL is 100% shared (do not change it!)
 ls /EXECUTION/spec/CANONICAL/
 # rules/ specifications/ decisions/
 ```
 
-#### 3. Especializar custom/
+#### 3. Specialize custom/
 
 ```bash
-# Documentar estado específico
-echo "Game Master API - Serviços..." > /EXECUTION/spec/custom/_TEMPLATE/reality/current-system-state/services.md
+# Document project-specific state
+echo "Game Master API - Services..." > /EXECUTION/spec/custom/_TEMPLATE/reality/current-system-state/services.md
 
-# Documentar trabalho ativo
-echo "Thread 1: Implementar..." > /EXECUTION/spec/custom/_TEMPLATE/development/execution-state/_current.md
+# Document active work
+echo "Thread 1: Implement..." > /EXECUTION/spec/custom/_TEMPLATE/development/execution-state/_current.md
 ```
 
-#### 4. Validar
+#### 4. Validate
 
 ```bash
-# Verificar que CANONICAL é igual
+# Check that CANONICAL is identical
 diff /EXECUTION/spec/CANONICAL/ /path/to/[PROJECT_NAME]/EXECUTION/spec/CANONICAL/
-# Resultado: devem ser idênticos!
+# Result: should be identical!
 ```
 
-## ⚡ Melhorias World-Class (Roadmap)
+## ⚡ World-Class Improvements (Roadmap)
 
-Quando implementar melhorias em CANONICAL/, todos projetos herdam automaticamente:
+When improvements are implemented in CANONICAL/, all projects inherit them automatically:
 
-- 🔄 Observabilidade: `CANONICAL/specifications/observability.md` (novo)
-- 🔒 Segurança: `CANONICAL/rules/security-model.md` (novo)
-- ⚡ Performance: `CANONICAL/specifications/performance.md` (novo)
-- ✅ Compliance: `CANONICAL/specifications/compliance.md` (novo)
+- 🔄 Observability: `CANONICAL/specifications/observability.md` (new)
+- 🔒 Security: `CANONICAL/rules/security-model.md` (new)
+- ⚡ Performance: `CANONICAL/specifications/performance.md` (new)
+- ✅ Compliance: `CANONICAL/specifications/compliance.md` (new)
 
-**Todos os projetos ganham isso de graça!**
+**All projects get this for free!**
 
-## 📞 Suporte
+## 📞 Support
 
-### "Tenho dúvida sobre um ADR"
+### "I have a question about an ADR"
 
-→ Veja `CANONICAL/decisions/ADR-*.md`
+→ See `CANONICAL/decisions/ADR-*.md`
 
-### "Preciso estender a arquitetura"
+### "I need to extend the architecture"
 
-→ Leia `CANONICAL/specifications/architecture.md` first
+→ Read `CANONICAL/specifications/architecture.md` first
 
-### "Encontrei um bug/limitation"
+### "I found a bug/limitation"
 
-→ Document em `custom/[PROJECT_NAME]/reality/limitations/`
+→ Document it under `custom/[PROJECT_NAME]/reality/limitations/`
 
-### "Tenho uma melhoria global"
+### "I have a global improvement"
 
-→ Propose ADR em `CANONICAL/decisions/` (aplica a todos)
+→ Propose an ADR under `CANONICAL/decisions/` (applies to everyone)
 
 ---
 
 **Framework:** SPEC v1.0
-**Autoridade:** ADR + CANONICAL
-**Última revisão:** 2026-04-19
+**Authority:** ADR + CANONICAL
+**Last review:** 2026-04-19

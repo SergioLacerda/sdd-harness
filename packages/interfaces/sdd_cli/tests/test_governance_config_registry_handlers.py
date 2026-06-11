@@ -193,8 +193,7 @@ def test_governance_validate_json_success() -> None:
             console=Console(),
             validate_path=lambda _p: True,
             load_config=lambda _p: {
-                "items": [],
-                "mandates": {"M011": "English Language Standard"},
+                "items": [{"id": "M011", "type": "MANDATE"}],
             },
             check_files_accessible=lambda _p: True,
             check_fingerprints_valid=lambda _c: True,
@@ -235,8 +234,7 @@ def test_governance_validate_advisories_include_analysis_classification(
             console=Console(),
             validate_path=lambda _p: True,
             load_config=lambda _p: {
-                "items": [],
-                "mandates": {"M011": "English Language Standard"},
+                "items": [{"id": "M011", "type": "MANDATE"}],
             },
             check_files_accessible=lambda _p: True,
             check_fingerprints_valid=lambda _c: True,
