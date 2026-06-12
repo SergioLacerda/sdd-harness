@@ -75,12 +75,10 @@ def _load_slash_aliases(output_dir: Path) -> list[tuple[str, str]]:
             ("/sdd-correct", "sdd-correct"),
             ("/sdd-converge", "sdd-converge"),
             ("/sdd-ask", "sdd-ask"),
-            ("/sdd-ask-full", "sdd-ask-full"),
             ("/sdd-organize", "sdd-organize"),
         ]
 
     alias_map = {slash: cmd_id for slash, cmd_id in aliases}
-    alias_map.setdefault("/sdd-ask-full", "sdd-ask-full")
     return [(slash, cmd_id) for slash, cmd_id in alias_map.items()]
 
 
@@ -101,32 +99,12 @@ def _load_command_entries(output_dir: Path) -> list[dict[str, Any]]:
                 if slash and cmd_id and isinstance(routes, dict):
                     out.append(cmd)
             if out:
-                return _ensure_compat_command_entries(out)
+                return out
     except (OSError, ValueError):
-        return _ensure_compat_command_entries(_default_command_entries())
+        return _default_command_entries()
 
     # Fallback for early bootstrap without registry available.
-    return _ensure_compat_command_entries(_default_command_entries())
-
-
-def _ensure_compat_command_entries(
-    commands: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    """Ensure compatibility aliases remain available in generated prompts."""
-    by_id = {
-        str(command.get("id", "")).strip(): command
-        for command in commands
-        if isinstance(command, dict)
-    }
-    by_id.setdefault(
-        "sdd-ask-full",
-        {
-            "id": "sdd-ask-full",
-            "slash": "/sdd-ask-full",
-            "routes_to": {"type": "cli", "command": 'sdd ask --full "$QUERY"'},
-        },
-    )
-    return list(by_id.values())
+    return _default_command_entries()
 
 
 def _default_command_entries() -> list[dict[str, Any]]:
@@ -136,11 +114,6 @@ def _default_command_entries() -> list[dict[str, Any]]:
             "id": "sdd-ask",
             "slash": "/sdd-ask",
             "routes_to": {"type": "cli", "command": "sdd ask"},
-        },
-        {
-            "id": "sdd-ask-full",
-            "slash": "/sdd-ask-full",
-            "routes_to": {"type": "cli", "command": 'sdd ask --full "$QUERY"'},
         },
         {
             "id": "sdd-organize",
@@ -186,20 +159,6 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
             "Response contract:\n"
             "- Show `fingerprint`, `context_source`, and `mandates_loaded` from runtime output.\n"
             "- Treat `.sdd` runtime artifacts as source of truth for these fields.\n"
-            + _ASK_500_FALLBACK_NOTE,
-        )
-
-    if slug == "sdd-ask-full":
-        return (
-            slug,
-            "Query SDD governance context (full output)",
-            "agent",
-            "Query the SDD governance context with the user's question.\n\n"
-            'Execute in the terminal:\n```bash\nsdd runtime status\nsdd governance validate\nsdd ask --full "$QUERY"\n```\n\n'
-            "Replace `$QUERY` with the user's question.\n\n"
-            "Response contract:\n"
-            "- Use the canonical full-output path via `sdd ask --full`.\n"
-            "- Do not emit duplicated `ask-full` invocations.\n"
             + _ASK_500_FALLBACK_NOTE,
         )
 

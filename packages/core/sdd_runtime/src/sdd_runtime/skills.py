@@ -381,6 +381,7 @@ _REGISTRY: dict[str, SkillDefinition] = {
             "apply multiple corrections in one pass",
             "skip postcheck",
         ],
+        config={"gate_rules_file": ".sdd/skills/sdd-correct/gate-rules.yaml"},
         fallback_to="sdd-diagnose",
         idempotent=False,
         hard_mode_invariants={
@@ -507,6 +508,42 @@ _REGISTRY: dict[str, SkillDefinition] = {
         ],
         fallback_to="sdd-ask",
         idempotent=False,
+        config={
+            "pipeline": {
+                "stages": [
+                    "sdd-ask",
+                    "sdd-diagnose",
+                    "sdd-correct",
+                    "sdd-converge",
+                ],
+                "decision_gates": {
+                    "diagnose_to_correct_min_confidence": 0.7,
+                },
+            }
+        },
+    ),
+    "sdd-harness": SkillDefinition(
+        name="sdd-harness",
+        version="1.0.0",
+        category="bootstrap",
+        description="Bootstrap pointer skill for file-based skill-discovery agents (Claude Code, Antigravity/Gemini CLI). Points to .sdd/agent-instructions.md as the single governance authority.",
+        when_to_use=[
+            "agent startup / skill discovery",
+            "locating canonical governance entrypoints",
+        ],
+        outcomes=["bootstrap_pointer"],
+        allowed_tools=["sdd runtime status"],
+        cli_fallback=["sdd runtime status --force"],
+        required_permissions=["workspace-read"],
+        risk_score="low",
+        tags=["bootstrap", "meta", "pointer"],
+        triggers=["startup", "bootstrap", "skill discovery"],
+        forbidden=[
+            "duplicate governance authority content",
+            "diverge from .sdd/agent-instructions.md",
+        ],
+        fallback_to=None,
+        idempotent=True,
     ),
 }
 

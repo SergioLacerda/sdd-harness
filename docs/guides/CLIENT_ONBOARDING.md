@@ -8,17 +8,40 @@ Get your SDD workspace running with governed bootstrap and agent command packs.
 - Git
 - [uv](https://astral.sh/uv) (required)
 
+## Quick Start (One Command)
+
+> Prerequisite: install the SDD CLI first — see [Step 1](#step-by-step-setup-client-project)
+> below if you haven't already.
+
+After `sdd wizard run` has generated your project template, `sdd init --default`
+runs the full client bootstrap chain in one step: workspace profile, governance
+generate (`--full-bootstrap`), skills bootstrap (`--full-bootstrap
+--regenerate-seeds`), runtime validation, and git hooks install. It is
+equivalent to `sdd init --type client --name local-dev --force`, with any of
+`--type`/`--name`/`--force` you pass explicitly taking precedence.
+
+```bash
+cd <your-project>
+sdd wizard run
+sdd init --default
+sdd governance validate
+```
+
+Each step is skipped automatically if it already ran (idempotent re-run); use
+`--force` (or `--default`, which implies it) to re-run all steps.
+
 ## Step-by-step Setup (Client Project)
 
 ```bash
-# 1. Install SDD CLI (cross-platform: Linux/macOS/Windows)
-uv tool install sdd-cli
+# 1. Install SDD CLI (cross-platform: Linux/macOS/Windows, no clone required)
+uv tool install "git+https://github.com/SergioLacerda/sdd-harness#subdirectory=packages/interfaces/sdd_cli"
 
 # 2. Enter your project and run the wizard
 cd <your-project>
 sdd wizard run
 
 # 3. Activate runtime/governance in the generated template
+#    (this single command also runs steps 4-6 below automatically)
 sdd init --type client --name <your-project> --force
 
 # 4. Compile + generate + sign + handshake
@@ -27,17 +50,10 @@ sdd governance generate --full-bootstrap
 # 5. Generate skills/commands/seeds for agent entrypoints
 sdd skills --full-bootstrap --regenerate-seeds
 
-# 6. Verify runtime/governance health
+# 6. Verify runtime/governance health and install git hooks
 sdd runtime status
+sdd setup git-hooks
 sdd governance validate
-```
-
-### Alternative (legacy / Unix shell)
-
-Use this only if `uv` is unavailable in your environment (Unix shell only).
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh | sh
 ```
 
 ### Zero-state onboarding behavior
@@ -60,7 +76,7 @@ Custom command packs are generated from canonical `.sdd` artifacts.
 - Codex commands: `.codex/commands.md` + `.codex/skills/*.prompt.md`
 - Gemini commands: `.gemini/commands.md`
 
-Core aliases include: `/sdd-ask`, `/sdd-ask-full`, `/sdd-organize`, `/sdd-diagnose`.
+Core aliases include: `/sdd-ask`, `/sdd-organize`, `/sdd-diagnose`.
 
 To regenerate:
 
@@ -101,7 +117,7 @@ This usually indicates a provider/IDE API incident, not a local SDD CLI failure.
 ```bash
 sdd runtime status
 sdd governance validate
-sdd ask-full "<your question>"
+sdd ask --full "<your question>"
 ```
 
 1. Capture the `request_id` from the 500 response and report it for incident triage.

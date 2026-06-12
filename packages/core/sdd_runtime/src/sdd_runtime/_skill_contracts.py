@@ -86,6 +86,7 @@ class SkillDefinition:
             "default_detail": "minimal",
         }
     )
+    config: dict[str, Any] = field(default_factory=dict)
     # Plugin delegation — M017 Analysis Plugin Compliance
     delegation_policy: dict[str, Any] | None = None
     # Hard-mode governance enforcement (M010, M015)

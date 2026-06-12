@@ -17,18 +17,18 @@ class TestReleaseBuild:
     def test_build_package_not_installed_exits_1(self) -> None:
         with (
             patch("sdd_cli.utils.profile.enforce_profile_policy", return_value=None),
-            patch("importlib.util.find_spec", return_value=None),
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=False),
         ):
             result = runner.invoke(app, ["release", "build"])
         assert result.exit_code == 1
-        assert "not installed" in result.output
+        assert "not available in this environment" in result.output
 
     def test_build_success(self) -> None:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(success=True)
         with (
             patch("sdd_cli.utils.profile.enforce_profile_policy", return_value=None),
-            patch("importlib.util.find_spec", return_value=MagicMock()),
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=True),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["release", "build"])
@@ -41,7 +41,7 @@ class TestReleaseBuild:
         mock_runner.run.side_effect = ProcessNonZeroExitError("build failed")
         with (
             patch("sdd_cli.utils.profile.enforce_profile_policy", return_value=None),
-            patch("importlib.util.find_spec", return_value=MagicMock()),
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=True),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["release", "build"])
@@ -55,7 +55,7 @@ class TestReleaseBuild:
         mock_runner.run.side_effect = ProcessAuthorizationError("blocked")
         with (
             patch("sdd_cli.utils.profile.enforce_profile_policy", return_value=None),
-            patch("importlib.util.find_spec", return_value=MagicMock()),
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=True),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["release", "build"])
@@ -71,7 +71,7 @@ class TestReleaseBuild:
         )
         with (
             patch("sdd_cli.utils.profile.enforce_profile_policy", return_value=None),
-            patch("importlib.util.find_spec", return_value=MagicMock()),
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=True),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["release", "build"])
@@ -85,7 +85,7 @@ class TestReleaseBuild:
         mock_runner.run.side_effect = ProcessSpawnError("cannot spawn")
         with (
             patch("sdd_cli.utils.profile.enforce_profile_policy", return_value=None),
-            patch("importlib.util.find_spec", return_value=MagicMock()),
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=True),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["release", "build"])

@@ -1,6 +1,5 @@
 """Release."""
 
-import importlib.util
 import sys
 
 import click
@@ -17,6 +16,7 @@ def _() -> None:
 @app.command("build")
 def build() -> None:
     """Build release artifacts into dist/."""
+    from sdd_cli.utils.dev_deps import require_dev_module
     from sdd_cli.utils.profile import enforce_profile_policy
     from sdd_core.utils.process import (
         ProcessAuthorizationError,
@@ -28,11 +28,7 @@ def build() -> None:
 
     enforce_profile_policy("release", click.get_current_context(silent=True))
 
-    if importlib.util.find_spec("build") is None:
-        typer.echo(
-            "ERROR: Python package 'build' not installed. Install with: pip install build"
-        )
-        raise typer.Exit(1)
+    require_dev_module("build")
 
     try:
         runner = SafeProcessRunner()

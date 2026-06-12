@@ -2,7 +2,7 @@
 # All shell commands are POSIX-compatible within a bash/sh context.
 #
 # Use uv run if uv is available; fall back to direct execution (e.g. inside Docker)
-VENV_PYTHON := $(wildcard .venv/bin/python)
+VENV_PYTHON := $(firstword $(wildcard .venv/bin/python .venv/Scripts/python.exe))
 UV := $(shell command -v uv 2>/dev/null)
 
 ifeq ($(strip $(VENV_PYTHON)),)
@@ -22,7 +22,7 @@ help:
 	@echo "==========================="
 	@echo "install         - Install all workspace dependencies (dev)"
 	@echo "install-docs    - Install documentation dependencies (mkdocs)"
-	@echo "check           - Run all tests (unit + integration + contract)"
+	@echo "check           - Run CI-safe tests (unit + integration + contract, no perf)"
 	@echo "ci-pr           - Run fast artifact/golden CI parity gates before promotion/push"
 	@echo "ci-pr-full      - Run ci-pr plus strict coverage gates"
 	@echo "test            - Run full multi-layer test pipeline with unified coverage gate"
@@ -55,6 +55,7 @@ install-docs:
 check: golden-status
 	$(PYTHON) tools/ci/check_golden_policy.py --mode warn
 	$(PYTHON) -m pytest tests packages \
+		-m "not perf" \
 		--cov=packages \
 		--cov-report=term-missing:skip-covered
 

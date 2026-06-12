@@ -1,7 +1,7 @@
 """Setup."""
 
 import sys
-import tempfile
+from pathlib import Path
 
 import typer
 
@@ -32,17 +32,9 @@ def _run(cmd: list[str]) -> None:
 
 def _validate_module_import(venv_python: str, module: str) -> bool:
     """Validate module import in venv without python -c (blocked by governance policy)."""
-    script = f"import {module}\nprint('ok')\n"
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix="_sdd_import_check.py", delete=True
-    ) as handle:
-        handle.write(script)
-        handle.flush()
-        from sdd_core.utils.process import SafeProcessRunner
+    from sdd_core.utils.process import check_module_available
 
-        runner = SafeProcessRunner()
-        result = runner.run([venv_python, handle.name], capture_output=True)
-        return result.success
+    return check_module_available(venv_python, module)
 
 
 def _ensure_phase_0_marker() -> None:
@@ -52,13 +44,49 @@ def _ensure_phase_0_marker() -> None:
     (runtime_dir / ".phase-0-complete").touch(exist_ok=True)
 
 
+def _uninstall_git_hooks(hooks_src: Path, git_hooks_dest: Path) -> None:
+    """Remove previously installed SDD git hooks."""
+    typer.echo("Uninstalling SDD Internal Hooks...")
+    for hook_file in hooks_src.iterdir():
+        if hook_file.is_dir() or hook_file.name.startswith("."):
+            continue
+        target = git_hooks_dest / hook_file.name
+        if target.is_symlink() or target.exists():
+            target.unlink()
+            typer.echo(f"  Removed: {hook_file.name}")
+
+
+def _install_git_hook(hook_file: Path, git_hooks_dest: Path) -> bool:
+    """Install a single git hook, returns True if copied instead of symlinked."""
+    import os
+    import shutil
+
+    target = git_hooks_dest / hook_file.name
+    if target.exists() or target.is_symlink():
+        target.unlink()
+
+    # Create symlink (preferred: dest stays in sync with hooks_src)
+    try:
+        os.symlink(hook_file.absolute(), target)
+        hook_file.chmod(0o755)
+        typer.echo(f"  OK: Linked {hook_file.name}")
+        return False
+    except OSError:
+        # Symlinks unavailable on this platform (e.g. Windows without
+        # Developer Mode/admin) - fall back to copying the hook file.
+        shutil.copy2(hook_file, target)
+        target.chmod(0o755)
+        typer.echo(
+            f"  OK: Copied {hook_file.name} (symlink unavailable on this platform)"
+        )
+        return True
+
+
 @app.command(name="git-hooks")
 def setup_git_hooks(
     uninstall: bool = typer.Option(False, "--uninstall", help="Remove SDD git hooks"),
 ) -> None:
     """Install or uninstall SDD git hooks."""
-    import os
-
     hooks_src = _REPO_ROOT / "tools" / "scripts" / "git-hooks"
     git_hooks_dest = _REPO_ROOT / ".git" / "hooks"
 
@@ -67,34 +95,23 @@ def setup_git_hooks(
         raise typer.Exit(1)
 
     if uninstall:
-        typer.echo("Uninstalling SDD Internal Hooks...")
-        for hook_file in hooks_src.iterdir():
-            target = git_hooks_dest / hook_file.name
-            if target.is_symlink():
-                target.unlink()
-                typer.echo(f"  Removed link: {hook_file.name}")
+        _uninstall_git_hooks(hooks_src, git_hooks_dest)
         return
 
     typer.echo(f"Installing SDD World-Class Hooks from {hooks_src}...")
+    any_copied = False
     for hook_file in hooks_src.iterdir():
         if hook_file.is_dir() or hook_file.name.startswith("."):
             continue
+        if _install_git_hook(hook_file, git_hooks_dest):
+            any_copied = True
 
-        target = git_hooks_dest / hook_file.name
-
-        # Remove existing
-        if target.exists() or target.is_symlink():
-            target.unlink()
-
-        # Create symlink
-        try:
-            os.symlink(hook_file.absolute(), target)
-            # Ensure executable
-            hook_file.chmod(0o755)
-            typer.echo(f"  OK: Linked {hook_file.name}")
-        except OSError as e:
-            typer.echo(f"  FAILED: Could not link {hook_file.name}: {e}")
-            raise typer.Exit(1) from e
+    if any_copied:
+        typer.echo(
+            "\nNote: hooks were copied (not linked) because symlinks are unavailable "
+            "on this platform. Re-run 'sdd setup git-hooks' after pulling changes to "
+            "tools/scripts/git-hooks/."
+        )
 
     typer.echo("\n✅ SDD Internal Hooks Installed.")
 
@@ -125,6 +142,11 @@ def run_setup(  # noqa: C901
         raise typer.Exit(1) from None
 
     typer.echo("OK: Virtualenv ready")
+
+    # Bootstrap pip if missing (e.g. venvs created by `uv venv` ship without pip)
+    if not _validate_module_import(str(venv_python), "pip"):
+        typer.echo("OK: Bootstrapping pip (venv created without pip)...")
+        _run([str(venv_python), "-m", "ensurepip", "--upgrade"])
 
     # Upgrade pip (quiet)
     _run([str(venv_python), "-m", "pip", "install", "--upgrade", "pip", "-q"])

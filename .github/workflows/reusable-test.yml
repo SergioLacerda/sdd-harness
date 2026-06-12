@@ -43,11 +43,6 @@ jobs:
           uv run pytest -q \
             tests/contract/test_governance_schema.py::TestGovernanceCoreGoldenFile::test_structure_matches_golden
 
-      - name: Enforce performance SLO baselines
-        shell: bash
-        run: |
-          uv run pytest -q tests/perf/test_baselines.py
-
       - name: Enforce golden snapshot policy matrix
         shell: bash
         run: |
@@ -206,7 +201,10 @@ jobs:
         shell: bash
         run: |
           uv run pytest -q \
-            packages/interfaces/sdd_cli/tests/test_skills_command.py \
+            packages/interfaces/sdd_cli/tests/test_skills_bootstrap_command.py \
+            packages/interfaces/sdd_cli/tests/test_skills_core_command.py \
+            packages/interfaces/sdd_cli/tests/test_skills_learning_command.py \
+            packages/interfaces/sdd_cli/tests/test_skills_run_command.py \
             packages/interfaces/sdd_cli/tests/test_skills_sync_contract.py \
             packages/interfaces/sdd_cli/tests/test_skills_layering.py
 

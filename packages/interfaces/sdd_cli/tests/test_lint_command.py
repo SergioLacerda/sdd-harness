@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+import typer
 from click.testing import CliRunner
 
 from sdd_cli.commands.lint import _run_step
@@ -105,8 +106,9 @@ class TestRunRuff:
 
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(success=True, returncode=0)
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
+        with (
+            patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=True),
         ):
             result = _run_ruff(fix=False)
         assert result is False
@@ -125,8 +127,9 @@ class TestRunRuff:
             return MagicMock(success=True, returncode=0)
 
         mock_runner.run.side_effect = alternate_results
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
+        with (
+            patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=True),
         ):
             result = _run_ruff(fix=False)
         assert result is True
@@ -136,13 +139,25 @@ class TestRunRuff:
 
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(success=True, returncode=0)
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
+        with (
+            patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=True),
         ):
             result = _run_ruff(fix=True)
         assert result is False
         calls = mock_runner.run.call_args_list
         assert any("--fix" in str(c) for c in calls)
+
+
+class TestRequireDevModuleGuard:
+    def test_run_ruff_missing_module_exits(self) -> None:
+        from sdd_cli.commands.lint import _run_ruff
+
+        with (
+            patch("sdd_cli.utils.dev_deps.check_module_available", return_value=False),
+            pytest.raises(typer.Exit),
+        ):
+            _run_ruff(fix=False)
 
 
 # ---------------------------------------------------------------------------

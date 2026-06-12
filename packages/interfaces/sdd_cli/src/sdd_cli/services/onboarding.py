@@ -40,14 +40,14 @@ class OnboardingOrchestrator:
         return result.success
 
     def step_governance(self, *, force: bool) -> bool:
-        """[2/4] Generate governance artifacts. Skips if already compiled and not forced."""
+        """[2/5] Generate governance artifacts. Skips if already compiled and not forced."""
         compiled = self.cwd / ".sdd" / "compiled" / "governance-core.json"
         if not force and compiled.exists():
             typer.echo(
-                "[2/4] Generating governance artifacts... (skipped — already compiled)"
+                "[2/5] Generating governance artifacts... (skipped — already compiled)"
             )
             return True
-        typer.echo("[2/4] Generating governance artifacts...")
+        typer.echo("[2/5] Generating governance artifacts...")
         ok = self._run_step(
             "governance generate",
             ["governance", "generate", "--full-bootstrap"],
@@ -56,12 +56,12 @@ class OnboardingOrchestrator:
         return ok
 
     def step_skills(self, *, force: bool) -> bool:
-        """[3/4] Initialize skills. Skips if already seeded and not forced."""
+        """[3/5] Initialize skills. Skips if already seeded and not forced."""
         seeds_dir = self.cwd / ".sdd" / "skills"
         if not force and seeds_dir.exists() and any(seeds_dir.iterdir()):
-            typer.echo("[3/4] Initializing skills... (skipped — already seeded)")
+            typer.echo("[3/5] Initializing skills... (skipped — already seeded)")
             return True
-        typer.echo("[3/4] Initializing skills...")
+        typer.echo("[3/5] Initializing skills...")
         ok = self._run_step(
             "skills bootstrap",
             ["skills", "--full-bootstrap", "--regenerate-seeds"],
@@ -70,13 +70,31 @@ class OnboardingOrchestrator:
         return ok
 
     def step_validate(self) -> bool:
-        """[4/4] Validate runtime state with sdd runtime status --force."""
-        typer.echo("[4/4] Validating runtime state...")
+        """[4/5] Validate runtime state with sdd runtime status --force."""
+        typer.echo("[4/5] Validating runtime state...")
         ok = self._run_step(
             "runtime status",
             ["runtime", "status", "--force"],
         )
         typer.echo(f"      {'✓' if ok else '✗'} runtime status")
+        return ok
+
+    def step_hooks(self, *, force: bool) -> bool:
+        """[5/5] Install git hooks. Skips if not a git repo or already installed."""
+        git_dir = self.cwd / ".git"
+        if not git_dir.exists():
+            typer.echo("[5/5] Installing git hooks... (skipped — not a git repository)")
+            return True
+        pre_commit_hook = git_dir / "hooks" / "pre-commit"
+        if not force and pre_commit_hook.is_symlink():
+            typer.echo("[5/5] Installing git hooks... (skipped — already installed)")
+            return True
+        typer.echo("[5/5] Installing git hooks...")
+        ok = self._run_step(
+            "setup git-hooks",
+            ["setup", "git-hooks"],
+        )
+        typer.echo(f"      {'✓' if ok else '✗'} setup git-hooks")
         return ok
 
     def run(self, *, force: bool) -> OnboardingResult:
@@ -106,5 +124,12 @@ class OnboardingOrchestrator:
                     "workspace initialized but governance not active",
                     "run: sdd runtime status --verbose",
                 ],
+            )
+        if not self.step_hooks(force=force):
+            return OnboardingResult(
+                success=False,
+                failed_step="hooks",
+                exit_code=5,
+                messages=["git hooks install failed — run: sdd setup git-hooks"],
             )
         return OnboardingResult(success=True, exit_code=0)

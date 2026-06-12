@@ -192,7 +192,7 @@ class IntelligentSeedlingsGenerator:
                 "sdd skills run sdd-diagnose",
                 "sdd runtime status",
                 "sdd governance validate",
-                "sdd ask-full",
+                "sdd ask --full",
                 "sdd governance compile",
             ]
             for snippet in required_snippets:

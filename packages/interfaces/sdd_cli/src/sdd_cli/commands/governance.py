@@ -35,12 +35,15 @@ from sdd_cli.services.governance_scoring_output import (
 )
 from sdd_cli.services.governance_security_handlers import run_keygen, run_sign_cmd
 from sdd_cli.utils.command_errors import handle_cli_errors
+from sdd_cli.utils.loader import (
+    validate_governance_path,  # noqa: F401  backward-compat re-export for unit tests
+)
 from sdd_cli.utils.output import is_json_mode
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
 # Backward-compat re-exports used by tests/patches.
 Table = RichTable
-__all__ = ["render_governance_compile_table", "Table"]
+__all__ = ["render_governance_compile_table", "Table", "validate_governance_path"]
 
 app = typer.Typer(help="Governance management commands")
 console = Console()

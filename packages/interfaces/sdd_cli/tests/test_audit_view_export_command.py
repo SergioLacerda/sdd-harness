@@ -159,6 +159,7 @@ def test_audit_compliance_pack_generates_files(tmp_path: Path) -> None:
         patch(
             "sdd_cli.commands.audit.SafeProcessRunner.run",
             side_effect=[
+                SimpleNamespace(stdout="", stderr="", returncode=0, success=True),
                 SimpleNamespace(stdout="runtime ok\n", stderr="", returncode=0),
                 SimpleNamespace(stdout="governance ok\n", stderr="", returncode=0),
             ],
@@ -185,3 +186,21 @@ def test_audit_compliance_pack_generates_files(tmp_path: Path) -> None:
     assert (out_dir / "governance_validation.txt").exists()
     assert (out_dir / "decision_trace.md").exists()
     assert (out_dir / "external_review_checklist.md").exists()
+
+
+def test_audit_compliance_pack_missing_sdd_cli_module_exits_1(tmp_path: Path) -> None:
+    events_file = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+    _write_view_events(events_file)
+    out_dir = tmp_path / "pack"
+
+    with (
+        patch("sdd_cli.commands.audit.resolve_workspace_root", return_value=tmp_path),
+        patch("sdd_cli.utils.dev_deps.check_module_available", return_value=False),
+    ):
+        result = runner.invoke(
+            app,
+            ["audit", "compliance-pack", "--out-dir", str(out_dir)],
+        )
+
+    assert result.exit_code == 1
+    assert "not available in this environment" in result.output

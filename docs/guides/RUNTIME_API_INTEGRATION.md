@@ -59,7 +59,7 @@ Command contract:
 ### 3) Governed Context Query (full telemetry)
 
 ```bash
-sdd ask-full "<query>" \
+sdd ask --full "<query>" \
   --tokens-input 150 \
   --tokens-output 60 \
   --log-format jsonl
@@ -117,7 +117,7 @@ Governed outputs must end with a compact governance footer.
 - Applies to:
   - `sdd skills run`
   - `sdd runtime status`
-  - governed ask flows (`sdd ask`, `sdd ask-full`)
+  - governed ask flows (`sdd ask`, `sdd ask --full`)
 
 ## Integration Pattern by Framework
 
@@ -126,7 +126,7 @@ Governed outputs must end with a compact governance footer.
 Recommended insertion points:
 
 1. Pre-graph run hook: call `sdd runtime status --verbose`
-2. Retrieval/context node: call `sdd ask`/`sdd ask-full`
+2. Retrieval/context node: call `sdd ask`/`sdd ask --full`
 3. Post-run hook: record final status and optionally re-check drift
 
 Minimal shell adapter:
@@ -159,7 +159,7 @@ def sdd_to_otel(event: dict) -> dict:
 Recommended insertion points:
 
 1. Before `Crew.kickoff()`: run health gate
-2. In agent tool wrapper: route policy/spec questions to `sdd ask-full`
+2. In agent tool wrapper: route policy/spec questions to `sdd ask --full`
 3. For intent-level actions, prefer `sdd skills run <skill>`
 4. After task completion: persist/ship compliance log artifact
 
@@ -184,7 +184,7 @@ def crew_emit_event(event: dict, trace_id: str, span_id: str) -> dict:
 Recommended insertion points:
 
 1. Before starting chat loop: run health gate
-2. In custom tool/function bridge: map governance questions to `sdd ask` or `sdd ask-full`
+2. In custom tool/function bridge: map governance questions to `sdd ask` or `sdd ask --full`
 3. Use `sdd skills run` for capability-oriented tasks before low-level command fallback
 4. In termination callback: run drift check and archive logs
 
@@ -209,7 +209,7 @@ def autogen_event_attrs(event: dict) -> dict:
 Treat SDD commands as hard gates for runtime safety:
 
 - `runtime status` non-zero: stop orchestration loop
-- budget/compliance failure in `ask-full`: fallback to safe response path
+- budget/compliance failure in `ask --full`: fallback to safe response path
 - missing artifacts: run compile/bootstrap remediation before retry
 
 Suggested policy:
@@ -222,7 +222,7 @@ Suggested policy:
 
 For integration-grade observability, always prefer:
 
-- `ask-full` for audit-critical flows
+- `ask --full` for audit-critical flows
 - explicit token metrics (`--tokens-input`, `--tokens-output`)
 - structured log format (`--log-format jsonl`)
 
@@ -269,7 +269,7 @@ attrs = to_otel_attributes(
 sdd runtime status --verbose
 
 # 2) Query governed context used by orchestration layer
-sdd ask-full "What constraints apply to this deployment action?" \
+sdd ask --full "What constraints apply to this deployment action?" \
   --tokens-input 220 \
   --tokens-output 80 \
   --log-format jsonl
@@ -281,7 +281,7 @@ sdd bootstrap run
 ## Production Checklist
 
 - [ ] `sdd runtime status --verbose` executed before every run
-- [ ] Context queries routed through `sdd ask` or `sdd ask-full`
+- [ ] Context queries routed through `sdd ask` or `sdd ask --full`
 - [ ] Compliance logs persisted and exported
 - [ ] Bootstrap refresh policy defined (`session_guard_hours`)
 - [ ] Fail-closed behavior documented in the orchestration runtime

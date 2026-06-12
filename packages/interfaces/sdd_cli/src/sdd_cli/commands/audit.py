@@ -240,6 +240,10 @@ def audit_compliance_pack(
     manifest_file = out_dir / "compliance_report.manifest.json"
     manifest_file.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
+    from sdd_cli.utils.dev_deps import require_dev_module
+
+    require_dev_module("sdd_cli")
+
     runner = SafeProcessRunner()
     runtime_status = runner.run(
         [sys.executable, "-m", "sdd_cli.main", "runtime", "status"],

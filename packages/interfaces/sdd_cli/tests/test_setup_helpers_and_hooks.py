@@ -19,7 +19,7 @@ class TestValidateModuleImport:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(success=True)
         with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
+            "sdd_core.utils._process_runner.SafeProcessRunner", return_value=mock_runner
         ):
             result = setup_mod._validate_module_import("/usr/bin/python", "sdd_core")
         assert result is True
@@ -28,7 +28,7 @@ class TestValidateModuleImport:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(success=False)
         with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
+            "sdd_core.utils._process_runner.SafeProcessRunner", return_value=mock_runner
         ):
             result = setup_mod._validate_module_import("/usr/bin/python", "missing_mod")
         assert result is False
@@ -41,7 +41,9 @@ class TestValidateModuleImport:
                 calls.append(list(args))
                 return MagicMock(success=True)
 
-        with patch("sdd_core.utils.process.SafeProcessRunner", return_value=_Runner()):
+        with patch(
+            "sdd_core.utils._process_runner.SafeProcessRunner", return_value=_Runner()
+        ):
             setup_mod._validate_module_import("/venv/bin/python", "sdd_core")
 
         assert calls
@@ -148,7 +150,9 @@ class TestSetupGitHooks:
 
         assert result.exit_code == 0
 
-    def test_install_oserror_exits_1(self, tmp_path: Path) -> None:
+    def test_install_falls_back_to_copy_on_symlink_oserror(
+        self, tmp_path: Path
+    ) -> None:
         from sdd_cli.main import app
 
         hooks_src = tmp_path / "tools" / "scripts" / "git-hooks"
@@ -164,7 +168,34 @@ class TestSetupGitHooks:
         ):
             result = runner.invoke(app, ["setup", "git-hooks"])
 
-        assert result.exit_code == 1
+        assert result.exit_code == 0
+        target = git_hooks / "pre-commit"
+        assert target.exists()
+        assert not target.is_symlink()
+        assert target.read_text(encoding="utf-8") == hook_file.read_text(
+            encoding="utf-8"
+        )
+        assert "Copied pre-commit" in result.output
+        assert "Re-run 'sdd setup git-hooks'" in result.output
+
+    def test_uninstall_removes_copied_files(self, tmp_path: Path) -> None:
+        from sdd_cli.main import app
+
+        hooks_src = tmp_path / "tools" / "scripts" / "git-hooks"
+        hooks_src.mkdir(parents=True)
+        git_hooks = tmp_path / ".git" / "hooks"
+        git_hooks.mkdir(parents=True)
+
+        hook_file = hooks_src / "pre-commit"
+        hook_file.write_text("#!/bin/sh\n", encoding="utf-8")
+        copied = git_hooks / "pre-commit"
+        copied.write_text("#!/bin/sh\n", encoding="utf-8")
+
+        with patch.object(setup_mod, "_REPO_ROOT", tmp_path):
+            result = runner.invoke(app, ["setup", "git-hooks", "--uninstall"])
+
+        assert result.exit_code == 0
+        assert not copied.exists()
 
     def test_skips_directories_and_dotfiles(self, tmp_path: Path) -> None:
         from sdd_cli.main import app

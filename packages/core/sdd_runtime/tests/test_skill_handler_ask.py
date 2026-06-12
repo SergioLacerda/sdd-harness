@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 from sdd_runtime._skill_executor import AskHandler, _build_execution_contract
 
 
@@ -56,3 +58,37 @@ def test_build_execution_contract_standalone() -> None:
     )
     assert result["allowed_paths"] == ["src/"]
     assert result["forbidden_paths"] == []
+
+
+def test_pre_run_injects_historical_context_when_learning_has_data() -> None:
+    handler = AskHandler()
+    learning = MagicMock()
+    learning.list_failures.return_value = [{"symptom": "ask", "root_cause": "drift"}]
+    learning.list_active_rules.return_value = [{"pattern": "a|b"}]
+
+    outcome = handler.pre_run(
+        {}, learning=learning, skill=None, profile="default", footer_fn=lambda d, g: ""
+    )
+
+    historical = outcome.artifacts["execution_contract"]["historical_context"]
+    assert historical["recent_failures"] == [{"symptom": "ask", "root_cause": "drift"}]
+    assert historical["active_rules"] == [{"pattern": "a|b"}]
+
+
+def test_post_run_registers_ask_execution() -> None:
+    handler = AskHandler()
+    learning = MagicMock()
+
+    result = handler.post_run(
+        {},
+        learning=learning,
+        exit_code=0,
+        artifacts={"execution_contract": {"task_type": "fix", "goal": "resolve drift"}},
+    )
+
+    assert result == {}
+    learning.append_failure.assert_called_once()
+    entry = learning.append_failure.call_args.args[0]
+    assert entry.symptom == "fix"
+    assert entry.root_cause == "resolve drift"
+    assert entry.tags == ["ask", "executed"]

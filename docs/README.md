@@ -4,10 +4,11 @@ Documentation structured by **role in the system**, not by audience. Optimized f
 
 ## Client Onboarding (Official)
 
-Use one cross-platform command as the primary installation path:
+Use one cross-platform command as the primary installation path (no clone required —
+uv fetches the source directly):
 
 ```bash
-uv tool install sdd-cli
+uv tool install "git+https://github.com/SergioLacerda/sdd-harness#subdirectory=packages/interfaces/sdd_cli"
 ```
 
 Then follow the complete guide:

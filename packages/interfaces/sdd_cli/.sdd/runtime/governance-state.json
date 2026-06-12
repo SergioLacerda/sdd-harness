@@ -1,13 +1,13 @@
 {
   "gap_version": "1.0",
-  "status": "PARTIAL",
+  "status": "ACTIVE",
   "agent_id": "unknown",
   "spec_fingerprint": "",
   "mandates_loaded": [],
   "skill_profile": "default",
-  "confidence": 27.3,
-  "last_check": "2026-06-10T17:26:20.239011",
-  "state": "PARTIAL",
+  "confidence": 36.4,
+  "last_check": "2026-06-11T20:04:53.473214",
+  "state": "HEALTHY",
   "checks": [
     {
       "name": ".sdd/ directory",
@@ -59,8 +59,8 @@
     },
     {
       "name": "PHASE 0 setup",
-      "passed": false,
-      "message": "Not run yet",
+      "passed": true,
+      "message": "Completed",
       "layer": "RUNTIME_VALIDATION"
     },
     {

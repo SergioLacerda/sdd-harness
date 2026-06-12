@@ -205,7 +205,7 @@ Use this routing model when handling user requests:
    - `sdd governance validate`
    - `sdd governance compile`
    - `sdd runtime status`
-   - `sdd ask-full "<question>"`
+   - `sdd ask --full "<question>"`
 3. Fallback order (default): `skills -> cli`
 
 ### Canonical prompts

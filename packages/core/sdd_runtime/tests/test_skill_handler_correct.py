@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-from sdd_runtime._skill_executor import CorrectHandler, _evaluate_correction_gate
+from sdd_runtime._skill_executor import (
+    CorrectHandler,
+    _evaluate_correction_gate,
+    _load_gate_rules,
+)
 
 # ---------------------------------------------------------------------------
 # _evaluate_correction_gate unit tests
@@ -132,7 +137,35 @@ def _make_learning(active_rules: list | None = None) -> MagicMock:
 
 
 def _make_skill(name: str = "sdd-correct") -> SimpleNamespace:
-    return SimpleNamespace(name=name, cli_fallback=["sdd governance validate"])
+    return SimpleNamespace(
+        name=name,
+        cli_fallback=["sdd governance validate"],
+        config={"gate_rules_file": ".sdd/skills/sdd-correct/gate-rules.yaml"},
+    )
+
+
+def test_load_gate_rules_reads_yaml_file(tmp_path: Path) -> None:
+    rules_dir = tmp_path / ".sdd" / "skills" / "sdd-correct"
+    rules_dir.mkdir(parents=True)
+    (rules_dir / "gate-rules.yaml").write_text(
+        "rules:\n"
+        "  - id: custom\n"
+        "    priority: 5\n"
+        "    condition: always\n"
+        "    decision: allow\n"
+        "    reason_code: ok\n"
+        "    next_action: apply-correction\n"
+        "    requires_human_review: false\n"
+        "    escalate_to_human: false\n",
+        encoding="utf-8",
+    )
+    rules = _load_gate_rules(project_root=tmp_path, skill=_make_skill())
+    assert rules[0]["id"] == "custom"
+
+
+def test_load_gate_rules_falls_back_when_file_missing(tmp_path: Path) -> None:
+    rules = _load_gate_rules(project_root=tmp_path, skill=_make_skill())
+    assert rules[0]["id"] == "freeze_mode_active"
 
 
 def test_pre_run_returns_gate_decision_artifact() -> None:

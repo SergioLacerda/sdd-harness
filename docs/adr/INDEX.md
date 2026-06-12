@@ -212,6 +212,28 @@ Local ADRs specific to the SDD Harness runtime layer. These are distinct from th
 - [ADR-012-ask-runtime-context-seam.md](ADR-012-ask-runtime-context-seam.md)
 - `packages/interfaces/sdd_cli/REFACTOR_NOTES.md` (Wave 1 / Wave 8 — `_ask_backend.py` blocker history)
 
+---
+
+### ADR-013: Python-Native Pipeline Composition for Governed Skills (2026-06-11)
+
+**Decision:** Execute `sdd-pipeline` as a composed runtime flow using
+`ContextCarrier`, `PipelineHandler`, executor-managed stage orchestration, and
+config-driven decision gates.
+
+**Rationale:**
+
+- CLI-only orchestration could not express runtime-native gates, freeze
+  escalation, or shared retry/timeout semantics across stages
+- Context propagation needed provenance-aware state sharing instead of repeated
+  plain-dictionary copies
+- The implementation roadmap explicitly required externalized gate rules and a
+  governed ask → diagnose → correct → converge pipeline
+
+**Links:**
+
+- [ADR-013-pipeline-composition.md](ADR-013-pipeline-composition.md)
+- `docs/guides/PIPELINE_ORCHESTRATION.md`
+
 ## 🧾 Operational Appendices
 
 These artifacts support governance operations but are not ADRs:

@@ -142,6 +142,38 @@ class TestRunSetup:
         # Either fails due to package install or CLI check
         assert result.exit_code != 0
 
+    def test_run_setup_bootstraps_pip_when_missing(self, tmp_path: Path) -> None:
+        from sdd_cli.main import app
+
+        self._make_venv(tmp_path)
+        mock_runner = MagicMock()
+        mock_runner.run.return_value = MagicMock(success=True)
+
+        # First _validate_module_import call (pip check) returns False,
+        # remaining calls (sdd_core, sdd_wizard, sdd_cli) return True.
+        with (
+            patch.object(setup_mod, "_REPO_ROOT", tmp_path),
+            patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
+            patch.object(
+                setup_mod,
+                "_validate_module_import",
+                side_effect=[False, True, True, True],
+            ),
+            patch(
+                "sdd_cli.commands.setup.resolve_venv_python",
+                return_value="/venv/bin/python",
+            ),
+            patch(
+                "sdd_cli.commands.setup.resolve_venv_sdd",
+                return_value="/venv/bin/sdd",
+            ),
+        ):
+            result = runner.invoke(app, ["setup", "run", "--no-hooks"])
+
+        assert result.exit_code == 0
+        calls_str = str(mock_runner.run.call_args_list)
+        assert "ensurepip" in calls_str
+
     def test_run_setup_creates_venv_when_missing(self, tmp_path: Path) -> None:
         from sdd_cli.main import app
 

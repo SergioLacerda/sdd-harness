@@ -26,8 +26,17 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
+### Added
+- `check_module_available()` (in `sdd_core.utils.process`) and `require_dev_module()` (in `sdd_cli.utils.dev_deps`): governance-safe (no `python -c`) checks that give an actionable error instead of a raw `ModuleNotFoundError` traceback when an optional dev tool (`ruff`, `mypy`, `bandit`, `build`) or the `sdd_cli` package itself is missing from the active interpreter, applied to `sdd lint`, `sdd audit` (compliance pack), and `sdd release`.
+
 ### Changed
 - Breaking change: `sdd_runtime.SkillEngine` no longer accepts legacy short skill aliases (for example `diagnose`, `validate-governance`); only canonical `sdd-*` names are valid, and legacy alias calls now return `legacy_alias_removed` with a canonical-name suggestion.
+- Promoted `uv run sdd setup run` as the primary cross-platform local-setup path in `README.md` (works without a pre-existing `.venv` or shell activation on Linux, macOS, and Windows); `make install` is documented as the CI/automation equivalent. Added a PATH-shadowing warning for contributors who also have `sdd-cli` installed globally via `uv tool install`.
+- Fixed `Makefile`'s `VENV_PYTHON` detection to also find `.venv/Scripts/python.exe` (Windows venv layout), not just `.venv/bin/python`.
+- `sdd setup git-hooks` and `.github/setup-precommit-hook.sh` now fall back to copying hook files when symlinks are unavailable on the platform, instead of failing with an `OSError`/exit 1.
+
+### Removed
+- Removed `install.sh` and the legacy `curl | sh` global-install instructions from `README.md` and `docs/guides/CLIENT_ONBOARDING.md`, to avoid ambiguity with the local/`uv`-based install paths.
 
 ---
 

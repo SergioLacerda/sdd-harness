@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.perf
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover

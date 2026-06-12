@@ -46,6 +46,10 @@ def _run_step(label: str, cmd: list[str], *, fix: bool) -> int:
 
 def _run_ruff(fix: bool) -> bool:
     """Run ruff check + format. Returns True if anything failed (unfixed)."""
+    from sdd_cli.utils.dev_deps import require_dev_module
+
+    require_dev_module("ruff")
+
     ruff_cmd = [sys.executable, "-m", "ruff", "check", "."]
     if fix:
         ruff_cmd += ["--fix", "--unsafe-fixes"]
@@ -124,57 +128,43 @@ def run(
     """Run all lint checks: ruff, architecture, mypy, bandit, spec."""
     failed = _run_ruff(fix)
 
-    if (
-        _run_step(
+    architecture_checks = [
+        (
             "architecture imports",
             [sys.executable, "tools/architecture/validate_imports.py"],
-            fix=False,
-        )
-        != 0
-    ):
-        failed = True
-
-    if (
-        _run_step(
+        ),
+        (
             "architecture cycles",
             [sys.executable, "tools/architecture/validate_cycles.py"],
-            fix=False,
-        )
-        != 0
-    ):
-        failed = True
-
-    if (
-        _run_step(
+        ),
+        (
             "architecture class-size",
             [
                 sys.executable,
                 "tools/architecture/validate_class_size.py",
                 "--show-module-warnings",
             ],
-            fix=False,
-        )
-        != 0
-    ):
-        failed = True
-
-    if (
-        _run_step(
+        ),
+        (
             "cognitive governance",
             [sys.executable, "tools/governance/validate_cognitive_governance.py"],
-            fix=False,
-        )
-        != 0
-    ):
-        failed = True
+        ),
+    ]
+    for label, cmd in architecture_checks:
+        if _run_step(label, cmd, fix=False) != 0:
+            failed = True
 
-    if (
-        not skip_mypy
-        and _run_step("mypy", [sys.executable, "-m", "mypy", "."], fix=False) != 0
-    ):
-        failed = True
+    if not skip_mypy:
+        from sdd_cli.utils.dev_deps import require_dev_module
+
+        require_dev_module("mypy")
+        if _run_step("mypy", [sys.executable, "-m", "mypy", "."], fix=False) != 0:
+            failed = True
 
     if not skip_bandit:
+        from sdd_cli.utils.dev_deps import require_dev_module
+
+        require_dev_module("bandit")
         bandit_cmd = [sys.executable, "-m", "bandit", "-r", "packages/", "-ll", "-q"]
         if _run_step("bandit", bandit_cmd, fix=False) != 0:
             failed = True

@@ -165,12 +165,11 @@ The following aliases are mapped to the operational prompt templates in `.github
 - `/sdd-review-architecture`: → `.github/prompts/sdd-review-architecture.prompt.md` (Architecture adherence review)
 - `/sdd-correct`: → `.github/prompts/sdd-correct.prompt.md` (Targeted governance correction)
 - `/sdd-converge`: → `.github/prompts/sdd-converge.prompt.md` (Systemic alignment convergence)
-- `/sdd-ask-full`: → `.github/prompts/sdd-ask-full.prompt.md` (Full ask telemetry mode)
 - `/sdd-organize`: → `.github/prompts/sdd-organize.prompt.md` (Large context intake/indexing)
 
 **Mandate**: All responses triggered by these commands MUST include the mandatory SDD footer:
 `SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`
 
 Additional mandate for `/sdd-ask`:
-- Always run preflight (`sdd runtime status` + `sdd governance validate`) before `sdd ask-full`.
+- Always run preflight (`sdd runtime status` + `sdd governance validate`) before `sdd ask --full`.
 - If preflight fails, stop and return governance-blocked status (do not proceed with business task).

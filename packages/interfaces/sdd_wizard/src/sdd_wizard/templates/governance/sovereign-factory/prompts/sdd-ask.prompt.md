@@ -9,7 +9,7 @@ Execute in the terminal:
 ```bash
 sdd runtime status
 sdd governance validate
-sdd ask-full "$QUERY"
+sdd ask --full "$QUERY"
 ```
 
 Replace `$QUERY` with the user's question.
@@ -17,7 +17,7 @@ Replace `$QUERY` with the user's question.
 HARD contract for this command:
 - Run preflight in order (`sdd runtime status` then `sdd governance validate`).
 - If preflight fails, do not continue; return governance-blocked status.
-- Only continue to `sdd ask-full` when preflight is healthy.
+- Only continue to `sdd ask --full` when preflight is healthy.
 
 Response contract:
 - Show `fingerprint`, `context_source`, and `mandates_loaded` from runtime output.
@@ -30,4 +30,4 @@ SDD GOVERNANCE CHECK
 Audit JSON policy:
 - `.sdd/compiled/audit/*.json` is human/audit oriented.
 - Agents should prefer `.sdd/source/*` for human-readable governance context and
-  runtime checks (`sdd runtime status`, `sdd ask-full`) for operational state.
+  runtime checks (`sdd runtime status`, `sdd ask --full`) for operational state.

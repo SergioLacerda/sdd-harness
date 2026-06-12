@@ -86,7 +86,7 @@ class GuidelineSeeds:
                 "| Validate governance | `sdd governance validate` |\n"
                 "| Compile governance | `sdd governance compile` |\n"
                 "| Runtime status | `sdd runtime status` |\n"
-                '| Query context | `sdd ask-full "<question>"` |\n'
+                '| Query context | `sdd ask --full "<question>"` |\n'
                 "| Diagnostics | `sdd doctor run --mode real` |\n"
                 "| Generate seeds | `sdd governance generate` |\n"
             )

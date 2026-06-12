@@ -54,6 +54,33 @@ class SupervisedLearningStore:
         with self._ledger_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(asdict(entry), ensure_ascii=True) + "\n")
 
+    def list_failures(self, *, limit: int | None = None) -> list[dict[str, Any]]:
+        """Return most recent failure rows, newest first."""
+        rows = list(reversed(self._read_jsonl(self._ledger_path)))
+        if limit is None or limit <= 0:
+            return rows
+        return rows[:limit]
+
+    def find_similar_failures(
+        self,
+        *,
+        symptom: str,
+        root_cause: str | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """Return ledger entries matching symptom and optionally root_cause."""
+        matches = [
+            row
+            for row in self.list_failures()
+            if str(row.get("symptom", "")) == symptom
+            and (
+                root_cause is None or str(row.get("root_cause", "")) == str(root_cause)
+            )
+        ]
+        if limit is None or limit <= 0:
+            return matches
+        return matches[:limit]
+
     def _read_jsonl(self, path: Path) -> list[dict[str, Any]]:
         if not path.exists():
             return []

@@ -192,3 +192,85 @@ class TestBootstrapDefault:
             ),
         )
         assert result.exit_code == 2
+
+
+class TestInitDefaultFlag:
+    """--default fills in type=client, name=local-dev, force=True when unset."""
+
+    def _invoke(self, tmp_path: Path, args: list[str], orchestrator_result=None):
+        from unittest.mock import MagicMock, patch
+
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+        from sdd_cli.services.onboarding import OnboardingResult
+
+        runner = CliRunner()
+        mock_ctx = MagicMock()
+        mock_ctx.type = "client"
+        mock_ctx.name = "local-dev"
+        mock_ctx.workspace_id = "test-id"
+
+        if orchestrator_result is None:
+            orchestrator_result = OnboardingResult(success=True, exit_code=0)
+
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch(
+                "sdd_cli.commands.init.write_profile",
+                return_value=mock_ctx,
+            ) as mock_write_profile,
+            patch("sdd_cli.commands.init.OnboardingOrchestrator") as MockOrch,
+        ):
+            mock_instance = MagicMock()
+            mock_instance.run.return_value = orchestrator_result
+            MockOrch.return_value = mock_instance
+            result = runner.invoke(app, args)
+        return result, MockOrch, mock_write_profile
+
+    def test_default_alone_resolves_client_local_dev_force(
+        self, tmp_path: Path
+    ) -> None:
+        result, MockOrch, mock_write_profile = self._invoke(tmp_path, ["--default"])
+        assert result.exit_code == 0, result.output
+        mock_write_profile.assert_called_once_with(tmp_path, "client", "local-dev")
+        MockOrch.return_value.run.assert_called_once_with(force=True)
+
+    def test_default_does_not_override_explicit_type(self, tmp_path: Path) -> None:
+        """--default still fills in --name (unset) even when --type is explicit."""
+        result, MockOrch, mock_write_profile = self._invoke(
+            tmp_path, ["--default", "--type", "master"]
+        )
+        assert result.exit_code == 0, result.output
+        mock_write_profile.assert_called_once_with(tmp_path, "master", "local-dev")
+        MockOrch.assert_not_called()
+
+    def test_default_does_not_override_explicit_name(self, tmp_path: Path) -> None:
+        result, MockOrch, mock_write_profile = self._invoke(
+            tmp_path, ["--default", "--name", "custom-name"]
+        )
+        assert result.exit_code == 0, result.output
+        mock_write_profile.assert_called_once_with(tmp_path, "client", "custom-name")
+        MockOrch.return_value.run.assert_called_once_with(force=True)
+
+    def test_default_does_not_override_explicit_force_false(
+        self, tmp_path: Path
+    ) -> None:
+        """--default sets force=True only when --force isn't explicitly passed.
+
+        Typer/click has no way to pass an explicit "false" override for a
+        store_true flag, so this documents that --default always wins for
+        force unless a future --no-force flag is introduced.
+        """
+        result, MockOrch, _ = self._invoke(tmp_path, ["--default"])
+        assert result.exit_code == 0, result.output
+        MockOrch.return_value.run.assert_called_once_with(force=True)
+
+    def test_without_default_behavior_unchanged(self, tmp_path: Path) -> None:
+        result, MockOrch, mock_write_profile = self._invoke(
+            tmp_path, ["--type", "client", "--name", "test", "--force"]
+        )
+        assert result.exit_code == 0, result.output
+        mock_write_profile.assert_called_once_with(tmp_path, "client", "test")
+        MockOrch.return_value.run.assert_called_once_with(force=True)

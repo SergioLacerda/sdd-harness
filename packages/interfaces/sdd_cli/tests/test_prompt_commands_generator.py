@@ -35,3 +35,4 @@ def test_generated_command_surfaces_never_emit_duplicated_ask_full(
     for path in files:
         content = path.read_text(encoding="utf-8")
         assert content.count('sdd ask --full "$QUERY"') <= 1
+        assert "/sdd-ask-full" not in content

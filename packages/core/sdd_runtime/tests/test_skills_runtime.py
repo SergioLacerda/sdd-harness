@@ -134,6 +134,46 @@ required_permissions:
     assert "diagnose" not in loaded_names
 
 
+def test_load_skills_from_disk_preserves_config_payload(tmp_path: Path) -> None:
+    from sdd_runtime import _skill_registry as registry_module
+
+    if registry_module.yaml is None:
+        pytest.skip("PyYAML is required for disk skill loading test")
+
+    skills_dir = tmp_path / ".sdd" / "skills" / "sdd-pipeline"
+    skills_dir.mkdir(parents=True)
+    (tmp_path / ".sdd" / "skills" / "registry.json").write_text(
+        json.dumps({"skills": [{"name": "sdd-pipeline"}]}),
+        encoding="utf-8",
+    )
+    (skills_dir / "skill.yaml").write_text(
+        """name: sdd-pipeline
+version: "1.0.0"
+category: orchestrator
+description: Pipeline
+when_to_use: [pipeline]
+outcomes: [policy_result]
+allowed_tools: [sdd ask]
+cli_fallback: [sdd ask]
+required_permissions: [workspace-read]
+config:
+  pipeline:
+    stages: [sdd-ask, sdd-diagnose]
+    decision_gates:
+      diagnose_to_correct_min_confidence: 0.61
+""",
+        encoding="utf-8",
+    )
+
+    engine = SkillEngine(project_root=tmp_path)
+    skill = engine.get_skill("sdd-pipeline")
+    assert skill is not None
+    assert (
+        skill.config["pipeline"]["decision_gates"]["diagnose_to_correct_min_confidence"]
+        == 0.61
+    )
+
+
 # ---------------------------------------------------------------------------
 # sdd-correct integration
 # ---------------------------------------------------------------------------
@@ -367,3 +407,42 @@ def test_negative_learning_rolls_back_rule(tmp_path: Path) -> None:
         )
     )
     assert registry["rules"][0]["status"] == "rolled_back"
+
+
+def test_learning_store_lists_recent_and_similar_failures(tmp_path: Path) -> None:
+    from sdd_runtime.learning import FailureLedgerEntry, SupervisedLearningStore
+
+    store = SupervisedLearningStore(tmp_path)
+    store.append_failure(
+        FailureLedgerEntry(
+            symptom="policy_mismatch",
+            root_cause="missing_mandate",
+            fix="sdd-diagnose",
+            validation="postcheck",
+            regression=False,
+            tags=["diagnose", "executed"],
+            evidence_refs=["e1"],
+            timestamp="2026-01-01T00:00:00+00:00",
+        )
+    )
+    store.append_failure(
+        FailureLedgerEntry(
+            symptom="policy_mismatch",
+            root_cause="missing_mandate",
+            fix="sdd-correct",
+            validation="postcheck",
+            regression=False,
+            tags=["correct", "executed"],
+            evidence_refs=["e2"],
+            timestamp="2026-01-01T00:01:00+00:00",
+        )
+    )
+
+    recent = store.list_failures(limit=1)
+    similar = store.find_similar_failures(
+        symptom="policy_mismatch", root_cause="missing_mandate", limit=5
+    )
+
+    assert len(recent) == 1
+    assert recent[0]["fix"] == "sdd-correct"
+    assert len(similar) == 2

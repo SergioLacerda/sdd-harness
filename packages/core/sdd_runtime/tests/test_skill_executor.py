@@ -194,6 +194,67 @@ def test_execute_commands_failure(tmp_path: Path) -> None:
     assert result.command_results[0]["exit_code"] == 7
 
 
+def test_execute_commands_retries_transient_failure_then_succeeds(
+    tmp_path: Path,
+) -> None:
+    executor = _make_executor(tmp_path)
+
+    class _RetryRunner:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def run(self, args, cwd=None, capture_output=False, timeout=120):  # noqa: ANN001
+            self.calls += 1
+            if self.calls == 1:
+                return SimpleNamespace(
+                    success=False, returncode=1, stderr="temporary unavailable"
+                )
+            return SimpleNamespace(success=True, returncode=0, stderr="")
+
+    runner = _RetryRunner()
+    with (
+        patch("sdd_core.utils.process.SafeProcessRunner", return_value=runner),
+        patch(
+            "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+        ),
+        patch("time.sleep", return_value=None),
+    ):
+        result = executor.run_skill("sdd-diagnose", execute=True, project_root=tmp_path)
+
+    assert result.exit_code == 0
+    assert len(result.command_results) == 3
+    assert result.command_results[0]["attempt"] == 0
+    assert result.command_results[1]["attempt"] == 1
+    assert result.command_results[0]["retry_event"]["skill"] == "sdd-diagnose"
+    assert result.command_results[2]["command"] == "sdd runtime status --force"
+
+
+def test_execute_commands_does_not_retry_when_handler_default_returns_false(
+    tmp_path: Path,
+) -> None:
+    executor = _make_executor(tmp_path)
+
+    class _FailRunner:
+        def run(self, args, cwd=None, capture_output=False, timeout=120):  # noqa: ANN001
+            return SimpleNamespace(
+                success=False, returncode=1, stderr="temporary unavailable"
+            )
+
+    with (
+        patch("sdd_core.utils.process.SafeProcessRunner", return_value=_FailRunner()),
+        patch(
+            "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+        ),
+        patch("time.sleep", return_value=None),
+    ):
+        result = executor.run_skill(
+            "sdd-stabilize", execute=True, project_root=tmp_path
+        )
+
+    assert result.exit_code == 1
+    assert len(result.command_results) == 1
+
+
 def test_execute_commands_timeout_maps_to_124(tmp_path: Path) -> None:
     executor = _make_executor(tmp_path)
 
@@ -214,7 +275,140 @@ def test_execute_commands_timeout_maps_to_124(tmp_path: Path) -> None:
         result = executor.run_skill("sdd-diagnose", execute=True, project_root=tmp_path)
 
     assert result.exit_code == 124
+    assert result.policy_result == "timeout"
     assert result.command_results[0]["error"] == "timeout"
+    assert result.artifacts["timeout_event"]["skill"] == "sdd-diagnose"
+
+
+def test_execute_commands_retries_timeout_until_limit(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+
+    class _TimeoutRunner:
+        def run(self, args, cwd=None, capture_output=False, timeout=120):  # noqa: ANN001
+            from sdd_core.utils.process import ProcessTimeoutError
+
+            raise ProcessTimeoutError(cmd=args, timeout=1.0)
+
+    with (
+        patch(
+            "sdd_core.utils.process.SafeProcessRunner", return_value=_TimeoutRunner()
+        ),
+        patch(
+            "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+        ),
+        patch("time.sleep", return_value=None),
+    ):
+        result = executor.run_skill("sdd-diagnose", execute=True, project_root=tmp_path)
+
+    assert result.exit_code == 124
+    assert len(result.command_results) == 2
+    assert result.command_results[-1]["attempt"] == 1
+
+
+def test_timeout_hook_records_failure_in_learning_ledger(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+
+    class _TimeoutRunner:
+        def run(self, args, cwd=None, capture_output=False, timeout=120):  # noqa: ANN001
+            from sdd_core.utils.process import ProcessTimeoutError
+
+            raise ProcessTimeoutError(cmd=args, timeout=1.0)
+
+    with (
+        patch(
+            "sdd_core.utils.process.SafeProcessRunner", return_value=_TimeoutRunner()
+        ),
+        patch(
+            "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+        ),
+        patch("time.sleep", return_value=None),
+    ):
+        executor.run_skill("sdd-diagnose", execute=True, project_root=tmp_path)
+
+    ledger = (tmp_path / ".sdd" / "runtime" / "failure-ledger.jsonl").read_text(
+        encoding="utf-8"
+    )
+    assert '"symptom": "timeout"' in ledger
+
+
+def test_retry_hook_records_retry_in_learning_ledger(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+
+    class _RetryRunner:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def run(self, args, cwd=None, capture_output=False, timeout=120):  # noqa: ANN001
+            self.calls += 1
+            if self.calls == 1:
+                return SimpleNamespace(
+                    success=False, returncode=1, stderr="temporary unavailable"
+                )
+            return SimpleNamespace(success=True, returncode=0, stderr="")
+
+    with (
+        patch("sdd_core.utils.process.SafeProcessRunner", return_value=_RetryRunner()),
+        patch(
+            "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+        ),
+        patch("time.sleep", return_value=None),
+    ):
+        executor.run_skill("sdd-diagnose", execute=True, project_root=tmp_path)
+
+    ledger = (tmp_path / ".sdd" / "runtime" / "failure-ledger.jsonl").read_text(
+        encoding="utf-8"
+    )
+    assert '"symptom": "retry"' in ledger
+
+
+def test_pipeline_escalates_on_stage_timeout(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+
+    class _TimeoutRunner:
+        def run(self, args, cwd=None, capture_output=False, timeout=120):  # noqa: ANN001
+            from sdd_core.utils.process import ProcessTimeoutError
+
+            raise ProcessTimeoutError(cmd=args, timeout=1.0)
+
+    with (
+        patch(
+            "sdd_core.utils.process.SafeProcessRunner", return_value=_TimeoutRunner()
+        ),
+        patch(
+            "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+        ),
+        patch("time.sleep", return_value=None),
+    ):
+        result = executor.run_skill("sdd-pipeline", execute=True, project_root=tmp_path)
+
+    assert result.exit_code == 124
+    assert result.policy_result == "escalated"
+    assert result.reason == "stage_timeout:sdd-ask"
+    assert result.artifacts["pipeline_timeout"]["trigger_stage"] == "sdd-ask"
+
+
+def test_pipeline_logs_stage_timeout(tmp_path: Path, caplog) -> None:
+    executor = _make_executor(tmp_path)
+
+    class _TimeoutRunner:
+        def run(self, args, cwd=None, capture_output=False, timeout=120):  # noqa: ANN001
+            from sdd_core.utils.process import ProcessTimeoutError
+
+            raise ProcessTimeoutError(cmd=args, timeout=1.0)
+
+    with (
+        patch(
+            "sdd_core.utils.process.SafeProcessRunner", return_value=_TimeoutRunner()
+        ),
+        patch(
+            "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+        ),
+        patch("time.sleep", return_value=None),
+        caplog.at_level("WARNING"),
+    ):
+        executor.run_skill("sdd-pipeline", execute=True, project_root=tmp_path)
+
+    assert "Pipeline stage timeout" in caplog.text
 
 
 def test_execute_commands_runner_init_failure(tmp_path: Path) -> None:
@@ -237,5 +431,276 @@ def test_execute_commands_runner_init_failure(tmp_path: Path) -> None:
 
 
 def test_get_skill_handler_returns_none_for_unknown() -> None:
-    assert _get_skill_handler("sdd-stabilize") is None
+    assert _get_skill_handler("sdd-stabilize").__class__.__name__ == "StabilizeHandler"
     assert _get_skill_handler("diagnose") is None
+
+
+def test_get_skill_handler_returns_pipeline_handler() -> None:
+    assert _get_skill_handler("sdd-pipeline").__class__.__name__ == "PipelineHandler"
+
+
+def test_get_skill_handler_returns_compress_context_handler() -> None:
+    assert (
+        _get_skill_handler("sdd-compress-context").__class__.__name__
+        == "CompressContextHandler"
+    )
+
+
+def test_get_skill_handler_returns_review_architecture_handler() -> None:
+    assert (
+        _get_skill_handler("sdd-review-architecture").__class__.__name__
+        == "ReviewArchitectureHandler"
+    )
+
+
+def test_get_skill_handler_returns_stabilize_handler() -> None:
+    assert _get_skill_handler("sdd-stabilize").__class__.__name__ == "StabilizeHandler"
+
+
+def test_run_skill_pipeline_composes_stage_artifacts(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+    context = {
+        "execution_contract": {"allowed_paths": ["safe/path"], "task_id": "task-1"},
+        "diagnosis_report": {
+            "hypothesis": "h",
+            "root_cause": "r",
+            "evidence_refs": ["e"],
+            "confidence": 0.95,
+        },
+        "diagnosis_attestation": {
+            "task_id": "task-1",
+            "hypothesis": "h",
+            "root_cause": "r",
+            "evidence_refs": ["e"],
+            "confidence": 0.95,
+            "issued_at": "2099-01-01T00:00:00+00:00",
+            "expires_at": "2099-01-01T01:00:00+00:00",
+        },
+        "planned_paths": ["safe/path"],
+        "convergence_delta_report": {
+            "alignment_score": 0.95,
+            "residual_violations": [],
+        },
+    }
+
+    with patch(
+        "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+    ):
+        result = executor.run_skill(
+            "sdd-pipeline", context=context, project_root=tmp_path
+        )
+
+    assert result.exit_code == 0
+    assert result.policy_result == "planned"
+    assert result.artifacts["gate_decision"]["decision"] == "allow"
+    assert result.artifacts["pipeline_state"]["completed_stages"] == [
+        "sdd-ask",
+        "sdd-diagnose",
+        "sdd-correct",
+        "sdd-converge",
+    ]
+
+
+def test_run_skill_compress_context_returns_summary_artifacts(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+    context = {
+        "governance_fingerprint": "abc123",
+        "chat_log": "z" * 240,
+    }
+
+    with patch(
+        "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+    ):
+        result = executor.run_skill(
+            "sdd-compress-context", context=context, project_root=tmp_path
+        )
+
+    assert result.exit_code == 0
+    assert result.artifacts["compressed_context"]["governance_fingerprint"] == "abc123"
+    assert result.artifacts["compressed_context"]["chat_log"]["type"] == "string"
+
+
+def test_run_skill_review_architecture_returns_review_artifacts(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+    context = {
+        "governance_score": 70,
+        "baseline_governance_score": 85,
+        "architecture_violations": ["M001", "M010"],
+        "baseline_architecture_violations": ["M001"],
+    }
+
+    with patch(
+        "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+    ):
+        result = executor.run_skill(
+            "sdd-review-architecture", context=context, project_root=tmp_path
+        )
+
+    assert result.exit_code == 0
+    assert result.artifacts["architecture_deltas"]["added_violations"] == ["M010"]
+    assert result.artifacts["governance_score"] == 70
+
+
+def test_run_skill_stabilize_returns_stabilization_report(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+
+    class _MixedRunner:
+        def run(self, args, cwd=None, capture_output=False, timeout=120):  # noqa: ANN001
+            command = " ".join(args)
+            if "test" in command:
+                return SimpleNamespace(success=False, returncode=2, stderr="boom")
+            return SimpleNamespace(success=True, returncode=0, stderr="")
+
+    with (
+        patch("sdd_core.utils.process.SafeProcessRunner", return_value=_MixedRunner()),
+        patch(
+            "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+        ),
+    ):
+        result = executor.run_skill(
+            "sdd-stabilize", execute=True, project_root=tmp_path
+        )
+
+    assert result.exit_code == 2
+    assert result.artifacts["stabilization_report"]["decision"] == "block"
+    assert result.artifacts["stabilization_report"]["test_failures"] == [
+        "sdd test ci-validate"
+    ]
+
+
+def test_run_skill_pipeline_returns_stage_escalation(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+
+    with patch(
+        "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+    ):
+        result = executor.run_skill("sdd-pipeline", project_root=tmp_path)
+
+    assert result.exit_code == 1
+    assert result.policy_result == "escalated"
+    assert result.artifacts["pipeline_state"]["completed_stages"] == [
+        "sdd-ask",
+        "sdd-diagnose",
+    ]
+    assert result.artifacts["pipeline_gate_decision"]["decision"] == "skip_and_escalate"
+    assert result.artifacts["pipeline_gate_decision"]["reason_code"] == (
+        "diagnosis.inconclusive"
+    )
+
+
+def test_run_skill_pipeline_escalates_on_freeze_mode(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+    context = {
+        "execution_contract": {"allowed_paths": ["safe/path"], "task_id": "task-2"},
+        "diagnosis_report": {
+            "hypothesis": "h",
+            "root_cause": "r",
+            "evidence_refs": ["e"],
+            "confidence": 0.95,
+        },
+        "diagnosis_attestation": {
+            "task_id": "task-2",
+            "hypothesis": "h",
+            "root_cause": "r",
+            "evidence_refs": ["e"],
+            "confidence": 0.95,
+            "issued_at": "2099-01-01T00:00:00+00:00",
+            "expires_at": "2099-01-01T01:00:00+00:00",
+        },
+        "planned_paths": ["safe/path"],
+        "convergence_delta_report": {"alignment_score": 0.1, "residual_violations": []},
+    }
+
+    with patch(
+        "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+    ):
+        result = executor.run_skill(
+            "sdd-pipeline", context=context, project_root=tmp_path
+        )
+
+    assert result.exit_code == 2
+    assert result.policy_result == "escalated"
+    assert result.artifacts["pipeline_escalation"]["reason"] == (
+        "convergence.freeze_mode_active"
+    )
+
+
+def test_run_skill_pipeline_logs_freeze_escalation(tmp_path: Path, caplog) -> None:
+    executor = _make_executor(tmp_path)
+    context = {
+        "execution_contract": {"allowed_paths": ["safe/path"], "task_id": "task-2"},
+        "diagnosis_report": {
+            "hypothesis": "h",
+            "root_cause": "r",
+            "evidence_refs": ["e"],
+            "confidence": 0.95,
+        },
+        "diagnosis_attestation": {
+            "task_id": "task-2",
+            "hypothesis": "h",
+            "root_cause": "r",
+            "evidence_refs": ["e"],
+            "confidence": 0.95,
+            "issued_at": "2099-01-01T00:00:00+00:00",
+            "expires_at": "2099-01-01T01:00:00+00:00",
+        },
+        "planned_paths": ["safe/path"],
+        "convergence_delta_report": {"alignment_score": 0.1, "residual_violations": []},
+    }
+
+    with (
+        patch(
+            "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+        ),
+        caplog.at_level("CRITICAL"),
+    ):
+        executor.run_skill("sdd-pipeline", context=context, project_root=tmp_path)
+
+    assert "Pipeline freeze escalation triggered" in caplog.text
+
+
+def test_run_skill_pipeline_uses_custom_confidence_threshold(tmp_path: Path) -> None:
+    executor = _make_executor(tmp_path)
+    context = {
+        "pipeline_min_diagnosis_confidence": 0.5,
+        "execution_contract": {
+            "allowed_paths": ["safe/path"],
+            "task_id": "task-3",
+            "min_diagnosis_confidence": 0.5,
+        },
+        "diagnosis_report": {
+            "hypothesis": "h",
+            "root_cause": "r",
+            "evidence_refs": ["e"],
+            "confidence": 0.6,
+        },
+        "diagnosis_attestation": {
+            "task_id": "task-3",
+            "hypothesis": "h",
+            "root_cause": "r",
+            "evidence_refs": ["e"],
+            "confidence": 0.6,
+            "issued_at": "2099-01-01T00:00:00+00:00",
+            "expires_at": "2099-01-01T01:00:00+00:00",
+        },
+        "planned_paths": ["safe/path"],
+        "convergence_delta_report": {
+            "alignment_score": 0.95,
+            "residual_violations": [],
+        },
+    }
+
+    with patch(
+        "sdd_runtime.policy.PolicyEngine._check_handshake_guard", return_value=None
+    ):
+        result = executor.run_skill(
+            "sdd-pipeline", context=context, project_root=tmp_path
+        )
+
+    assert result.exit_code == 0
+    assert result.artifacts["pipeline_state"]["completed_stages"] == [
+        "sdd-ask",
+        "sdd-diagnose",
+        "sdd-correct",
+        "sdd-converge",
+    ]

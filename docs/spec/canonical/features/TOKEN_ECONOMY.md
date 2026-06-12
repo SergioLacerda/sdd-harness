@@ -49,15 +49,15 @@ class SimulatedTokenCapture:
 
 ```bash
 # Pass tokens explicitly
-sdd ask-full "query" --tokens-input 150 --tokens-output 50
+sdd ask "query" --full --tokens-input 150 --tokens-output 50
 
 # Or via environment variables (picked up automatically if --tokens-* not provided)
-SDD_TOKENS_INPUT=150 SDD_TOKENS_OUTPUT=50 sdd ask-full "query"
+SDD_TOKENS_INPUT=150 SDD_TOKENS_OUTPUT=50 sdd ask "query" --full
 ```
 
 **Integration:**
 
-- `ask-full` command wires token capture into `_emit_ask_telemetry()`
+- `ask --full` wires token capture into `_emit_ask_telemetry()`
 - Tokens populate `RuntimeEvent.tokens_input`, `tokens_output`, `tokens_total`
 - Token ceilings per PATH enforced in `efficiency-policy.md`
 
