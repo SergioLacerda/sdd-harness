@@ -116,7 +116,9 @@ def test_ask_full_flag_passes_full_true_to_ask_cmd(monkeypatch) -> None:
 
 def test_ask_full_flag_help_shows_canonical_usage(monkeypatch) -> None:
     _patch_profile_gate(monkeypatch)
-    result = CliRunner().invoke(app, ["ask", "--help"])
+    result = CliRunner().invoke(
+        app, ["ask", "--help"], env={"COLUMNS": "200", "LINES": "50"}
+    )
     assert result.exit_code == 0, result.output
     assert "--full" in result.output
     assert "ask ask" not in result.output
