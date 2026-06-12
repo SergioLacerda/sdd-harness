@@ -41,7 +41,7 @@ See `.sdd/source/` for complete specification.
 - Bootstrap status: `sdd runtime status`
 - Validate changes: `sdd governance validate`
 - Generate templates: `sdd governance generate`
-- Query context: `sdd ask-full "<question>"`
+- Query context: `sdd ask --full "<question>"`
 """
 
 
@@ -70,7 +70,7 @@ This codebase follows SDD (Spec Driven Development) with compiled governance enf
 1. Check mandatory rules above
 2. Respect customizable governance items
 3. Validate against `.sdd/compiled/` specifications
-4. Use compiled artifacts via: `sdd ask-full "<question>"`
+4. Use compiled artifacts via: `sdd ask --full "<question>"`
 
 ## Key Resources
 - Compiled governance: `.sdd/compiled/audit/metadata-core.json`
@@ -108,7 +108,7 @@ Client Fingerprint: {config.get("client_fingerprint", "N/A")}
 ## Implementation Guidelines
 
 ### When Implementing Features:
-1. Load governance context via: `sdd ask-full "<question>"`
+1. Load governance context via: `sdd ask --full "<question>"`
 2. Check mandatory rules (immutable)
 3. Respect customizable items (can be extended)
 4. Validate before commit: `sdd governance validate`
@@ -172,7 +172,7 @@ def _generate_gemini_seed(
 ## Working Protocol
 1. Confirm active governance items before code suggestions
 2. Preserve architectural decisions and mandatory rules
-3. Query compiled artifacts: `sdd ask-full "<question>"`
+3. Query compiled artifacts: `sdd ask --full "<question>"`
 4. Validate with `sdd governance validate` before completion
 """
 
@@ -212,7 +212,7 @@ See `.sdd/source/` for complete specification.
 - Bootstrap status: `sdd runtime status`
 - Validate changes: `sdd governance validate`
 - Generate templates: `sdd governance generate`
-- Query context: `sdd ask-full "<question>"`
+- Query context: `sdd ask --full "<question>"`
 """
 
 
@@ -239,7 +239,7 @@ def _generate_antigravity_seed(
 ## Enforcement Notes
 1. Treat governance mandates as non-negotiable
 2. Use compiled artifacts as source of truth: `.sdd/compiled/`
-3. Query context: `sdd ask-full "<question>"`
+3. Query context: `sdd ask --full "<question>"`
 4. Run `sdd governance validate` and `sdd runtime status` before handoff
 """
 

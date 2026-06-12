@@ -18,7 +18,9 @@ def test_validate_module_import_uses_script_not_python_c(tmp_path: Path) -> None
             calls.append(args)
             return type("R", (), {"success": True})()
 
-    with patch("sdd_core.utils.process.SafeProcessRunner", return_value=_Runner()):
+    with patch(
+        "sdd_core.utils._process_runner.SafeProcessRunner", return_value=_Runner()
+    ):
         assert setup._validate_module_import("/tmp/venv/bin/python", "sdd_core")
 
     assert calls

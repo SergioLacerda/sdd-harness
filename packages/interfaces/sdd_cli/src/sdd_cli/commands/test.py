@@ -1,13 +1,17 @@
 """Test."""
 
-import json
-import os
 import sys
 from pathlib import Path
-from typing import Any
 
 import typer
 
+from sdd_cli.services.test_handler import (
+    _check_import,
+    _run_cli,
+    _run_pytest,
+    _run_script,
+    run_review_golden,
+)
 from sdd_cli.utils.environment import detect_repo_root
 
 app = typer.Typer()
@@ -85,7 +89,7 @@ def run(
     coverage: bool = typer.Option(
         True, "--coverage/--no-coverage", help="Show project coverage summary"
     ),
-    cov_fail_under: int | None = typer.Option(
+    cov_fail_under: int | None = typer.Option(  # noqa: UP045
         None,
         "--cov-fail-under",
         help="Fail when coverage is below this percentage (default: 80)",
@@ -98,50 +102,6 @@ def run(
         coverage=coverage,
         cov_fail_under=cov_fail_under,
     )
-
-
-def _check_import(module: str) -> bool:
-    """Try a real import (not just find_spec) to catch broken packages."""
-    try:
-        __import__(module)
-        return True
-    except Exception:
-        return False
-
-
-def _run_script(script_path: str, extra_args: list[str], cwd: str) -> int:
-    from sdd_core.utils.process import SafeProcessRunner
-
-    env = os.environ.copy()
-    # Match CI behavior on Windows consoles with limited encodings.
-    env.setdefault("PYTHONUTF8", "1")
-    runner = SafeProcessRunner()
-    result = runner.run(
-        [sys.executable, script_path] + extra_args,
-        cwd=cwd,
-        env=env,
-    )
-    return result.returncode
-
-
-def _run_cli(args: list[str], cwd: str) -> int:
-    from sdd_core.utils.process import SafeProcessRunner
-
-    env = os.environ.copy()
-    env.setdefault("PYTHONUTF8", "1")
-    runner = SafeProcessRunner()
-    result = runner.run([sys.executable, "-m", "sdd_cli"] + args, cwd=cwd, env=env)
-    return result.returncode
-
-
-def _run_pytest(args: list[str], cwd: str) -> int:
-    from sdd_core.utils.process import SafeProcessRunner
-
-    env = os.environ.copy()
-    env.setdefault("PYTHONUTF8", "1")
-    runner = SafeProcessRunner()
-    result = runner.run([sys.executable, "-m", "pytest"] + args, cwd=cwd, env=env)
-    return result.returncode
 
 
 @app.command(name="ci-validate")
@@ -242,7 +202,7 @@ def ci_validate(  # noqa: C901
     if soak_threads:
         typer.echo("\n=== Thread soak ===")
         soak_args = [
-            "packages/interfaces/sdd_cli/tests/test_metrics_commands.py",
+            "packages/interfaces/sdd_cli/tests/test_metrics_reload_worker.py",
             "-k",
             "soak_restart_cycles",
         ]
@@ -254,69 +214,6 @@ def ci_validate(  # noqa: C901
         raise typer.Exit(1)
 
     typer.echo("\nAll checks passed")
-
-
-# ---------------------------------------------------------------------------
-# review-golden — AST diff against golden snapshot (Phase 2 §4)
-# ---------------------------------------------------------------------------
-
-_GOLDEN_FILENAME = "golden-ast.json"
-
-
-def _resolve_golden_path(root: Path) -> Path:
-    return root / ".sdd" / "runtime" / _GOLDEN_FILENAME
-
-
-def _find_artifact(root: Path) -> Path | None:
-    """Return the compiled governance-core.json from canonical .sdd location."""
-    candidate = root / ".sdd" / "compiled" / "governance-core.json"
-    return candidate if candidate.exists() else None
-
-
-def _save_golden(golden_path: Path, current_ast: Any) -> None:
-    """Save the current AST as the golden snapshot."""
-    golden_path.parent.mkdir(parents=True, exist_ok=True)
-    golden_path.write_text(current_ast.to_json(), encoding="utf-8")
-    typer.echo(f"Golden snapshot updated: {golden_path}")
-    typer.echo(
-        f"  Items: {len(current_ast.items)}, fingerprint: {current_ast.source_fingerprint[:12]}…"
-    )
-
-
-def _load_golden_ast(golden_path: Path) -> Any:
-    """Load golden AST from file; raise typer.Exit(1) on error."""
-    from sdd_compiler.ast import GovernanceAST
-
-    try:
-        return GovernanceAST.from_dict(
-            json.loads(golden_path.read_text(encoding="utf-8"))
-        )
-    except Exception as exc:
-        typer.echo(f"ERROR: Failed to load golden snapshot: {exc}", err=True)
-        raise typer.Exit(1) from exc
-
-
-def _print_diff(diff: Any) -> None:
-    """Print a formatted diff report of breaking/non-breaking/added changes."""
-    if diff.breaking_changes:
-        typer.echo(f"\n  BREAKING changes ({len(diff.breaking_changes)}):")
-        for entry in diff.breaking_changes:
-            typer.echo(
-                f"    [{entry.item_id}] {entry.change_type}: {entry.before!r} → {entry.after!r}"
-            )
-
-    if diff.non_breaking_changes:
-        typer.echo(f"\n  Non-breaking changes ({len(diff.non_breaking_changes)}):")
-        for entry in diff.non_breaking_changes:
-            field_info = f" ({entry.field})" if entry.field else ""
-            typer.echo(
-                f"    [{entry.item_id}]{field_info}: {entry.before!r} → {entry.after!r}"
-            )
-
-    if diff.added_items:
-        typer.echo(f"\n  Added ({len(diff.added_items)}):")
-        for entry in diff.added_items:
-            typer.echo(f"    + [{entry.item_id}] {entry.after}")
 
 
 @app.command(name="review-golden")
@@ -351,62 +248,10 @@ def review_golden(
 
     Use --update to refresh the golden baseline intentionally.
     """
-    try:
-        from sdd_compiler.ast import GovernanceAST
-    except ImportError:
-        typer.echo(
-            "ERROR: sdd_compiler is not installed. Run 'sdd setup run'.",
-            err=True,
-        )
-        raise typer.Exit(1) from None
-
-    root = detect_repo_root()
-    golden_path = golden or _resolve_golden_path(root)
-    artifact_path = artifact or _find_artifact(root)
-
-    if artifact_path is None:
-        typer.echo(
-            "ERROR: No compiled artifact found. Run 'sdd governance compile' first.",
-            err=True,
-        )
-        typer.echo("  Next: run 'sdd governance compile' to build artifacts", err=True)
-        raise typer.Exit(1)
-
-    try:
-        current_ast = GovernanceAST.from_compiled_json(artifact_path)
-    except Exception as exc:
-        typer.echo(f"ERROR: Failed to load artifact: {exc}", err=True)
-        raise typer.Exit(1) from exc
-
-    # --update: overwrite golden and exit
-    if update:
-        _save_golden(golden_path, current_ast)
-        return
-
-    # First run: initialise golden
-    if not golden_path.exists():
-        _save_golden(golden_path, current_ast)
-        typer.echo(f"Golden baseline initialised: {golden_path} (status: new)")
-        return
-
-    # Load golden and diff
-    golden_ast = _load_golden_ast(golden_path)
-    diff = golden_ast.diff(current_ast)
-
-    typer.echo(
-        f"Comparing artifact ({artifact_path.name}) against golden ({golden_path.name}):"
+    run_review_golden(
+        root=detect_repo_root(),
+        update=update,
+        fail_on_breaking=fail_on_breaking,
+        artifact=artifact,
+        golden=golden,
     )
-    typer.echo(f"  Summary: {diff.summary()}")
-
-    if diff.is_clean:
-        typer.echo("  Status: CLEAN — no changes detected.")
-        return
-
-    _print_diff(diff)
-
-    if diff.has_breaking_changes and fail_on_breaking:
-        typer.echo(
-            "\n  Next: review breaking changes above, then run 'sdd test review-golden --update' to accept",
-            err=True,
-        )
-        raise typer.Exit(1)

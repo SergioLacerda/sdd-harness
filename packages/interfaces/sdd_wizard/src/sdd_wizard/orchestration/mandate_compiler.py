@@ -23,6 +23,20 @@ except ImportError:
     HAS_MSGPACK = False
 
 
+def compile_to_binary(mandates: list[dict[str, Any]], format: str = "msgpack") -> bytes:
+    """Serialize mandates to binary (msgpack or compact JSON fallback)."""
+    output = {
+        "version": "3.1",
+        "format_version": "3.1",
+        "compiled_at": datetime.now().isoformat(),
+        "mandates": mandates,
+        "count": len(mandates),
+    }
+    if format == "msgpack" and HAS_MSGPACK:
+        return bytes(msgpack.packb(output, use_bin_type=True))
+    return json.dumps(output, separators=(",", ":")).encode("utf-8")
+
+
 class MandateCompiler:
     """Compile mandate.spec to binary format"""
 
@@ -113,34 +127,6 @@ class MandateCompiler:
 
         return len(guidelines), guidelines
 
-    def compile_to_binary(
-        self, mandates: list[dict[str, Any]], format: str = "msgpack"
-    ) -> bytes:
-        """
-        Compile mandates to binary format
-
-        Args:
-            mandates: List of mandate dicts
-            format: "msgpack" or "json_compressed"
-
-        Returns:
-            Binary data
-        """
-        output = {
-            "version": "3.1",
-            "format_version": "3.1",
-            "compiled_at": datetime.now().isoformat(),
-            "mandates": mandates,
-            "count": len(mandates),
-        }
-
-        if format == "msgpack" and HAS_MSGPACK:
-            return bytes(msgpack.packb(output, use_bin_type=True))
-        else:
-            # Fallback: compact JSON
-            json_str = json.dumps(output, separators=(",", ":"))
-            return json_str.encode("utf-8")
-
     def compile_mandate_spec(
         self, input_file: Path, output_file: Path, format: str = "msgpack"
     ) -> bool:
@@ -162,7 +148,7 @@ class MandateCompiler:
                 self.log("  ⚠️  No mandates found")
 
             # Compile to binary
-            binary_data = self.compile_to_binary(mandates, format)
+            binary_data = compile_to_binary(mandates, format)
 
             # Write output
             output_file.parent.mkdir(parents=True, exist_ok=True)

@@ -1,106 +1,106 @@
-# SDD — FAQ de Posicionamento
+# SDD — Positioning FAQ
 
 ---
 
-## O que é o SDD?
+## What is SDD?
 
-SDD (Spec-Driven Development) é uma plataforma de **governança executável para agentes de IA**.
+SDD (Spec-Driven Development) is an **executable governance platform for AI agents**.
 
-Ela atua na camada entre o input e o output do agente — antes que uma decisão se consolide em código, infraestrutura ou artefato — garantindo que o agente opere com o contexto correto, em conformidade com a arquitetura definida, e dentro dos mandates estabelecidos pelo time.
+It operates in the layer between the agent's input and output — before a decision becomes code, infrastructure, or an artifact — ensuring that the agent operates with the correct context, in compliance with the defined architecture, and within the mandates established by the team.
 
-O problema que ele resolve é simples de enunciar e difícil de ignorar: **agentes sem governança executável tomam decisões inconsistentes entre sessões, ignoram ADRs já decididas, e acumulam drift arquitetural de forma silenciosa e progressiva.** O SDD torna esse drift detectável, auditável, e rejeitável automaticamente no CI.
+The problem it solves is simple to state and hard to ignore: **agents without executable governance make inconsistent decisions across sessions, ignore ADRs that have already been decided, and silently and progressively accumulate architectural drift.** SDD makes that drift detectable, auditable, and automatically rejectable in CI.
 
 ---
 
-## Com o que o SDD compete?
+## What does SDD compete with?
 
-O SDD **não compete** com:
+SDD **does not compete** with:
 
-- Frameworks de gerenciamento de estado (Redux, RTK, Zustand)
-- Ferramentas de scaffolding de CRUD (Rails, Django, CAVEMAN)
-- Orquestradores de fluxo de agente (LangChain, AutoGen, CAMEL)
-- Frameworks de componentes de UI
+- State management frameworks (Redux, RTK, Zustand)
+- CRUD scaffolding tools (Rails, Django, CAVEMAN)
+- Agent flow orchestrators (LangChain, AutoGen, CAMEL)
+- UI component frameworks
 
-O SDD compete em um espaço específico e distinto:
+SDD competes in a specific and distinct space:
 
-| Domínio | O que o SDD entrega |
+| Domain | What SDD delivers |
 |---|---|
-| **Governance executável** | Mandates compilados e validáveis, não apenas documentação |
-| **Runtime awareness** | O agente conhece o estado do ambiente antes de agir |
-| **Context routing** | Documentação indexada e servida sob demanda, não carregada em bloco |
-| **Workflow orchestration** | CLI que abstrai e automatiza o setup completo do ambiente |
-| **Architecture compliance** | Guardrails que detectam e registram desvios em tempo real |
-| **Multi-agent operational alignment** | Todos os agentes e humanos operam sob o mesmo conjunto de regras |
+| **Executable governance** | Compiled, validatable mandates — not just documentation |
+| **Runtime awareness** | The agent knows the state of the environment before acting |
+| **Context routing** | Indexed documentation served on demand, not loaded in bulk |
+| **Workflow orchestration** | A CLI that abstracts and automates the full environment setup |
+| **Architecture compliance** | Guardrails that detect and log deviations in real time |
+| **Multi-agent operational alignment** | All agents and humans operate under the same set of rules |
 
 ---
 
-## Como o SDD atua na prática?
+## How does SDD work in practice?
 
-O SDD opera **entre as iterações internas do agente** — entre input e output — em quatro eixos:
+SDD operates **between the agent's internal iterations** — between input and output — across four axes:
 
-### 1. Governança forte
+### 1. Strong governance
 
-Mandates, guardrails, guidelines e ADRs são compilados em artefatos validáveis. O sistema detecta drift automaticamente e registra cada evento com `trace_id`, `timestamp` e estado (`HEALTHY`, `MISCONFIGURED`, `VIOLATION`). Nenhuma decisão do agente passa sem rastro auditável.
+Mandates, guardrails, guidelines, and ADRs are compiled into validatable artifacts. The system automatically detects drift and logs every event with `trace_id`, `timestamp`, and state (`HEALTHY`, `MISCONFIGURED`, `VIOLATION`). No agent decision passes without an auditable trail.
 
-### 2. Qualidade de contexto
+### 2. Context quality
 
-- **Handshake de inicialização** — o agente confirma que carregou o contexto correto antes de executar tarefas
-- **Quiz interno de confiança** — mecanismo de auto-validação que reduz alucinação arquitetural
-- **Detecção de drift** — o sistema compara o estado atual com o estado compilado e sinaliza divergências
+- **Initialization handshake** — the agent confirms it loaded the correct context before executing tasks
+- **Internal confidence quiz** — a self-validation mechanism that reduces architectural hallucination
+- **Drift detection** — the system compares the current state with the compiled state and flags divergences
 
-### 3. Documentação otimizada para IA (4 camadas)
+### 3. AI-optimized documentation (4 layers)
 
-- **Camada I — Material comprimido:** conteúdo denso e estruturado para consumo de agente, não de humano
-- **Camada II — Leitura sob demanda:** o agente acessa contexto pontualmente, em vez de carregar arquivos extensos no início de cada sessão. Reduz consumo de tokens diretamente.
-- **Camada III — Índices reativos com path A/B/C/D:** o agente navega por caminhos de leitura otimizados conforme o tipo de tarefa
-- **Camada IV — ADRs no contexto interno:** decisões arquiteturais já tomadas ficam disponíveis inline, evitando que o agente repita discussões resolvidas ou reverta escolhas consolidadas
+- **Layer I — Compressed material:** dense, structured content for agent consumption, not human consumption
+- **Layer II — On-demand reading:** the agent accesses context selectively, instead of loading large files at the start of every session. This directly reduces token consumption.
+- **Layer III — Reactive indices with A/B/C/D paths:** the agent navigates optimized reading paths according to the task type
+- **Layer IV — ADRs in internal context:** architectural decisions already made are available inline, preventing the agent from repeating resolved discussions or reverting consolidated choices
 
-### 4. CLI de abstração
+### 4. Abstraction CLI
 
-A CLI automatiza configurações que exigiriam conhecimento técnico profundo da estrutura interna, tornando o SDD acessível sem acoplamento ao detalhe de implementação.
-
----
-
-## No que o SDD é similar a ferramentas como CAVEMAN?
-
-A similaridade está em um único ponto: **ambos abstraem conhecimento técnico de configuração de ambiente através de CLI**.
-
-A diferença fundamental é o escopo:
-
-- CAVEMAN e similares entregam o **setup inicial** — scaffolding, estrutura de projeto, boilerplate configurado
-- O SDD entrega setup inicial **e** **conformidade contínua em runtime** — o ambiente valida sua própria arquitetura a cada operação
+The CLI automates configurations that would otherwise require deep technical knowledge of the internal structure, making SDD accessible without coupling to implementation details.
 
 ---
 
-## Os mandates são configuráveis?
+## How is SDD similar to tools like CAVEMAN?
 
-Os mandates têm três níveis:
+The similarity is in a single point: **both abstract environment-configuration technical knowledge through a CLI**.
 
-- **OBRIGATÓRIO** — inegociável para o agente em runtime. O sistema detecta e registra qualquer desvio sem exceção. Não há bypass.
-- **OPCIONAL** — ativável por configuração de workspace
-- **CUSTOMIZÁVEL** — o comportamento base pode ser sobrescrito por variáveis do ambiente sem alterar a estrutura canônica
+The fundamental difference is scope:
 
----
-
-## O que acontece se eu rodar o wizard e importar o pacote completo?
-
-Você recebe um ambiente funcional com governança pré-compilada e imediatamente validável — não apenas boilerplate. O pacote inclui:
-
-- Mandates canônicos prontos (Clean Architecture, TDD, Context Awareness)
-- Anti-patterns identificados e documentados para o agente evitar
-- Guardrails configurados para detectar desvios automaticamente
-- Trilha de telemetria ativa desde o primeiro comando
-- Documentação indexada em quatro camadas para consumo eficiente por agentes
-
-Padrões incluídos são **agnósticos de linguagem** — funcionam independentemente do stack.
+- CAVEMAN and similar tools deliver the **initial setup** — scaffolding, project structure, configured boilerplate
+- SDD delivers initial setup **and** **continuous runtime compliance** — the environment validates its own architecture on every operation
 
 ---
 
-## O que a telemetria entrega na prática?
+## Are mandates configurable?
 
-Cada decisão relevante do agente gera um evento JSONL com `ts`, `event`, `command`, `state`, e `details`. Isso permite:
+Mandates have three levels:
 
-- **Auditoria completa** de cada sessão de agente
-- **Detecção retroativa de drift** — você sabe quando e onde o desvio ocorreu
-- **Gate de CI automatizado** — o pipeline pode falhar se a conformidade caiu abaixo do threshold
-- **Rastreabilidade por `trace_id`** — cada operação é correlacionável de ponta a ponta
+- **MANDATORY** — non-negotiable for the agent at runtime. The system detects and logs any deviation without exception. There is no bypass.
+- **OPTIONAL** — enabled via workspace configuration
+- **CUSTOMIZABLE** — base behavior can be overridden by environment variables without changing the canonical structure
+
+---
+
+## What happens if I run the wizard and import the full package?
+
+You get a functional environment with pre-compiled, immediately validatable governance — not just boilerplate. The package includes:
+
+- Ready-to-use canonical mandates (Clean Architecture, TDD, Context Awareness)
+- Identified and documented anti-patterns for the agent to avoid
+- Guardrails configured to automatically detect deviations
+- Active telemetry trail from the first command
+- Documentation indexed in four layers for efficient agent consumption
+
+Included patterns are **language-agnostic** — they work regardless of the stack.
+
+---
+
+## What does telemetry deliver in practice?
+
+Every relevant agent decision generates a JSONL event with `ts`, `event`, `command`, `state`, and `details`. This enables:
+
+- **Full audit** of every agent session
+- **Retroactive drift detection** — you know when and where the deviation occurred
+- **Automated CI gate** — the pipeline can fail if compliance drops below the threshold
+- **Traceability via `trace_id`** — every operation is correlatable end to end

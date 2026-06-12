@@ -2,36 +2,36 @@
 
 # AI Agent Entry Point
 
-Guia operacional para Copilot e outros agentes que atuam neste workspace com governança SDD.
+Operational guide for Copilot and other agents acting in this workspace under SDD governance.
 
-## Bootstrap mínimo (quando contexto está baixo)
+## Minimal bootstrap (when context is low)
 
-Carregar nesta ordem:
+Load in this order:
 
-1. **`.sdd/agent-instructions.md`** ← Fonte primária de governança (mandatos + autoavaliação)
+1. **`.sdd/agent-instructions.md`** ← Primary governance source (mandates + self-evaluation)
 2. [docs/guides/TECHNICAL_GUIDE.md](../../guides/TECHNICAL_GUIDE.md)
 3. [docs/runtime/protocols/AGENT_RUNTIME_PROTOCOL.md](./AGENT_RUNTIME_PROTOCOL.md)
 
 ---
 
-## Mandatos obrigatórios
+## Mandatory mandates
 
-O arquivo `.sdd/agent-instructions.md` fornece o **índice de mandatos com micro-descrição**.
+The file `.sdd/agent-instructions.md` provides the **mandate index with micro-descriptions**.
 
-| Mandato | Resumo | Detalhes completos (sob demanda) |
+| Mandate | Summary | Full details (on demand) |
 |---------|--------|----------------------------------|
-| M001 — Clean Architecture | Layers obrigatórias, sem imports cruzados | [CLEAN_ARCHITECTURE.md](../../spec/canonical/features/CLEAN_ARCHITECTURE.md) |
-| M002 — TDD | Cobertura > 80%, pytest, mocks só na infra | [TDD.md](../../spec/canonical/features/TDD.md) |
-| M003 — Context Awareness | Leitura sob demanda, contexto mínimo | `docs/spec/canonical/core/mandates/M003_CONTEXT_AWARENESS.md` |
+| M001 — Clean Architecture | Mandatory layers, no cross imports | [CLEAN_ARCHITECTURE.md](../../spec/canonical/features/CLEAN_ARCHITECTURE.md) |
+| M002 — TDD | Coverage > 80%, pytest, mocks only in infra | [TDD.md](../../spec/canonical/features/TDD.md) |
+| M003 — Context Awareness | On-demand reading, minimal context | `docs/spec/canonical/core/mandates/M003_CONTEXT_AWARENESS.md` |
 
-> **Padrão de leitura sob demanda:** Leia o índice em `.sdd/agent-instructions.md`. Se o resumo do mandato **não** for suficiente para a sua tarefa atual → execute uma tool call para ler o detalhamento no arquivo de referência acima.
+> **On-demand reading pattern:** Read the index in `.sdd/agent-instructions.md`. If the mandate summary is **not** sufficient for your current task → make a tool call to read the full details in the reference file above.
 
-## SELF-EVALUATION (auto-avaliação obrigatória)
+## SELF-EVALUATION (mandatory self-assessment)
 
-Antes de executar qualquer ação no workspace:
+Before executing any action in the workspace:
 
-- **Confiante** que a ação respeita os mandatos listados acima → **Proceda.**
-- **NÃO confiante** ou sem certeza sobre os detalhes técnicos → **Leia `.sdd/compiled/governance-core.json` antes de continuar.**
+- **Confident** that the action respects the mandates listed above → **Proceed.**
+- **NOT confident** or unsure about the technical details → **Read `.sdd/compiled/governance-core.json` before continuing.**
 
 ## Strict Auto-Fix Hygiene (Mandatory)
 
@@ -43,10 +43,11 @@ mypy .
 pytest
 ```
 
-Revalidação pós auto-fix é obrigatória antes de entrega.
+Post auto-fix revalidation is mandatory before delivery.
+Revalidação pós auto-fix é mandatória antes da entrega.
 
-## Navegação adicional
+## Additional navigation
 
-- Navegação mestre: [docs/guides/TECHNICAL_GUIDE.md](../../guides/TECHNICAL_GUIDE.md)
-- Cognição e modelos de decisão: `docs/cognition/INDEX.md`
-- Protocolo de runtime: [docs/runtime/protocols/AGENT_RUNTIME_PROTOCOL.md](./AGENT_RUNTIME_PROTOCOL.md)
+- Master navigation: [docs/guides/TECHNICAL_GUIDE.md](../../guides/TECHNICAL_GUIDE.md)
+- Cognition and decision models: `docs/cognition/INDEX.md`
+- Runtime protocol: [docs/runtime/protocols/AGENT_RUNTIME_PROTOCOL.md](./AGENT_RUNTIME_PROTOCOL.md)

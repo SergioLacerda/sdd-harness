@@ -193,21 +193,22 @@ class SourceValidator:
 
         return result
 
-    @staticmethod
-    def validate_source_files(
-        mandate_text: str, guidelines_text: str
-    ) -> tuple[bool, dict[str, Any]]:
-        """Validate both source files together"""
-        mandate_result = SourceValidator.validate_mandate_spec(mandate_text)
-        guidelines_result = SourceValidator.validate_guidelines_dsl(guidelines_text)
 
-        # Combine results
-        combined: dict[str, Any] = {
-            "valid": mandate_result["valid"] and guidelines_result["valid"],
-            "mandate": mandate_result,
-            "guidelines": guidelines_result,
-            "errors": mandate_result["errors"] + guidelines_result["errors"],
-            "warnings": mandate_result["warnings"] + guidelines_result["warnings"],
-        }
+def validate_source_files(
+    mandate_text: str, guidelines_text: str
+) -> tuple[bool, dict[str, Any]]:
+    """Validate both source files together."""
+    mandate_result = SourceValidator.validate_mandate_spec(mandate_text)
+    guidelines_result = SourceValidator.validate_guidelines_dsl(guidelines_text)
+    combined: dict[str, Any] = {
+        "valid": mandate_result["valid"] and guidelines_result["valid"],
+        "mandate": mandate_result,
+        "guidelines": guidelines_result,
+        "errors": mandate_result["errors"] + guidelines_result["errors"],
+        "warnings": mandate_result["warnings"] + guidelines_result["warnings"],
+    }
+    return (combined["valid"], combined)
 
-        return (combined["valid"], combined)
+
+# Backwards-compat: keep accessible as class method too
+SourceValidator.validate_source_files = staticmethod(validate_source_files)  # type: ignore[attr-defined]

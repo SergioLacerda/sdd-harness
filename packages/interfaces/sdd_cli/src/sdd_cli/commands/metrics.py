@@ -11,102 +11,35 @@ import http.server
 import os
 import threading
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any
 
 import click
 import typer
 from rich.console import Console
-from rich.table import Table
 
+from sdd_cli.services.metrics_handler import (
+    _CollectorRef,
+    _resolve_jsonl_path,
+    _start_reload_worker,
+    build_metrics_handler,
+    build_summary_json_data,
+    build_summary_table,
+)
 from sdd_cli.shared.contracts import (
     build_error_result,
     build_ok_result,
 )
 from sdd_cli.utils.output import emit_json, is_json_mode
 
-if TYPE_CHECKING:
-    from sdd_runtime.metrics import EconomySnapshot
-
 app = typer.Typer(help="Token economy metrics commands")
 console = Console()
 
-_RUNTIME_DIR = Path(".sdd") / "runtime"
-_EVENTS_FILENAME = "compliance-events.jsonl"
 _DEFAULT_METRICS_PORT = 9090
-
-
-class _CollectorRef:
-    """Thread-safe mutable reference to the active collector."""
-
-    def __init__(self, collector: object) -> None:
-        self._lock = threading.RLock()
-        self._collector = collector
-
-    def swap(self, collector: object) -> None:
-        with self._lock:
-            self._collector = collector
-
-    def snapshot(self) -> EconomySnapshot:
-        with self._lock:
-            return cast("EconomySnapshot", self._collector.snapshot())  # type: ignore[attr-defined]
-
-
-def _start_reload_worker(
-    *,
-    jsonl_path: Path,
-    refresh: int,
-    collector_ref: _CollectorRef,
-    stop_event: threading.Event,
-) -> threading.Thread:
-    """Start periodic collector reload worker with deterministic shutdown."""
-    from sdd_runtime.metrics import TokenEconomyCollector
-    from sdd_runtime.reader import TelemetryReader
-
-    def reload_collector() -> None:
-        while not stop_event.is_set():
-            # Wait with cancellation support instead of sleep(refresh)
-            if stop_event.wait(refresh):
-                break
-            try:
-                reader = TelemetryReader(jsonl_path)
-                new_collector = TokenEconomyCollector.from_reader(reader)
-                collector_ref.swap(new_collector)
-            except Exception:  # nosec B110
-                # Silently ignore reload errors; keep previous collector active
-                pass
-
-    worker = threading.Thread(
-        target=reload_collector,
-        name="sdd-metrics-reloader",
-        # Preserve daemon semantics of caller thread for test harness compatibility.
-        daemon=threading.current_thread().daemon,
-    )
-    worker.start()
-    return worker
 
 
 @app.callback()
 def _() -> None:
     """Token economy metrics and Prometheus exposition."""
-
-
-def _resolve_jsonl_path(jsonl: Path | None) -> Path:
-    """Resolve the JSONL events file path.
-
-    Priority:
-    1. Explicit --jsonl argument
-    2. {cwd}/.sdd/runtime/compliance-events.jsonl
-    3. Fallback to just the filename (for testing)
-    """
-    if jsonl:
-        return jsonl
-
-    default = _RUNTIME_DIR / _EVENTS_FILENAME
-    if default.exists():
-        return default
-
-    # Fallback
-    return default
 
 
 def _is_json_mode(ctx: typer.Context) -> bool:
@@ -172,64 +105,12 @@ def summary(
 
     # JSON output mode (machine-readable envelope).
     if output_json:
-        data = {
-            "summary": {
-                "total_tokens": snap.total_tokens_total,
-                "total_cost_usd": round(snap.total_cost_usd, 4),
-                "budget_utilization_pct": snap.budget_utilization_pct,
-                "total_calls": snap.total_calls,
-                "warn_count": snap.warn_count,
-                "breach_count": snap.breach_count,
-                "retry_cap_count": snap.retry_cap_count,
-                "per_model": {
-                    model: {
-                        "tokens_input": m.tokens_input,
-                        "tokens_output": m.tokens_output,
-                        "tokens_total": m.tokens_total,
-                        "cost_usd": round(m.cost_usd, 4),
-                        "call_count": m.call_count,
-                    }
-                    for model, m in snap.per_model.items()
-                },
-            },
-            "exit_code": 0,
-        }
+        data = build_summary_json_data(snap)
         payload = build_ok_result("metrics summary", data)
         emit_json(payload)
         return
 
-    # Build summary table
-    table = Table(title="Token Economy Summary")
-    table.add_column("Model", style="cyan")
-    table.add_column("Input Tokens", justify="right", style="magenta")
-    table.add_column("Output Tokens", justify="right", style="magenta")
-    table.add_column("Total Tokens", justify="right")
-    table.add_column("Est. Cost (USD)", justify="right", style="green")
-    table.add_column("Calls", justify="right")
-
-    # Per-model rows
-    for model in sorted(snap.per_model.keys()):
-        m = snap.per_model[model]
-        table.add_row(
-            model,
-            str(m.tokens_input),
-            str(m.tokens_output),
-            str(m.tokens_total),
-            f"${m.cost_usd:.4f}",
-            str(m.call_count),
-        )
-
-    # Totals row
-    table.add_row(
-        "[bold]TOTAL[/bold]",
-        f"[bold]{snap.total_tokens_input}[/bold]",
-        f"[bold]{snap.total_tokens_output}[/bold]",
-        f"[bold]{snap.total_tokens_total}[/bold]",
-        f"[bold green]${snap.total_cost_usd:.4f}[/bold green]",
-        f"[bold]{snap.total_calls}[/bold]",
-    )
-
-    console.print(table)
+    console.print(build_summary_table(snap))
 
     # Budget utilization indicator
     util_pct = snap.budget_utilization_pct
@@ -278,7 +159,7 @@ def serve(  # noqa: C901
     ),
 ) -> None:
     """Start Prometheus metrics scrape endpoint (foreground, Ctrl+C to stop)."""
-    from sdd_runtime.metrics import PrometheusTextRenderer, TokenEconomyCollector
+    from sdd_runtime.metrics import TokenEconomyCollector
     from sdd_runtime.reader import TelemetryReader
 
     # Resolve JSONL path
@@ -322,31 +203,7 @@ def serve(  # noqa: C901
     collector_ref = _CollectorRef(collector)
     stop_event = threading.Event()
 
-    # HTTP request handler
-    class MetricsHandler(http.server.BaseHTTPRequestHandler):
-        def do_get(self) -> None:
-            if self.path == "/metrics":
-                # Render Prometheus text format
-                snap = collector_ref.snapshot()
-                renderer = PrometheusTextRenderer()
-                prometheus_text = renderer.render(snap)
-
-                self.send_response(200)
-                self.send_header(
-                    "Content-Type", "text/plain; version=0.0.4; charset=utf-8"
-                )
-                self.send_header("Content-Length", str(len(prometheus_text)))
-                self.end_headers()
-                self.wfile.write(prometheus_text.encode("utf-8"))
-            else:
-                self.send_response(404)
-                self.send_header("Content-Type", "text/plain")
-                self.end_headers()
-                self.wfile.write(b"Not Found\n")
-
-        def log_message(self, format: str, *args: object) -> None:
-            # Suppress default logging
-            pass
+    MetricsHandler = build_metrics_handler(collector_ref)
 
     # Bind first. In restricted environments this can fail (PermissionError/OSError),
     # and we must fail fast before starting background workers.

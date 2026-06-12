@@ -198,7 +198,7 @@ Processes, tools, and protocols for effective development.
 - `sdd governance adherence`
 - `sdd runtime status` (AHP/GAP state)
 - `sdd lint spec`
-- `sdd ask` / `sdd ask-full` (governance query)
+- `sdd ask` / `sdd ask --full` (governance query)
 - `sdd test run`
 - `sdd doctor` (diagnostics)
 - `sdd setup` (venv/dependencies)

@@ -2,80 +2,80 @@
 
 # Agent Runtime Protocol
 
-Protocolo operacional obrigatório para qualquer agente de IA que execute tarefas neste workspace.
+Mandatory operational protocol for any AI agent executing tasks in this workspace.
 
-## Fluxo de 7 fases
+## 7-Phase Flow
 
-Todo trabalho — bug fix, feature, refactor, documentação — segue este fluxo. Não é opcional.
+All work — bug fix, feature, refactor, documentation — follows this flow. It is not optional.
 
 ```
-FASE 0: Verificar contexto e estado inicial
+PHASE 0: Check context and initial state
    ↓
-FASE 1: Carregar regras e mandatos
+PHASE 1: Load rules and mandates
    ↓
-FASE 2: Verificar estado de execução (detectar conflitos)
+PHASE 2: Check execution state (detect conflicts)
    ↓
-FASE 3: Escolher caminho: bug=A | simples=B | complexo=C | multi=D
+PHASE 3: Choose path: bug=A | simple=B | complex=C | multi=D
    ↓
-FASE 4: Carregar contexto específico da tarefa
+PHASE 4: Load task-specific context
    ↓
-FASE 5: Implementar (código + testes, TDD)
+PHASE 5: Implement (code + tests, TDD)
    ↓
-FASE 6: Validar (testes + definition of done)
+PHASE 6: Validate (tests + definition of done)
    ↓
-FASE 7: Checkpoint (documentar + entregar)
+PHASE 7: Checkpoint (document + deliver)
 ```
 
-## Comandos obrigatórios por fase
+## Mandatory commands per phase
 
-### Fase 0 — Estado inicial
+### Phase 0 — Initial state
 
 ```bash
-sdd runtime status --verbose   # Verificar saúde do workspace
-sdd governance validate        # Confirmar integridade de governança
+sdd runtime status --verbose   # Check workspace health
+sdd governance validate        # Confirm governance integrity
 ```
 
-### Fase 1 — Regras e mandatos
+### Phase 1 — Rules and mandates
 
-**Bootstrap obrigatório:** Leia `.sdd/agent-instructions.md` primeiro.
-Ele contém o índice de mandatos com micro-descrição e o bloco de **SELF-EVALUATION**.
+**Mandatory bootstrap:** Read `.sdd/agent-instructions.md` first.
+It contains the mandate index with micro-descriptions and the **SELF-EVALUATION** block.
 
-- ✅ Confiante com os resumos → Proceda diretamente.
-- ❌ Não confiante → Leia o detalhamento sob demanda:
+- ✅ Confident with the summaries → Proceed directly.
+- ❌ Not confident → Read the details on demand:
   - [M001](../../spec/canonical/features/CLEAN_ARCHITECTURE.md) — Clean Architecture
-  - [M002](../../spec/canonical/features/TDD.md) — TDD obrigatório
+  - [M002](../../spec/canonical/features/TDD.md) — Mandatory TDD
   - `M003` — see `docs/spec/canonical/core/mandates/M003_CONTEXT_AWARENESS.md`
 
-### Fase 5 — Implementação
+### Phase 5 — Implementation
 
 ```bash
-sdd test run          # Rodar testes a cada mudança significativa
-sdd lint run          # Lint antes de declarar pronto
+sdd test run          # Run tests on every significant change
+sdd lint run          # Lint before declaring done
 ```
 
-### Fase 6 — Validação final
+### Phase 6 — Final validation
 
 ```bash
-sdd test run                    # Suíte completa
-sdd lint run                    # Qualidade estática
-sdd governance validate         # Integridade de governança
-sdd runtime status --verbose    # Estado final do workspace
+sdd test run                    # Full suite
+sdd lint run                    # Static quality
+sdd governance validate         # Governance integrity
+sdd runtime status --verbose    # Final workspace state
 ```
 
-## Gerenciamento de contexto (memória LLM)
+## Context management (LLM memory)
 
-| Fase | O que carregar | Propósito |
+| Phase | What to load | Purpose |
 |------|---------------|-----------|
-| Planejamento | `docs/cognition/decision-models/` | Avaliar riscos e confiança |
-| Execução | `docs/cognition/decision-models/TASK_CLASSIFICATION.md` | Selecionar PATH (A-F) adequado |
-| Validação | `docs/spec/canonical/specifications/definition_of_done.md` | Critérios de qualidade |
+| Planning | `docs/cognition/decision-models/` | Assess risk and confidence |
+| Execution | `docs/cognition/decision-models/TASK_CLASSIFICATION.md` | Select the appropriate PATH (A-F) |
+| Validation | `docs/spec/canonical/specifications/definition_of_done.md` | Quality criteria |
 
-> Nunca carregar a documentação inteira. Usar sempre path-based context loading via Master Index.
+> Never load the entire documentation. Always use path-based context loading via the Master Index.
 
-## Referências
+## References
 
 - Entrypoint: [AGENT_ENTRYPOINT.md](./AGENT_ENTRYPOINT.md)
 - CLI Reference: [docs/spec/reference/commands/cli.md](../../spec/reference/commands/cli.md)
-- Navegação mestre: [docs/guides/TECHNICAL_GUIDE.md](../../guides/TECHNICAL_GUIDE.md)
+- Master navigation: [docs/guides/TECHNICAL_GUIDE.md](../../guides/TECHNICAL_GUIDE.md)
 - Definition of Done: `docs/spec/canonical/specifications/definition_of_done.md`
-- PATHs operacionais: `docs/runtime/paths/`
+- Operational PATHs: `docs/runtime/paths/`

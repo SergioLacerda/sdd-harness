@@ -118,6 +118,33 @@ def test_plugin_validate_fail(
     assert "missing field" in result.output
 
 
+def test_plugin_list_json_and_missing_workspace(
+    plugin_workspace: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sdd_cli.commands import plugin as plugin_mod
+
+    monkeypatch.setattr(plugin_mod, "resolve_workspace_root", lambda: plugin_workspace)
+    result = runner.invoke(plugin_app, ["list", "--json"])
+    assert result.exit_code == 0
+    assert '"plugins"' in result.output
+
+    monkeypatch.setattr(plugin_mod, "resolve_workspace_root", lambda: None)
+    result = runner.invoke(plugin_app, ["list"])
+    assert result.exit_code == 1
+    assert "workspace root not found" in result.output.lower()
+
+
+def test_plugin_validate_json_not_found(
+    plugin_workspace: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sdd_cli.commands import plugin as plugin_mod
+
+    monkeypatch.setattr(plugin_mod, "resolve_workspace_root", lambda: plugin_workspace)
+    result = runner.invoke(plugin_app, ["validate", "missing", "--json"])
+    assert result.exit_code == 1
+    assert "plugin_not_found" in result.output
+
+
 # ---------------------------------------------------------------------------
 # 6.3 sdd analysis list — empty workspace returns no error
 # ---------------------------------------------------------------------------

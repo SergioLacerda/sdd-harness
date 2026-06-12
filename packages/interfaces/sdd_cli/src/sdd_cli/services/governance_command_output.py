@@ -12,6 +12,7 @@ from sdd_cli.services.governance_artifact_handlers import (
 )
 from sdd_cli.shared.contracts import build_error_result
 from sdd_cli.utils.output import emit_json
+from sdd_core.output.canonical_event import CanonicalLogEvent
 
 
 def handle_compile_output(
@@ -24,6 +25,7 @@ def handle_compile_output(
     core_fingerprint: str,
     consistency_reason: str,
     console: Console,
+    artifact_path: str = "",
 ) -> None:
     """Emit compile output and raise standardized exit when failed."""
     if output_json:
@@ -33,9 +35,16 @@ def handle_compile_output(
         return
 
     if is_error:
-        console.print("[red]ERROR: Artifact consistency failed after compile[/red]")
-        console.print(f"[yellow]{consistency_reason}[/yellow]")
-        console.print("  Next: run 'sdd governance validate' for detailed checks")
+        event = CanonicalLogEvent(
+            level="error",
+            phase="compile",
+            event_type="artifact_consistency_failed",
+            summary=consistency_reason,
+            decision="blocked",
+            artifact_path=artifact_path,
+            next_action="sdd governance validate",
+        )
+        console.print(f"[red]{event.simple_output()}[/red]")
         raise typer.Exit(1)
 
     render_governance_compile_table(
@@ -67,5 +76,13 @@ def fail_generate_precondition(
             err=True,
         )
     else:
-        console.print(f"[red]ERROR: {message}[/red]")
+        event = CanonicalLogEvent(
+            level="error",
+            phase="generate",
+            event_type=code,
+            summary=message,
+            decision="blocked",
+            artifact_path=str(data.get("resolved_path", "")),
+        )
+        console.print(f"[red]{event.simple_output()}[/red]")
     raise typer.Exit(1)

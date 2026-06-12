@@ -788,7 +788,7 @@ class TestGovernanceSeedsGeneratorMethods:
         assert "sdd skills run sdd-validate-governance" in content
         assert "sdd skills list" in content
         assert "sdd skills describe sdd-validate-governance" in content
-        assert "sdd ask-full" in content
+        assert "sdd ask --full" in content
         assert "Copy-Item -Path .sdd\\seedlings -Destination . -Recurse" in content
         assert "Activation Checklist" in content
 
@@ -1007,9 +1007,9 @@ class TestGovernanceSeedsGeneratorPromptCommands:
         gemini_content = (tmp_path / ".gemini" / "commands.md").read_text(
             encoding="utf-8"
         )
-        assert 'sdd ask-full "<question>"' in cursor_content
+        assert 'sdd ask --full "<question>"' in cursor_content
         assert "ask-full ask-full" not in cursor_content
-        assert 'sdd ask-full "<question>"' in gemini_content
+        assert 'sdd ask --full "<question>"' in gemini_content
         assert "ask-full ask-full" not in gemini_content
         summary = gen.get_summary()
         assert summary["awareness_pack"]["prompt_commands_mode"] == "fallback"
@@ -1175,7 +1175,7 @@ class TestGovernanceSeedsGeneratorGeneratePromptCommands:
                 return [("Codex/commands.md", out_file)]
 
         with patch(
-            "sdd_wizard.orchestration.seedlings.governance_seeds.import_module",
+            "sdd_wizard.orchestration.seedlings.guideline_seeds.import_module",
             return_value=_FakeModule(),
         ):
             success = gen.generate_prompt_commands()

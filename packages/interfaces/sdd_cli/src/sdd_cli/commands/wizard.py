@@ -28,7 +28,7 @@ def run(
     enforce_profile_policy("wizard", click.get_current_context(silent=True))
 
     try:
-        from sdd_wizard.main import run_wizard
+        from sdd_wizard.contracts import WizardInvocation, run_wizard
     except ImportError as err:
         typer.echo("ERROR: sdd-wizard not installed")
         typer.echo("Run: sdd setup run")
@@ -39,7 +39,14 @@ def run(
     )  # noqa: E501
 
     try:
-        run_wizard(output_dir=resolved_output)
+        result = run_wizard(
+            WizardInvocation(
+                project_root=Path.cwd(),
+                output_path=resolved_output,
+            )
+        )
+        if not result.success:
+            raise typer.Exit(1)
     except RuntimeError as err:
         message = str(err)
         if "SDD Project root not found" in message:

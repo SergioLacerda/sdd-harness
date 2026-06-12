@@ -268,7 +268,7 @@ Compliance specification defining quality gates, done criteria, and mandatory co
 - **Phase 2** (2h): Implement pytest fixtures
 - **Phase 3** (1h): CI/CD integration
 
-**Aplicável a:** Todos os projetos (herança automática)
+**Applies to:** All projects (automatic inheritance)
 **Owner:** QA Lead
 **Target:** 2026-06-15
 

@@ -12,6 +12,11 @@ import pytest
 import typer
 
 from sdd_cli.commands import test as test_mod
+from sdd_cli.services.test_handler import (
+    _find_artifact,
+    _resolve_golden_path,
+    _save_golden,
+)
 
 
 class _Runner:
@@ -272,8 +277,8 @@ class TestCiValidateCommand:
 
 class TestReviewGolden:
     def test_helper_branches(self, tmp_path: Path) -> None:
-        assert test_mod._resolve_golden_path(tmp_path).name == "golden-ast.json"
-        assert test_mod._find_artifact(tmp_path) is None
+        assert _resolve_golden_path(tmp_path).name == "golden-ast.json"
+        assert _find_artifact(tmp_path) is None
 
     def test_review_golden_branches(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -320,7 +325,7 @@ class TestReviewGolden:
         monkeypatch.setitem(sys.modules, "sdd_compiler", compiler_mod)
         monkeypatch.setattr(test_mod, "detect_repo_root", lambda: root)
 
-        test_mod._save_golden(golden, _AST())
+        _save_golden(golden, _AST())
         assert golden.exists()
         test_mod.review_golden(
             update=False, fail_on_breaking=True, artifact=artifact, golden=golden

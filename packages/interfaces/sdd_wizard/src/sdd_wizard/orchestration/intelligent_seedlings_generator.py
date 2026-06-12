@@ -14,6 +14,55 @@ from .seedlings.ide_seeds import IDESeedsGenerator
 from .seedlings.sovereign_factory import SovereignFactoryGenerator
 
 
+def _write_deployment_manifest(
+    output_base: Path,
+    spec_fingerprint: str,
+    generated_at: str,
+    log_fn: Any,
+) -> None:
+    """Write DEPLOYMENT_MANIFEST.json with fingerprints of all bootstrap files."""
+    bootstrap_candidates = {
+        "CLAUDE.md": "redirector",
+        "GEMINI.md": "redirector",
+        ".gemini/gemini-instructions.md": "redirector",
+        ".github/copilot-instructions.md": "redirector",
+        ".sdd/agent-instructions.md": "source-of-truth",
+    }
+    seed_candidates = {
+        ".sdd/seedlings/governance.seed.json": "seed",
+        ".sdd/seedlings/vscode.seed.json": "seed",
+        ".sdd/seedlings/cursor.seed.json": "seed",
+        ".sdd/seedlings/cortex.seed.json": "seed",
+        ".sdd/seedlings/gemini.seed.json": "seed",
+        ".sdd/seedlings/codex.seed.json": "seed",
+    }
+    bootstrap_files = {
+        rel: {"fingerprint": spec_fingerprint, "type": ftype}
+        for rel, ftype in bootstrap_candidates.items()
+        if (output_base / rel).exists()
+    }
+    seed_files = {
+        rel: {"fingerprint": spec_fingerprint, "type": ftype}
+        for rel, ftype in seed_candidates.items()
+        if (output_base / rel).exists()
+    }
+    manifest = {
+        "schema_version": "1.0",
+        "generated_at": generated_at,
+        "governance_fingerprint": spec_fingerprint,
+        "wizard_version": "3.0",
+        "bootstrap_files": bootstrap_files,
+        "seed_files": seed_files,
+    }
+    try:
+        manifest_path = output_base / "DEPLOYMENT_MANIFEST.json"
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2)
+        log_fn("✅ Written DEPLOYMENT_MANIFEST.json")
+    except Exception as e:
+        log_fn(f"⚠️  Could not write DEPLOYMENT_MANIFEST.json: {e}")
+
+
 class IntelligentSeedlingsGenerator:
     """Generate intelligent, customized seedling files for AI agents"""
 
@@ -143,7 +192,7 @@ class IntelligentSeedlingsGenerator:
                 "sdd skills run sdd-diagnose",
                 "sdd runtime status",
                 "sdd governance validate",
-                "sdd ask-full",
+                "sdd ask --full",
                 "sdd governance compile",
             ]
             for snippet in required_snippets:
@@ -206,50 +255,6 @@ class IntelligentSeedlingsGenerator:
 
     def _write_deployment_manifest(self) -> None:
         """Write DEPLOYMENT_MANIFEST.json with fingerprints of all bootstrap files."""
-        bootstrap_candidates = {
-            "CLAUDE.md": "redirector",
-            "GEMINI.md": "redirector",
-            ".gemini/gemini-instructions.md": "redirector",
-            ".github/copilot-instructions.md": "redirector",
-            ".sdd/agent-instructions.md": "source-of-truth",
-        }
-        seed_candidates = {
-            ".sdd/seedlings/governance.seed.json": "seed",
-            ".sdd/seedlings/vscode.seed.json": "seed",
-            ".sdd/seedlings/cursor.seed.json": "seed",
-            ".sdd/seedlings/cortex.seed.json": "seed",
-            ".sdd/seedlings/gemini.seed.json": "seed",
-            ".sdd/seedlings/codex.seed.json": "seed",
-        }
-
-        bootstrap_files = {}
-        for rel_path, ftype in bootstrap_candidates.items():
-            if (self.output_base / rel_path).exists():
-                bootstrap_files[rel_path] = {
-                    "fingerprint": self.spec_fingerprint,
-                    "type": ftype,
-                }
-
-        seed_files = {}
-        for rel_path, ftype in seed_candidates.items():
-            if (self.output_base / rel_path).exists():
-                seed_files[rel_path] = {
-                    "fingerprint": self.spec_fingerprint,
-                    "type": ftype,
-                }
-
-        manifest = {
-            "schema_version": "1.0",
-            "generated_at": self.generated_at,
-            "governance_fingerprint": self.spec_fingerprint,
-            "wizard_version": "3.0",
-            "bootstrap_files": bootstrap_files,
-            "seed_files": seed_files,
-        }
-        try:
-            manifest_path = self.output_base / "DEPLOYMENT_MANIFEST.json"
-            with open(manifest_path, "w", encoding="utf-8") as f:
-                json.dump(manifest, f, indent=2)
-            self.log("✅ Written DEPLOYMENT_MANIFEST.json")
-        except Exception as e:
-            self.log(f"⚠️  Could not write DEPLOYMENT_MANIFEST.json: {e}")
+        _write_deployment_manifest(
+            self.output_base, self.spec_fingerprint, self.generated_at, self.log
+        )

@@ -25,6 +25,10 @@ tools/             # Sovereign Factory: maintenance utilities (PEP 723)
 |---|---|
 | Canonical mandates and policies | `docs/spec/canonical/` |
 | Architecture Decision Records | `docs/spec/decisions/` |
+| Harness runtime ADRs | [docs/adr/INDEX.md](../adr/INDEX.md) |
+| Pipeline orchestration | [docs/guides/PIPELINE_ORCHESTRATION.md](./PIPELINE_ORCHESTRATION.md) |
+| Learning integration | [docs/guides/LEARNING_INTEGRATION.md](./LEARNING_INTEGRATION.md) |
+| Robustness patterns | [docs/guides/ROBUSTNESS_PATTERNS.md](./ROBUSTNESS_PATTERNS.md) |
 | Agent Runtime Protocol | [docs/runtime/protocols/AGENT_RUNTIME_PROTOCOL.md](../runtime/protocols/AGENT_RUNTIME_PROTOCOL.md) |
 | Security policy | [docs/spec/reference/SECURITY.md](../spec/reference/SECURITY.md) |
 | CLI reference | [docs/spec/reference/commands/cli.md](../spec/reference/commands/cli.md) |
@@ -95,21 +99,21 @@ Four integrated modules work together:
 
 ### CLI Integration
 
-Pass token counts to `sdd ask-full`:
+Pass token counts to `sdd ask --full`:
 
 ```bash
 # Via CLI flags
-sdd ask-full "query" --tokens-input 150 --tokens-output 50
+sdd ask --full "query" --tokens-input 150 --tokens-output 50
 
 # Via environment variables (picked up automatically)
-SDD_TOKENS_INPUT=150 SDD_TOKENS_OUTPUT=50 sdd ask-full "query"
+SDD_TOKENS_INPUT=150 SDD_TOKENS_OUTPUT=50 sdd ask --full "query"
 ```
 
 Budget breach guard blocks context loading:
 
 ```bash
-# When budget is breached (≥100% utilization), ask/ask-full exit with code 3
-SDD_BUDGET_UTILIZATION_PCT=105 sdd ask-full "query"
+# When budget is breached (≥100% utilization), ask in full mode exits with code 3
+SDD_BUDGET_UTILIZATION_PCT=105 sdd ask --full "query"
 # → [SDD] BUDGET BREACH: context utilization at 105.0% (>= 100%).
 # → Further context loading is blocked.
 ```

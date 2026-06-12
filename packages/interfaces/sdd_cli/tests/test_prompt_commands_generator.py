@@ -13,7 +13,7 @@ def test_sdd_ask_prompt_includes_preflight_and_500_fallback(tmp_path: Path) -> N
     )
     assert "sdd runtime status" in ask_prompt
     assert "sdd governance validate" in ask_prompt
-    assert 'sdd ask-full "$QUERY"' in ask_prompt
+    assert 'sdd ask --full "$QUERY"' in ask_prompt
     assert "fingerprint`, `context_source`, and `mandates_loaded`" in ask_prompt
     assert "API Error: 5xx" in ask_prompt
     assert "request_id" in ask_prompt
@@ -26,7 +26,7 @@ def test_sdd_ask_prompt_includes_preflight_and_500_fallback(tmp_path: Path) -> N
 def test_generated_command_surfaces_never_emit_duplicated_ask_full(
     tmp_path: Path,
 ) -> None:
-    """Generated command helper files must not contain 'ask-full ask-full'."""
+    """Generated command helper files must not duplicate the full ask variant."""
     generate_agent_prompt_commands(tmp_path, config={})
     files = [
         tmp_path / ".cursor" / "rules" / "sdd-commands.mdc",
@@ -34,4 +34,5 @@ def test_generated_command_surfaces_never_emit_duplicated_ask_full(
     ]
     for path in files:
         content = path.read_text(encoding="utf-8")
-        assert "ask-full ask-full" not in content
+        assert content.count('sdd ask --full "$QUERY"') <= 1
+        assert "/sdd-ask-full" not in content

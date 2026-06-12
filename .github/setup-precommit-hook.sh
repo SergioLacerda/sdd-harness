@@ -56,10 +56,22 @@ for hook_name in pre-commit pre-push commit-msg post-merge; do
         echo "WARN: Backed up existing hook ${dest} -> ${backup}"
     fi
 
-    ln -s "${src}" "${dest}"
-    chmod +x "${src}" "${dest}"
-    echo "OK: Installed ${hook_name}"
+    if ln -s "${src}" "${dest}" 2>/dev/null; then
+        chmod +x "${src}" "${dest}"
+        echo "OK: Installed ${hook_name}"
+    else
+        cp "${src}" "${dest}"
+        chmod +x "${src}" "${dest}"
+        echo "OK: Copied ${hook_name} (symlink unavailable on this platform)"
+        ANY_HOOK_COPIED=1
+    fi
 done
+
+if [ "${ANY_HOOK_COPIED:-0}" = "1" ]; then
+    echo ""
+    echo "Note: hooks were copied (not linked) because symlinks are unavailable on this"
+    echo "platform. Re-run this script after pulling changes to tools/scripts/git-hooks/."
+fi
 
 echo "Installing pre-commit framework hook"
 if [ "${PRE_COMMIT_USE_UV_RUN}" = "1" ]; then

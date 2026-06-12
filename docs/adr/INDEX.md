@@ -195,6 +195,45 @@ Local ADRs specific to the SDD Harness runtime layer. These are distinct from th
 
 - [ADR-011-golden-snapshot-drift-classification.md](ADR-011-golden-snapshot-drift-classification.md)
 
+---
+
+### ADR-012: AskRuntimeContext — Dependency-Injection Seam for `sdd ask` Testing (2026-06-10)
+
+**Decision:** Introduce an `AskRuntimeContext` object bundling the collaborators currently reached via `unittest.mock.patch("sdd_cli.commands._ask_backend.<symbol>")`, passed explicitly to `_ask_cmd_impl` and its orchestration helpers.
+
+**Rationale:**
+
+- `_ask_backend.py` (1060 lines) is the only `sdd_cli` file still over the Wave 8 ≤300-line gate, blocked by ~121 `mock.patch` call sites across 9 test files
+- "Extract + re-export" (the pattern used for every other Wave 8 file) fails here because the orchestration chain itself — not just the helpers — needs to move
+- A context object decouples patched collaborators from the physical module location of their call sites, unblocking incremental decomposition
+
+**Links:**
+
+- [ADR-012-ask-runtime-context-seam.md](ADR-012-ask-runtime-context-seam.md)
+- `packages/interfaces/sdd_cli/REFACTOR_NOTES.md` (Wave 1 / Wave 8 — `_ask_backend.py` blocker history)
+
+---
+
+### ADR-013: Python-Native Pipeline Composition for Governed Skills (2026-06-11)
+
+**Decision:** Execute `sdd-pipeline` as a composed runtime flow using
+`ContextCarrier`, `PipelineHandler`, executor-managed stage orchestration, and
+config-driven decision gates.
+
+**Rationale:**
+
+- CLI-only orchestration could not express runtime-native gates, freeze
+  escalation, or shared retry/timeout semantics across stages
+- Context propagation needed provenance-aware state sharing instead of repeated
+  plain-dictionary copies
+- The implementation roadmap explicitly required externalized gate rules and a
+  governed ask → diagnose → correct → converge pipeline
+
+**Links:**
+
+- [ADR-013-pipeline-composition.md](ADR-013-pipeline-composition.md)
+- `docs/guides/PIPELINE_ORCHESTRATION.md`
+
 ## 🧾 Operational Appendices
 
 These artifacts support governance operations but are not ADRs:

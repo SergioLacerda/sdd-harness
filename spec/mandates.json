@@ -1,7 +1,7 @@
 {
   "schema": "1.0",
   "generated_by": "sdd-wizard",
-  "generated_at": "2026-05-31T22:55:47+00:00",
+  "generated_at": "2026-06-11T12:16:26+00:00",
   "mandates": [
     {
       "id": "M003",
@@ -14,7 +14,7 @@
         "Pre-flight Sync: Before starting any task, the agent MUST read the cache to synchronize with the current global state of the project, overriding stale memory.",
         "Isolation: The cache is strictly project-scoped. In multi-repository IDEs, agents must treat each repository as a separate context-aware cell."
       ],
-      "rationale": "- **Parallelism**: Prevents Agent A from breaking assumptions made by Agent B.\n- **Context Longevity**: Prevents \"forgetting\" the main goal when the token window fills up with implementation details.\n- **Multi-Repo Safety**: Ensures the agent doesn't mix up rules between two different projects open in the same workspace.\n\n---",
+      "rationale": "- **Parallelism**: Prevents Agent A from breaking assumptions made by Agent B. - **Context Longevity**: Prevents \"forgetting\" the main goal when the token window fills up with implementation details. - **Multi-Repo Safety**: Ensures the agent doesn't mix up rules between two different projects open in the same workspace.",
       "implementation_pattern": null,
       "enforcement_steps": [
         "Verify `.sdd-cache.md` exists in the project root before starting any task",
@@ -33,10 +33,10 @@
       "id": "M005",
       "title": "Token Economy Enforcement",
       "category": "Economy / Resource Governance",
-      "summary_runtime": "Ensure every agent respects token budget zones and circuit-breaker thresholds to prevent",
+      "summary_runtime": "Ensure every agent respects token budget zones and circuit-breaker thresholds to prevent context overflow, degraded output, and undetected budget breaches.",
       "requirements": null,
-      "rationale": "Without enforced budget zones, agents silently overflow the context window, producing\nincomplete or hallucinated responses. Zone-based enforcement gives a graduated response:\ncompression at YELLOW, explicit warning at RED, hard block at BREACH.\n\n---",
-      "implementation_pattern": "- **Runtime module:** `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py`\n  - `TelemetrySink._maybe_emit_zone_event()` — zone detection and event emission\n  - `_ZONE_YELLOW_PCT = 70.0`, `_ZONE_RED_PCT = 90.0`, `_ZONE_BREACH_PCT = 100.0`\n- **Circuit breaker:** `packages/core/sdd_runtime/src/sdd_runtime/context.py`\n  - `RetryBudget` — retry ceiling enforcement\n- **Entropy scoring:** `packages/core/sdd_runtime/src/sdd_runtime/entropy.py`\n  - `EntropyScore.compute(retry_count, reflection_count, budget_utilization_pct)`\n\n---",
+      "rationale": "Without enforced budget zones, agents silently overflow the context window, producing incomplete or hallucinated responses. Zone-based enforcement gives a graduated response: compression at YELLOW, explicit warning at RED, hard block at BREACH.",
+      "implementation_pattern": "- **Runtime module:** `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py`\n  - `TelemetrySink._maybe_emit_zone_event()` — zone detection and event emission\n  - `_ZONE_YELLOW_PCT = 70.0`, `_ZONE_RED_PCT = 90.0`, `_ZONE_BREACH_PCT = 100.0`\n- **Circuit breaker:** `packages/core/sdd_runtime/src/sdd_runtime/context.py`\n  - `RetryBudget` — retry ceiling enforcement\n- **Entropy scoring:** `packages/core/sdd_runtime/src/sdd_runtime/entropy.py`\n  - `EntropyScore.compute(retry_count, reflection_count, budget_utilization_pct)`",
       "enforcement_steps": [
         "Verify current token budget zone before loading any additional context (GREEN < 70%, YELLOW 70–90%, RED > 90%, BREACH ≥ 100%)",
         "Apply compression before loading context when in YELLOW or RED zone",
@@ -58,8 +58,8 @@
       "category": "Observability / Audit",
       "summary_runtime": "Ensure 100% traceability of agentic decisions and governance compliance via structured telemetry and OpenTelemetry integration.",
       "requirements": null,
-      "rationale": "Unrecorded governance decisions are a security risk. Telemetry provides the \"black box\" required to debug agent failures, audit compliance breaches, and optimize token economy efficiency across the entire ecosystem.\n\n---",
-      "implementation_pattern": "- **Runtime module:** `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py`\n  - `RuntimeEvent` — standardized event envelope.\n  - `TelemetrySink` — collector and JSONL persistence.\n- **OTEL Bridge:** `packages/core/sdd_runtime/src/sdd_runtime/otel.py`\n  - `OtelBridge` — subclass for OTEL export.\n  - `OtlpHttpExporter` — OTLP-HTTP/JSON transport.\n\n---",
+      "rationale": "Unrecorded governance decisions are a security risk. Telemetry provides the \"black box\" required to debug agent failures, audit compliance breaches, and optimize token economy efficiency across the entire ecosystem.",
+      "implementation_pattern": "- **Runtime module:** `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py`\n  - `RuntimeEvent` — standardized event envelope.\n  - `TelemetrySink` — collector and JSONL persistence.\n- **OTEL Bridge:** `packages/core/sdd_runtime/src/sdd_runtime/otel.py`\n  - `OtelBridge` — subclass for OTEL export.\n  - `OtlpHttpExporter` — OTLP-HTTP/JSON transport.",
       "enforcement_steps": [
         "Confirm `runtime.session.start` event was emitted at agent initialization",
         "Confirm `governance.ask` event is emitted on every SDD context query",
@@ -80,8 +80,8 @@
       "category": "Security / Compliance / Audit Trail",
       "summary_runtime": "Preserve and protect the integrity of the audit trail (`.sdd/audit-trail/compliance-events.jsonl`) to ensure forensic capability, regulatory compliance, and accountability for all governance-aware ...",
       "requirements": null,
-      "rationale": "- **Forensics:** If governance fails, we must be able to replay and understand what happened\n- **Compliance:** Regulators (GDPR, SOC2) require immutable audit trails\n- **Accountability:** Agents must not be able to hide violations after the fact\n- **Detection:** Unusual patterns visible only in unmodified logs\n\n---",
-      "implementation_pattern": "**Runtime:**\n\n- All events persisted via `TelemetrySink` to `.sdd/audit-trail/compliance-events.jsonl` (append-only mode)\n- Pre-commit hook validates log format before commit\n- CI/CD gate prevents merge if log modified incorrectly\n\n**Archival:**\n\n- Old logs archived with timestamp: `compliance-events-2026-05-01.jsonl.gz`\n- Retained per data retention policy (recommend: 2 years minimum)\n- Archived logs treated with same protection as current log\n\n---",
+      "rationale": "- **Forensics:** If governance fails, we must be able to replay and understand what happened - **Compliance:** Regulators (GDPR, SOC2) require immutable audit trails - **Accountability:** Agents must not be able to hide violations after the fact - **Detection:** Unusual patterns visible only in unmodified logs",
+      "implementation_pattern": "**Runtime:**\n\n- All events persisted via `TelemetrySink` to `.sdd/audit-trail/compliance-events.jsonl` (append-only mode)\n- Pre-commit hook validates log format before commit\n- CI/CD gate prevents merge if log modified incorrectly\n\n**Archival:**\n\n- Old logs archived with timestamp: `compliance-events-2026-05-01.jsonl.gz`\n- Retained per data retention policy (recommend: 2 years minimum)\n- Archived logs treated with same protection as current log",
       "enforcement_steps": [
         "Verify `.sdd/audit-trail/compliance-events.jsonl` exists and has not been modified (only appended)",
         "Confirm no events have been deleted, reordered, or had timestamps altered",
@@ -102,7 +102,7 @@
       "category": "Observability / Distributed Tracing / Integration",
       "summary_runtime": "Maintain distributed trace continuity across the agentic ecosystem by enforcing valid OpenTelemetry (OTEL) context propagation on all governance-aware operations.",
       "requirements": null,
-      "rationale": "- **Distributed Tracing:** Multi-agent systems need to correlate work across agents and services\n- **Compliance:** Audit trails must show causality across system boundaries\n- **Debugging:** When issues arise, need to trace through the full decision chain\n- **SLA Monitoring:** Correlate latency and errors across services\n\n---",
+      "rationale": "- **Distributed Tracing:** Multi-agent systems need to correlate work across agents and services - **Compliance:** Audit trails must show causality across system boundaries - **Debugging:** When issues arise, need to trace through the full decision chain - **SLA Monitoring:** Correlate latency and errors across services",
       "implementation_pattern": "**Runtime:**\n\n- `OtelBridge` class translates SDD events to OTEL spans\n- `OtlpHttpExporter` sends spans to configured OTLP receiver\n- `TelemetrySink` enriches events with trace context before persistence\n\n**Configuration:**\n\n```bash",
       "enforcement_steps": [
         "Verify every agentic operation includes a valid `trace_id` (32 hex chars) and `span_id` (16 hex chars)",
@@ -125,9 +125,9 @@
       "id": "M010",
       "title": "Delivery Hygiene Enforcement",
       "category": null,
-      "summary_runtime": "Guarantee that every implementation is delivered with updated tests and strict",
+      "summary_runtime": "Guarantee that every implementation is delivered with updated tests and strict quality hygiene, including mandatory auto-fix and revalidation before handoff.",
       "requirements": null,
-      "rationale": "`ruff check` alone verifies but does not remediate. Strict hygiene requires\nauto-fix first, then full revalidation to prevent handing off avoidable style\nand lint debt to human reviewers.\n\nGit autonomy is prohibited because it bypasses human code review, creates\nunintended commits, and breaks auditability. Task completion is NOT authorization\nfor committing — these are independent lifecycle events.",
+      "rationale": "`ruff check` alone verifies but does not remediate. Strict hygiene requires auto-fix first, then full revalidation to prevent handing off avoidable style and lint debt to human reviewers. Git autonomy is prohibited because it bypasses human code review, creates unintended commits, and breaks auditability. Task completion is NOT authorization for committing — these are independent lifecycle events. Shared state assumption: other agents, threads, developers, editors, or automated processes may be working in the same repository concurrently. Uncommitted changes, branch pointers, stash entries, and index state must be treated as potentially belonging to parallel work. Any mutation of repository state must be treated with the same deliberateness as scope-expanding changes.",
       "implementation_pattern": null,
       "enforcement_steps": [
         "Confirm tests were created or updated for every code change in this session",
@@ -135,7 +135,7 @@
         "Confirm formatter was executed (`ruff format .` or `black .` if configured)",
         "Confirm `mypy .` was executed and passes (if mypy is detected)",
         "Confirm `pytest` was executed and passes (if pytest is detected)",
-        "Confirm no git state-modifying command (`add`, `commit`, `push`, `reset`, `rebase`, `merge`) was executed without explicit human authorization in the current message"
+        "Confirm no git state-mutating command (add, commit, push, reset, rebase, merge, stash, stash apply, stash pop, cherry-pick, clean, checkout, switch, branch -D) was executed without explicit per-command user authorization; assume parallel agents may be working in the same repository"
       ],
       "validation": [
         "Tests were added or updated for changed behavior.",
@@ -152,7 +152,7 @@
       "id": "M011",
       "title": "English Language Standard",
       "category": null,
-      "summary_runtime": "Enforce a single language standard for engineering artifacts to prevent ambiguity,",
+      "summary_runtime": "Enforce a single language standard for engineering artifacts to prevent ambiguity, mixed-language drift, and communication inconsistency across humans and agents.",
       "requirements": null,
       "rationale": null,
       "implementation_pattern": null,
@@ -174,7 +174,7 @@
       "id": "M015",
       "title": "Bidirectional Agent Handshake",
       "category": null,
-      "summary_runtime": "Ensure every agentic interaction is governed by a formal trust boundary via a",
+      "summary_runtime": "Ensure every agentic interaction is governed by a formal trust boundary via a bidirectional challenge/response protocol before any skill or tool execution begins.",
       "requirements": [
         "Challenge: The runtime MUST issue a `HandshakeRequest` to the agent",
         "Response: The agent MUST formally respond with its `agent_id`, the set",
@@ -196,7 +196,7 @@
       "id": "M016",
       "title": "Guardrail Non-Regression",
       "category": null,
-      "summary_runtime": "Ensure that guardrails evolve in a net-positive direction. Increments and",
+      "summary_runtime": "Ensure that guardrails evolve in a net-positive direction. Increments and optimizations are allowed and encouraged. Regression — any change that removes coverage, weakens enforcement, introduces ha...",
       "requirements": [
         "Non-regression: Guardrail changes MUST be net-positive or neutral.",
         "Composition over replacement: New capabilities MUST extend guardrail",
@@ -205,7 +205,7 @@
         "Mandatory test coverage: Every guardrail MUST have at least one test",
         "CI non-regression gate: The CI pipeline MUST verify no guardrail"
       ],
-      "rationale": "Guardrails are governance infrastructure. The system should get safer over\ntime, not weaker. Silent regression through hacks or lazy refactors is\nindistinguishable from no regression — until a violation slips through.\n\n---",
+      "rationale": "Guardrails are governance infrastructure. The system should get safer over time, not weaker. Silent regression through hacks or lazy refactors is indistinguishable from no regression — until a violation slips through.",
       "implementation_pattern": null,
       "enforcement_steps": [
         "Verify no guardrail check was removed or narrowed in this change set",
@@ -214,6 +214,111 @@
         "Confirm a `GovernanceEvent` with `event_type=GUARDRAIL_MODIFIED` was emitted for any guardrail code change",
         "Confirm every modified guardrail has at least one test asserting it blocks its target violation",
         "Confirm CI non-regression gate verifies no guardrail surface was reduced relative to the base branch"
+      ],
+      "validation": null
+    },
+    {
+      "id": "M017",
+      "title": "Analysis Plugin Compliance",
+      "category": null,
+      "summary_runtime": "Ensure that analysis plugins respect SDD-injected base_path, execution_provider, and approval_gate.",
+      "requirements": [
+        "Plugins MUST write artifacts only within sdd_injection.base_path",
+        "Plugins MUST invoke only the declared sdd_injection.execution_provider",
+        "Plugins MUST not skip sdd_injection.approval_gate when set to required",
+        "Plugin registry entries MUST declare all three sdd_injection fields: base_path, execution_provider, approval_gate",
+        "Violations MUST emit a GovernanceEvent with event_type=PLUGIN_COMPLIANCE_VIOLATION"
+      ],
+      "rationale": "Plugins extend SDD with external orchestration capabilities. Without governance over their write scope and execution authority, a plugin could silently corrupt the workspace or bypass approval controls. M017 ensures the plugin contract is enforceable and auditable.",
+      "implementation_pattern": null,
+      "enforcement_steps": [
+        "Verify plugin registry entry declares sdd_injection with base_path, execution_provider, approval_gate",
+        "Verify plugin does not write outside sdd_injection.base_path",
+        "Verify plugin invokes only the declared execution_provider",
+        "Verify approval_gate is honored when set to required",
+        "Confirm GovernanceEvent emitted on any plugin compliance violation"
+      ],
+      "validation": null
+    },
+    {
+      "id": "M018",
+      "title": "Code Quality Baseline",
+      "category": null,
+      "summary_runtime": "Enforce a universal code quality baseline across all language implementations to ensure consistency, maintainability, and correctness of engineering artifacts. Language-specific enforcement is dele...",
+      "requirements": [
+        "All code must pass the language-appropriate linter and formatter before delivery.",
+        "All code must pass static type checking where a type checker is available.",
+        "All code must pass the full test suite before delivery.",
+        "Code quality tools must be run in auto-fix mode first, then revalidated."
+      ],
+      "rationale": "A consistent code quality baseline prevents style drift, type errors, and regressions from reaching reviewers. Language-specific guidelines (G-series) extend this mandate with toolchain-specific enforcement rules without duplicating the core quality contract.",
+      "implementation_pattern": null,
+      "enforcement_steps": [
+        "Confirm language-appropriate linter was executed and passes",
+        "Confirm formatter was executed and passes",
+        "Confirm static type checker was executed and passes (if available)",
+        "Confirm test suite was executed and passes"
+      ],
+      "validation": null
+    },
+    {
+      "id": "M019",
+      "title": "Governance Federation",
+      "category": null,
+      "summary_runtime": "Define how any plugin or skill declares identity, negotiates capabilities, and adheres to host governance before execution inside an SDD-governed environment.",
+      "requirements": [
+        "Plugins MUST perform a governance handshake before execution",
+        "Handshake MUST declare: id, version, risk, capabilities, governance.mode, must_follow",
+        "Plugins MUST NOT override host governance silently",
+        "Plugins MUST NOT invent SDD rules that do not exist",
+        "Plugins MUST stop or degrade safely when governance context is missing",
+        "Plugins operating in governed mode MUST respect all HARD mandates",
+        "Internal SDD skills (under `.sdd/skills/`) MUST declare `governance_adherence: ` in skill.yaml",
+        "External plugins are registered via `.sdd/plugins/registry.yaml` through agent-mediated handshake",
+        "GovernanceEvent MUST be emitted on registration: `type=PLUGIN_REGISTERED`",
+        "GovernanceEvent MUST be emitted on violation: `type=PLUGIN_GOVERNANCE_VIOLATION`"
+      ],
+      "rationale": "M017 covers execution enforcement (write scope, execution_provider, approval_gate) for analysis plugins. M019 covers the federation layer: how any plugin enters the governance environment, declares its contract, and negotiates operating mode. Together they ensure plugins are both correctly declared (M019) and correctly constrained at runtime (M017).",
+      "implementation_pattern": null,
+      "enforcement_steps": [
+        "Verify plugin has performed governance handshake before execution",
+        "Verify registry entry exists for plugin in `.sdd/plugins/registry.yaml` (external) or `governance_adherence:` block in `skill.yaml` (internal)",
+        "Verify plugin respects all HARD mandates when mode=governed",
+        "Verify GovernanceEvent emitted on registration and on violation",
+        "Verify internal skills declare `governance_adherence:` in their skill.yaml"
+      ],
+      "validation": null
+    },
+    {
+      "id": "M020",
+      "title": "Governed Compact Logging",
+      "category": null,
+      "summary_runtime": "All agent interfaces — both input to the LLM and output to the user — MUST follow the Simple Governed IO pattern: a canonical event or context produces a simple base form, with an optional profile ...",
+      "requirements": [
+        "Derive all LLM input context from canonical fields (governance state, fingerprint, mandates count). Base form: max 2 lines, key=value compact",
+        "Derive all user-facing output from a canonical event (phase, status, decision, artifact_path, next_action). Base output: max 3 lines, max 120 chars per line",
+        "Persist full diagnostic evidence in `.sdd/runtime/` artifacts, not in console output",
+        "Emit DEBUG/TRACE as structured JSON telemetry, bypassing all profile renderers",
+        "Deduplicate repeated findings before rendering",
+        "Include artifact paths for auditability on every finding or decision event",
+        "Stop and emit a BLOCKER event when evidence is unreliable",
+        "Profiles MUST NOT change meaning, severity, status, decision, artifact path, or governance state — they may only change presentation",
+        "Agents MUST NOT send verbose governance metadata (query hash, trust source labels, repeated instructions) as LLM input when a compact canonical form suffices",
+        "Agents MUST NOT stream internal reasoning chains as console output",
+        "Agents MUST NOT use verbose first-person analysis as operational output",
+        "Agents MUST NOT repeat uncertainty loops without producing a decision",
+        "Agents MUST NOT mix user-facing logs with raw JSON telemetry",
+        "Agents MUST NOT use log volume as a substitute for evidence artifacts",
+        "A profile renderer MUST NOT alter governance state or decision content"
+      ],
+      "rationale": "Governance operations historically produced verbose, narrative-style content on both sides of the agent boundary: input context sent to the LLM (query_hash, trust_source, repeated instructions) and output sent to the user (multi-line intake blocks mixing labels, reasons, and instructions). Both inflate token usage, degrade UX, and obscure the actionable signal — state, decision, artifact, next action. M020 fixes this symmetrically: governance defines what happened, the profile defines how to show it, for both input and output, while telemetry and persisted artifacts retain full detail for audit.",
+      "implementation_pattern": null,
+      "enforcement_steps": [
+        "Verify LLM-facing governance context (`render_context_header` or equivalent) emits ≤2 lines when healthy, ≤3 lines when degraded, using canonical key=value form",
+        "Verify user-facing blocked/allowed output blocks are capped at 3 lines / 2 lines respectively",
+        "Verify DEBUG/TRACE telemetry events are emitted as structured JSON and bypass profile renderers",
+        "Verify profile renderers (pragmatic, epic) do not alter `decision`, `artifact_path`, `level`, `governance_state`, or `degraded` fields",
+        "Verify error/precondition output paths cap console messages to 2 lines plus an artifact reference"
       ],
       "validation": null
     }

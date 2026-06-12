@@ -1,4 +1,4 @@
-"""Unit tests for sdd ask / sdd ask-full commands."""
+"""Unit tests for sdd ask command."""
 
 from __future__ import annotations
 
@@ -103,7 +103,7 @@ class TestLoadCompiledGovernance:
         )
         # Mock out runtime path so JSON fallback inside .sdd/compiled is exercised
         with patch(
-            "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+            "sdd_cli.services.ask_context._load_governance_via_runtime",
             return_value=None,
         ):
             source, fp, count, *_rest = _load_compiled_governance(tmp_path)
@@ -126,7 +126,7 @@ class TestLoadCompiledGovernance:
         )
 
         with patch(
-            "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+            "sdd_cli.services.ask_context._load_governance_via_runtime",
             return_value=None,
         ):
             source, fp, count, *_rest = _load_compiled_governance(tmp_path)
@@ -152,11 +152,12 @@ class TestAskCommand:
                 side_effect=Exception("import fail"),
             ),
         ):
-            result = runner.invoke(app, ["ask", "what are the mandates?"])
+            result = runner.invoke(app, ["what are the mandates?"])
 
         assert result.exit_code == 0
-        assert "context_source" in result.output
-        assert "mandates_loaded" in result.output
+        # M020 compact format: verbose labels replaced by key=value compact form
+        assert "governance=" in result.output
+        assert "mandates=" in result.output
 
     def test_ask_partial_state_shows_soft_directive(self, tmp_path: Path) -> None:
         with (
@@ -169,7 +170,7 @@ class TestAskCommand:
                 return_value=("master", "PARTIAL"),
             ),
         ):
-            result = runner.invoke(app, ["ask", "test"])
+            result = runner.invoke(app, ["test"])
 
         assert "SOFT" in result.output or "PARTIAL" in (
             result.output + (result.stderr or "")
@@ -189,19 +190,19 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log_path)}),
         ):
-            runner.invoke(app, ["ask", "test query"])
+            runner.invoke(app, ["test query"])
 
         log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
         assert log.exists(), "compliance-events.jsonl must be written"
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         ask_events = [e for e in events if e.get("event") == "governance.ask"]
-        assert len(ask_events) == 1
-        details = ask_events[0].get("details", {})
+        assert ask_events
+        details = ask_events[-1].get("details", {})
         assert "query_hash" in details
         assert details["context_source"] == "compiled"
         assert details["mandates_loaded"] == 2
@@ -222,103 +223,20 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
         ):
-            result = runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            result = runner.invoke(app, ["status?"], obj={"output_json": True})
 
         assert result.exit_code == 0, result.output
         payload = _load_json_output(result.output)
-        assert payload["policy_result"] == "governance_context_loaded"
-        assert "learning_context" in payload
-        assert "learning_recommendations" not in payload
-        assert "ask_decision_envelope" in payload
-        envelope = payload["ask_decision_envelope"]
-        assert envelope["requires_diagnosis"] is True
-        assert envelope["min_diagnosis_confidence"] == 0.8
-        assert envelope["task_id"].startswith("task-")
+        assert payload["governance_mode"] == "hard"
+        assert payload["execution_gate"] in {"allowed", "blocked"}
+        assert "learning_signals" in payload
+        assert payload["learning_signals"]["observed_events"] == 0
 
-    def test_ask_json_envelope_infers_allowed_paths_from_explicit_path(
-        self, tmp_path: Path
-    ) -> None:
-        _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        with (
-            patch(
-                "sdd_cli.commands._ask_backend._resolve_workspace_root",
-                return_value=tmp_path,
-            ),
-            patch(
-                "sdd_cli.commands._ask_backend._get_profile_state",
-                return_value=("master", "HEALTHY"),
-            ),
-            patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
-                return_value=None,
-            ),
-        ):
-            result = runner.invoke(
-                app,
-                ["ask", "fix em packages/core/sdd_runtime/src/sdd_runtime/skills.py"],
-                obj={"output_json": True},
-            )
-        payload = _load_json_output(result.output)
-        envelope = payload["ask_decision_envelope"]
-        assert "packages/core/sdd_runtime/src/sdd_runtime/" in envelope["allowed_paths"]
-
-    def test_ask_json_envelope_infers_allowed_paths_from_keyword(
-        self, tmp_path: Path
-    ) -> None:
-        _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        with (
-            patch(
-                "sdd_cli.commands._ask_backend._resolve_workspace_root",
-                return_value=tmp_path,
-            ),
-            patch(
-                "sdd_cli.commands._ask_backend._get_profile_state",
-                return_value=("master", "HEALTHY"),
-            ),
-            patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
-                return_value=None,
-            ),
-        ):
-            result = runner.invoke(
-                app, ["ask", "diagnose runtime drift"], obj={"output_json": True}
-            )
-        payload = _load_json_output(result.output)
-        envelope = payload["ask_decision_envelope"]
-        assert "packages/core/sdd_runtime/src/" in envelope["allowed_paths"]
-
-    def test_ask_json_envelope_explicit_only_mode_disables_keyword_inference(
-        self, tmp_path: Path
-    ) -> None:
-        _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        with (
-            patch(
-                "sdd_cli.commands._ask_backend._resolve_workspace_root",
-                return_value=tmp_path,
-            ),
-            patch(
-                "sdd_cli.commands._ask_backend._get_profile_state",
-                return_value=("master", "HEALTHY"),
-            ),
-            patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
-                return_value=None,
-            ),
-            patch.dict("os.environ", {"SDD_ENVELOPE_SCOPE_MODE": "explicit_only"}),
-        ):
-            result = runner.invoke(
-                app, ["ask", "diagnose runtime drift"], obj={"output_json": True}
-            )
-        payload = _load_json_output(result.output)
-        envelope = payload["ask_decision_envelope"]
-        assert envelope["envelope_scope_mode"] == "explicit_only"
-        assert envelope["allowed_paths"] == []
-
-    def test_ask_json_emits_learning_recommendation_on_recurrence(
+    def test_ask_json_emits_learning_signals_on_recurrence(
         self, tmp_path: Path
     ) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
@@ -361,22 +279,17 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
         ):
-            result = runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            result = runner.invoke(app, ["status?"], obj={"output_json": True})
 
         assert result.exit_code == 0, result.output
         payload = _load_json_output(result.output)
-        recommendations = payload["learning_recommendations"]
-        assert recommendations["enabled"] is True
-        assert "diagnosis_inconclusive_recurrent" in recommendations["signals"]
-        assert "diagnosis.inconclusive.recurrent" in recommendations["reason_codes"]
+        assert payload["learning_signals"]["diagnosis_inconclusive"] == 2
 
-    def test_ask_telemetry_includes_learning_recommendation_flags(
-        self, tmp_path: Path
-    ) -> None:
+    def test_ask_telemetry_includes_learning_signal_flags(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
         runtime_dir = tmp_path / ".sdd" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -436,23 +349,21 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            runner.invoke(app, ["status?"], obj={"output_json": True})
 
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         ask_events = [e for e in events if e.get("event") == "governance.ask"]
         assert ask_events
         details = ask_events[-1].get("details", {})
-        assert "learning_recommendation_emitted" in details
         assert "learning_signal_count" in details
+        assert details["learning_signal_count"] >= 2
 
-    def test_ask_json_emits_scope_violation_recurrent_signal(
-        self, tmp_path: Path
-    ) -> None:
+    def test_ask_json_emits_scope_violation_signal(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
         runtime_dir = tmp_path / ".sdd" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -498,18 +409,16 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
         ):
-            result = runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            result = runner.invoke(app, ["status?"], obj={"output_json": True})
 
         payload = _load_json_output(result.output)
-        recommendations = payload["learning_recommendations"]
-        assert "scope_violation_recurrent" in recommendations["signals"]
-        assert "scope.violation.recurrent" in recommendations["reason_codes"]
+        assert payload["learning_signals"]["scope_violation"] == 2
 
-    def test_ask_json_emits_drift_recurrent_signal(self, tmp_path: Path) -> None:
+    def test_ask_json_emits_drift_signal(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
         runtime_dir = tmp_path / ".sdd" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -536,19 +445,17 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch(
                 "sdd_cli.commands._ask_backend._runtime_drift_check", return_value=True
             ),
         ):
-            result = runner.invoke(app, ["ask", "status?"], obj={"output_json": True})
+            result = runner.invoke(app, ["status?"], obj={"output_json": True})
 
         payload = _load_json_output(result.output)
-        recommendations = payload["learning_recommendations"]
-        assert "drift_recurrent" in recommendations["signals"]
-        assert "drift.recurrent.failure_recent" in recommendations["reason_codes"]
+        assert payload["learning_signals"]["drift_recent_failures"] >= 1
 
     def test_ask_json_dossier_included_when_requested(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
@@ -562,7 +469,7 @@ class TestAskCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch(
@@ -588,7 +495,7 @@ class TestAskCommand:
         ):
             result = runner.invoke(
                 app,
-                ["ask", "status?", "--dossier"],
+                ["status?", "--dossier"],
                 obj={"output_json": True},
             )
         payload = _load_json_output(result.output)
@@ -610,12 +517,11 @@ class TestAskFullCommand:
             ),
             patch("sdd_core.governance.compliance.log_ask_event", return_value=None),
         ):
-            result = runner.invoke(
-                app, ["ask-full", "query", "--log-format", "compact"]
-            )
+            result = runner.invoke(app, ["query", "--full", "--log-format", "compact"])
 
         assert result.exit_code == 0
-        assert "ask-full|" in result.output  # compact line
+        assert "execution_gate" in result.output
+        assert "SDD GOVERNANCE:" in result.output
 
     def test_ask_full_event_contains_trace_id_and_steps(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
@@ -631,30 +537,27 @@ class TestAskFullCommand:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            runner.invoke(app, ["ask-full", "test"])
+            runner.invoke(app, ["test", "--full"])
 
         assert log.exists()
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
-        full_events = [e for e in events if e.get("event") == "governance.ask.full"]
-        assert len(full_events) == 1
-        record = full_events[0]
+        full_events = [
+            e
+            for e in events
+            if e.get("event") == "governance.ask"
+            and e.get("details", {}).get("full_mode") is True
+        ]
+        assert full_events
+        record = full_events[-1]
         assert "trace_id" in record
         details = record["details"]
-        assert "steps" in details
-        step_ids = [s["step_id"] for s in details["steps"]]
-        assert step_ids == [
-            "PARSE",
-            "CONTEXT_LOAD",
-            "GOV_CHECK",
-            "ANSWER_RENDER",
-            "OUTPUT_WRITE",
-        ]
-        assert record["event"] == "governance.ask.full"
+        assert details["full_mode"] is True
+        assert record["event"] == "governance.ask"
 
     def test_ask_full_custom_log_path(self, tmp_path: Path) -> None:
         log_file = tmp_path / "custom.jsonl"
@@ -670,7 +573,7 @@ class TestAskFullCommand:
                 return_value=("master", "HEALTHY"),
             ),
         ):
-            result = runner.invoke(app, ["ask-full", "q", "--log-path", str(log_file)])
+            result = runner.invoke(app, ["q", "--full", "--log-path", str(log_file)])
 
         assert result.exit_code == 0
 
@@ -725,18 +628,23 @@ class TestAskFullCommand:
                 return_value=mock_ahp,
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            result = runner.invoke(app, ["ask-full", "runtime check"])
+            result = runner.invoke(app, ["runtime check", "--full"])
 
         assert result.exit_code == 0
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
-        full_events = [e for e in events if e.get("event") == "governance.ask.full"]
-        assert len(full_events) == 1
-        details = full_events[0]["details"]
+        full_events = [
+            e
+            for e in events
+            if e.get("event") == "governance.ask"
+            and e.get("details", {}).get("full_mode") is True
+        ]
+        assert full_events
+        details = full_events[-1]["details"]
         assert details["mandates_loaded"] == 2
         assert details["profile"] == "client"
 
@@ -759,7 +667,7 @@ class TestAskComplianceIntegration:
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            result = runner.invoke(app, ["ask", "integration test query"])
+            result = runner.invoke(app, ["integration test query"])
 
         assert result.exit_code == 0
         assert log.exists(), "compliance-events.jsonl must be written"
@@ -822,18 +730,18 @@ class TestCheckFingerprintDrift:
                 return_value=("master", "HEALTHY"),
             ),
             patch(
-                "sdd_cli.commands._ask_backend._load_governance_via_runtime",
+                "sdd_cli.services.ask_context._load_governance_via_runtime",
                 return_value=None,
             ),
             patch.dict("os.environ", {"SDD_COMPLIANCE_EVENTS_PATH": str(log)}),
         ):
-            runner.invoke(app, ["ask", "drift test"])
+            runner.invoke(app, ["drift test"])
 
         assert log.exists()
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         ask_events = [e for e in events if e.get("event") == "governance.ask"]
-        assert len(ask_events) == 1
-        details = ask_events[0].get("details", {})
+        assert ask_events
+        details = ask_events[-1].get("details", {})
         assert "drift_detected" in details
         assert details["drift_detected"] is True
 

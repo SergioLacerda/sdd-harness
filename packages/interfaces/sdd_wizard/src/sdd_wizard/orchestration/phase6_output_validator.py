@@ -21,6 +21,7 @@ class OutputValidator:
         mandates_dir: Path,
         guidelines_dir: Path,
         guidelines_by_category: dict[str, list[dict[str, Any]]],
+        config: dict[str, Any] | None = None,
         verbose: bool = False,
         emitter: Callable[[str], None] | None = None,
     ) -> None:
@@ -31,12 +32,46 @@ class OutputValidator:
         self.mandates_dir = mandates_dir
         self.guidelines_dir = guidelines_dir
         self.guidelines_by_category = guidelines_by_category
+        self.config = config or {}
         self.verbose = verbose
         self._emit = emitter or print
 
     def _log(self, message: str) -> None:
         if self.verbose:
             self._emit(f"  ℹ️  {message}")
+
+    def _path_exists(self, path: Path) -> bool:
+        return path.exists()
+
+    def _cursor_rules_exist(self) -> bool:
+        cursor_rules_dir = self.output_base / ".cursor" / "rules"
+        return any(
+            self._path_exists(cursor_rules_dir / filename)
+            for filename in ("spec.mdc", "sdd-governance.mdc")
+        )
+
+    def _optional_hooks_enabled(self) -> bool:
+        """Return whether optional hook artifacts are required."""
+        return bool(self.config.get("include_optional_hooks", False))
+
+    def _validate_optional_hook_files(self, result: ValidationDetail) -> None:
+        """Validate optional hook artifacts only when explicitly enabled."""
+        if not self._optional_hooks_enabled():
+            return
+        optional_files = [
+            self.output_base / ".pre-commit-config.yaml",
+            self.output_base / ".github" / "setup-precommit-hook.sh",
+        ]
+        for optional_file in optional_files:
+            exists = self._path_exists(optional_file)
+            result["checks"][f"optional: {optional_file.name}"] = (
+                "OK" if exists else "MISSING"
+            )
+            if not exists:
+                result["valid"] = False
+                result["errors"].append(
+                    f"Missing optional-enabled file: {optional_file}"
+                )
 
     def validate(self) -> tuple[bool, ValidationDetail]:
         """Return (is_valid, detail_dict) after checking all required paths."""
@@ -69,7 +104,6 @@ class OutputValidator:
                     "Copilot Instructions",
                 ),
                 (self.output_base / ".vscode" / "ai-rules.md", "VS Code AI Rules"),
-                (self.output_base / ".cursor" / "rules" / "spec.mdc", "Cursor Rules"),
                 (
                     self.output_base / ".claude" / "claude-instructions.md",
                     "Claude Instructions",
@@ -80,11 +114,25 @@ class OutputValidator:
                 ),
             ]
             for req_file, desc in required_files:
-                exists = req_file.exists()
+                exists = self._path_exists(req_file)
                 result["checks"][f"file: {desc}"] = "OK" if exists else "MISSING"
                 if not exists:
                     result["valid"] = False
                     result["errors"].append(f"Missing file: {req_file}")
+
+            cursor_rules_ok = self._cursor_rules_exist()
+            result["checks"]["file: Cursor Rules"] = (
+                "OK" if cursor_rules_ok else "MISSING"
+            )
+            if not cursor_rules_ok:
+                result["valid"] = False
+                result["errors"].append(
+                    "Missing file: expected one of "
+                    f"{self.output_base / '.cursor' / 'rules' / 'spec.mdc'} or "
+                    f"{self.output_base / '.cursor' / 'rules' / 'sdd-governance.mdc'}"
+                )
+
+            self._validate_optional_hook_files(result)
 
             for category in self.guidelines_by_category:
                 guideline_file = self.guidelines_dir / f"{category}.md"

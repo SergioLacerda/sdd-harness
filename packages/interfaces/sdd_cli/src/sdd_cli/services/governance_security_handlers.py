@@ -198,3 +198,36 @@ def run_sign(
             f"[bold green]Successfully signed {signed_count} artifacts.[/bold green]"
         )
         console.print("[cyan]Next step: sdd governance audit[/cyan]")
+
+
+def run_sign_cmd(
+    *,
+    key_id: str,
+    key_path: str | None,
+    compiled_dir: str | None,
+    source: bool,
+    console: Console,
+) -> None:
+    """Resolve targets from CLI flags and call run_sign."""
+    from sdd_cli.utils.sdd_authority import enforce_path_policy, resolve_workspace_root
+
+    ws_root = resolve_workspace_root()
+    ws_root = enforce_path_policy(ws_root, workspace_root=ws_root, mode="normal")
+
+    if source:
+        target_dir = ws_root / ".sdd" / "source"
+        targets = ["governance-core.json"]
+    else:
+        target_dir = resolve_compiled_dir(
+            ws_root=ws_root, compiled_dir=compiled_dir, console=console
+        )
+        targets = ["governance-core.json", "governance-client.json"]
+
+    run_sign(
+        key_id=key_id,
+        key_path=key_path,
+        ws_root=ws_root,
+        target_dir=target_dir,
+        targets=targets,
+        console=console,
+    )

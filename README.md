@@ -40,14 +40,8 @@ Spec-Driven Development (SDD) Harness is not just a tool—it's a **Governance O
 This installation path works on Linux, macOS, and Windows and does not require cloning this repository.
 
 ```bash
-# 1) Install the SDD CLI globally
-uv tool install sdd-cli
-```
-
-```bash
-# Alternative (legacy / Unix shell)
-# Use this only when `uv` is unavailable.
-curl -fsSL https://raw.githubusercontent.com/SergioLacerda/sdd-harness/main/install.sh | sh
+# 1) Install the SDD CLI globally (no clone required — uv fetches the source directly)
+uv tool install "git+https://github.com/SergioLacerda/sdd-harness#subdirectory=packages/interfaces/sdd_cli"
 ```
 
 ```bash
@@ -65,15 +59,17 @@ First-run onboarding is zero-state aware:
 - This step prepares templates and project scaffold only. Runtime activation still happens in the next step.
 
 ```bash
-# 3) Bootstrap governance runtime in your project
-sdd init --type client --name <your-project> --force
-sdd governance generate --full-bootstrap
-sdd skills --full-bootstrap --regenerate-seeds
+# 3) Bootstrap governance runtime in your project (one command)
+sdd init --default
 ```
+
+`sdd init --default` runs the full bootstrap chain in one step: workspace
+profile, governance generate (`--full-bootstrap`), skills bootstrap
+(`--full-bootstrap --regenerate-seeds`), runtime validation, and git hooks
+install. It is equivalent to `sdd init --type client --name local-dev --force`.
 
 ```bash
 # 4) Verify everything is healthy
-sdd runtime status
 sdd governance validate
 ```
 
@@ -96,31 +92,25 @@ Full onboarding guide and troubleshooting: [`docs/guides/CLIENT_ONBOARDING.md`](
 
 **Prerequisites:** Python 3.10+, [uv](https://docs.astral.sh/uv), Git.
 
+### Quick onboarding
+
 ```bash
-# 1) Clone and install all workspace dependencies (includes dev/test deps)
+# 1) Clone and bootstrap the workspace (creates .venv, installs all packages + dev/test deps)
 git clone https://github.com/SergioLacerda/sdd-harness.git
 cd sdd-harness
-make install
-source .venv/bin/activate
+uv run sdd setup run
+
+# 2) Bootstrap local governance runtime (governance + skills + runtime validation + hooks)
+uv run sdd init --default
+
+# 3) Restore the pre-commit framework hook chain
+make hooks-install
 ```
 
-```bash
-# 2) Bootstrap local governance runtime
-sdd init --type client --name local-dev --force
-make hooks-install          # SDD hooks + pre-commit
-make governance-bootstrap   # compile + generate + sign artifacts
-```
+### Onboarding customizado
 
-```bash
-# 3) Regenerate skills, commands and seeds
-sdd skills --full-bootstrap --regenerate-seeds
-```
-
-```bash
-# 4) Verify environment health
-sdd runtime status --force
-sdd governance validate
-```
+For the step-by-step manual flow, the PATH-shadowing warning, and troubleshooting, see
+[`docs/guides/ONBOARDING.md`](docs/guides/ONBOARDING.md).
 
 CLI reference: [`docs/spec/reference/commands/cli.md`](docs/spec/reference/commands/cli.md)
 

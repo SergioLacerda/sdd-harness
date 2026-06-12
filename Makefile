@@ -2,7 +2,7 @@
 # All shell commands are POSIX-compatible within a bash/sh context.
 #
 # Use uv run if uv is available; fall back to direct execution (e.g. inside Docker)
-VENV_PYTHON := $(wildcard .venv/bin/python)
+VENV_PYTHON := $(firstword $(wildcard .venv/bin/python .venv/Scripts/python.exe))
 UV := $(shell command -v uv 2>/dev/null)
 
 ifeq ($(strip $(VENV_PYTHON)),)
@@ -15,17 +15,19 @@ else
   PYTHON := $(VENV_PYTHON)
 endif
 
-.PHONY: check ci-pr ci-pr-full test lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check
+.PHONY: check ci-pr ci-pr-full test test-fast test-perf lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check
 
 help:
 	@echo "SDD Architecture Development"
 	@echo "==========================="
 	@echo "install         - Install all workspace dependencies (dev)"
 	@echo "install-docs    - Install documentation dependencies (mkdocs)"
-	@echo "check           - Run all tests (unit + integration + contract)"
+	@echo "check           - Run CI-safe tests (unit + integration + contract, no perf)"
 	@echo "ci-pr           - Run fast artifact/golden CI parity gates before promotion/push"
 	@echo "ci-pr-full      - Run ci-pr plus strict coverage gates"
 	@echo "test            - Run full multi-layer test pipeline with unified coverage gate"
+	@echo "test-fast       - Run packages/tests with -x --ff (no perf tests)"
+	@echo "test-perf       - Run performance/benchmark tests (excluded from other test targets)"
 	@echo "coverage        - Run tests with HTML coverage report"
 	@echo "coverage-strict - Per-layer coverage gates (core 90%, features 70%, interfaces 70%)"
 	@echo "lint            - Run linters (ruff check + format, mypy, bandit)"
@@ -53,6 +55,7 @@ install-docs:
 check: golden-status
 	$(PYTHON) tools/ci/check_golden_policy.py --mode warn
 	$(PYTHON) -m pytest tests packages \
+		-m "not perf" \
 		--cov=packages \
 		--cov-report=term-missing:skip-covered
 
@@ -112,6 +115,10 @@ test:
 test-fast:
 	$(PYTHON) -m pytest -x --ff packages/ tests/
 
+test-perf:
+	$(PYTHON) -m pytest -m perf -q packages tests
+	$(PYTHON) tests/perf/benchmark_wizard_pipeline.py
+
 coverage:
 	$(PYTHON) -m pytest tests packages --cov=packages --cov-report=html --cov-report=term-missing:skip-covered
 	@echo "HTML report: build/coverage/html/index.html"
@@ -150,7 +157,10 @@ pre-delivery: lint test
 lock:
 	uv lock
 
-docs-build:
+selector-build:
+	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
+
+docs-build: selector-build
 	$(PYTHON) -m mkdocs build --strict
 
 docs-serve:

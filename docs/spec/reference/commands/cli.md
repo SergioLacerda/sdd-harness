@@ -101,7 +101,7 @@ sdd test run --cov-fail-under 80
 Entry point for governed queries and skill routing. Loads compiled governance context before any agent response.
 
 - `sdd ask "<query>"` — minimal governance context (fingerprint + mandates). Use for quick queries and skill routing decisions.
-- `sdd ask-full "<query>"` — full governance context with telemetry. Use when confidence or drift information is needed.
+- `sdd ask "<query>" --full` — full governance context with telemetry. Use when confidence or drift information is needed.
 
 Both commands emit:
 
@@ -124,7 +124,7 @@ If `drift=detected` or `governance=partial`, run `sdd governance compile` before
 sdd ask "diagnose failing tests"
 
 # Full telemetry (confidence gate, drift check)
-sdd ask-full "implementar plano: .sdd/skills/sdd-ask/skill.yaml"
+sdd ask "implementar plano: .sdd/skills/sdd-ask/skill.yaml" --full
 ```
 
 ### Capability Layer (Skills)

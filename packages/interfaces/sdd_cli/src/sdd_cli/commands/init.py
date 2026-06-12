@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import typer
 
@@ -18,6 +18,55 @@ from sdd_core.utils.environment import (
 
 app = typer.Typer()
 logger = logging.getLogger(__name__)
+
+
+def _resolve_default_flags(
+    ctx: typer.Context, type_: str, name: str | None, force: bool
+) -> tuple[str, str | None, bool]:
+    """Apply --default fallbacks for any options left at their CLI defaults."""
+    type_source = ctx.get_parameter_source("type")
+    if type_source is not None and type_source.name == "DEFAULT":
+        type_ = "client"
+    name_source = ctx.get_parameter_source("name")
+    if name_source is not None and name_source.name == "DEFAULT":
+        name = "local-dev"
+    force_source = ctx.get_parameter_source("force")
+    if force_source is not None and force_source.name == "DEFAULT":
+        force = True
+    return type_, name, force
+
+
+def _emit_workspace_init_telemetry(
+    *,
+    profile_ctx: Any,
+    effective_name: str,
+    force: bool,
+    profile_type: SddProfile,
+) -> None:
+    try:
+        import uuid
+
+        from sdd_runtime.telemetry import RuntimeEvent, TelemetrySink
+
+        sink = TelemetrySink()
+        sink.emit(
+            RuntimeEvent(
+                event="workspace.init",
+                command="init",
+                status="ok",
+                trace_id=str(uuid.uuid4()),
+                details={
+                    "workspace_id": profile_ctx.workspace_id,
+                    "name": effective_name,
+                    "forced": bool(force),
+                    "phase_0_origin": "bootstrap_init",
+                    "profile_type": profile_type,
+                },
+            )
+        )
+        sink.flush()
+    except Exception:
+        logger.debug("Failed to emit workspace init event", exc_info=True)
 
 
 def _run_cli_step(label: str, args: list[str], cwd: Path) -> bool:
@@ -41,13 +90,14 @@ def _run_cli_step(label: str, args: list[str], cwd: Path) -> bool:
 
 @app.callback(invoke_without_command=True)
 def init(
+    ctx: typer.Context,
     type: str = typer.Option(  # noqa: A002
         "client",
         "--type",
         "-t",
         help="Workspace type: master (framework) or client (project instance).",
     ),
-    name: str | None = typer.Option(
+    name: str | None = typer.Option(  # noqa: UP045
         None,
         "--name",
         "-n",
@@ -64,6 +114,14 @@ def init(
         "--no-bootstrap",
         help="Skip governance and skills bootstrap (profile only). Default for --type master.",
     ),
+    default: bool = typer.Option(
+        False,
+        "--default",
+        help=(
+            "One-command bootstrap: defaults --type to 'client', --name to "
+            "'local-dev', and --force, for any of those not explicitly set."
+        ),
+    ),
 ) -> None:
     """Initialize an SDD workspace in the current directory.
 
@@ -71,6 +129,9 @@ def init(
     Refuses nested workspaces (detects .sdd/ in parent directories).
     """
     cwd = Path.cwd()
+
+    if default:
+        type, name, force = _resolve_default_flags(ctx, type, name, force)  # noqa: A001
 
     # Block nested workspace init: check parents (not cwd itself)
     parent_workspace = find_workspace_root(cwd.parent)
@@ -103,49 +164,31 @@ def init(
 
     profile_type = cast(SddProfile, normalized_type)
     effective_name = name or profile_type
-    ctx = write_profile(cwd, profile_type, effective_name)
+    profile_ctx = write_profile(cwd, profile_type, effective_name)
 
     # Initialize runtime marker expected by AHP layer 3.
     runtime_dir = cwd / ".sdd" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     (runtime_dir / ".phase-0-complete").touch(exist_ok=True)
 
-    try:
-        import uuid
-
-        from sdd_runtime.telemetry import RuntimeEvent, TelemetrySink
-
-        sink = TelemetrySink()
-        sink.emit(
-            RuntimeEvent(
-                event="workspace.init",
-                command="init",
-                status="ok",
-                trace_id=str(uuid.uuid4()),
-                details={
-                    "workspace_id": ctx.workspace_id,
-                    "name": effective_name,
-                    "forced": bool(force),
-                    "phase_0_origin": "bootstrap_init",
-                    "profile_type": profile_type,
-                },
-            )
-        )
-        sink.flush()
-    except Exception:
-        logger.debug("Failed to emit workspace init event", exc_info=True)
+    _emit_workspace_init_telemetry(
+        profile_ctx=profile_ctx,
+        effective_name=effective_name,
+        force=force,
+        profile_type=profile_type,
+    )
 
     typer.echo(f"[SDD] Workspace initialized at '{cwd}'")
-    typer.echo(f"  type:         {ctx.type}")
-    typer.echo(f"  name:         {ctx.name}")
-    typer.echo(f"  workspace_id: {ctx.workspace_id}")
+    typer.echo(f"  type:         {profile_ctx.type}")
+    typer.echo(f"  name:         {profile_ctx.name}")
+    typer.echo(f"  workspace_id: {profile_ctx.workspace_id}")
     typer.echo("  core_hash:    (empty — run 'sdd governance compile' to populate)")
     typer.echo("  phase_0:      completed")
 
     run_bootstrap = (profile_type == "client") and not no_bootstrap
     if run_bootstrap:
         typer.echo("")
-        typer.echo("[1/4] Workspace profile created ✓")
+        typer.echo("[1/5] Workspace profile created ✓")
         orc = OnboardingOrchestrator(cwd)
         bootstrap_result = orc.run(force=bool(force))
         if bootstrap_result.success:

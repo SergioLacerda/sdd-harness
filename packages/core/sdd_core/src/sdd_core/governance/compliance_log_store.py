@@ -246,7 +246,7 @@ class ComplianceLogStore:
 
         Args:
             event: Event type (ASK_COMMAND or ASK_FULL_COMMAND)
-            command: 'ask' or 'ask-full'
+            command: 'ask' (use --full flag for full mode)
             profile: SDD profile
             state: Handshake state
             agent_id: Agent ID executing the ask

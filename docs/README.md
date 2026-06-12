@@ -1,13 +1,14 @@
 # SDD Harness — Documentation
 
-Documentacao estruturada por **papel no sistema**, nao por audiencia. Otimizada para consumo eficiente por agentes de IA com carregamento por demanda.
+Documentation structured by **role in the system**, not by audience. Optimized for efficient consumption by AI agents with on-demand loading.
 
 ## Client Onboarding (Official)
 
-Use one cross-platform command as the primary installation path:
+Use one cross-platform command as the primary installation path (no clone required —
+uv fetches the source directly):
 
 ```bash
-uv tool install sdd-cli
+uv tool install "git+https://github.com/SergioLacerda/sdd-harness#subdirectory=packages/interfaces/sdd_cli"
 ```
 
 Then follow the complete guide:
@@ -16,7 +17,7 @@ Then follow the complete guide:
 
 ## Start Here
 
-- **Agentes de IA** → [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md)
+- **AI agents** → [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md)
 - **Master navigation** → [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md)
 - **AI agent bootstrap** → [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md)
 
@@ -30,20 +31,20 @@ Then follow the complete guide:
 | troubleshoot an operational issue | [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md) and [`guides/FAQ.md`](./guides/FAQ.md) |
 | find a decision or history item | [`adr/INDEX.md`](./adr/INDEX.md) |
 
-## Quatro pilares
+## Four pillars
 
-1. **`spec/` — Fonte de Verdade**
-   - Conhecimento, mandatos, ADRs e regras de dominio. Contém `canonical/`, `decisions/`, `guides/` e `reference/`.
-   - Agentes acessam via indices, raramente diretamente.
+1. **`spec/` — Source of Truth**
+   - Knowledge, mandates, ADRs and domain rules. Contains `canonical/`, `decisions/`, `guides/` and `reference/`.
+   - Agents access it via indices, rarely directly.
 
-2. **`cognition/` — Tomada de Decisao**
-   - Como o agente pensa. Contém `context-loading/`, `decision-models/` e `anti-patterns/`.
+2. **`cognition/` — Decision Making**
+   - How the agent thinks. Contains `context-loading/`, `decision-models/` and `anti-patterns/`.
 
-3. **`runtime/` — Execucao e Acao**
-   - Como o agente age. Comece aqui: [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md).
-   - Protocolo operacional: [`runtime/protocols/AGENT_RUNTIME_PROTOCOL.md`](./runtime/protocols/AGENT_RUNTIME_PROTOCOL.md).
+3. **`runtime/` — Execution and Action**
+   - How the agent acts. Start here: [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md).
+   - Operational protocol: [`runtime/protocols/AGENT_RUNTIME_PROTOCOL.md`](./runtime/protocols/AGENT_RUNTIME_PROTOCOL.md).
 
-4. **`indices/` — Recuperacao e Busca**
-   - Ponteiros otimizados para reduzir custo de busca. Ver [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md).
+4. **`indices/` — Retrieval and Search**
+   - Optimized pointers to reduce search cost. See [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md).
 
-> Nunca carregar a documentacao inteira. Sempre usar path-based context loading via Master Index.
+> Never load the entire documentation. Always use path-based context loading via the Master Index.

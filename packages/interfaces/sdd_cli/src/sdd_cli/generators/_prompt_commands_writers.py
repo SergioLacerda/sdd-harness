@@ -1,0 +1,127 @@
+"""File write functions for prompt command generation (Copilot, Cursor, Gemini, Codex)."""
+
+from __future__ import annotations
+
+import contextlib
+import json as _json
+from pathlib import Path
+from typing import Any
+
+from sdd_cli.generators._prompt_commands_builders import (
+    _AUDIT_JSON_NOTE,
+    _COMMANDS_TABLE,
+    _RUNTIME_STATUS_NOTE,
+    _SOFT_GOVERNANCE_CHECK,
+    _prompt_spec_for_command,
+    _slash_aliases_markdown,
+)
+
+
+def _write_copilot_prompts(
+    prompts_dir: Path, command_entries: list[dict[str, Any]]
+) -> list[tuple[str, Path]]:
+    """Write VS Code Copilot slash-command prompt files."""
+    prompts_dir.mkdir(parents=True, exist_ok=True)
+    written: list[tuple[str, Path]] = []
+    for command in command_entries:
+        slug, description, mode, body = _prompt_spec_for_command(command)
+        target = prompts_dir / f"{slug}.prompt.md"
+        content = (
+            f"---\ndescription: {description}\nmode: {mode}\n---\n\n"
+            f"{body}\n{_SOFT_GOVERNANCE_CHECK}{_AUDIT_JSON_NOTE}\n"
+        )
+        target.write_text(content, encoding="utf-8")
+        written.append((f"Copilot/{slug}", target))
+    return written
+
+
+def _write_cursor_commands(cursor_rules_dir: Path) -> tuple[str, Path]:
+    """Write Cursor commands rule file."""
+    cursor_rules_dir.mkdir(parents=True, exist_ok=True)
+    cursor_commands = cursor_rules_dir / "sdd-commands.mdc"
+    cursor_commands.write_text(
+        "---\n"
+        "description: SDD CLI commands — invoked when user asks to run tests, lint, governance, etc.\n"
+        "globs: ['**/*']\n"
+        "alwaysApply: false\n"
+        "---\n\n"
+        "# SDD CLI Commands\n\n"
+        "When the user asks to run tests, lint, check governance, or diagnose the workspace, "
+        "use the following SDD CLI commands in the terminal:\n\n"
+        + _COMMANDS_TABLE
+        + "\n"
+        + _RUNTIME_STATUS_NOTE,
+        encoding="utf-8",
+    )
+    cursor_commands.write_text(
+        cursor_commands.read_text(encoding="utf-8")
+        + _SOFT_GOVERNANCE_CHECK
+        + _AUDIT_JSON_NOTE,
+        encoding="utf-8",
+    )
+    return ("Cursor/sdd-commands", cursor_commands)
+
+
+def _write_gemini_files(gemini_dir: Path) -> list[tuple[str, Path]]:
+    """Write Gemini CLI commands and settings files."""
+    gemini_dir.mkdir(parents=True, exist_ok=True)
+    written: list[tuple[str, Path]] = []
+
+    gemini_commands = gemini_dir / "commands.md"
+    gemini_commands.write_text(
+        "# SDD CLI Commands for Gemini\n\n"
+        "Use these commands when asked to run tests, lint, or manage governance:\n\n"
+        + _COMMANDS_TABLE
+        + "\n"
+        + _RUNTIME_STATUS_NOTE,
+        encoding="utf-8",
+    )
+    gemini_commands.write_text(
+        gemini_commands.read_text(encoding="utf-8")
+        + _SOFT_GOVERNANCE_CHECK
+        + _AUDIT_JSON_NOTE,
+        encoding="utf-8",
+    )
+    written.append(("Gemini/commands.md", gemini_commands))
+
+    gemini_settings = gemini_dir / "settings.json"
+    _existing: dict[str, Any] = {}
+    if gemini_settings.exists():
+        with contextlib.suppress(Exception):
+            _existing = _json.loads(gemini_settings.read_text(encoding="utf-8"))
+    _existing["promptFiles"] = [".gemini/commands.md"]
+    gemini_settings.write_text(_json.dumps(_existing, indent=2), encoding="utf-8")
+    written.append(("Gemini/settings.json", gemini_settings))
+
+    return written
+
+
+def _write_codex_commands(
+    codex_dir: Path, aliases: list[tuple[str, str]]
+) -> tuple[str, Path]:
+    """Write Codex slash aliases manifest."""
+    codex_dir.mkdir(parents=True, exist_ok=True)
+    codex_commands = codex_dir / "commands.md"
+    codex_commands.write_text(
+        "# SDD Commands for Codex\n\n"
+        "Entrypoint contract:\n"
+        "1. You must learn commands and skills from your custom folder path:\n"
+        "   - `.codex/commands.md`\n"
+        "   - `.codex/skills/`\n"
+        "2. You are under governance. Always resolve instructions from `.sdd`.\n"
+        "   Initial reference: `.sdd/agent-instructions.md`\n\n"
+        "Use the aliases below as slash commands and route each one to its generated adapter.\n\n"
+        + _slash_aliases_markdown(aliases)
+        + "\n"
+        + "Notes:\n"
+        + "- Canonical commands registry: `.sdd/commands/registry.json`\n"
+        + "- Canonical skills registry: `.sdd/skills/registry.json`\n",
+        encoding="utf-8",
+    )
+    codex_commands.write_text(
+        codex_commands.read_text(encoding="utf-8")
+        + _SOFT_GOVERNANCE_CHECK
+        + _AUDIT_JSON_NOTE,
+        encoding="utf-8",
+    )
+    return ("Codex/commands.md", codex_commands)

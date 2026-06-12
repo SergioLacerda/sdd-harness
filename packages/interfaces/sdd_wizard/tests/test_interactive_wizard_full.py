@@ -10,7 +10,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from sdd_wizard.src.interactive_mode import InteractiveWizard, run_interactive_wizard
+from sdd_wizard.application.interactive_wizard import (
+    InteractiveWizard,
+    run_interactive_wizard,
+)
+from sdd_wizard.application.workspace_runtime import docs_meta_ready, source_spec_ready
 
 # Prevent the large orchestration phase modules from being imported as a side
 # effect of test patches. This keeps them out of the coverage denominator so
@@ -21,8 +25,6 @@ _LARGE_PHASE_MODULES = [
     "sdd_wizard.orchestration.wizard.phase3_compiler",
     "sdd_wizard.orchestration.phase_4_5_6_generator",
     "sdd_wizard.orchestration.phase5_artifact_compiler",
-    "sdd_wizard.orchestration.phase5_source_writer",
-    "sdd_wizard.orchestration.phase6_ide_deployer",
 ]
 
 
@@ -62,7 +64,9 @@ def _make_wizard(
         "client_build": tmp_path / "build",
         "client_compiled": tmp_path / "compiled",
     }
-    with patch("sdd_wizard.src.interactive_mode.get_sdd_paths", return_value=paths):
+    with patch(
+        "sdd_wizard.application.interactive_wizard.get_sdd_paths", return_value=paths
+    ):
         return InteractiveWizard(
             repo_root=tmp_path,
             emitter=emitter or (lambda _: None),
@@ -105,7 +109,7 @@ class TestShowPhaseMenu:
 
     def test_menu_phase_choices_include_all_phases(self, tmp_path: Path) -> None:
         # Phase options are delivered via prompter.select() choices, not _emit
-        from sdd_wizard.src.interactive_mode import InteractiveWizard
+        from sdd_wizard.application.interactive_wizard import InteractiveWizard
 
         choices = list(InteractiveWizard._PHASE_CHOICES.values())
         assert any("Phase 1" in c for c in choices)
@@ -171,6 +175,20 @@ class TestAskUserPreferences:
             == "Português (Brasil)"
         )
 
+    def test_config_has_default_locale_metadata(self, tmp_path: Path) -> None:
+        config = self._wizard_with_choices(tmp_path, "1", "1").ask_user_preferences()
+        assert config["locale"] == "en"
+        assert config["docs_language"] == "English"
+        assert config["docs_locale"] == "en"
+
+    def test_config_has_pt_br_locale_metadata(self, tmp_path: Path) -> None:
+        config = self._wizard_with_choices(
+            tmp_path, "2", "4", interaction_language="2", local_docs_language="2"
+        ).ask_user_preferences()
+        assert config["locale"] == "pt-BR"
+        assert config["docs_language"] == "Português (Brasil)"
+        assert config["docs_locale"] == "pt-BR"
+
 
 class TestSaveConfig:
     def test_saves_to_wizard_config_json(self, tmp_path: Path) -> None:
@@ -191,15 +209,18 @@ class TestDocsMetaReady:
         (docs_meta / dsl).write_text("x", encoding="utf-8")
 
     def test_false_when_missing(self, tmp_path: Path) -> None:
-        assert _make_wizard(tmp_path)._docs_meta_ready() is False
+        wizard = _make_wizard(tmp_path)
+        assert docs_meta_ready(wizard.client_build_dir) is False
 
     def test_true_with_spec_and_dsl(self, tmp_path: Path) -> None:
         self._make_docs_meta(tmp_path)
-        assert _make_wizard(tmp_path)._docs_meta_ready() is True
+        wizard = _make_wizard(tmp_path)
+        assert docs_meta_ready(wizard.client_build_dir) is True
 
     def test_true_with_md_files(self, tmp_path: Path) -> None:
         self._make_docs_meta(tmp_path, "mandate.md", "guidelines.md")
-        assert _make_wizard(tmp_path)._docs_meta_ready() is True
+        wizard = _make_wizard(tmp_path)
+        assert docs_meta_ready(wizard.client_build_dir) is True
 
 
 class TestEnsureDocsMeta:
@@ -300,6 +321,127 @@ class TestPhase1Generate:
         assert result["success"] is False
         assert "crash" in result["error"]
 
+    def test_passes_selector_selection_to_generator_config(
+        self, tmp_path: Path
+    ) -> None:
+        self._ready_docs_meta(tmp_path)
+        responses = iter(["2", "1", "1", "3"])
+        wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
+        wizard.selector_output_path.write_text(
+            json.dumps(
+                {
+                    "version": "1.0",
+                    "selected_ids": ["M001"],
+                    "resolved_ids": ["M001", "M002"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        mock_gen = MagicMock()
+        mock_gen.run.return_value = {"success": True}
+        sys.modules[
+            "sdd_wizard.orchestration.wizard.phase1_generator"
+        ].Phase1Generator.return_value = mock_gen
+
+        result = wizard.phase_1_generate_templates()
+
+        assert result["success"] is True
+        call = sys.modules[
+            "sdd_wizard.orchestration.wizard.phase1_generator"
+        ].Phase1Generator.call_args
+        assert call.kwargs["config"]["selector_selection"]["resolved_ids"] == [
+            "M001",
+            "M002",
+        ]
+
+    def test_emits_selector_site_hint_when_site_exists(self, tmp_path: Path) -> None:
+        self._ready_docs_meta(tmp_path)
+        responses = iter(["2", "1", "1", "3"])
+        logs: list[str] = []
+        wizard = _make_wizard(
+            tmp_path, prompter=lambda _: next(responses), emitter=logs.append
+        )
+        wizard.selector_site_path.parent.mkdir(parents=True, exist_ok=True)
+        wizard.selector_site_path.write_text("<html></html>", encoding="utf-8")
+        mock_gen = MagicMock()
+        mock_gen.run.return_value = {"success": True}
+        sys.modules[
+            "sdd_wizard.orchestration.wizard.phase1_generator"
+        ].Phase1Generator.return_value = mock_gen
+
+        result = wizard.phase_1_generate_templates()
+
+        assert result["success"] is True
+        assert any("Optional pre-filter available" in message for message in logs)
+        saved = json.loads(wizard.wizard_config_path.read_text(encoding="utf-8"))
+        assert saved["selector_discovery"]["selection_loaded"] is False
+        assert saved["selector_discovery"]["published_site_path"] == str(
+            wizard.selector_site_path
+        )
+
+    def test_emits_loaded_selector_hint_when_artifact_exists(
+        self, tmp_path: Path
+    ) -> None:
+        self._ready_docs_meta(tmp_path)
+        responses = iter(["2", "1", "1", "3"])
+        logs: list[str] = []
+        wizard = _make_wizard(
+            tmp_path, prompter=lambda _: next(responses), emitter=logs.append
+        )
+        wizard.selector_output_path.write_text(
+            json.dumps(
+                {
+                    "version": "1.0",
+                    "selected_ids": ["M001"],
+                    "resolved_ids": ["M001", "M002"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        mock_gen = MagicMock()
+        mock_gen.run.return_value = {"success": True}
+        sys.modules[
+            "sdd_wizard.orchestration.wizard.phase1_generator"
+        ].Phase1Generator.return_value = mock_gen
+
+        result = wizard.phase_1_generate_templates()
+
+        assert result["success"] is True
+        assert any(
+            "Loaded selector selection: 2 item(s)" in message for message in logs
+        )
+        saved = json.loads(wizard.wizard_config_path.read_text(encoding="utf-8"))
+        assert saved["selector_discovery"]["selection_loaded"] is True
+        assert saved["selector_discovery"]["selected_count"] == 2
+        assert saved["selector_discovery"]["resolved_count"] == 2
+        assert saved["selector_discovery"]["source_path"] == str(
+            wizard.selector_output_path
+        )
+
+    def test_fails_cleanly_when_selector_artifact_is_malformed(
+        self, tmp_path: Path
+    ) -> None:
+        self._ready_docs_meta(tmp_path)
+        responses = iter(["2", "1", "1", "3"])
+        logs: list[str] = []
+        wizard = _make_wizard(
+            tmp_path, prompter=lambda _: next(responses), emitter=logs.append
+        )
+        wizard.selector_output_path.write_text("{bad json}", encoding="utf-8")
+
+        result = wizard.phase_1_generate_templates()
+
+        assert result["success"] is False
+        assert "Invalid selector artifact" in result["error"]
+        saved = json.loads(wizard.wizard_config_path.read_text(encoding="utf-8"))
+        assert saved["phase1_status"]["status"] == "failed"
+        assert "Invalid selector artifact" in saved["phase1_status"]["reason"]
+        assert (
+            saved["selector_discovery"]["validation_error"]
+            == "Selector payload is not valid JSON."
+        )
+        assert any("Invalid selector artifact" in message for message in logs)
+
 
 class TestPhase2Instructions:
     def test_fails_when_phase1_dir_missing(self, tmp_path: Path) -> None:
@@ -319,6 +461,18 @@ class TestPhase2Instructions:
         result = wizard.phase_2_show_instructions()
         assert result["success"] is True
         assert "test.md" in result["copied_files"]
+
+    def test_config_exists_but_missing_templates_does_not_look_successful(
+        self, tmp_path: Path
+    ) -> None:
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "")
+        wizard.wizard_config_path.parent.mkdir(parents=True, exist_ok=True)
+        wizard.wizard_config_path.write_text(
+            json.dumps({"phase1_status": {"status": "completed"}}), encoding="utf-8"
+        )
+        result = wizard.phase_2_show_instructions()
+        assert result["success"] is False
+        assert "Phase 1 templates not found" in result["error"]
 
 
 class TestPhase3Compile:
@@ -477,7 +631,7 @@ class TestPhase6:
     def test_delegates_to_runtime(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
         with patch(
-            "sdd_wizard.src.interactive_mode.run_phase6_seedlings_generation",
+            "sdd_wizard.application.interactive_wizard.run_phase6_seedlings_generation",
             return_value=True,
         ):
             assert wizard.phase_6_generate_seedlings(tmp_path) is True
@@ -485,7 +639,7 @@ class TestPhase6:
     def test_exception_returns_false(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
         with patch(
-            "sdd_wizard.src.interactive_mode.run_phase6_seedlings_generation",
+            "sdd_wizard.application.interactive_wizard.run_phase6_seedlings_generation",
             side_effect=RuntimeError("boom"),
         ):
             assert wizard.phase_6_generate_seedlings(tmp_path) is False
@@ -515,7 +669,7 @@ class TestConsolidateFinalTemplate:
         logs: list[str] = []
         wizard = _make_wizard(tmp_path, emitter=logs.append)
         with patch(
-            "sdd_wizard.src.interactive_mode.consolidate_final_template",
+            "sdd_wizard.application.interactive_wizard.consolidate_final_template",
             return_value={"success": True, "moved_items": 3},
         ):
             wizard._consolidate_final_template()
@@ -524,7 +678,7 @@ class TestConsolidateFinalTemplate:
     def test_returns_result_on_failure(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
         with patch(
-            "sdd_wizard.src.interactive_mode.consolidate_final_template",
+            "sdd_wizard.application.interactive_wizard.consolidate_final_template",
             return_value={"success": False, "error": "x"},
         ):
             result = wizard._consolidate_final_template()
@@ -538,7 +692,9 @@ def _make_wizard_with_source_spec(tmp_path: Path, **extra_paths) -> InteractiveW
         "client_compiled": tmp_path / "compiled",
         **extra_paths,
     }
-    with patch("sdd_wizard.src.interactive_mode.get_sdd_paths", return_value=paths):
+    with patch(
+        "sdd_wizard.application.interactive_wizard.get_sdd_paths", return_value=paths
+    ):
         return InteractiveWizard(
             repo_root=tmp_path,
             emitter=lambda _: None,
@@ -568,7 +724,7 @@ class TestShowPhaseMenuFallback:
 class TestSourceSpecReady:
     def test_false_when_source_spec_missing(self, tmp_path: Path) -> None:
         wizard = _make_wizard_with_source_spec(tmp_path, source_spec=tmp_path / "spec")
-        assert wizard._source_spec_ready() is False
+        assert source_spec_ready(wizard.paths, wizard.client_build_dir) is False
 
     def test_true_with_mandate_and_guidelines(self, tmp_path: Path) -> None:
         spec = tmp_path / "spec"
@@ -576,14 +732,14 @@ class TestSourceSpecReady:
         (spec / "mandate.spec").write_text("x", encoding="utf-8")
         (spec / "guidelines.dsl").write_text("x", encoding="utf-8")
         wizard = _make_wizard_with_source_spec(tmp_path, source_spec=spec)
-        assert wizard._source_spec_ready() is True
+        assert source_spec_ready(wizard.paths, wizard.client_build_dir) is True
 
     def test_false_without_guidelines(self, tmp_path: Path) -> None:
         spec = tmp_path / "spec"
         spec.mkdir(parents=True)
         (spec / "mandate.md").write_text("x", encoding="utf-8")
         wizard = _make_wizard_with_source_spec(tmp_path, source_spec=spec)
-        assert wizard._source_spec_ready() is False
+        assert source_spec_ready(wizard.paths, wizard.client_build_dir) is False
 
 
 class TestEnsureOnboardingScaffoldOSError:
@@ -614,8 +770,14 @@ class TestEnsureDocsMetaReadyFailures:
             patch.object(
                 wizard, "_ensure_onboarding_scaffold", return_value=(True, "")
             ),
-            patch.object(wizard, "_docs_meta_ready", return_value=False),
-            patch.object(wizard, "_source_spec_ready", return_value=False),
+            patch(
+                "sdd_wizard.application.interactive_wizard.docs_meta_ready",
+                return_value=False,
+            ),
+            patch(
+                "sdd_wizard.application.interactive_wizard.source_spec_ready",
+                return_value=False,
+            ),
         ):
             ok, reason = wizard._ensure_docs_meta_ready()
         assert ok is False
@@ -752,7 +914,10 @@ class TestRunInteractiveWizard:
             "client_compiled": tmp_path / "compiled",
         }
         with (
-            patch("sdd_wizard.src.interactive_mode.get_sdd_paths", return_value=paths),
+            patch(
+                "sdd_wizard.application.interactive_wizard.get_sdd_paths",
+                return_value=paths,
+            ),
             patch.object(InteractiveWizard, "run", return_value=True),
         ):
             assert run_interactive_wizard(tmp_path) is True

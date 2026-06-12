@@ -603,7 +603,7 @@ def mock_repo(tmp_path: Path) -> Path:
     write_text_utf8(compiled_dir / "metadata-core.json", '{"version": "1.0.0"}')
     write_text_utf8(compiled_dir / "metadata-client.json", '{"version": "1.0.0"}')
 
-    # Bootstrap defaults for Phase 1 existence check (governance_fetcher bootstrap)
+    # Bootstrap defaults for Phase 1 existence check
     sdd_dir = tmp_path / ".sdd"
     sdd_dir.mkdir(parents=True, exist_ok=True)
     write_text_utf8(sdd_dir / "governance-core.json", core_json)

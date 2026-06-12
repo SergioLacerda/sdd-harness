@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from sdd_wizard.src.interactive_mode import InteractiveWizard
+from sdd_wizard.application.interactive_wizard import InteractiveWizard
 
 
 class TestInteractiveWizardEnforcementLabel:
@@ -130,3 +130,35 @@ class TestInteractiveWizardEnforcementLabel:
             label = wizard._get_enforcement_label()
 
             assert label == "Alertas"
+
+
+class TestInteractiveWizardSelectorSelection:
+    @staticmethod
+    def _make_wizard_with_selector_path(selector_path: Path) -> InteractiveWizard:
+        wizard = object.__new__(InteractiveWizard)
+        object.__setattr__(wizard, "selector_output_path", selector_path)
+        return wizard
+
+    def test_load_selector_selection_ids_returns_empty_when_missing(
+        self, tmp_path: Path
+    ) -> None:
+        wizard = self._make_wizard_with_selector_path(tmp_path / "missing.json")
+        assert wizard.load_selector_selection_ids() == []
+
+    def test_load_selector_selection_ids_returns_resolved_ids(
+        self, tmp_path: Path
+    ) -> None:
+        selection_path = tmp_path / "selector-selection.json"
+        selection_path.write_text(
+            json.dumps(
+                {
+                    "version": "1.0",
+                    "selected_ids": ["M001"],
+                    "resolved_ids": ["M001", "M002"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        wizard = self._make_wizard_with_selector_path(selection_path)
+        ids = wizard.load_selector_selection_ids(available_ids={"M001", "M002"})
+        assert ids == ["M001", "M002"]

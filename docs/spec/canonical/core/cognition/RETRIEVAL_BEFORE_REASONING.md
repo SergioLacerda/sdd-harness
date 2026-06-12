@@ -19,7 +19,7 @@ Ensure grounding artifacts are loaded before architectural reasoning.
 ## INVALID
 
 - Any architectural decision made without explicit grounding references.
-- Any fix proposed sem leitura mínima do escopo afetado.
+- Any fix proposed without minimal reading of the affected scope.
 
 ## Escalation/Recovery
 

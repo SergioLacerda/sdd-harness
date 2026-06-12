@@ -11,13 +11,19 @@ import logging
 import sys
 import warnings
 from dataclasses import dataclass
+from pathlib import Path
 from typing import cast
 
 import click
 import typer
 from dotenv import load_dotenv
-from typer._click.exceptions import Exit as TyperClickExit
 from typer.main import get_command as typer_get_command
+
+from sdd_cli.utils.cli_callbacks import (
+    json_option_callback,
+    profile_option_callback,
+    verbose_option_callback,
+)
 
 if sys.platform == "win32":
     if hasattr(sys.stdout, "reconfigure"):
@@ -73,23 +79,15 @@ COMMAND_SPECS: dict[str, CommandSpec] = {
         "sdd_cli.commands.ask_entry",
         "Query SDD governance context (governed, minimal output)",
     ),
-    "ask-full": CommandSpec(
-        "sdd_cli.commands.ask_full_entry",
-        "Query SDD governance context with full microtransaction telemetry",
-    ),
     "organize": CommandSpec(
         "sdd_cli.commands.organize",
         "Prepare and index large context blocks (sdd-organize)",
-    ),
-    "pipeline": CommandSpec(
-        "sdd_cli.commands.pipeline",
-        "Run strict ask->diagnose->correct->converge orchestration",
     ),
 }
 
 # Only these commands require an initialized workspace profile at entrypoint.
 _WORKSPACE_REQUIRED_COMMANDS = frozenset(
-    {"ask", "ask-full", "organize", "pipeline", "runtime", "wizard", "release"}
+    {"ask", "organize", "runtime", "wizard", "release"}
 )
 
 
@@ -183,46 +181,43 @@ class LazyCommandGroup(click.Group):
             else:
                 ctx.obj = {}
 
+        if requested_command in _WORKSPACE_REQUIRED_COMMANDS and isinstance(
+            ctx.obj, dict
+        ):
+            try:
+                from sdd_core.governance.handshake import AgentHandshakeProtocol
+
+                workspace_root = ctx.obj.get("root")
+                ahp = AgentHandshakeProtocol(
+                    project_root=Path(workspace_root) if workspace_root else None
+                )
+                state, report = ahp.validate(output_mode="silent")
+                ctx.obj["_ahp"] = {
+                    "state": state,
+                    "report": report,
+                    "valid": ahp.is_handshake_valid(),
+                }
+            except Exception:
+                ctx.obj["_ahp"] = {
+                    "state": "UNKNOWN",
+                    "report": None,
+                    "valid": False,
+                }
+
         from sdd_cli.utils.profile import governance_gate
 
         governance_gate(ctx)
         try:
             return super().invoke(ctx)
-        except TyperClickExit as exc:
+        except click.exceptions.Exit as exc:
             raise click.exceptions.Exit(int(exc.exit_code)) from None
+        except typer.Exit as exc:
+            raise click.exceptions.Exit(exc.exit_code) from None
 
 
-def _profile_option_callback(
-    ctx: click.Context, param: click.Parameter, value: str | None
-) -> str | None:
-    del param
-    if ctx.obj is None:
-        ctx.obj = {}
-    if value:
-        ctx.obj["profile"] = value
-        ctx.obj["is_master"] = value == "master"
-        ctx.obj["is_client"] = value == "client"
-    return value
-
-
-def _json_option_callback(
-    ctx: click.Context, param: click.Parameter, value: bool
-) -> bool:
-    del param
-    if ctx.obj is None:
-        ctx.obj = {}
-    ctx.obj["output_json"] = bool(value)
-    return value
-
-
-def _verbose_option_callback(
-    ctx: click.Context, param: click.Parameter, value: bool
-) -> bool:
-    del param
-    if ctx.obj is None:
-        ctx.obj = {}
-    ctx.obj["verbose"] = bool(value)
-    return value
+_profile_option_callback = profile_option_callback
+_json_option_callback = json_option_callback
+_verbose_option_callback = verbose_option_callback
 
 
 app = LazyCommandGroup(
@@ -277,7 +272,7 @@ def main() -> int:
         )
     try:
         app(standalone_mode=False)
-    except (click.exceptions.Exit, typer.Exit, TyperClickExit) as exc:
+    except (click.exceptions.Exit, typer.Exit) as exc:
         return int(exc.exit_code)
     return 0
 

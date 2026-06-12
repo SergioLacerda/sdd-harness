@@ -2,7 +2,7 @@
 
 **Status:** ✅ Defined (Implementation in progress)
 
-Especificação de performance targets, SLOs e budgets para todos os projetos SPEC.
+Specification of performance targets, SLOs, and budgets for all SPEC projects.
 
 ---
 
@@ -403,4 +403,4 @@ Critical:  50ms → timeout (fail fast)
 **Owner:** Performance Lead
 **Review Cycle:** Quarterly (3 months)
 
-**Aplicável a:** Todos os projetos SPEC (herança automática)
+**Applies to:** All SPEC projects (automatic inheritance)

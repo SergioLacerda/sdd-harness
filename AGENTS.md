@@ -1,4 +1,8 @@
 # Agent Bootstrap Paths
+<!-- Governance fingerprint: 3d9d8168 -->
+<!-- Active mandates: 16 (M001, M002, M003, M005, M006, ...) -->
+<!-- Generated: 2026-06-11T12:16:26.602773Z -->
+<!-- Drift check: fingerprint must match .sdd/metadata.json → governance_fingerprint -->
 
 Objective: standardize where each agent must load local instructions, commands, and skills in this project.
 
@@ -9,13 +13,6 @@ Objective: standardize where each agent must load local instructions, commands, 
 3. If `SKILL.md`, `*.md`, `commands/`, `prompts/`, or equivalent files exist, load them as operational context.
 4. You are under governance: always resolve authoritative rules from `.sdd`.
    Initial reference: `.sdd/agent-instructions.md`.
-5. Agents MUST NOT execute final git-history/state actions autonomously. Human action/review is mandatory for:
-   - `git commit`
-   - `git push`
-   - `git pull`
-   - `git reset` (any variant)
-   - `git cherry-pick`
-   If these are needed, agents may only prepare commands and request explicit human execution.
 
 ## Governance Authority (`.sdd`)
 
@@ -39,15 +36,10 @@ Objective: standardize where each agent must load local instructions, commands, 
 
 - Codex: `./.codex/`
 - Claude: `./CLAUDE.md`, `./.claude/commands/`
-  - Bootstrap authority rule: `CLAUDE.md` is a pointer entrypoint (ADR-013), not a governance snapshot.
-  - Do not create a parallel authority file at `./.claude/agent-instructions.md`.
-  - If any Claude-local instruction conflicts with `.sdd/agent-instructions.md`, `.sdd` is authoritative.
 - Gemini: `./.gemini/`
 - GitHub Copilot: `./.github/copilot-instructions.md`, `./.github/prompts/`
 - Cursor: `./.cursor/rules/`
 - VS Code Prompts: `./.github/prompts/`
-
-
 ## Minimal Fallback
 
 If a dedicated path does not exist:

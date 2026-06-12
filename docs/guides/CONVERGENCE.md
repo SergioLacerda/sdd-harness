@@ -12,13 +12,13 @@ Source: `.sergioL/convergencia_ia.md` (2026-05-20)
 Replace the degradation cycle:
 
 ```
-patch rápido -> fix reativo -> regressão -> novo patch
+quick patch -> reactive fix -> regression -> new patch
 ```
 
 With the convergence cycle:
 
 ```
-diagnóstico -> escopo explícito -> patch mínimo -> validação determinística -> revisão humana
+diagnosis -> explicit scope -> minimal patch -> deterministic validation -> human review
 ```
 
 ---
@@ -79,7 +79,7 @@ Agents prepare commands and summarize changes. Final execution is human.
 | PRs with explicit diagnosis | ≥ 95% | PR description has "Root cause:" section |
 | PRs without regression | ≥ 98% | CI test suite passes on merge |
 | MTTR of recurring failures | Decreasing weekly trend | Failure Ledger MTTR field |
-| Failures with confirmed root cause | ≥ 90% | Failure Ledger "Causa confirmada" filled |
+| Failures with confirmed root cause | ≥ 90% | Failure Ledger "Confirmed cause" filled |
 | Changes outside permitted scope | 0% | Scope contract declared before execution |
 
 ---

@@ -74,15 +74,6 @@
       "targets": ["claude", "codex", "copilot", "antigravity"]
     },
     {
-      "id": "sdd-ask-full",
-      "slash": "/sdd-ask-full",
-      "routes_to": {
-        "type": "cli",
-        "command": "sdd ask-full"
-      },
-      "targets": ["claude", "codex", "copilot", "antigravity"]
-    },
-    {
       "id": "sdd-organize",
       "slash": "/sdd-organize",
       "routes_to": {

@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from sdd_wizard.src.prompter import Prompter, _wrap_prompter
+from sdd_wizard.application.prompter import Prompter, _wrap_prompter
 
 SEEDLINGS: list[tuple[str, str, str]] = [
     ("governance", "CORE", "GAP v1.0 auto-activation"),

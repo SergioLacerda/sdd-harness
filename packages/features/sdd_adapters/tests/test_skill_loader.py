@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from sdd_adapters.skill_loader import SkillLoader
+from sdd_adapters.skill_loader import SkillLoader, _safe_path
 
 
 @pytest.fixture
@@ -130,3 +130,18 @@ class TestSkillLoader:
         loader = SkillLoader()
         skills = loader.load_skills(sdd_dir)
         assert skills[0].get("skill_md") == "# Diagnose\nDetailed docs."
+
+
+class TestSafePath:
+    def test_path_outside_root_returns_none(self, tmp_path: Path) -> None:
+        outside = Path("/etc/passwd")
+        assert _safe_path(outside, tmp_path) is None
+
+    def test_sensitive_path_returns_none(self, tmp_path: Path) -> None:
+        sensitive = tmp_path / ".ssh" / "id_rsa"
+        assert _safe_path(sensitive, tmp_path) is None
+
+    def test_safe_path_within_root_returns_resolved(self, tmp_path: Path) -> None:
+        candidate = tmp_path / "skills" / "diagnose" / "skill.yaml"
+        resolved = _safe_path(candidate, tmp_path)
+        assert resolved == candidate.resolve()

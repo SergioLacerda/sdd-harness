@@ -12,7 +12,10 @@ from sdd_cli.services.ask_organize import run_sdd_organize, should_use_organize
 from sdd_cli.shared.contracts import build_ok_result
 from sdd_cli.utils.output import emit_json, is_json_mode
 
-app = typer.Typer(help="Prepare large context into indexed artifacts (sdd-organize).")
+app = typer.Typer(
+    help="Prepare large context into indexed artifacts (sdd-organize).",
+    context_settings={"allow_interspersed_args": True},
+)
 
 
 def organize_cmd(
@@ -29,6 +32,13 @@ def organize_cmd(
     source_text = (
         input_file.read_text(encoding="utf-8") if input_file is not None else query
     )
+    _json_mode = output_json or is_json_mode(click.get_current_context(silent=True))
+    if input_file is None and len(query) < 200 and not _json_mode:
+        typer.echo(
+            f"⚠  sdd-organize: indexing query string only ({len(query)} chars). "
+            "Pass --input-file <path> to index file content.",
+            err=True,
+        )
     should_heavy, reason = should_use_organize(source_text)
     if not should_heavy:
         reason = "forced_organize_light_input"
@@ -45,10 +55,7 @@ def organize_cmd(
         "artifact_path": str(out_path),
         "exit_code": 0,
     }
-    output_json_mode = output_json or is_json_mode(
-        click.get_current_context(silent=True)
-    )
-    if output_json_mode:
+    if _json_mode:
         payload = build_ok_result("organize", data)
         emit_json(payload)
         return

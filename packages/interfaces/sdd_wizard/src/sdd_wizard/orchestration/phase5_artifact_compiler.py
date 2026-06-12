@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .language_policy import resolve_language_policy
+
 
 class ArtifactCompiler:
     """Compile mandate/guideline sources to binary and produce metadata.json."""
@@ -121,22 +123,7 @@ class ArtifactCompiler:
                 "generated_at": datetime.now().isoformat(),
                 "language": self.config.get("language", "Python"),
                 "language_context": self.config.get("language_context", {}),
-                "language_policy": {
-                    "mandatory_surfaces": [
-                        "code",
-                        "technical_docs",
-                        "governance",
-                        "cli_help",
-                    ],
-                    "contextual_surfaces": [
-                        "chat",
-                        "ui",
-                        "workspace_local_docs",
-                    ],
-                    "workspace_local_docs_paths": [".analysis/"],
-                    "mandate_anchor": "M011",
-                    "guideline_anchors": ["G021", "G022"],
-                },
+                "language_policy": resolve_language_policy(self.config),
                 "adoption_level": self.config.get("adoption_level", "FULL"),
                 "mandates_count": len(self.mandates),
                 "guidelines_count": len(self.guidelines),

@@ -381,6 +381,7 @@ _REGISTRY: dict[str, SkillDefinition] = {
             "apply multiple corrections in one pass",
             "skip postcheck",
         ],
+        config={"gate_rules_file": ".sdd/skills/sdd-correct/gate-rules.yaml"},
         fallback_to="sdd-diagnose",
         idempotent=False,
         hard_mode_invariants={
@@ -472,6 +473,77 @@ _REGISTRY: dict[str, SkillDefinition] = {
                 "treat_intake_index_mode_none_as_permission",
             ],
         },
+    ),
+    "sdd-pipeline": SkillDefinition(
+        name="sdd-pipeline",
+        version="1.0.0",
+        category="orchestrator",
+        description="Orchestrate ask -> diagnose -> correct -> converge as a governed skill pipeline.",
+        when_to_use=[
+            "strict end-to-end correction flow",
+            "pipeline orchestration",
+            "multi-stage governed remediation",
+        ],
+        outcomes=["ask_result", "diagnosis_report", "gate_decision", "delta_report"],
+        allowed_tools=[
+            "sdd ask",
+            "sdd skills run sdd-diagnose",
+            "sdd skills run sdd-correct",
+            "sdd skills run sdd-converge",
+        ],
+        cli_fallback=[
+            "sdd ask --full",
+            "sdd skills run sdd-diagnose",
+            "sdd skills run sdd-correct",
+            "sdd skills run sdd-converge",
+        ],
+        required_permissions=["workspace-read", "workspace-write-controlled"],
+        risk_score="controlled",
+        tags=["pipeline", "orchestration", "governance"],
+        triggers=["pipeline", "orchestrate", "ask diagnose correct converge"],
+        forbidden=[
+            "skip ask stage",
+            "skip diagnosis attestation",
+            "bypass governance gates",
+        ],
+        fallback_to="sdd-ask",
+        idempotent=False,
+        config={
+            "pipeline": {
+                "stages": [
+                    "sdd-ask",
+                    "sdd-diagnose",
+                    "sdd-correct",
+                    "sdd-converge",
+                ],
+                "decision_gates": {
+                    "diagnose_to_correct_min_confidence": 0.7,
+                },
+            }
+        },
+    ),
+    "sdd-harness": SkillDefinition(
+        name="sdd-harness",
+        version="1.0.0",
+        category="bootstrap",
+        description="Bootstrap pointer skill for file-based skill-discovery agents (Claude Code, Antigravity/Gemini CLI). Points to .sdd/agent-instructions.md as the single governance authority.",
+        when_to_use=[
+            "agent startup / skill discovery",
+            "locating canonical governance entrypoints",
+        ],
+        outcomes=["bootstrap_pointer"],
+        allowed_tools=["sdd runtime status"],
+        cli_fallback=["sdd runtime status --force"],
+        required_permissions=["workspace-read"],
+        risk_score="low",
+        tags=["bootstrap", "meta", "pointer"],
+        triggers=["startup", "bootstrap", "skill discovery"],
+        forbidden=[
+            "duplicate governance authority content",
+            "diverge from .sdd/agent-instructions.md",
+        ],
+        fallback_to=None,
+        idempotent=True,
     ),
 }
 
