@@ -28,6 +28,8 @@ from sdd_cli.services.skills_seed_reconciler import (
 )
 from sdd_cli.utils.loader import load_governance_config, validate_governance_path
 
+__all__ = ["_read_registry_ids", "_reconcile_root_seed_artifacts"]
+
 
 def _generate_adapters(output_base: Path) -> tuple[int, str | None]:
     try:

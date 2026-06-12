@@ -30,13 +30,11 @@ class TemplateDeployer:
         self.verbose = verbose
 
         if os.environ.get("SDD_TEST_OUTPUT_DIR"):
-            try:
+            with contextlib.suppress(OSError, ValueError):
                 if self.output_base.resolve() == self.repo_root.resolve():
                     msg = f"SDD_ISOLATION_ERROR: Mutation of repo root blocked ({self.output_base})"
                     print(f"  ❌ {msg}")  # noqa: T201
                     raise PermissionError(msg)
-            except (OSError, ValueError):
-                pass
 
     def _log(self, message: str) -> None:
         if self.verbose:

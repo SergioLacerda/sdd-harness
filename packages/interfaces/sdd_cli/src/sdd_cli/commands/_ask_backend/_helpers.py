@@ -126,7 +126,9 @@ def _get_cached_ahp() -> dict[str, Any] | None:
 
 def _get_profile_state() -> tuple[str, str]:
     """Return (profile, state) best-effort; never raises."""
-    return _get_profile_state_impl(_resolve_workspace_root())
+    from sdd_cli.commands import _ask_backend as _backend
+
+    return _get_profile_state_impl(_backend._resolve_workspace_root())
 
 
 def _write_runtime_cache(workspace_root: Path, last_ask: dict[str, Any]) -> None:

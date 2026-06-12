@@ -28,10 +28,8 @@ from ._helpers import (
 from ._pipeline import _load_ask_snapshot, _start_ask_session
 from ._telemetry import (
     _build_and_output_dossier,
-    _build_dossier_lines,
     _capture_effective_tokens_with_source,
     _handle_dossier_error,
-    _load_dossier_artifact,
     _resolve_dossier_budget,
 )
 
@@ -219,6 +217,8 @@ def _ask_cmd_impl(
         tokens_input=tokens_input,
         tokens_output=tokens_output,
     )
+    from sdd_cli.commands import _ask_backend as _backend
+
     session = _start_ask_session(inputs.query)
     ask_snapshot = _load_ask_snapshot(inputs, session)
     output_text, governance_footer = _sync_ask_runtime(inputs, session, ask_snapshot)
@@ -229,8 +229,8 @@ def _ask_cmd_impl(
             ask_snapshot,
             governance_footer,
             resolve_dossier_budget_fn=_resolve_dossier_budget,
-            load_dossier_artifact_fn=_load_dossier_artifact,
-            build_dossier_lines_fn=_build_dossier_lines,
+            load_dossier_artifact_fn=_backend._load_dossier_artifact,
+            build_dossier_lines_fn=_backend._build_dossier_lines,
             handle_dossier_error_fn=_handle_dossier_error,
             prefer_full_summary_fn=_prefer_full_summary,
         )

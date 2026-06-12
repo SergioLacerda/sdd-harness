@@ -15,12 +15,6 @@ import pytest
 
 pytestmark = [pytest.mark.unit, pytest.mark.perf]
 
-_HEAVY_MODULE_PREFIXES = (
-    "sdd_wizard.application",
-    "sdd_wizard.orchestration",
-    "questionary",
-)
-
 _PROBE_SCRIPT = """
 import sys
 
@@ -35,6 +29,18 @@ assert result.exit_code == 0, result.output
 loaded_heavy = sorted(
     name
     for name in sys.modules
+    if name.startswith(("sdd_wizard.application", "sdd_wizard.orchestration", "questionary"))
+)
+print("\\n".join(loaded_heavy))
+"""
+
+_CONTRACTS_PROBE_SCRIPT = """
+import sys
+
+from sdd_wizard.contracts import WizardInvocation, run_wizard
+
+loaded_heavy = sorted(
+    name for name in sys.modules
     if name.startswith(("sdd_wizard.application", "sdd_wizard.orchestration", "questionary"))
 )
 print("\\n".join(loaded_heavy))
@@ -59,17 +65,7 @@ def test_wizard_help_does_not_import_heavy_modules() -> None:
 def test_contracts_import_is_lightweight() -> None:
     """`sdd_wizard.contracts` must not transitively import orchestration/application."""
     proc = subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            "import sys\n"
-            "from sdd_wizard.contracts import WizardInvocation, run_wizard\n"
-            "loaded_heavy = sorted(\n"
-            "    name for name in sys.modules\n"
-            "    if name.startswith(('sdd_wizard.application', 'sdd_wizard.orchestration', 'questionary'))\n"
-            ")\n"
-            "print('\\n'.join(loaded_heavy))\n",
-        ],
+        [sys.executable, "-c", _CONTRACTS_PROBE_SCRIPT],
         capture_output=True,
         text=True,
         timeout=30,

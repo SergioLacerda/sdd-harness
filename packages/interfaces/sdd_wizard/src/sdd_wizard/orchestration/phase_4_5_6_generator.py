@@ -28,6 +28,7 @@ Output Structure (AI Agent Optimized):
 .vscode/, .cursor/ (seedlings with references to .sdd/source)
 """
 
+import contextlib
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -300,14 +301,12 @@ class Phase456Generator:
         from sdd_core.utils.environment import is_repo_root
 
         if os.environ.get("SDD_TEST_OUTPUT_DIR"):
-            try:
+            with contextlib.suppress(OSError, ValueError):
                 if is_repo_root(self.output_base.resolve()):
                     result["errors"].append(
                         f"SDD_ISOLATION_ERROR: Mutation of repo root blocked ({self.output_base})"
                     )
                     return False
-            except (OSError, ValueError):
-                pass
         mandates_wr = MandatesWriter(
             self.mandates_dir, mandates, self.config, self.verbose
         )

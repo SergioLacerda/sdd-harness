@@ -131,6 +131,17 @@ sdd skills list
 sdd skills describe sdd-validate-governance
 ```
 
+## Agent Onboarding After Governance Activation
+
+After governance artifacts are active in a project, use the governed skills
+interface to inspect and validate the runtime before delegating work to agents:
+
+```bash
+sdd skills list
+sdd skills describe sdd-validate-governance
+sdd skills run sdd-validate-governance
+```
+
 ### Quality Gates
 
 ```bash

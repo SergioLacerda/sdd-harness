@@ -39,7 +39,7 @@ def test_session_bootstrap_returns_failure_result(tmp_path: Path) -> None:
         def execute(self) -> bool:
             return False
 
-    import sdd_wizard.application.session_bootstrap as session_bootstrap
+    from sdd_wizard.application import session_bootstrap
 
     original = session_bootstrap.PhaseRuntime
     session_bootstrap.PhaseRuntime = _FalseRuntime

@@ -23,7 +23,21 @@ from tools.guardrails.core.metrics import (
     compute_base_metrics,
 )
 from tools.guardrails.reporters.template import ReportTemplate
-from tools.lib.sdd_env import detect_repo_root
+
+try:
+    from tools.lib.sdd_env import detect_repo_root
+except ImportError:
+    try:
+        from sdd_core.utils.environment import detect_repo_root
+    except ImportError:
+
+        def detect_repo_root() -> Path:
+            current = Path.cwd()
+            for parent in [current, *current.parents]:
+                if (parent / ".sdd").exists():
+                    return parent
+            return current
+
 
 LONG_FUNCTION_LOOP_THRESHOLD = 20
 GO_CANDIDATE_MIN_LINES = 5

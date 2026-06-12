@@ -22,7 +22,6 @@ from ._helpers import (
     _collect_learning_signals,
     _json_mode,
     _now,
-    _runtime_drift_check,
     _signature_mode,
 )
 
@@ -119,7 +118,7 @@ def build_governed_ask_snapshot(
     ) = _backend._load_compiled_governance(root)
     if _signature_mode() == "strict" and not authenticated:
         raise PermissionError(degrade_reason)
-    drift_detected = _runtime_drift_check(root, fingerprint)
+    drift_detected = _backend._runtime_drift_check(root, fingerprint)
     learning_signals = _collect_learning_signals(workspace_root=root)
     return {
         "workspace_root": root,

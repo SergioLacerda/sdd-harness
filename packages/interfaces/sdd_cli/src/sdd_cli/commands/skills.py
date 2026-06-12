@@ -32,6 +32,8 @@ from sdd_cli.services.skills_resolver import (
 from sdd_cli.utils.output import is_json_mode
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
+__all__ = ["_generate_adapters", "_read_registry_ids", "_reconcile_root_seed_artifacts"]
+
 app = typer.Typer(help="Capability-oriented skill commands")
 app.registered_commands.extend(_learning_app.registered_commands)
 

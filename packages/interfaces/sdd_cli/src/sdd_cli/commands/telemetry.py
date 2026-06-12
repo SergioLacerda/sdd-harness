@@ -26,6 +26,8 @@ from sdd_cli.shared.contracts import (
 from sdd_cli.utils.output import emit_json, is_json_mode
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
+__all__ = ["_event_ts", "_parse_ts"]
+
 app = typer.Typer(
     help="Inspect and manage local telemetry events",
     invoke_without_command=True,

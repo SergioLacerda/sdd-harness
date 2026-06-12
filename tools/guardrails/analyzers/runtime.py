@@ -24,7 +24,21 @@ from tools.guardrails.core.metrics import (
 )
 from tools.guardrails.core.patterns import Pattern, PatternRegistry, PatternType
 from tools.guardrails.reporters.template import ReportTemplate
-from tools.lib.sdd_env import detect_repo_root
+
+try:
+    from tools.lib.sdd_env import detect_repo_root
+except ImportError:
+    try:
+        from sdd_core.utils.environment import detect_repo_root
+    except ImportError:
+
+        def detect_repo_root() -> Path:
+            current = Path.cwd()
+            for parent in [current, *current.parents]:
+                if (parent / ".sdd").exists():
+                    return parent
+            return current
+
 
 HEAVY_MODULES = ["pandas", "numpy", "sklearn", "tensorflow", "torch", "cv2"]
 

@@ -37,6 +37,9 @@ __all__ = [
     "_governance_footer_for_state",
     "_guard_budget_breach",
     "_guard_handshake",
+    "_runtime_drift_check",
+    "_build_dossier_lines",
+    "_load_dossier_artifact",
     "TelemetrySink",
     "OtelBridge",
     "OtlpHttpExporter",
@@ -63,6 +66,7 @@ from ._helpers import (  # noqa: E402
     _load_compiled_governance,
     _render_context_output,
     _resolve_workspace_root,
+    _runtime_drift_check,
     _try_sdd_compiled_dir,
     _write_runtime_cache,
 )
@@ -81,8 +85,10 @@ from ._telemetry import (  # noqa: E402
     OtelBridge,
     OtlpHttpExporter,
     TelemetrySink,
+    _build_dossier_lines,
     _capture_effective_tokens,
     _emit_ask_telemetry,
+    _load_dossier_artifact,
     _resolve_tokens,
     _upsert_ask_session,
 )

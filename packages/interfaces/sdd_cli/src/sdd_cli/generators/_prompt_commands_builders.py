@@ -38,6 +38,13 @@ _AUDIT_JSON_NOTE = (
     "  runtime checks (`sdd runtime status`, `sdd ask --full`) for operational state.\n"
 )
 
+__all__ = [
+    "_AUDIT_JSON_NOTE",
+    "_COMMANDS_TABLE",
+    "_RUNTIME_STATUS_NOTE",
+    "_SOFT_GOVERNANCE_CHECK",
+]
+
 _ASK_500_FALLBACK_NOTE = (
     "\nOperational fallback (IDE/API failures):\n"
     "- If the IDE/provider returns `API Error: 5xx`, stop IDE retry loops for this turn.\n"

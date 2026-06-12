@@ -60,7 +60,6 @@ from sdd_wizard.orchestration.wizard.seedlings_runtime import (
 
 _PHASE1_CHOICES_DIRNAME = "phase-1-choices"
 _PHASE2_INPUT_DIRNAME = "phase-2-input"
-_PHASE3_OUTPUT_DIRNAME = "compiled"
 _FINAL_TEMPLATE_DIRNAME = "final-template"
 _FINAL_TEMPLATE_COMPILED_FILES = (
     "governance-core.compiled.msgpack",
