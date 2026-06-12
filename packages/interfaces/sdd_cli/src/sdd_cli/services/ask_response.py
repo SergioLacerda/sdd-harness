@@ -11,15 +11,13 @@ import hashlib
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import typer
 
 from sdd_cli.services.ask_payload import build_ask_json_data
+from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
 from sdd_cli.utils.output import emit_json
-
-if TYPE_CHECKING:
-    from sdd_cli.commands._ask_backend import _AskInputs, _AskSessionContext
 
 
 def _now() -> str:

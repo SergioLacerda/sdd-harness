@@ -22,6 +22,7 @@ pre-existing `.venv` or manual activation required, and it works the same on Lin
 and Windows.
 
 `uv run sdd setup run`:
+
 - creates `.venv` if it doesn't exist
 - installs all workspace packages (core, telemetry, runtime, compiler, integration, wizard,
   cli) + dev/test dependencies from root `pyproject.toml`
@@ -31,6 +32,8 @@ and Windows.
 > Equivalent via Make (used by CI/automation): `make install`, followed by
 > `source .venv/bin/activate` (or `.venv\Scripts\activate` on Windows) if you prefer an
 > activated shell.
+
+<!-- -->
 
 > [!WARNING]
 > If you also have `sdd` installed globally as the `sdd-cli` tool (e.g. via
@@ -88,4 +91,4 @@ uv run sdd governance validate
 make hooks-install           # SDD hooks + pre-commit framework chain
 ```
 
-CLI reference: [`docs/spec/reference/commands/cli.md`](docs/spec/reference/commands/cli.md)
+CLI reference: [`docs/spec/reference/commands/cli.md`](../spec/reference/commands/cli.md)

@@ -21,7 +21,8 @@ def test_write_creates_mandates_md(tmp_path: Path) -> None:
             "description": "Desc.",
         }
     ]
-    assert compiler.write(mandates) is True
+    result = compiler.write(mandates)
+    assert result is True
     out = tmp_path / "source" / "mandates" / "mandates.md"
     assert out.exists()
     content = out.read_text(encoding="utf-8")
@@ -40,5 +41,6 @@ def test_write_returns_false_on_error(tmp_path: Path) -> None:
 
 def test_write_empty_mandates_creates_file(tmp_path: Path) -> None:
     compiler = _make_compiler(tmp_path)
-    assert compiler.write([]) is True
+    result = compiler.write([])
+    assert result is True
     assert (tmp_path / "source" / "mandates" / "mandates.md").exists()

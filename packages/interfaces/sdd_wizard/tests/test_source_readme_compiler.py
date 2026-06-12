@@ -13,7 +13,8 @@ def _make_compiler(tmp_path: Path) -> SourceReadmeCompiler:
 
 def test_write_creates_readme(tmp_path: Path) -> None:
     compiler = _make_compiler(tmp_path)
-    assert compiler.write([], []) is True
+    result = compiler.write([], [])
+    assert result is True
     assert (tmp_path / "source" / "README.md").exists()
 
 

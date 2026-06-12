@@ -14,7 +14,6 @@ import os
 import time
 import uuid
 from contextvars import ContextVar
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -100,6 +99,7 @@ from sdd_cli.services.ask_telemetry import (
 from sdd_cli.services.ask_telemetry import (
     upsert_ask_session as _upsert_ask_session_impl,
 )
+from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
 from sdd_cli.utils.output import is_json_mode
 from sdd_cli.utils.sdd_authority import (
     compiled_active_dir,
@@ -141,35 +141,6 @@ __all__ = [
 app = typer.Typer(help="Query SDD governance context.")
 logger = logging.getLogger(__name__)
 _LEARNING_WINDOW_DAYS = 7
-
-
-@dataclass(frozen=True)
-class _AskInputs:
-    query: str
-    dossier: bool
-    skill: str | None
-    budget: int | None
-    full: bool
-    log_path: str | None
-    log_format: str
-    tokens_input: int | None
-    tokens_output: int | None
-
-
-@dataclass(frozen=True)
-class _AskSessionContext:
-    workspace_root: Path
-    organize_used: bool
-    organize_reason: str
-    organize_artifact_path: str
-    organize_chunks: int
-    organize_retrieval: str
-    profile: str
-    state: str
-    agent_id: str
-    trace_id: str
-    start_mono: float
-    start_ts: str
 
 
 _TRUE_VALUES = {"1", "true", "yes", "on"}
