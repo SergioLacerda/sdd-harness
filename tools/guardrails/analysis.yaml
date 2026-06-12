@@ -1,0 +1,21 @@
+# Default configuration for the guardrails framework.
+#
+# Copy and edit this file to customize thresholds, then pass it to the CLI
+# via `--config path/to/analysis.yaml`.
+
+analysis:
+  refactoring:
+    max_file_lines: 200
+    max_function_lines: 30
+    max_function_parameters: 5
+  performance:
+    max_nested_loops: 2
+    max_append_operations: 50
+
+file_discovery:
+  include_patterns:
+    - "**/*.py"
+  exclude_patterns:
+    - "tests/"
+    - "venv/"
+    - "__pycache__/"

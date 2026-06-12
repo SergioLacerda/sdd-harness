@@ -7,6 +7,7 @@ import json
 import re
 from dataclasses import replace
 from datetime import datetime
+from functools import lru_cache
 from typing import Any
 
 from sdd_telemetry.types import CompressionMetrics
@@ -17,6 +18,30 @@ from .registry import PatternRegistry
 _ISO_DATE_RE = re.compile(r"^\d{4}[-/]\d{2}[-/]\d{2}")
 _UNIX_EPOCH_RE = re.compile(r"^\d{10,13}$")
 _UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+
+
+@lru_cache(maxsize=1024)
+def _is_timestamp_like(value: str) -> bool:
+    if len(value) >= 10 and _UNIX_EPOCH_RE.match(value):
+        return True
+    return len(value) >= 19 and bool(_ISO_DATE_RE.match(value))
+
+
+@lru_cache(maxsize=1024)
+def _is_uuid_like(value: str) -> bool:
+    return bool(_UUID_RE.match(value.lower()))
+
+
+@lru_cache(maxsize=1024)
+def _encode_timestamp(value: str) -> str:
+    if _UNIX_EPOCH_RE.match(value):
+        epoch = int(value) // 1000 if len(value) == 13 else int(value)
+        return f"#TS:{epoch}"
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return f"#TS:{int(dt.timestamp())}"
+    except (ValueError, AttributeError):
+        return value
 
 
 class DeduplicationEngine:
@@ -67,9 +92,9 @@ class DeduplicationEngine:
         if value is None or isinstance(value, bool | int | float):
             return value
         if isinstance(value, str):
-            if self._is_timestamp_like(value):
-                return self._encode_timestamp(value)
-            if self._is_uuid_like(value):
+            if _is_timestamp_like(value):
+                return _encode_timestamp(value)
+            if _is_uuid_like(value):
                 return f"#UUID:{value[:8]}..."
             return value
         if isinstance(value, list):
@@ -80,24 +105,15 @@ class DeduplicationEngine:
 
     @staticmethod
     def _is_timestamp_like(value: str) -> bool:
-        if len(value) >= 10 and _UNIX_EPOCH_RE.match(value):
-            return True
-        return len(value) >= 19 and bool(_ISO_DATE_RE.match(value))
+        return _is_timestamp_like(value)
 
     @staticmethod
     def _is_uuid_like(value: str) -> bool:
-        return bool(_UUID_RE.match(value.lower()))
+        return _is_uuid_like(value)
 
     @staticmethod
     def _encode_timestamp(value: str) -> str:
-        if _UNIX_EPOCH_RE.match(value):
-            epoch = int(value) // 1000 if len(value) == 13 else int(value)
-            return f"#TS:{epoch}"
-        try:
-            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-            return f"#TS:{int(dt.timestamp())}"
-        except (ValueError, AttributeError):
-            return value
+        return _encode_timestamp(value)
 
     def get_metrics(self) -> CompressionMetrics:
         """Return a snapshot copy of the current compression metrics."""

@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 
+from sdd_telemetry.engine import deduplicator as deduplicator_module
 from sdd_telemetry.engine.cache import LRUCache
 from sdd_telemetry.engine.deduplicator import DeduplicationEngine
 from sdd_telemetry.engine.registry import PatternRegistry
@@ -180,3 +181,11 @@ def test_disabled_cache_does_not_cache() -> None:
     engine.deduplicate(event)
     assert engine.get_metrics().cache_hits == 0
     assert engine.get_metrics().cache_misses == 2
+
+
+def test_timestamp_encoding_helper_uses_lru_cache() -> None:
+    deduplicator_module._encode_timestamp.cache_clear()
+    value = "2026-05-21T10:00:00+00:00"
+    assert deduplicator_module._encode_timestamp(value).startswith("#TS:")
+    assert deduplicator_module._encode_timestamp(value).startswith("#TS:")
+    assert deduplicator_module._encode_timestamp.cache_info().hits >= 1

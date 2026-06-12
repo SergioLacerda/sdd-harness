@@ -1,3 +1,5 @@
+import re
+
 from sdd_telemetry.engine.registry import PatternRegistry
 
 
@@ -91,3 +93,10 @@ def test_find_pattern_lowercase_uuid_matches_id001() -> None:
         registry.find_pattern("trace_id", "550e8400-e29b-41d4-a716-446655440000")
         == "ID001"
     )
+
+
+def test_regex_patterns_are_compiled_once_at_registry_init() -> None:
+    registry = PatternRegistry()
+    compiled = registry._compiled_regexes["TS001"]
+    assert isinstance(compiled, re.Pattern)
+    assert compiled.flags & re.IGNORECASE

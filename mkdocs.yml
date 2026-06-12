@@ -22,48 +22,54 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
+    - navigation.instant
+    - navigation.tracking
     - navigation.tabs
     - navigation.sections
     - navigation.expand
+    - navigation.indexes
     - navigation.top
     - search.suggest
     - search.highlight
     - content.code.copy
+    - content.tabs.link
+    - toc.follow
 
 extra_javascript:
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
 
 nav:
-  - Welcome: README.md
+  - Home: README.md
+  - Getting Started:
+    - Client Onboarding: guides/CLIENT_ONBOARDING.md
+    - Contributing Setup: guides/ONBOARDING.md
+    - FAQ: guides/FAQ.md
+  - Guides:
+    - Technical Guide: guides/TECHNICAL_GUIDE.md
+    - Runtime API Integration: guides/RUNTIME_API_INTEGRATION.md
+    - Frontend Selector: guides/FRONTEND_SELECTOR.md
+    - Agent Entry Point Guide: guides/AGENT_GUIDE.md
+    - .sdd/ Folder Reference: guides/SDD_FOLDER_REFERENCE.md
+  - Reference:
+    - CLI Commands: spec/reference/commands/cli.md
+    - Security Policy: spec/reference/SECURITY.md
+    - Context Template: spec/reference/templates/AI_CONTEXT_AWARE_TEMPLATE.md
+    - Context Standards: spec/reference/templates/CONTEXT_MANAGEMENT_STANDARDS.md
+    - Golden Files: spec/guides/golden-files.md
+    - Commit Protocol (P003): spec/guides/commit-protocol.md
+  - Architecture:
+    - Overview: architecture/README.md
+    - Clean Architecture: spec/canonical/features/CLEAN_ARCHITECTURE.md
+    - TDD: spec/canonical/features/TDD.md
+    - C4 Context (L1): architecture/c4-context.md
+    - C4 Containers (L2): architecture/c4-containers.md
+    - C4 Components — Runtime (L3): architecture/c4-components-runtime.md
   - Runtime:
     - Agent Entrypoint: runtime/protocols/AGENT_ENTRYPOINT.md
     - Agent Runtime Protocol: runtime/protocols/AGENT_RUNTIME_PROTOCOL.md
-  - Architecture:
-    - Clean Architecture: spec/canonical/features/CLEAN_ARCHITECTURE.md
-    - TDD: spec/canonical/features/TDD.md
-    - Diagrams:
-      - Overview: architecture/README.md
-      - C4 Context (L1): architecture/c4-context.md
-      - C4 Containers (L2): architecture/c4-containers.md
-      - C4 Components — Runtime (L3): architecture/c4-components-runtime.md
   - Governance:
     - Mandatory Human Review: spec/canonical/core/policies/P003_MANDATORY_HUMAN_REVIEW.md
     - Honest Critique: spec/canonical/core/policies/P002_HONEST_CRITIQUE.md
-  - Reference:
-    - CLI Commands: spec/reference/commands/cli.md
-    - Context Template: spec/reference/templates/AI_CONTEXT_AWARE_TEMPLATE.md
-    - Context Standards: spec/reference/templates/CONTEXT_MANAGEMENT_STANDARDS.md
-    - Security Policy: spec/reference/SECURITY.md
-  - Guides:
-    - Client Onboarding: guides/CLIENT_ONBOARDING.md
-    - Frontend Selector: guides/FRONTEND_SELECTOR.md
-    - Technical Guide: guides/TECHNICAL_GUIDE.md
-    - Runtime API Integration: guides/RUNTIME_API_INTEGRATION.md
-    - Agent Entry Point: guides/AGENT_GUIDE.md
-    - Commit Protocol (P003): spec/guides/commit-protocol.md
-    - Golden Files: spec/guides/golden-files.md
-    - FAQ: guides/FAQ.md
-    - .sdd/ Folder Reference: guides/SDD_FOLDER_REFERENCE.md
 
 markdown_extensions:
   - admonition
