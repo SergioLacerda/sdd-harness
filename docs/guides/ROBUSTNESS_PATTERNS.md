@@ -106,21 +106,15 @@ success semantics. The result reason is normalized as
 
 ## Gate Externalization Status
 
-Gate externalization is only partially complete.
+Gate evaluation now supports declarative rule expressions loaded from per-skill
+YAML files.
 
 Implemented today:
 
 - `sdd-pipeline` reads `config.pipeline.decision_gates`
-- the current externalized threshold is
-  `diagnose_to_correct_min_confidence`
-
-Not yet externalized in the same way:
-
-- the full correction gate inside `_evaluate_correction_gate(...)`
-- per-skill YAML rule files such as `.sdd/skills/sdd-correct/gate-rules.yaml`
-
-This distinction matters because the roadmap Phase 3 target is broader than the
-current implementation.
+- `sdd-correct` loads `.sdd/skills/sdd-correct/gate-rules.yaml`
+- correction gate rules use a structured `when` DSL with deterministic operators
+- invalid rule schemas fail closed before correction execution
 
 ## Failure Semantics
 
@@ -130,6 +124,7 @@ The executor normalizes failures into predictable outputs:
 - `exit_code=124` for timeout
 - `policy_result="timeout"` for isolated command timeout
 - `policy_result="escalated"` for pipeline timeout or governed stop conditions
+- `policy_result="denied"` for invalid correction gate rule schemas
 
 This makes automation simpler because timeout and escalation are not inferred
 from free-form stderr alone.
@@ -139,8 +134,8 @@ from free-form stderr alone.
 - Keep timeout and retry policy in `budget_policy`, not ad-hoc command wrappers.
 - Prefer handler overrides for skill-specific retry behavior.
 - Treat pipeline timeout as an orchestration failure, not a transient success.
-- Do not document correction gate YAML as complete until `_evaluate_correction_gate(...)`
-  stops being the primary authority.
+- Keep gate facts narrow, but prefer declarative YAML expressions over new
+  hardcoded condition switches.
 
 ## References
 

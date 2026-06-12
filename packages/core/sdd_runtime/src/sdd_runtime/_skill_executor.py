@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import operator as _op
 import time
 import warnings
 from collections.abc import Callable
@@ -37,6 +38,7 @@ REASON_CODE_SCOPE_VIOLATION = "scope.violation"
 REASON_CODE_EVIDENCE_INSUFFICIENT = "evidence.insufficient"
 REASON_CODE_RULE_BLOCKED = "rule.blocked"
 REASON_CODE_CONVERGENCE_FREEZE = "convergence.freeze_mode_active"
+REASON_CODE_GATE_RULES_INVALID = "gate.rules.invalid"
 
 # ---------------------------------------------------------------------------
 # Pre-run outcome
@@ -607,7 +609,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "freeze_mode_active",
             "priority": 10,
-            "condition": "freeze_mode_enabled",
+            "when": {"fact": "freeze_mode.enabled"},
             "decision": "deny",
             "reason_code": REASON_CODE_CONVERGENCE_FREEZE,
             "next_action": "run-converge-and-human-review",
@@ -617,7 +619,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "attestation_missing",
             "priority": 20,
-            "condition": "attestation_missing",
+            "when": {"not": {"fact": "attestation.present"}},
             "decision": "escalate",
             "reason_code": REASON_CODE_DIAGNOSIS_MISSING,
             "next_action": "sdd skills run sdd-diagnose",
@@ -627,7 +629,19 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "attestation_task_mismatch",
             "priority": 30,
-            "condition": "attestation_task_mismatch",
+            "when": {
+                "all": [
+                    {"fact": "attestation.present"},
+                    {
+                        "not": {
+                            "eq": {
+                                "left": {"fact": "attestation.task_id"},
+                                "right": {"fact": "contract.task_id"},
+                            }
+                        }
+                    },
+                ]
+            },
             "decision": "deny",
             "reason_code": REASON_CODE_CONTRACT_MISSING_OR_INVALID,
             "next_action": "re-issue-envelope",
@@ -637,7 +651,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "contract_invalid",
             "priority": 40,
-            "condition": "contract_invalid",
+            "when": {"fact": "contract.invalid"},
             "decision": "deny",
             "reason_code": REASON_CODE_CONTRACT_MISSING_OR_INVALID,
             "next_action": "re-issue-envelope",
@@ -647,7 +661,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "contract_expired",
             "priority": 50,
-            "condition": "contract_expired",
+            "when": {"fact": "contract.expired"},
             "decision": "deny",
             "reason_code": REASON_CODE_CONTRACT_MISSING_OR_INVALID,
             "next_action": "re-issue-envelope",
@@ -657,7 +671,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "attestation_invalid",
             "priority": 60,
-            "condition": "attestation_invalid",
+            "when": {"fact": "attestation.invalid"},
             "decision": "deny",
             "reason_code": REASON_CODE_DIAGNOSIS_STALE,
             "next_action": "re-diagnose",
@@ -667,7 +681,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "attestation_expired",
             "priority": 70,
-            "condition": "attestation_expired",
+            "when": {"fact": "attestation.expired"},
             "decision": "deny",
             "reason_code": REASON_CODE_DIAGNOSIS_STALE,
             "next_action": "re-diagnose",
@@ -677,7 +691,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "evidence_missing",
             "priority": 80,
-            "condition": "evidence_missing",
+            "when": {"not": {"fact": "attestation.has_evidence"}},
             "decision": "escalate",
             "reason_code": REASON_CODE_EVIDENCE_INSUFFICIENT,
             "next_action": "re-diagnose",
@@ -687,7 +701,12 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "confidence_too_low",
             "priority": 90,
-            "condition": "confidence_too_low",
+            "when": {
+                "lt": {
+                    "left": {"fact": "attestation.confidence"},
+                    "right": {"fact": "contract.min_diagnosis_confidence"},
+                }
+            },
             "decision": "escalate",
             "reason_code": REASON_CODE_DIAGNOSIS_INCONCLUSIVE,
             "next_action": "human-review",
@@ -697,7 +716,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "allowed_paths_missing",
             "priority": 100,
-            "condition": "allowed_paths_missing",
+            "when": {"not": {"fact": "contract.allowed_paths_present"}},
             "decision": "deny",
             "reason_code": REASON_CODE_CONTRACT_MISSING_OR_INVALID,
             "next_action": "narrow-scope",
@@ -707,7 +726,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "scope_violation",
             "priority": 110,
-            "condition": "scope_violation",
+            "when": {"fact": "scope_violation"},
             "decision": "deny",
             "reason_code": REASON_CODE_SCOPE_VIOLATION,
             "next_action": "narrow-scope",
@@ -717,7 +736,12 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "matching_active_rule",
             "priority": 120,
-            "condition": "matching_active_rule",
+            "when": {
+                "contains": {
+                    "collection": {"fact": "active_rule_patterns"},
+                    "item": {"fact": "current_pattern"},
+                }
+            },
             "decision": "deny",
             "reason_code": REASON_CODE_RULE_BLOCKED,
             "next_action": "human-review",
@@ -727,7 +751,7 @@ def _default_correction_gate_rules() -> list[dict[str, Any]]:
         {
             "id": "default_allow",
             "priority": 1000,
-            "condition": "always",
+            "when": {"fact": "always"},
             "decision": "allow",
             "reason_code": "ok",
             "next_action": "apply-correction",
@@ -751,11 +775,126 @@ def _load_gate_rules(
     payload = yaml.safe_load(rules_path.read_text(encoding="utf-8")) or {}
     rules = payload.get("rules", [])
     if not isinstance(rules, list) or not rules:
-        return _default_correction_gate_rules()
-    normalized = [rule for rule in rules if isinstance(rule, dict)]
-    if not normalized:
-        return _default_correction_gate_rules()
+        raise ValueError("gate rules file must contain a non-empty 'rules' list")
+    normalized = [_normalize_gate_rule(rule) for rule in rules]
     return sorted(normalized, key=lambda rule: int(rule.get("priority", 9999)))
+
+
+def _resolve_fact_value(facts: dict[str, Any], path: str) -> Any:
+    current: Any = facts
+    for segment in path.split("."):
+        if not isinstance(current, dict) or segment not in current:
+            return None
+        current = current[segment]
+    return current
+
+
+def _resolve_gate_operand(operand: Any, facts: dict[str, Any]) -> Any:
+    if isinstance(operand, dict) and set(operand) == {"fact"}:
+        fact_path = operand.get("fact")
+        if not isinstance(fact_path, str) or not fact_path.strip():
+            raise ValueError("gate operand fact reference must be a non-empty string")
+        return _resolve_fact_value(facts, fact_path)
+    return operand
+
+
+def _normalize_fact_operator(payload: Any) -> dict[str, Any]:
+    if not isinstance(payload, str) or not payload.strip():
+        raise ValueError("gate fact operator requires a non-empty string path")
+    return {"fact": payload}
+
+
+def _normalize_collection_operator(op_name: str, payload: Any) -> dict[str, Any]:
+    if not isinstance(payload, list) or not payload:
+        raise ValueError(f"gate operator '{op_name}' requires a non-empty list")
+    return {op_name: [_normalize_gate_expression(item) for item in payload]}
+
+
+def _normalize_comparison_operator(op_name: str, payload: Any) -> dict[str, Any]:
+    if not isinstance(payload, dict) or set(payload) != {"left", "right"}:
+        raise ValueError(f"gate operator '{op_name}' requires left/right operands")
+    return {op_name: {"left": payload["left"], "right": payload["right"]}}
+
+
+def _normalize_in_operator(payload: Any) -> dict[str, Any]:
+    if not isinstance(payload, dict) or set(payload) != {"item", "items"}:
+        raise ValueError("gate operator 'in' requires item/items operands")
+    return {"in": {"item": payload["item"], "items": payload["items"]}}
+
+
+def _normalize_contains_operator(payload: Any) -> dict[str, Any]:
+    if not isinstance(payload, dict) or set(payload) != {"collection", "item"}:
+        raise ValueError("gate operator 'contains' requires collection/item operands")
+    return {"contains": {"collection": payload["collection"], "item": payload["item"]}}
+
+
+def _normalize_gate_expression(expression: Any) -> dict[str, Any]:
+    if not isinstance(expression, dict) or len(expression) != 1:
+        raise ValueError("gate expression must be a single-key mapping")
+
+    op_name, payload = next(iter(expression.items()))
+    supported = {
+        "fact",
+        "all",
+        "any",
+        "not",
+        "eq",
+        "ne",
+        "lt",
+        "lte",
+        "gt",
+        "gte",
+        "in",
+        "contains",
+    }
+    if op_name not in supported:
+        raise ValueError(f"unsupported gate operator: {op_name}")
+
+    if op_name == "fact":
+        return _normalize_fact_operator(payload)
+    if op_name in {"all", "any"}:
+        return _normalize_collection_operator(op_name, payload)
+    if op_name == "not":
+        return {"not": _normalize_gate_expression(payload)}
+    if op_name in {"eq", "ne", "lt", "lte", "gt", "gte"}:
+        return _normalize_comparison_operator(op_name, payload)
+    if op_name == "in":
+        return _normalize_in_operator(payload)
+    return _normalize_contains_operator(payload)
+
+
+def _normalize_gate_rule(rule: Any) -> dict[str, Any]:
+    if not isinstance(rule, dict):
+        raise ValueError("each gate rule must be a mapping")
+
+    required = {
+        "id",
+        "priority",
+        "when",
+        "decision",
+        "reason_code",
+        "next_action",
+        "requires_human_review",
+        "escalate_to_human",
+    }
+    missing = sorted(required.difference(rule))
+    if missing:
+        raise ValueError(f"gate rule missing required fields: {', '.join(missing)}")
+
+    decision = str(rule.get("decision", "")).strip()
+    if decision not in {"allow", "deny", "escalate"}:
+        raise ValueError(f"unsupported gate decision: {decision}")
+
+    return {
+        "id": str(rule["id"]).strip(),
+        "priority": int(rule["priority"]),
+        "when": _normalize_gate_expression(rule["when"]),
+        "decision": decision,
+        "reason_code": str(rule["reason_code"]).strip(),
+        "next_action": str(rule["next_action"]).strip(),
+        "requires_human_review": bool(rule["requires_human_review"]),
+        "escalate_to_human": bool(rule["escalate_to_human"]),
+    }
 
 
 def _build_correction_gate_facts(
@@ -802,31 +941,92 @@ def _build_correction_gate_facts(
         f"{attestation.get('root_cause', 'unknown')}"
     )
     return {
-        "freeze_mode_enabled": isinstance(freeze_mode_state, dict)
-        and bool(freeze_mode_state.get("enabled")),
-        "attestation_missing": not bool(attestation),
-        "attestation_task_mismatch": bool(attestation)
-        and str(attestation.get("task_id", "")) != str(contract.get("task_id", "")),
-        "contract_invalid": contract_invalid,
-        "contract_expired": contract_expired,
-        "attestation_invalid": attestation_invalid,
-        "attestation_expired": attestation_expired,
-        "evidence_missing": not isinstance(evidence, list) or not evidence,
-        "confidence_too_low": not isinstance(confidence, int | float)
-        or float(confidence) < min_conf,
-        "allowed_paths_missing": not isinstance(allowed_paths, list)
-        or not allowed_paths,
+        "freeze_mode": {
+            "enabled": isinstance(freeze_mode_state, dict)
+            and bool(freeze_mode_state.get("enabled"))
+        },
+        "attestation": {
+            "present": bool(attestation),
+            "task_id": str(attestation.get("task_id", "")),
+            "invalid": attestation_invalid,
+            "expired": attestation_expired,
+            "has_evidence": isinstance(evidence, list) and bool(evidence),
+            "confidence": float(confidence)
+            if isinstance(confidence, int | float)
+            else float("-inf"),
+            "hypothesis": str(attestation.get("hypothesis", "unknown")),
+            "root_cause": str(attestation.get("root_cause", "unknown")),
+        },
+        "contract": {
+            "task_id": str(contract.get("task_id", "")),
+            "invalid": contract_invalid,
+            "expired": contract_expired,
+            "allowed_paths": list(allowed_paths)
+            if isinstance(allowed_paths, list)
+            else [],
+            "allowed_paths_present": isinstance(allowed_paths, list)
+            and bool(allowed_paths),
+            "min_diagnosis_confidence": min_conf,
+        },
+        "planned_paths": list(planned_paths) if isinstance(planned_paths, list) else [],
         "scope_violation": isinstance(planned_paths, list)
         and bool(planned_paths)
         and any(path not in allowed_paths for path in planned_paths),
-        "matching_active_rule": any(
-            rule.get("pattern") == pattern for rule in active_rules
-        ),
+        "active_rule_patterns": [
+            str(rule.get("pattern", ""))
+            for rule in active_rules
+            if isinstance(rule, dict) and str(rule.get("pattern", "")).strip()
+        ],
+        "current_pattern": pattern,
         "always": True,
     }
 
 
-def _evaluate_correction_gate(  # noqa: C901
+_GATE_COMPARISON_OPS: dict[str, Callable[[Any, Any], bool]] = {
+    "eq": _op.eq,
+    "ne": _op.ne,
+    "lt": _op.lt,
+    "lte": _op.le,
+    "gt": _op.gt,
+    "gte": _op.ge,
+}
+
+
+def _evaluate_comparison_expression(
+    op_name: str, payload: dict[str, Any], facts: dict[str, Any]
+) -> bool:
+    left = _resolve_gate_operand(payload["left"], facts)
+    right = _resolve_gate_operand(payload["right"], facts)
+    return _GATE_COMPARISON_OPS[op_name](left, right)
+
+
+def _evaluate_membership_expression(
+    op_name: str, payload: dict[str, Any], facts: dict[str, Any]
+) -> bool:
+    item = _resolve_gate_operand(payload["item"], facts)
+    collection_key = "items" if op_name == "in" else "collection"
+    collection = _resolve_gate_operand(payload[collection_key], facts)
+    return item in collection
+
+
+def _evaluate_gate_expression(
+    expression: dict[str, Any], facts: dict[str, Any]
+) -> bool:
+    op_name, payload = next(iter(expression.items()))
+    if op_name == "fact":
+        return bool(_resolve_fact_value(facts, payload))
+    if op_name == "all":
+        return all(_evaluate_gate_expression(item, facts) for item in payload)
+    if op_name == "any":
+        return any(_evaluate_gate_expression(item, facts) for item in payload)
+    if op_name == "not":
+        return not _evaluate_gate_expression(payload, facts)
+    if op_name in _GATE_COMPARISON_OPS:
+        return _evaluate_comparison_expression(op_name, payload, facts)
+    return _evaluate_membership_expression(op_name, payload, facts)
+
+
+def _evaluate_correction_gate(
     context: dict[str, Any],
     *,
     active_rules: list[dict[str, Any]],
@@ -835,8 +1035,7 @@ def _evaluate_correction_gate(  # noqa: C901
     rules = gate_rules or _default_correction_gate_rules()
     facts = _build_correction_gate_facts(context, active_rules=active_rules)
     for rule in sorted(rules, key=lambda item: int(item.get("priority", 9999))):
-        condition = str(rule.get("condition", "")).strip()
-        if not condition or not bool(facts.get(condition, False)):
+        if not _evaluate_gate_expression(rule["when"], facts):
             continue
         return {
             "decision": str(rule.get("decision", "deny")),
@@ -1028,13 +1227,51 @@ class CorrectHandler(Handler):
     ) -> PreRunOutcome:
         project_root_raw = context.get("_project_root", Path.cwd())
         project_root = Path(project_root_raw)
-        gate_rules = _load_gate_rules(project_root=project_root, skill=skill)
+        try:
+            gate_rules = _load_gate_rules(project_root=project_root, skill=skill)
+        except ValueError as exc:
+            gate: dict[str, Any] = {
+                "decision": "deny",
+                "reason_code": REASON_CODE_GATE_RULES_INVALID,
+                "next_action": f"fix-gate-rules:{exc}",
+                "requires_human_review": True,
+                "escalate_to_human": True,
+            }
+            artifacts: dict[str, Any] = {
+                "gate_decision": gate,
+                "gate_rule_error": str(exc),
+            }
+            learning.append_failure(
+                FailureLedgerEntry(
+                    symptom="correction_gate_invalid",
+                    root_cause=REASON_CODE_GATE_RULES_INVALID,
+                    fix="fix_gate_rules_schema",
+                    validation=str(exc),
+                    regression=False,
+                    tags=["gate", "correct", "invalid-schema"],
+                    evidence_refs=[],
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                )
+            )
+            early = SkillRunResult(
+                state="error",
+                profile=profile,
+                skill=skill.name,
+                policy_result="denied",
+                reason=REASON_CODE_GATE_RULES_INVALID,
+                exit_code=1,
+                governance_footer=footer_fn("fallback_cli", "fail"),
+                fallback=list(skill.cli_fallback),
+                command_results=[],
+                artifacts=artifacts,
+            )
+            return PreRunOutcome(artifacts=artifacts, early_result=early)
         gate = _evaluate_correction_gate(
             context,
             active_rules=learning.list_active_rules(),
             gate_rules=gate_rules,
         )
-        artifacts: dict[str, Any] = {"gate_decision": gate}
+        artifacts = {"gate_decision": gate}
         if gate["decision"] != "allow":
             diag_report = context.get("diagnosis_report", {})
             entry = FailureLedgerEntry(

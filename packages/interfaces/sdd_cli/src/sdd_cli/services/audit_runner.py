@@ -39,6 +39,19 @@ from sdd_cli.services.audit_event_parser import (
 )
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
+__all__ = [
+    "DriftRow",
+    "_as_score",
+    "_drift_type",
+    "_has_quality_signals",
+    "_drift_cause",
+    "_event_ts",
+    "_load_events",
+    "_parse_int",
+    "_parse_ts",
+    "_ts_sort_key",
+]
+
 
 def _window_confidence(token_coverage: float, drift_classified_coverage: float) -> str:
     if token_coverage >= 0.7 and drift_classified_coverage >= 0.8:

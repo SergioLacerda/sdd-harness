@@ -16,11 +16,15 @@ class PatternRegistry:
 
     def __init__(self) -> None:
         self._patterns: dict[str, PatternDef] = get_all_patterns()
+        self._compiled_regexes: dict[str, re.Pattern[str]] = {}
         self._field_index: dict[str, list[str]] = {}
         self._build_index()
 
     def _build_index(self) -> None:
         for pid, pattern in self._patterns.items():
+            regex = pattern.get("regex")
+            if regex is not None:
+                self._compiled_regexes[pid] = re.compile(regex, re.IGNORECASE)
             for field in pattern["fields"]:
                 self._field_index.setdefault(field, []).append(pid)
 
@@ -32,15 +36,15 @@ class PatternRegistry:
         therefore determines precedence when multiple patterns share the same field.
         """
         for pid in self._field_index.get(field, []):
-            if self._match(self._patterns[pid], value):
+            if self._match(pid, self._patterns[pid], value):
                 return pid
         return None
 
-    def _match(self, pattern: PatternDef, value: Any) -> bool:
+    def _match(self, pattern_id: str, pattern: PatternDef, value: Any) -> bool:
         if (
-            "regex" in pattern
-            and isinstance(value, str)
-            and re.match(pattern["regex"], value, re.IGNORECASE)
+            isinstance(value, str)
+            and pattern_id in self._compiled_regexes
+            and self._compiled_regexes[pattern_id].match(value)
         ):
             return True
         return "values" in pattern and value in pattern["values"]

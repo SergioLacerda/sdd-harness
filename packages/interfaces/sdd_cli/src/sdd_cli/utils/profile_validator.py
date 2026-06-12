@@ -208,4 +208,3 @@ def governance_gate(ctx: click.Context) -> None:
         if type(_exc).__name__ == "Exit" and hasattr(_exc, "exit_code"):
             raise
         # Gate must never block legitimate commands due to import errors.
-        pass

@@ -1,7 +1,5 @@
 """Governance management commands."""
 
-import logging
-
 import click
 import typer
 from rich.console import Console
@@ -43,11 +41,18 @@ from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
 # Backward-compat re-exports used by tests/patches.
 Table = RichTable
-__all__ = ["render_governance_compile_table", "Table", "validate_governance_path"]
+__all__ = [
+    "render_governance_compile_table",
+    "Table",
+    "validate_governance_path",
+    "_has_malformed_titles",
+    "resolve_output_base",
+    "generate_seeds",
+    "resolve_generate_path",
+]
 
 app = typer.Typer(help="Governance management commands")
 console = Console()
-logger = logging.getLogger(__name__)
 
 
 def _ctx_json() -> bool:

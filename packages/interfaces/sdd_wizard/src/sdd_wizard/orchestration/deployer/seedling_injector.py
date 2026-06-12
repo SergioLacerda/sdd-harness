@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 from pathlib import Path
 from typing import Any
@@ -35,13 +36,11 @@ class SeedlingInjector:
         test_output_dir = os.environ.get("SDD_TEST_OUTPUT_DIR")
         if not test_output_dir:
             return
-        try:
+        with contextlib.suppress(OSError, ValueError):
             if self.output_base.resolve() == self.repo_root.resolve():
                 msg = f"SDD_ISOLATION_ERROR: Mutation of repo root blocked ({self.output_base})"
                 print(f"  ❌ {msg}")  # noqa: T201
                 raise PermissionError(msg)
-        except (OSError, ValueError):
-            pass
 
     def inject_bootstrap_metadata(
         self,

@@ -29,12 +29,10 @@ def _resolve_governance_fingerprint() -> str:
         root = Path.cwd()
     agent_instructions = root / ".sdd" / "agent-instructions.md"
     if agent_instructions.exists():
-        try:
+        with contextlib.suppress(OSError):
             for line in agent_instructions.read_text(encoding="utf-8").splitlines():
                 if "Fingerprint this version:" in line:
                     return line.split(":", 1)[1].strip().strip("`")
-        except OSError:
-            pass
     metadata = root / ".sdd" / "metadata.json"
     if metadata.exists():
         with contextlib.suppress(OSError, json.JSONDecodeError):

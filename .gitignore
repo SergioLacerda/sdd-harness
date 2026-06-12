@@ -120,6 +120,9 @@ test_output.log
 site/
 _version.py
 
+# Generated selector assets (built into docs_dir so MkDocs serves/copies them)
+docs/selector/
+
 # Dev Container — ignore dotfiles but keep the config files
 .devcontainer/.*
 !.devcontainer/devcontainer.json

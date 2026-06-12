@@ -19,6 +19,15 @@ from sdd_cli.services.lint_handler import (
 )
 from sdd_cli.utils.command_errors import handle_cli_errors
 
+__all__ = [
+    "_collect_active_markdown_files",
+    "_extract_file_anchors",
+    "_filter_code_blocks",
+    "_resolve_link_target",
+    "_slugify_anchor",
+    "_validate_link_fragment_style",
+]
+
 app = typer.Typer()
 
 

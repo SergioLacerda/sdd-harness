@@ -15,7 +15,6 @@ from dataclasses import asdict, dataclass
 
 _MAX_LINE_LEN = 120
 _MAX_OUTPUT_LINES = 3
-_MAX_INPUT_LINES = 2
 
 
 @dataclass(frozen=True)

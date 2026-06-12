@@ -16,6 +16,7 @@ def test_test_command_reports_missing_script(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setattr("sdd_cli.commands.test.detect_repo_root", lambda: tmp_path)
+    monkeypatch.setattr("sdd_cli.commands.test.require_dev_module", lambda module: None)
     with pytest.raises(typer.Exit):
         TestCommand().run(
             verbose=False, fail_fast=False, coverage=True, cov_fail_under=None
@@ -36,6 +37,7 @@ def test_test_command_builds_expected_args(
             return None
 
     monkeypatch.setattr("sdd_cli.commands.test.detect_repo_root", lambda: tmp_path)
+    monkeypatch.setattr("sdd_cli.commands.test.require_dev_module", lambda module: None)
     monkeypatch.setattr("sdd_core.utils.process.SafeProcessRunner", lambda: _Runner())
     TestCommand().run(verbose=True, fail_fast=True, coverage=False, cov_fail_under=91)
     cmd = seen["cmd"]
@@ -71,6 +73,7 @@ def test_test_command_maps_process_errors_to_exit_codes(
             raise error_factory(process_mod)
 
     monkeypatch.setattr("sdd_cli.commands.test.detect_repo_root", lambda: tmp_path)
+    monkeypatch.setattr("sdd_cli.commands.test.require_dev_module", lambda module: None)
     monkeypatch.setattr("sdd_core.utils.process.SafeProcessRunner", lambda: _Runner())
     with pytest.raises(typer.Exit) as excinfo:
         TestCommand().run(
@@ -92,6 +95,7 @@ def test_ci_validate_pass_and_fail_paths(
         target.write_text("x", encoding="utf-8")
 
     monkeypatch.setattr("sdd_cli.commands.test.detect_repo_root", lambda: tmp_path)
+    monkeypatch.setattr("sdd_cli.commands.test.require_dev_module", lambda module: None)
     monkeypatch.setattr("sdd_cli.commands.test._check_import", lambda module: True)
     monkeypatch.setattr(
         "sdd_cli.commands.test._run_script", lambda script, args, cwd: 0
@@ -119,6 +123,7 @@ def test_ci_validate_marks_missing_scripts_and_soak_failure(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setattr("sdd_cli.commands.test.detect_repo_root", lambda: tmp_path)
+    monkeypatch.setattr("sdd_cli.commands.test.require_dev_module", lambda module: None)
     monkeypatch.setattr("sdd_cli.commands.test._check_import", lambda module: True)
     monkeypatch.setattr("sdd_cli.commands.test._run_cli", lambda args, cwd: 0)
     monkeypatch.setattr("sdd_cli.commands.test._run_pytest", lambda args, cwd: 2)
@@ -141,6 +146,7 @@ def test_ci_validate_rejects_unexpected_runtime_status(
         target.write_text("x", encoding="utf-8")
 
     monkeypatch.setattr("sdd_cli.commands.test.detect_repo_root", lambda: tmp_path)
+    monkeypatch.setattr("sdd_cli.commands.test.require_dev_module", lambda module: None)
     monkeypatch.setattr("sdd_cli.commands.test._check_import", lambda module: True)
     monkeypatch.setattr(
         "sdd_cli.commands.test._run_script", lambda script, args, cwd: 0
@@ -152,3 +158,39 @@ def test_ci_validate_rejects_unexpected_runtime_status(
     result = runner.invoke(test_app, ["ci-validate", "--no-tests"])
     assert result.exit_code == 1
     assert "ERROR: One or more checks failed" in result.output
+
+
+def test_test_command_exits_with_actionable_message_when_pytest_missing(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(
+        "sdd_cli.utils.dev_deps.check_module_available",
+        lambda executable, module: False,
+    )
+
+    with pytest.raises(typer.Exit) as excinfo:
+        TestCommand().run(
+            verbose=False, fail_fast=False, coverage=True, cov_fail_under=None
+        )
+
+    assert excinfo.value.exit_code == 1
+    output = capsys.readouterr().out
+    assert "pytest" in output
+    assert "not available in this environment" in output
+
+
+def test_ci_validate_exits_early_with_actionable_message_when_pytest_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr("sdd_cli.commands.test.detect_repo_root", lambda: tmp_path)
+    monkeypatch.setattr(
+        "sdd_cli.utils.dev_deps.check_module_available",
+        lambda executable, module: False,
+    )
+    monkeypatch.setattr("sdd_cli.commands.test._check_import", lambda module: True)
+
+    result = runner.invoke(test_app, ["ci-validate"])
+
+    assert result.exit_code == 1
+    assert "pytest" in result.output
+    assert "not available in this environment" in result.output

@@ -7,7 +7,7 @@ from typing import Any
 from unittest.mock import patch
 
 from sdd_runtime import RuntimeEvent
-from sdd_runtime.telemetry import MODE_ACTIVE, TelemetrySink, create_sink
+from sdd_runtime.telemetry import MODE_ACTIVE, MODE_PASSIVE, TelemetrySink, create_sink
 
 
 class _FailingAlertDispatcher:
@@ -125,3 +125,41 @@ def test_flush_writes_events_to_jsonl() -> None:
         sink.flush()
         lines = path.read_text(encoding="utf-8").strip().splitlines()
         assert len(lines) >= 1
+
+
+def test_flush_after_emit_does_not_duplicate_active_mode() -> None:
+    """`emit()` already persists in active mode; a later `flush()` must not
+    re-write the same event."""
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "events.jsonl"
+        sink = TelemetrySink(jsonl_path=path, logging_mode=MODE_ACTIVE)
+        sink.emit(
+            RuntimeEvent(
+                event="runtime.session.start",
+                command="runtime",
+                status="ok",
+                trace_id="t1",
+            )
+        )
+        sink.flush()
+        lines = path.read_text(encoding="utf-8").strip().splitlines()
+        assert len(lines) == 1
+
+
+def test_flush_after_emit_does_not_duplicate_passive_mandatory_event() -> None:
+    """`governance.ask` is mandatory and persisted immediately even in passive
+    mode; `enqueue_flush` must not write it a second time."""
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "events.jsonl"
+        sink = TelemetrySink(jsonl_path=path, logging_mode=MODE_PASSIVE)
+        sink.emit(
+            RuntimeEvent(
+                event="governance.ask",
+                command="ask",
+                status="ok",
+                trace_id="t1",
+            )
+        )
+        sink.flush()
+        lines = path.read_text(encoding="utf-8").strip().splitlines()
+        assert len(lines) == 1

@@ -85,9 +85,12 @@ def test_ask_raise_does_not_chain_original_exception() -> None:
     """raise typer.Exit(3) from None must suppress the PermissionError context."""
     import ast
 
-    src = Path(__file__).parents[1] / "src" / "sdd_cli" / "commands" / "_ask_backend.py"
-    tree = ast.parse(src.read_text(encoding="utf-8"))
-    _assert_no_bare_raise_in_except(tree, src.name)
+    pkg_dir = (
+        Path(__file__).parents[1] / "src" / "sdd_cli" / "commands" / "_ask_backend"
+    )
+    for src in sorted(pkg_dir.glob("*.py")):
+        tree = ast.parse(src.read_text(encoding="utf-8"))
+        _assert_no_bare_raise_in_except(tree, src.name)
 
 
 def _assert_no_bare_raise_in_except(tree: object, filename: str) -> None:
