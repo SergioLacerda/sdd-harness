@@ -4,9 +4,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
 from sdd_runtime._skill_executor import (
     CorrectHandler,
     _evaluate_correction_gate,
+    _evaluate_gate_expression,
     _load_gate_rules,
 )
 
@@ -84,6 +86,36 @@ def test_gate_denies_when_matching_active_rule() -> None:
     assert result["reason_code"] == "rule.blocked"
 
 
+def test_gate_priority_uses_first_matching_rule() -> None:
+    rules = [
+        {
+            "id": "first",
+            "priority": 5,
+            "when": {"fact": "always"},
+            "decision": "deny",
+            "reason_code": "first",
+            "next_action": "stop",
+            "requires_human_review": True,
+            "escalate_to_human": True,
+        },
+        {
+            "id": "second",
+            "priority": 10,
+            "when": {"fact": "always"},
+            "decision": "allow",
+            "reason_code": "second",
+            "next_action": "go",
+            "requires_human_review": False,
+            "escalate_to_human": False,
+        },
+    ]
+    result = _evaluate_correction_gate(
+        _ctx(evidence=["e"]), active_rules=[], gate_rules=rules
+    )
+    assert result["decision"] == "deny"
+    assert result["reason_code"] == "first"
+
+
 def test_gate_allows_valid_context() -> None:
     result = _evaluate_correction_gate(
         _ctx(evidence=["e"], confidence=0.9, allowed=["safe/"], planned=["safe/"]),
@@ -125,6 +157,36 @@ def test_gate_denies_when_freeze_mode_active() -> None:
     assert result["reason_code"] == "convergence.freeze_mode_active"
 
 
+def test_gate_expression_supports_nested_boolean_logic() -> None:
+    facts = {
+        "attestation": {"present": True, "confidence": 0.4},
+        "contract": {"min_diagnosis_confidence": 0.8},
+    }
+    expression = {
+        "all": [
+            {"fact": "attestation.present"},
+            {
+                "lt": {
+                    "left": {"fact": "attestation.confidence"},
+                    "right": {"fact": "contract.min_diagnosis_confidence"},
+                }
+            },
+        ]
+    }
+    assert _evaluate_gate_expression(expression, facts) is True
+
+
+def test_load_gate_rules_rejects_invalid_schema(tmp_path: Path) -> None:
+    rules_dir = tmp_path / ".sdd" / "skills" / "sdd-correct"
+    rules_dir.mkdir(parents=True)
+    (rules_dir / "gate-rules.yaml").write_text(
+        "rules:\n  - id: broken\n    priority: 5\n    decision: allow\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="missing required fields"):
+        _load_gate_rules(project_root=tmp_path, skill=_make_skill())
+
+
 # ---------------------------------------------------------------------------
 # CorrectHandler.pre_run
 # ---------------------------------------------------------------------------
@@ -151,7 +213,8 @@ def test_load_gate_rules_reads_yaml_file(tmp_path: Path) -> None:
         "rules:\n"
         "  - id: custom\n"
         "    priority: 5\n"
-        "    condition: always\n"
+        "    when:\n"
+        "      fact: always\n"
         "    decision: allow\n"
         "    reason_code: ok\n"
         "    next_action: apply-correction\n"
@@ -166,6 +229,40 @@ def test_load_gate_rules_reads_yaml_file(tmp_path: Path) -> None:
 def test_load_gate_rules_falls_back_when_file_missing(tmp_path: Path) -> None:
     rules = _load_gate_rules(project_root=tmp_path, skill=_make_skill())
     assert rules[0]["id"] == "freeze_mode_active"
+
+
+def test_pre_run_denies_when_gate_rule_schema_invalid(tmp_path: Path) -> None:
+    handler = CorrectHandler()
+    rules_dir = tmp_path / ".sdd" / "skills" / "sdd-correct"
+    rules_dir.mkdir(parents=True)
+    (rules_dir / "gate-rules.yaml").write_text(
+        "rules:\n"
+        "  - id: broken\n"
+        "    priority: 5\n"
+        "    when:\n"
+        "      unknown: true\n"
+        "    decision: allow\n"
+        "    reason_code: ok\n"
+        "    next_action: apply-correction\n"
+        "    requires_human_review: false\n"
+        "    escalate_to_human: false\n",
+        encoding="utf-8",
+    )
+    ctx = _ctx(evidence=["e"], confidence=0.9, allowed=["safe/"], planned=["safe/"])
+    ctx["_project_root"] = tmp_path
+    learning = _make_learning()
+    outcome = handler.pre_run(
+        ctx,
+        learning=learning,
+        skill=_make_skill(),
+        profile="default",
+        footer_fn=lambda d, g: "",
+    )
+    assert outcome.early_result is not None
+    assert outcome.early_result.policy_result == "denied"
+    assert outcome.early_result.reason == "gate.rules.invalid"
+    assert outcome.artifacts["gate_rule_error"].startswith("unsupported gate operator")
+    learning.append_failure.assert_called_once()
 
 
 def test_pre_run_returns_gate_decision_artifact() -> None:

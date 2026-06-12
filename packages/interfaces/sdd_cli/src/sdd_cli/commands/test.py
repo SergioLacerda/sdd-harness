@@ -12,6 +12,7 @@ from sdd_cli.services.test_handler import (
     _run_script,
     run_review_golden,
 )
+from sdd_cli.utils.dev_deps import require_dev_module
 from sdd_cli.utils.environment import detect_repo_root
 
 app = typer.Typer()
@@ -33,6 +34,7 @@ class TestCommand:
         cov_fail_under: int | None,
     ) -> None:
         """Run."""
+        require_dev_module("pytest")
         root = detect_repo_root()
         script = root / "tools" / "testing" / "run-all-tests.py"
 
@@ -190,6 +192,7 @@ def ci_validate(  # noqa: C901
                 failed = True
 
     if tests:
+        require_dev_module("pytest")
         typer.echo("\n=== Test suite ===")
         script = root / "tools" / "testing" / "run-all-tests.py"
         if not script.exists():
@@ -200,6 +203,7 @@ def ci_validate(  # noqa: C901
                 failed = True
 
     if soak_threads:
+        require_dev_module("pytest")
         typer.echo("\n=== Thread soak ===")
         soak_args = [
             "packages/interfaces/sdd_cli/tests/test_metrics_reload_worker.py",

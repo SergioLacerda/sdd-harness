@@ -115,6 +115,7 @@ class TelemetrySink:
         import uuid
 
         self._events: list[RuntimeEvent] = []
+        self._persisted_event_ids: set[int] = set()
         self._jsonl_path = jsonl_path
         self._logging_mode = logging_mode
         self._segment_by_work_item = segment_by_work_item
@@ -258,10 +259,15 @@ class TelemetrySink:
     def _write_jsonl(self, event: RuntimeEvent) -> None:
         if not self._should_persist(event):
             return
+        # Guard against duplicate writes when both `emit()` and a later
+        # `flush()` call attempt to persist the same event object.
+        if id(event) in self._persisted_event_ids:
+            return
         target = self._resolve_path(event)
         target.parent.mkdir(parents=True, exist_ok=True)
         with target.open("a", encoding="utf-8") as fh:
             fh.write(event.to_json() + "\n")
+        self._persisted_event_ids.add(id(event))
 
 
 # OtelAttributes moved to _events.py to break cyclic import cycle with otel.py

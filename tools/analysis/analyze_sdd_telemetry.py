@@ -45,7 +45,7 @@ class TelemetryFileMetrics:
 class TelemetryAnalyzer:
     """Analisador especializado do módulo sdd_telemetry."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.files: list[TelemetryFileMetrics] = []
         self.go_viability_score = 0.0
 
@@ -138,7 +138,9 @@ class TelemetryAnalyzer:
             issues=issues,
         )
 
-    def _find_hot_paths(self, functions: list, content: str) -> list[str]:
+    def _find_hot_paths(
+        self, functions: list[ast.FunctionDef], content: str
+    ) -> list[str]:
         """Identifica caminhos críticos (funções chamadas frequentemente)."""
         hot = []
 
@@ -155,7 +157,9 @@ class TelemetryAnalyzer:
 
         return hot
 
-    def _find_performance_issues(self, content: str, functions: list) -> list[str]:
+    def _find_performance_issues(
+        self, content: str, functions: list[ast.FunctionDef]
+    ) -> list[str]:
         """Identifica potenciais gargalos de performance."""
         issues = []
 
@@ -191,12 +195,12 @@ class TelemetryAnalyzer:
         return list(set(issues))[:10]
 
     def _find_long_functions_with_loops(
-        self, content: str, functions: list
+        self, content: str, functions: list[ast.FunctionDef]
     ) -> list[str]:
         """Identifica funções longas com loops aninhados."""
         issues = []
         for func in functions:
-            func_lines = func.end_lineno - func.lineno + 1
+            func_lines = (func.end_lineno or func.lineno) - func.lineno + 1
             if (
                 func_lines > 20
                 and "for "
@@ -247,7 +251,9 @@ class TelemetryAnalyzer:
 
         return gaps
 
-    def _find_go_candidates(self, functions: list, content: str) -> list[str]:
+    def _find_go_candidates(
+        self, functions: list[ast.FunctionDef], content: str
+    ) -> list[str]:
         """Identifica funções boas para reescrita em Go."""
         candidates = []
 
@@ -258,7 +264,7 @@ class TelemetryAnalyzer:
         # 4. Sem dependências de bibliotecas Python pesadas
 
         for func in functions:
-            func_lines = func.end_lineno - func.lineno + 1
+            func_lines = (func.end_lineno or func.lineno) - func.lineno + 1
             func_name = func.name
 
             # Bom candidato: pequeno, provavelmente puro, sem contexto Python,
@@ -282,7 +288,9 @@ class TelemetryAnalyzer:
 
         return candidates
 
-    def _extract_dependencies(self, imports: list) -> list[str]:
+    def _extract_dependencies(
+        self, imports: list[ast.Import | ast.ImportFrom]
+    ) -> list[str]:
         """Extrai dependências externas."""
         deps = []
 
@@ -831,7 +839,7 @@ def process_event(event: Event) -> Result:
         write_text_utf8(ANALYSIS_DIR / "analysis.json", json.dumps(data, indent=2))
 
 
-def main():
+def main() -> None:
     analyzer = TelemetryAnalyzer()
     analyzer.analyze_all()
 

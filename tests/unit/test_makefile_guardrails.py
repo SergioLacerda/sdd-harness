@@ -25,8 +25,13 @@ def test_makefile_disallows_shell_c_inline_commands() -> None:
 
 def test_docs_build_publishes_selector_artifacts() -> None:
     content = MAKEFILE.read_text(encoding="utf-8")
-    assert "docs-build:" in content
+    assert "docs-build: selector-build" in content
     assert (
         "uv run python -m sdd_wizard.orchestration.wizard.selector_compiler "
-        "--output-dir build/site/selector"
+        "--output-dir docs/selector"
     ) in content
+
+
+def test_docs_serve_runs_selector_build() -> None:
+    content = MAKEFILE.read_text(encoding="utf-8")
+    assert "docs-serve: selector-build" in content

@@ -35,27 +35,37 @@ Selector UI → selector-selection.json
 
 | Command | What it does |
 |---------|--------------|
-| `make selector-build` | Build selector assets only (`build/site/selector/`) |
-| `make docs-build` | Full docs build — runs `selector-build` then MkDocs |
+| `make selector-build` | Build selector assets into `docs/selector/` (a generated, gitignored directory inside the MkDocs `docs_dir`) |
+| `make docs-build` | Runs `selector-build`, then `mkdocs build --strict`. MkDocs copies `docs/selector/` into `build/site/selector/` as a static asset |
+| `make docs-serve` | Runs `selector-build`, then `mkdocs serve`. The selector UI is served at `/selector/` alongside the rest of the docs |
 | `python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir <dir>` | Standalone compiler; `--repo-root` defaults to `.` |
 
 ## Build and Open
 
 ```bash
 make selector-build
-# then open build/site/selector/index.html in a browser
+# then open docs/selector/index.html in a browser
 ```
 
-Or rebuild docs and selector together:
+Or build the full site (selector included at `build/site/selector/`):
 
 ```bash
 make docs-build
+# then open build/site/selector/index.html
+```
+
+Or serve docs and selector together, live:
+
+```bash
+make docs-serve
+# then open http://127.0.0.1:8000/selector/
 ```
 
 ## Workflow
 
-1. Run `make selector-build`.
-2. Open `build/site/selector/index.html` in a browser.
+1. Run `make selector-build` (or `make docs-build` / `make docs-serve`).
+2. Open `docs/selector/index.html` (or `build/site/selector/index.html`, or
+   `http://127.0.0.1:8000/selector/` when serving) in a browser.
 3. Select the mandates (M-IDs) and guidelines (G-IDs) you want to keep.
    - Cards with a **blue left border** are mandates.
    - Cards with a **green left border** are guidelines.
