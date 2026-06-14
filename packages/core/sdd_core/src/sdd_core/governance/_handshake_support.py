@@ -3,14 +3,39 @@ from __future__ import annotations
 from dataclasses import asdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 from .handshake_cache import HandshakeCache
 from .handshake_models import HandshakeReport
 
 if TYPE_CHECKING:
     from ._handshake_validation_result import ValidationResult
-    from .handshake import AgentHandshakeProtocol
+
+
+class _HandshakeProtocol(Protocol):
+    """Structural type for AgentHandshakeProtocol, avoiding a circular import with handshake."""
+
+    ACTIONS: dict[str, list[str]]
+    gap_status: str
+    agent_id: str
+    spec_fingerprint: str
+    mandates_loaded: list[str]
+    skill_profile: str
+    current_confidence: float
+
+    def _extract_mandates(self) -> list[str]: ...
+    def _compute_spec_fingerprint(self) -> str: ...
+    def _map_ahp_to_gap(self, ahp_state: str, confidence: float) -> str: ...
+    def _layer_1_discovery(self) -> tuple[str, list[ValidationResult]]: ...
+    def _layer_2_link_validation(self) -> tuple[str, list[ValidationResult]]: ...
+    def _layer_3_runtime_validation(self) -> tuple[str, list[ValidationResult]]: ...
+    def _layer_4_governance_health(self) -> tuple[str, list[ValidationResult]]: ...
+    def _compute_final_state(self, l1: str, l2: str, l3: str, l4: str) -> str: ...
+    def _compute_confidence(self, all_results: list[ValidationResult]) -> float: ...
+    def _save_cache(
+        self, state: str, checks: list[dict[str, Any]], confidence: float
+    ) -> None: ...
+    def _emit_governance_event(self, final_state: str, confidence: float) -> None: ...
 
 
 def find_project_root(project_root: Path | None) -> Path:
@@ -36,9 +61,7 @@ def resolve_cache_ttl(
     return timedelta(minutes=temp_cache.resolve_ttl_minutes())
 
 
-def hydrate_cache_state(
-    protocol: AgentHandshakeProtocol, cache: dict[str, Any]
-) -> None:
+def hydrate_cache_state(protocol: _HandshakeProtocol, cache: dict[str, Any]) -> None:
     if "gap_version" in cache:
         protocol.gap_status = cache.get("status", "NOT_ACTIVE")
         protocol.agent_id = cache.get("agent_id", protocol.agent_id)
@@ -55,7 +78,7 @@ def hydrate_cache_state(
 
 
 def cached_report(
-    protocol: AgentHandshakeProtocol, cache: dict[str, Any]
+    protocol: _HandshakeProtocol, cache: dict[str, Any]
 ) -> tuple[str, HandshakeReport]:
     hydrate_cache_state(protocol, cache)
     report = HandshakeReport(
@@ -73,7 +96,7 @@ def cached_report(
     return cache["state"], report
 
 
-def fresh_validation(protocol: AgentHandshakeProtocol) -> tuple[str, HandshakeReport]:
+def fresh_validation(protocol: _HandshakeProtocol) -> tuple[str, HandshakeReport]:
     l1_state, l1_results = protocol._layer_1_discovery()
     l2_state, l2_results = protocol._layer_2_link_validation()
     l3_state, l3_results = protocol._layer_3_runtime_validation()

@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any, Protocol
 
-if TYPE_CHECKING:
-    from sdd_core.utils.loader import GovernanceLoader
+
+class _GovernanceLoaderProtocol(Protocol):
+    """Structural type for GovernanceLoader, avoiding a circular import with loader."""
+
+    def load_client(self, client_dir: Path | None = None) -> dict[str, Any]: ...
 
 
 class TemplateGenerator:
     """Generate customization templates from governance."""
 
-    def __init__(self, loader: GovernanceLoader) -> None:
+    def __init__(self, loader: _GovernanceLoaderProtocol) -> None:
         self.loader = loader
 
     def generate_basic_template(self) -> dict[str, Any]:

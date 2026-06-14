@@ -13,7 +13,6 @@ from sdd_core.utils.environment import find_workspace_root
 
 from ._governance_item import GovernanceItem
 from ._item_type import _resolve_item_type
-from ._load_result import ArtifactLoadResult
 
 logger = logging.getLogger(__name__)
 
@@ -214,3 +213,12 @@ class CompiledArtifact:
         return await asyncio.to_thread(
             cls.from_sdd_compiled_dir_with_auth, compiled_dir, profile
         )
+
+
+@dataclass
+class ArtifactLoadResult:
+    """Result of loading a compiled artifact with authentication metadata."""
+
+    artifact: CompiledArtifact
+    auth_state: str = "unverified"  # "verified" | "degraded" | "unverified"
+    trust_source: str = "none"  # "canonical" | "legacy" | "override" | "none"

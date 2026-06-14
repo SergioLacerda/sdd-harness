@@ -14,6 +14,7 @@ import typer
 
 __all__ = [
     "app",
+    "_JSON_MODE_OVERRIDE",
     "ask_cmd",
     "build_governed_ask_snapshot",
     "run_sdd_organize",

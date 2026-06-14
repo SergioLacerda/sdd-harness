@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from ..._skill_contracts import SkillDefinition
 
+__all__ = ["_ANALYSIS_SKILLS"]
+
 _ANALYSIS_SKILLS: dict[str, SkillDefinition] = {
     "sdd-diagnose": SkillDefinition(
         name="sdd-diagnose",

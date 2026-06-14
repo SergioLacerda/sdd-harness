@@ -2,6 +2,22 @@
 
 from __future__ import annotations
 
+__all__ = [
+    "_TASK_CLASS_KEYWORDS",
+    "_COMPLEXITY_LOW_THRESHOLD",
+    "_COMPLEXITY_HIGH_THRESHOLD",
+    "_COMPLEXITY_LOW",
+    "_COMPLEXITY_MED",
+    "_COMPLEXITY_HIGH",
+    "_PATH_SUGGESTION",
+    "_PATH_HIGH_COMPLEXITY",
+    "_BYTES_PER_QUERY_CHAR",
+    "_BUDGET_MIN_BYTES",
+    "_BUDGET_MAX_BYTES",
+    "_LOCAL_CONFIDENCE",
+    "_PATH_FROM_BUDGET",
+]
+
 # Task class keyword table — first match wins (order matters).
 _TASK_CLASS_KEYWORDS: dict[str, list[str]] = {
     "bug-fix": ["fix", "bug", "error", "crash", "fail", "broken", "issue", "wrong"],

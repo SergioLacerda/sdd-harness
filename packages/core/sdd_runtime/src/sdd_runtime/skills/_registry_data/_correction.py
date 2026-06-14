@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from ..._skill_contracts import SkillDefinition
 
+__all__ = ["_CORRECTION_SKILLS"]
+
 _CORRECTION_SKILLS: dict[str, SkillDefinition] = {
     "sdd-correct": SkillDefinition(
         name="sdd-correct",

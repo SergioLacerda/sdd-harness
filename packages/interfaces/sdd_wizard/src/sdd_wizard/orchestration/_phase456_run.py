@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any, Protocol
 
 from ._phase456_governance_io import _load_governance
 from ._phase456_pipeline_steps import (
@@ -13,11 +15,36 @@ from ._phase456_pipeline_steps import (
 )
 from .wizard.models import Phase456RunResult
 
-if TYPE_CHECKING:
-    from .phase_4_5_6_generator import Phase456Generator
+
+class _Phase456GeneratorProtocol(Protocol):
+    """Structural type for Phase456Generator, avoiding a circular import with phase_4_5_6_generator."""
+
+    repo_root: Path
+    output_base: Path
+    config: dict[str, Any]
+    verbose: bool
+    dir: Path
+    runtime_dir: Path
+    governance_core_path: Path
+    governance_client: Path
+    _emit: Callable[[str], None]
+
+    def _write_sources(
+        self,
+        mandates: list[dict[str, Any]],
+        guidelines: dict[str, dict[str, Any]],
+        guidelines_by_category: dict[str, list[dict[str, Any]]],
+        result: Phase456RunResult,
+    ) -> bool: ...
+    def _generate_seedlings(
+        self,
+        mandates: list[dict[str, Any]],
+        guidelines_by_category: dict[str, list[dict[str, Any]]],
+        result: Phase456RunResult,
+    ) -> bool: ...
 
 
-def run_phase456_pipeline(generator: Phase456Generator) -> Phase456RunResult:
+def run_phase456_pipeline(generator: _Phase456GeneratorProtocol) -> Phase456RunResult:
     """Execute Phase 4-6 generation."""
     generator._emit("\n🏗️  PHASE 4-6: Generate Project Structure")
     generator._emit("=" * 70)
