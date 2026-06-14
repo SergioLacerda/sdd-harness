@@ -10,7 +10,8 @@ from typing import Any, Protocol
 class _GovernanceLoaderProtocol(Protocol):
     """Structural type for GovernanceLoader, avoiding a circular import with loader."""
 
-    def load_client(self, client_dir: Path | None = None) -> dict[str, Any]: ...
+    def load_client(self, client_dir: Path | None = None) -> dict[str, Any]:
+        pass
 
 
 class TemplateGenerator:

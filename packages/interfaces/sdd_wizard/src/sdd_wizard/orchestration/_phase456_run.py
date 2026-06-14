@@ -35,13 +35,16 @@ class _Phase456GeneratorProtocol(Protocol):
         guidelines: dict[str, dict[str, Any]],
         guidelines_by_category: dict[str, list[dict[str, Any]]],
         result: Phase456RunResult,
-    ) -> bool: ...
+    ) -> bool:
+        pass
+
     def _generate_seedlings(
         self,
         mandates: list[dict[str, Any]],
         guidelines_by_category: dict[str, list[dict[str, Any]]],
         result: Phase456RunResult,
-    ) -> bool: ...
+    ) -> bool:
+        pass
 
 
 def run_phase456_pipeline(generator: _Phase456GeneratorProtocol) -> Phase456RunResult:

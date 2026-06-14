@@ -23,19 +23,40 @@ class _HandshakeProtocol(Protocol):
     skill_profile: str
     current_confidence: float
 
-    def _extract_mandates(self) -> list[str]: ...
-    def _compute_spec_fingerprint(self) -> str: ...
-    def _map_ahp_to_gap(self, ahp_state: str, confidence: float) -> str: ...
-    def _layer_1_discovery(self) -> tuple[str, list[ValidationResult]]: ...
-    def _layer_2_link_validation(self) -> tuple[str, list[ValidationResult]]: ...
-    def _layer_3_runtime_validation(self) -> tuple[str, list[ValidationResult]]: ...
-    def _layer_4_governance_health(self) -> tuple[str, list[ValidationResult]]: ...
-    def _compute_final_state(self, l1: str, l2: str, l3: str, l4: str) -> str: ...
-    def _compute_confidence(self, all_results: list[ValidationResult]) -> float: ...
+    def _extract_mandates(self) -> list[str]:
+        pass
+
+    def _compute_spec_fingerprint(self) -> str:
+        pass
+
+    def _map_ahp_to_gap(self, ahp_state: str, confidence: float) -> str:
+        pass
+
+    def _layer_1_discovery(self) -> tuple[str, list[ValidationResult]]:
+        pass
+
+    def _layer_2_link_validation(self) -> tuple[str, list[ValidationResult]]:
+        pass
+
+    def _layer_3_runtime_validation(self) -> tuple[str, list[ValidationResult]]:
+        pass
+
+    def _layer_4_governance_health(self) -> tuple[str, list[ValidationResult]]:
+        pass
+
+    def _compute_final_state(self, l1: str, l2: str, l3: str, l4: str) -> str:
+        pass
+
+    def _compute_confidence(self, all_results: list[ValidationResult]) -> float:
+        pass
+
     def _save_cache(
         self, state: str, checks: list[dict[str, Any]], confidence: float
-    ) -> None: ...
-    def _emit_governance_event(self, final_state: str, confidence: float) -> None: ...
+    ) -> None:
+        pass
+
+    def _emit_governance_event(self, final_state: str, confidence: float) -> None:
+        pass
 
 
 def find_project_root(project_root: Path | None) -> Path:
