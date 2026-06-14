@@ -97,6 +97,13 @@ class AdapterGenerator:
             targets = command.get("adapter_targets", command.get("targets", []))
             if target not in targets:
                 continue
+            if target == "antigravity":
+                # Command dicts lack skill metadata (name/description/etc.), so
+                # rendering them through the skill.md template produces an empty
+                # file. Skills with a matching id already rendered the canonical
+                # SKILL.md above; commands without a matching skill have nothing
+                # meaningful to render for antigravity.
+                continue
             try:
                 file_path = self._render_command_adapter(target, command, agent_dir)
                 result.files_written.append(str(file_path))

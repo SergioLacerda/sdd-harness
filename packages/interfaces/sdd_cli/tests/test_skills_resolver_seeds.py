@@ -4,16 +4,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-import typer
 
 from sdd_cli.services.skills_resolver import (
     _generate_adapters,
     _read_registry_ids,
     _reconcile_root_seed_artifacts,
-    handle_adapter_error,
 )
 
 
@@ -129,20 +127,3 @@ class TestGenerateAdapters:
             count, err = _generate_adapters(tmp_path)
         assert count == 3
         assert err is None
-
-
-class TestHandleAdapterError:
-    def test_text_mode_prints_error_and_exits(self) -> None:
-        mock_emit = MagicMock()
-        with pytest.raises(typer.Exit) as exc_info:
-            handle_adapter_error("template error", output_json=False, emit_fn=mock_emit)
-        assert exc_info.value.exit_code == 1
-        mock_emit.assert_not_called()
-
-    def test_json_mode_emits_error_and_exits(self) -> None:
-        mock_emit = MagicMock()
-        with pytest.raises(typer.Exit) as exc_info:
-            handle_adapter_error("template error", output_json=True, emit_fn=mock_emit)
-        assert exc_info.value.exit_code == 1
-        call_kwargs = mock_emit.call_args[1]
-        assert call_kwargs["error_code"] == "adapter_generation_failed"

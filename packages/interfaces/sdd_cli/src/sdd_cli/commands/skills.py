@@ -18,6 +18,14 @@ from sdd_cli.commands._skills_command_support import (
     emit_skills_list,
 )
 from sdd_cli.commands.skills_learning import app as _learning_app
+from sdd_cli.services.skills_bootstrap import (
+    handle_adapter_error,
+    run_reconcile,
+    validate_and_load_governance,
+)
+from sdd_cli.services.skills_bootstrap import (
+    run_full_bootstrap as _run_full_bootstrap_service,
+)
 from sdd_cli.services.skills_output import emit_skills_json as _emit_skills_json
 from sdd_cli.services.skills_registry import (
     export_skills_payload,
@@ -28,12 +36,6 @@ from sdd_cli.services.skills_resolver import (
     _generate_adapters,  # noqa: F401  backward-compat re-export for unit tests
     _read_registry_ids,  # noqa: F401  backward-compat re-export for unit tests
     _reconcile_root_seed_artifacts,  # noqa: F401  backward-compat re-export for unit tests
-    handle_adapter_error,
-    run_reconcile,
-    validate_and_load_governance,
-)
-from sdd_cli.services.skills_resolver import (
-    run_full_bootstrap as _run_full_bootstrap_service,
 )
 from sdd_cli.utils.output import is_json_mode
 from sdd_cli.utils.sdd_authority import resolve_workspace_root

@@ -1,4 +1,4 @@
-"""Unit tests for sdd_cli.services.skills_resolver — governance validation and full bootstrap."""
+"""Unit tests for sdd_cli.services.skills_bootstrap — governance validation and full bootstrap."""
 
 from __future__ import annotations
 
@@ -8,7 +8,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import typer
 
-from sdd_cli.services.skills_resolver import (
+from sdd_cli.services.skills_bootstrap import (
+    handle_adapter_error,
     run_full_bootstrap,
     run_reconcile,
     validate_and_load_governance,
@@ -20,7 +21,7 @@ class TestValidateAndLoadGovernance:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_resolver.validate_governance_path",
+                "sdd_cli.services.skills_bootstrap.validate_governance_path",
                 return_value=False,
             ),
             pytest.raises(typer.Exit) as exc_info,
@@ -37,7 +38,7 @@ class TestValidateAndLoadGovernance:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_resolver.validate_governance_path",
+                "sdd_cli.services.skills_bootstrap.validate_governance_path",
                 return_value=False,
             ),
             pytest.raises(typer.Exit),
@@ -54,11 +55,11 @@ class TestValidateAndLoadGovernance:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_resolver.validate_governance_path",
+                "sdd_cli.services.skills_bootstrap.validate_governance_path",
                 return_value=True,
             ),
             patch(
-                "sdd_cli.services.skills_resolver.load_governance_config",
+                "sdd_cli.services.skills_bootstrap.load_governance_config",
                 return_value={"items": []},
             ),
             pytest.raises(typer.Exit) as exc_info,
@@ -74,11 +75,11 @@ class TestValidateAndLoadGovernance:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_resolver.validate_governance_path",
+                "sdd_cli.services.skills_bootstrap.validate_governance_path",
                 return_value=True,
             ),
             patch(
-                "sdd_cli.services.skills_resolver.load_governance_config",
+                "sdd_cli.services.skills_bootstrap.load_governance_config",
                 return_value={"items": []},
             ),
             pytest.raises(typer.Exit),
@@ -97,7 +98,7 @@ class TestRunReconcile:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_resolver._reconcile_root_seed_artifacts",
+                "sdd_cli.services.skills_bootstrap._reconcile_root_seed_artifacts",
                 side_effect=FileNotFoundError("no registry"),
             ),
             pytest.raises(typer.Exit) as exc_info,
@@ -110,7 +111,7 @@ class TestRunReconcile:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_resolver._reconcile_root_seed_artifacts",
+                "sdd_cli.services.skills_bootstrap._reconcile_root_seed_artifacts",
                 side_effect=FileNotFoundError("no registry"),
             ),
             pytest.raises(typer.Exit),
@@ -134,37 +135,37 @@ class TestRunFullBootstrap:
 
         with (
             patch(
-                "sdd_cli.services.skills_resolver.validate_and_load_governance",
+                "sdd_cli.services.skills_bootstrap.validate_and_load_governance",
                 return_value={"items": [{}]},
             ),
             patch(
-                "sdd_cli.services.skills_resolver.generate_agent_seeds",
+                "sdd_cli.services.skills_bootstrap.generate_agent_seeds",
                 return_value=[1, 2],
             ),
-            patch("sdd_cli.services.skills_resolver.generate_agent_instruction_files"),
-            patch("sdd_cli.services.skills_resolver.generate_agent_prompt_commands"),
+            patch("sdd_cli.services.skills_bootstrap.generate_agent_instruction_files"),
+            patch("sdd_cli.services.skills_bootstrap.generate_agent_prompt_commands"),
             patch(
-                "sdd_cli.services.skills_resolver.generate_skills_registry",
+                "sdd_cli.services.skills_bootstrap.generate_skills_registry",
                 return_value={"skill_count": 5},
             ),
             patch(
-                "sdd_cli.services.skills_resolver.generate_commands_registry",
+                "sdd_cli.services.skills_bootstrap.generate_commands_registry",
                 return_value={"command_count": 3},
             ),
             patch(
-                "sdd_cli.services.skills_resolver.reconcile_registries",
+                "sdd_cli.services.skills_bootstrap.reconcile_registries",
                 return_value=reconcile_summary,
             ),
             patch(
-                "sdd_cli.services.skills_resolver.generate_skill_index",
+                "sdd_cli.services.skills_bootstrap.generate_skill_index",
                 return_value={"skill_count": 5},
             ),
             patch(
-                "sdd_cli.services.skills_resolver.generate_cli_commands_index",
+                "sdd_cli.services.skills_bootstrap.generate_cli_commands_index",
                 return_value={"command_count": 3},
             ),
             patch(
-                "sdd_cli.services.skills_resolver._generate_adapters",
+                "sdd_cli.services.skills_bootstrap._generate_adapters",
                 return_value=(2, None),
             ),
         ):
@@ -183,41 +184,41 @@ class TestRunFullBootstrap:
 
         with (
             patch(
-                "sdd_cli.services.skills_resolver.validate_and_load_governance",
+                "sdd_cli.services.skills_bootstrap.validate_and_load_governance",
                 return_value={"items": [{}]},
             ),
             patch(
-                "sdd_cli.services.skills_resolver.generate_agent_seeds",
+                "sdd_cli.services.skills_bootstrap.generate_agent_seeds",
                 return_value=[],
             ),
-            patch("sdd_cli.services.skills_resolver.generate_agent_instruction_files"),
-            patch("sdd_cli.services.skills_resolver.generate_agent_prompt_commands"),
+            patch("sdd_cli.services.skills_bootstrap.generate_agent_instruction_files"),
+            patch("sdd_cli.services.skills_bootstrap.generate_agent_prompt_commands"),
             patch(
-                "sdd_cli.services.skills_resolver.generate_skills_registry",
+                "sdd_cli.services.skills_bootstrap.generate_skills_registry",
                 return_value={"skill_count": 0},
             ),
             patch(
-                "sdd_cli.services.skills_resolver.generate_commands_registry",
+                "sdd_cli.services.skills_bootstrap.generate_commands_registry",
                 return_value={"command_count": 0},
             ),
             patch(
-                "sdd_cli.services.skills_resolver.reconcile_registries",
+                "sdd_cli.services.skills_bootstrap.reconcile_registries",
                 return_value=reconcile_summary,
             ),
             patch(
-                "sdd_cli.services.skills_resolver.generate_skill_index",
+                "sdd_cli.services.skills_bootstrap.generate_skill_index",
                 return_value={"skill_count": 0},
             ),
             patch(
-                "sdd_cli.services.skills_resolver.generate_cli_commands_index",
+                "sdd_cli.services.skills_bootstrap.generate_cli_commands_index",
                 return_value={"command_count": 0},
             ),
             patch(
-                "sdd_cli.services.skills_resolver._generate_adapters",
+                "sdd_cli.services.skills_bootstrap._generate_adapters",
                 return_value=(0, None),
             ),
             patch(
-                "sdd_cli.services.skills_resolver.run_reconcile",
+                "sdd_cli.services.skills_bootstrap.run_reconcile",
                 return_value=(3, 3),
             ),
         ):
@@ -229,3 +230,20 @@ class TestRunFullBootstrap:
                 emit_fn=mock_emit,
             )
         mock_emit.assert_not_called()
+
+
+class TestHandleAdapterError:
+    def test_text_mode_prints_error_and_exits(self) -> None:
+        mock_emit = MagicMock()
+        with pytest.raises(typer.Exit) as exc_info:
+            handle_adapter_error("template error", output_json=False, emit_fn=mock_emit)
+        assert exc_info.value.exit_code == 1
+        mock_emit.assert_not_called()
+
+    def test_json_mode_emits_error_and_exits(self) -> None:
+        mock_emit = MagicMock()
+        with pytest.raises(typer.Exit) as exc_info:
+            handle_adapter_error("template error", output_json=True, emit_fn=mock_emit)
+        assert exc_info.value.exit_code == 1
+        call_kwargs = mock_emit.call_args[1]
+        assert call_kwargs["error_code"] == "adapter_generation_failed"

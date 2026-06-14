@@ -8,7 +8,6 @@ Security:
 
 from __future__ import annotations
 
-import logging
 from contextvars import ContextVar
 
 import typer
@@ -46,15 +45,10 @@ __all__ = [
 ]
 
 app: typer.Typer = typer.Typer(help="Query SDD governance context.")
-logger = logging.getLogger(__name__)
-_LEARNING_WINDOW_DAYS = 7
 
-
-_TRUE_VALUES = {"1", "true", "yes", "on"}
 _JSON_MODE_OVERRIDE: ContextVar[bool | None] = ContextVar(
     "ask_json_mode_override", default=None
 )
-_BREACH_EXIT_CODE = 3
 
 
 from ._budget import _guard_budget_breach, _guard_handshake  # noqa: E402

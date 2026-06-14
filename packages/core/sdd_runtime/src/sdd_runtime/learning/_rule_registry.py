@@ -16,9 +16,11 @@ class _RuleRegistryMixin:
     _registry_path: Path
     _impact_path: Path
 
-    def _read_json(self, path: Path, default: Any) -> Any: ...
+    def _read_json(self, path: Path, default: Any) -> Any:
+        pass
 
-    def _write_json(self, path: Path, payload: Any) -> None: ...
+    def _write_json(self, path: Path, payload: Any) -> None:
+        pass
 
     def decide_rule(
         self,

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from sdd_wizard.templates._hard_mode_rules import HARD_MODE_RULES_SECTION
+
 
 def build_agent_instructions_content(
     fingerprint: str,
@@ -72,36 +74,7 @@ Verify bootstrap integrity:
 
 ---
 
-## Governance Mode
-
-When operating under SDD via a skill or CLI entry point (`sdd ask`, `sdd-ask`, `sdd-converge`, etc.),
-the execution context is **HARD governance mode**.
-
-| Entry point | Mode |
-|-------------|------|
-| `sdd ask` / `sdd-ask` skill | HARD |
-| `sdd-converge`, `sdd-correct`, `sdd-stabilize` | HARD |
-| Direct API / notebook / ad-hoc | SOFT |
-
-### HARD Mode Rules
-
-**Rule 1 — Execution gate:**
-If `sdd ask` output contains `execution_gate: blocked`, **STOP immediately**.
-Report the `gate_reason` to the user. Do not proceed with any action until the user re-authorizes.
-
-**Rule 2 — Git authorization:**
-Git state-modifying commands (`add`, `commit`, `push`, `reset`, `merge`, `rebase`, etc.)
-are **blocked** unless the current user message contains explicit authorization.
-Task completion is NOT authorization. Only explicit phrases like "commit this", "push to remote",
-"run git add and commit" constitute authorization.
-
-**Rule 3 — `intake_index_mode: none` is an independent signal, not "the gate":**
-`intake_index_mode: none` means no governance context was indexed for this query.
-This is **separate from Rule 1** — `execution_gate` may be `allowed` while
-`intake_index_mode` is still `none` (e.g. for short queries). Surface this
-condition to the user by name and value — do not describe it as "the gate is
-blocked" unless `execution_gate: blocked` is also present. Then stop and wait for
-the user to decide how to continue.
+{HARD_MODE_RULES_SECTION}
 
 ---
 

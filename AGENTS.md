@@ -1,7 +1,7 @@
 # Agent Bootstrap Paths
-<!-- Governance fingerprint: 3d9d8168 -->
-<!-- Active mandates: 16 (M001, M002, M003, M005, M006, ...) -->
-<!-- Generated: 2026-06-11T12:16:26.602773Z -->
+<!-- Governance fingerprint: a3d875a1 -->
+<!-- Active mandates: 1 (M001) -->
+<!-- Generated: 2026-06-14T12:05:01.585942Z -->
 <!-- Drift check: fingerprint must match .sdd/metadata.json → governance_fingerprint -->
 
 Objective: standardize where each agent must load local instructions, commands, and skills in this project.

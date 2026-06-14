@@ -33,7 +33,7 @@ def test_skills_full_bootstrap_json_missing_governance_uses_canonical_error(
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
         patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
         patch(
-            "sdd_cli.services.skills_resolver.validate_governance_path",
+            "sdd_cli.services.skills_bootstrap.validate_governance_path",
             return_value=False,
         ),
     ):
@@ -99,47 +99,47 @@ def test_skills_full_bootstrap_json_uses_canonical_envelope(tmp_path) -> None:
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
         patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
         patch(
-            "sdd_cli.services.skills_resolver.validate_governance_path",
+            "sdd_cli.services.skills_bootstrap.validate_governance_path",
             return_value=True,
         ),
         patch(
-            "sdd_cli.services.skills_resolver.load_governance_config",
+            "sdd_cli.services.skills_bootstrap.load_governance_config",
             return_value={"items": [{"id": "M001"}]},
         ),
         patch(
-            "sdd_cli.services.skills_resolver.generate_agent_seeds",
+            "sdd_cli.services.skills_bootstrap.generate_agent_seeds",
             return_value=[("copilot", tmp_path / "seed.md", "ok")],
         ),
         patch(
-            "sdd_cli.services.skills_resolver.generate_agent_instruction_files",
+            "sdd_cli.services.skills_bootstrap.generate_agent_instruction_files",
             return_value=[],
         ),
         patch(
-            "sdd_cli.services.skills_resolver.generate_agent_prompt_commands",
+            "sdd_cli.services.skills_bootstrap.generate_agent_prompt_commands",
             return_value=[],
         ),
         patch(
-            "sdd_cli.services.skills_resolver.generate_skills_registry",
+            "sdd_cli.services.skills_bootstrap.generate_skills_registry",
             return_value={"skill_count": 1},
         ),
         patch(
-            "sdd_cli.services.skills_resolver.generate_commands_registry",
+            "sdd_cli.services.skills_bootstrap.generate_commands_registry",
             return_value={"command_count": 1},
         ),
         patch(
-            "sdd_cli.services.skills_resolver.reconcile_registries",
+            "sdd_cli.services.skills_bootstrap.reconcile_registries",
             return_value=_Summary(),
         ),
         patch(
-            "sdd_cli.services.skills_resolver.generate_skill_index",
+            "sdd_cli.services.skills_bootstrap.generate_skill_index",
             return_value={"skill_count": 1},
         ),
         patch(
-            "sdd_cli.services.skills_resolver.generate_cli_commands_index",
+            "sdd_cli.services.skills_bootstrap.generate_cli_commands_index",
             return_value={"command_count": 1},
         ),
         patch(
-            "sdd_cli.services.skills_resolver._generate_adapters",
+            "sdd_cli.services.skills_bootstrap._generate_adapters",
             return_value=(2, None),
         ),
     ):

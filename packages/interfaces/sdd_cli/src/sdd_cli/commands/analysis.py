@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
-import re
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
+from datetime import datetime, timezone
 from typing import Any
 
 import click
 import typer
 
+from sdd_cli.services.analysis_helpers import (
+    _STATES,
+    _analysis_root,
+    _collect_expired,
+    _collect_missions,
+    _next_action,
+    _parse_duration,
+)
 from sdd_cli.utils.output import emit_json, is_json_mode
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
@@ -26,47 +32,6 @@ def analysis_default(ctx: typer.Context) -> None:
     """List missions when called without a subcommand."""
     if ctx.invoked_subcommand is None:
         list_missions()
-
-
-_STATES = ("todo", "pending", "refined", "done")
-_DURATION_RE = re.compile(r"^(\d+)(d|h|m)$")
-
-
-def _analysis_root(ws_root: Path) -> Path:
-    return ws_root / ".sdd" / "analysis"
-
-
-def _parse_duration(value: str) -> timedelta | None:
-    m = _DURATION_RE.match(value.strip())
-    if not m:
-        return None
-    n = int(m.group(1))
-    unit = m.group(2)
-    if unit == "d":
-        return timedelta(days=n)
-    if unit == "h":
-        return timedelta(hours=n)
-    return timedelta(minutes=n)
-
-
-def _collect_missions(analysis_root: Path) -> dict[str, list[dict[str, Any]]]:
-    result: dict[str, list[dict[str, Any]]] = {s: [] for s in _STATES}
-    for state in _STATES:
-        state_dir = analysis_root / state
-        if not state_dir.exists():
-            continue
-        for p in sorted(state_dir.iterdir()):
-            if p.is_file() and p.suffix == ".md":
-                mtime = datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc)
-                result[state].append(
-                    {
-                        "mission_id": p.stem,
-                        "file": str(p),
-                        "date": mtime.date().isoformat(),
-                        "state": state,
-                    }
-                )
-    return result
 
 
 @app.command("list")
@@ -147,31 +112,6 @@ def mission_status(
     typer.echo(f"state      : {found['state']}")
     typer.echo(f"artifact   : {found['artifact']}")
     typer.echo(f"next_action: {found['next_action']}")
-
-
-def _collect_expired(done_dir: Path, cutoff: datetime, dry_run: bool) -> list[str]:
-    removed: list[str] = []
-    if not done_dir.exists():
-        return removed
-    for p in sorted(done_dir.iterdir()):
-        if not p.is_file():
-            continue
-        mtime = datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc)
-        if mtime < cutoff:
-            removed.append(str(p))
-            if not dry_run:
-                p.unlink()
-    return removed
-
-
-def _next_action(state: str) -> str:
-    actions = {
-        "todo": "move to pending when analysis begins",
-        "pending": "discovery in progress — awaiting Ranger artifact",
-        "refined": "plan ready — awaiting approval gate",
-        "done": "mission complete",
-    }
-    return actions.get(state, "unknown")
 
 
 @app.command("clean")

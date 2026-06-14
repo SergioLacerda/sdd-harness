@@ -89,7 +89,9 @@ class TestCLILazyLoading:
                 raise ModuleNotFoundError("No module named 'sdd_integration'")
             return real_import_module(name, package)
 
-        monkeypatch.setattr("sdd_cli.main.importlib.import_module", fake_import_module)
+        monkeypatch.setattr(
+            "sdd_cli._command_group.importlib.import_module", fake_import_module
+        )
 
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
@@ -107,7 +109,9 @@ class TestCLILazyLoading:
                 raise ModuleNotFoundError("No module named 'sdd_integration'")
             return real_import_module(name, package)
 
-        monkeypatch.setattr("sdd_cli.main.importlib.import_module", fake_import_module)
+        monkeypatch.setattr(
+            "sdd_cli._command_group.importlib.import_module", fake_import_module
+        )
 
         result = runner.invoke(app, ["doctor"])
         assert result.exit_code == 1

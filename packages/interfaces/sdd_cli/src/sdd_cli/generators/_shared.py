@@ -1,5 +1,9 @@
 """Shared utilities for agent seed and instruction document generation."""
 
+from sdd_cli.generators._redirector_renderers import (  # noqa: F401
+    _render_instruction_document,
+    render_agent_redirector,
+)
 from sdd_cli.generators._shared_helpers import (  # noqa: F401
     _collect_instruction_sections,
     _fingerprint_prefix,
@@ -9,8 +13,6 @@ from sdd_cli.generators._shared_helpers import (  # noqa: F401
 )
 from sdd_cli.generators._shared_renderers import (  # noqa: F401
     _render_claude_bootstrap_sections,
-    _render_instruction_document,
-    render_agent_redirector,
 )
 
 __all__ = [
