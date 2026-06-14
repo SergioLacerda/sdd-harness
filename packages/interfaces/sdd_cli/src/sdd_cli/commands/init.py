@@ -117,29 +117,21 @@ def init(
     default: bool = typer.Option(
         False,
         "--default",
-        help=(
-            "One-command bootstrap: defaults --type to 'client', --name to "
-            "'local-dev', and --force, for any of those not explicitly set."
-        ),
+        help="One-command bootstrap: defaults --type to 'client', --name to 'local-dev', and --force, for any of those not explicitly set.",
     ),
 ) -> None:
     """Initialize an SDD workspace in the current directory.
 
-    Creates .sdd/profile with a versioned schema (v1).
-    Refuses nested workspaces (detects .sdd/ in parent directories).
+    Creates `.sdd/profile` and refuses nested workspaces.
     """
     cwd = Path.cwd()
 
     if default:
         type, name, force = _resolve_default_flags(ctx, type, name, force)  # noqa: A001
-
-    # Block nested workspace init: check parents (not cwd itself)
     parent_workspace = find_workspace_root(cwd.parent)
     if parent_workspace is not None:
         typer.echo(
-            f"[SDD] ERROR: A workspace already exists at '{parent_workspace}'.\n"
-            "Nested workspaces are not supported. Run 'sdd init' from a directory "
-            "outside the existing workspace.",
+            f"[SDD] ERROR: A workspace already exists at '{parent_workspace}'.\nNested workspaces are not supported. Run 'sdd init' from a directory outside the existing workspace.",
             err=True,
         )
         raise typer.Exit(1)
@@ -147,12 +139,10 @@ def init(
     profile_path = cwd / ".sdd" / "profile"
     overwriting_existing = profile_path.exists() and force
 
-    # Handle existing profile
     if profile_path.exists() and not force:
         _show_existing_profile(profile_path, cwd)
         typer.echo(
-            "\n[SDD] Workspace already initialized.\n"
-            "Use --force to overwrite, or edit .sdd/profile directly.",
+            "\n[SDD] Workspace already initialized.\nUse --force to overwrite, or edit .sdd/profile directly.",
             err=True,
         )
         raise typer.Exit(1)
@@ -165,8 +155,6 @@ def init(
     profile_type = cast(SddProfile, normalized_type)
     effective_name = name or profile_type
     profile_ctx = write_profile(cwd, profile_type, effective_name)
-
-    # Initialize runtime marker expected by AHP layer 3.
     runtime_dir = cwd / ".sdd" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     (runtime_dir / ".phase-0-complete").touch(exist_ok=True)
@@ -184,7 +172,6 @@ def init(
     typer.echo(f"  workspace_id: {profile_ctx.workspace_id}")
     typer.echo("  core_hash:    (empty — run 'sdd governance compile' to populate)")
     typer.echo("  phase_0:      completed")
-
     run_bootstrap = (profile_type == "client") and not no_bootstrap
     if run_bootstrap:
         typer.echo("")
@@ -203,7 +190,6 @@ def init(
         typer.echo("  sdd governance generate --full-bootstrap")
         typer.echo("  sdd skills --full-bootstrap --regenerate-seeds")
         typer.echo("  sdd runtime status")
-
     if overwriting_existing:
         typer.echo(
             "  [SOFT] profile overwritten: re-run 'sdd governance compile' to sync core_hash"

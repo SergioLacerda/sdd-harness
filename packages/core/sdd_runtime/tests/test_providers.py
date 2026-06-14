@@ -609,7 +609,8 @@ class TestTfidfProviderAdvanced:
     def test_tfidf_estimate_exception_fallback_branch(self) -> None:
         provider = TfidfProvider()
         with patch(
-            "sdd_runtime.providers.tfidf_provider.len", side_effect=RuntimeError("boom")
+            "sdd_runtime.providers.tfidf_provider._provider.len",
+            side_effect=RuntimeError("boom"),
         ):
             result = provider.estimate_budget(TaskContext(query="x"))
             assert result.estimated_bytes == 50_000

@@ -1,4 +1,4 @@
-"""Compile-phase governance handlers (run_compilation, update_profile_hash, regenerate_seeds)."""
+"""Compile-phase governance handlers."""
 
 from __future__ import annotations
 
@@ -10,52 +10,36 @@ from typing import Any
 import typer
 from rich.console import Console
 
+from sdd_cli.services._governance_compile_support import (
+    compliance_components,
+    maybe_load_artifact_fingerprint,
+    regenerate_seeds_flow,
+    resolve_output_base_path,
+    run_compile_flow,
+)
 from sdd_cli.utils.sdd_authority import compiled_active_dir, resolve_workspace_root
 
 logger = logging.getLogger(__name__)
 
 
 def compute_compliance_score(
-    *,
-    compile_ok: bool,
-    consistency_ok: bool,
-    drift_detected: bool,
+    *, compile_ok: bool, consistency_ok: bool, drift_detected: bool
 ) -> tuple[int, dict[str, bool]]:
-    """Compute governance compliance score (0-100, 25 pts per passing component).
-
-    Components:
-      governance_compile -- compilation succeeded without errors
-      consistency        -- artifact consistency check passed
-      drift_detected     -- no drift detected (True = 25 pts, False = 0 pts)
-      lint_gate          -- placeholder; always True here (enforced pre-commit)
-
-    Returns (score, components_dict).
-    """
-    components = {
-        "governance_compile": compile_ok,
-        "consistency": consistency_ok,
-        "drift_detected": not drift_detected,
-        "lint_gate": True,
-    }
-    score = sum(25 for v in components.values() if v)
-    return score, components
+    """Compute the governance compliance score and its components."""
+    return compliance_components(
+        compile_ok=compile_ok,
+        consistency_ok=consistency_ok,
+        drift_detected=drift_detected,
+    )
 
 
 def resolve_output_base(output_dir: Path) -> Path:
-    """Resolve output base, isolating writes in tests when targeting workspace root."""
-    output = output_dir.resolve()
-    override = os.environ.get("SDD_TEST_OUTPUT_DIR", "").strip()
-    if not override:
-        return output
-    try:
-        ws = resolve_workspace_root()
-    except Exception:
-        ws = None
-    if ws is not None and output == ws.resolve():
-        redirected = Path(override).resolve()
-        redirected.mkdir(parents=True, exist_ok=True)
-        return redirected
-    return output
+    """Resolve the base output directory for compiled governance artifacts."""
+    return resolve_output_base_path(
+        output_dir,
+        override=os.environ.get("SDD_TEST_OUTPUT_DIR", "").strip(),
+        resolve_workspace_root_fn=resolve_workspace_root,
+    )
 
 
 def run_compilation(
@@ -80,33 +64,20 @@ def run_compilation(
 def update_profile_hash(
     core_fingerprint: str, *, console: Console | None = None
 ) -> None:
-    """Persist core_hash into .sdd/profile for AHP Layer 2 verification (C5)."""
+    """Update the `.sdd/profile` core_hash with the given fingerprint."""
     if console is None:
         console = Console()
     if not core_fingerprint:
         return
     try:
         import configparser
-        import json as _json
 
         ws_root = resolve_workspace_root()
-        artifact_candidates = [compiled_active_dir(ws_root) / "governance-core.json"]
-        art_path = next((p for p in artifact_candidates if p.exists()), None)
-        if art_path is not None:
-            try:
-                artifact_fp = str(
-                    _json.loads(art_path.read_text(encoding="utf-8")).get(
-                        "fingerprint", ""
-                    )
-                ).strip()
-                if artifact_fp:
-                    core_fingerprint = artifact_fp
-            except Exception as _artifact_err:
-                logger.debug(
-                    "Failed to read artifact fingerprint from %s: %s",
-                    art_path,
-                    _artifact_err,
-                )
+        core_fingerprint = maybe_load_artifact_fingerprint(
+            core_fingerprint,
+            workspace_root=ws_root,
+            compiled_active_dir_fn=compiled_active_dir,
+        )
 
         profile_path = ws_root / ".sdd" / "profile"
         if profile_path.exists():
@@ -132,7 +103,7 @@ def emit_compile_telemetry(
     consistency_ok: bool,
     profile: str | None,
 ) -> None:
-    """Emit compile.complete and compliance.score events to telemetry sink."""
+    """Emit telemetry events for a governance compile run."""
     try:
         import uuid
 
@@ -186,37 +157,21 @@ def emit_compile_telemetry(
 
 
 def regenerate_seeds(*, console: Console | None = None) -> None:
-    """Auto-regenerate agent instruction files after successful compile (B6)."""
+    """Regenerate agent seed files from the current governance config."""
     if console is None:
         console = Console()
     from sdd_cli.generators.agent_seeds import generate_agent_instruction_files
     from sdd_cli.utils.loader import load_governance_config, validate_governance_path
 
-    if os.environ.get("SDD_SKIP_SEED_REGEN") == "1":
-        return
     try:
-        _ws = resolve_workspace_root()
-        if _ws is not None:
-            _gen_path = str(_ws / ".sdd" / "compiled")
-            _gen_config = (
-                load_governance_config(_gen_path)
-                if validate_governance_path(_gen_path)
-                else {}
-            )
-            _output_base = resolve_output_base(_ws)
-            generate_agent_instruction_files(_output_base, _gen_config)
-            console.print("[cyan]Agent instruction files regenerated[/cyan]")
-            try:
-                from sdd_wizard.contracts import (
-                    generate_agent_instructions_from_config,
-                )
-
-                generate_agent_instructions_from_config(_output_base, _gen_config)
-                console.print("[cyan].sdd/agent-instructions.md regenerated[/cyan]")
-            except ImportError:
-                console.print(
-                    "[yellow]WARN: sdd_wizard not available, skipping agent-instructions.md regeneration[/yellow]"
-                )
+        regenerate_seeds_flow(
+            console=console,
+            resolve_workspace_root_fn=resolve_workspace_root,
+            validate_governance_path_fn=validate_governance_path,
+            load_governance_config_fn=load_governance_config,
+            resolve_output_base_fn=resolve_output_base,
+            generate_agent_instruction_files_fn=generate_agent_instruction_files,
+        )
     except Exception as _gen_err:
         console.print(
             f"[yellow]WARN: could not auto-regenerate agent files: {_gen_err}[/yellow]"
@@ -226,7 +181,7 @@ def regenerate_seeds(*, console: Console | None = None) -> None:
 def run_compile(
     *, profile: str | None, output_json: bool, console: Console | None = None
 ) -> None:
-    """Run full compile orchestration: compile → profile hash → consistency → output → telemetry → seeds."""
+    """Run the `sdd governance compile` command flow."""
     if console is None:
         console = Console()
     from rich.panel import Panel
@@ -238,57 +193,17 @@ def run_compile(
     from sdd_cli.services.governance_command_output import handle_compile_output
     from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
-    if not output_json:
-        console.print(
-            Panel(
-                "[bold cyan]Compiling Governance Artifacts[/bold cyan]",
-                border_style="cyan",
-            )
-        )
-
-    if profile is not None and profile not in ("master", "client"):
-        from rich.console import Console as _Console
-
-        _Console(stderr=True).print(
-            f"[red]ERROR: Invalid profile '{profile}'. Use 'master' or 'client'.[/red]"
-        )
-        import typer as _typer
-
-        raise _typer.Exit(1)
-
-    result = run_compilation(profile=profile, console=console)
-    phase_1 = result.get("phase_1", {})
-    phase_2 = result.get("phase_2", {})
-    core_fingerprint = str(phase_1.get("core_fingerprint", ""))
-
-    update_profile_hash(core_fingerprint, console=console)
-
-    ws_root = resolve_workspace_root()
-    compiled_path = str(ws_root / ".sdd" / "compiled") if ws_root else ""
-    consistency_ok, consistency_reason = check_artifact_consistency(compiled_path)
-
-    payload, is_error = run_governance_compile_json(
-        phase_1=phase_1,
-        phase_2=phase_2,
-        core_fingerprint=core_fingerprint,
-        consistency_ok=consistency_ok,
-        consistency_reason=consistency_reason,
-    )
-    handle_compile_output(
-        output_json=output_json,
-        payload=payload,
-        is_error=is_error,
-        phase_1=phase_1,
-        phase_2=phase_2,
-        core_fingerprint=core_fingerprint,
-        consistency_reason=consistency_reason,
-        console=console,
-        artifact_path=compiled_path,
-    )
-    emit_compile_telemetry(
-        core_fingerprint=core_fingerprint,
-        is_error=is_error,
-        consistency_ok=consistency_ok,
+    run_compile_flow(
         profile=profile,
+        output_json=output_json,
+        console=console,
+        panel_cls=Panel,
+        run_compilation_fn=run_compilation,
+        update_profile_hash_fn=update_profile_hash,
+        resolve_workspace_root_fn=resolve_workspace_root,
+        check_artifact_consistency_fn=check_artifact_consistency,
+        run_governance_compile_json_fn=run_governance_compile_json,
+        handle_compile_output_fn=handle_compile_output,
+        emit_compile_telemetry_fn=emit_compile_telemetry,
+        regenerate_seeds_fn=regenerate_seeds,
     )
-    regenerate_seeds(console=console)

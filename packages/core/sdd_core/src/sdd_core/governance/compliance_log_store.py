@@ -1,10 +1,11 @@
-"""Compliance Log Store - Event persistence, rotation, and ASK-specific logging.
+"""Compliance log persistence and rotation."""
 
-Handles reading/writing compliance events to JSONL log files with rotation.
-"""
+from __future__ import annotations
 
 import json
+import logging
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -12,32 +13,29 @@ from sdd_core.governance.compliance_constants import default_log_path
 from sdd_core.governance.compliance_mode_policy import ComplianceModePolicy
 from sdd_core.governance.compliance_record_validator import ComplianceRecordValidator
 
-# Log rotation defaults
-DEFAULT_MAX_LOG_BYTES = 10 * 1024 * 1024  # 10 MiB
+DEFAULT_MAX_LOG_BYTES = 10 * 1024 * 1024
 DEFAULT_MAX_BACKUPS = 3
 
 
+def _resolved_workspace_root(workspace_root: Path | None) -> Path:
+    if workspace_root is not None:
+        return workspace_root
+    from sdd_core.utils.environment import find_workspace_root
+
+    return find_workspace_root() or Path.cwd()
+
+
 class ComplianceLogStore:
-    """Static class for compliance event log storage operations."""
+    """Persist, rotate, and read governance compliance events."""
 
     DEFAULT_MAX_LOG_BYTES = DEFAULT_MAX_LOG_BYTES
     DEFAULT_MAX_BACKUPS = DEFAULT_MAX_BACKUPS
 
     @staticmethod
     def _resolve_env() -> str:
-        """Detect environment: CI, dev, or prod.
-
-        Returns:
-            One of: 'ci', 'dev', 'prod'
-        """
         if os.environ.get("CI") in {"1", "true", "True"}:
             return "ci"
-
-        env = os.environ.get("SDD_ENV", "").strip().lower()
-        if env:
-            return env
-
-        return "dev"
+        return os.environ.get("SDD_ENV", "").strip().lower() or "dev"
 
     @staticmethod
     def rotate(
@@ -46,39 +44,19 @@ class ComplianceLogStore:
         max_bytes: int = DEFAULT_MAX_LOG_BYTES,
         max_backups: int = DEFAULT_MAX_BACKUPS,
     ) -> bool:
-        """Rotate compliance log file if it exceeds max size.
-
-        Backs up to .N suffix and keeps max_backups versions.
-
-        Args:
-            log_path: Path to compliance log file
-            max_bytes: Max size before rotation (default 10 MiB)
-            max_backups: Max backup files to keep (default 3)
-
-        Returns:
-            True if rotation occurred, False if no rotation was needed or on error
-        """
-        if not log_path.exists():
+        """Rotate the compliance log file when it exceeds the size threshold."""
+        if not log_path.exists() or log_path.stat().st_size < max_bytes:
             return False
-
-        if log_path.stat().st_size < max_bytes:
-            return False
-
         try:
-            # Shift existing backups: .3 -> .4, .2 -> .3, .1 -> .2
-            for i in range(max_backups - 1, 0, -1):
-                old = log_path.with_name(f"{log_path.name}.{i}")
-                new = log_path.with_name(f"{log_path.name}.{i + 1}")
+            for index in range(max_backups - 1, 0, -1):
+                old, new = (
+                    log_path.with_name(f"{log_path.name}.{index}"),
+                    log_path.with_name(f"{log_path.name}.{index + 1}"),
+                )
                 if old.exists():
                     old.rename(new)
-
-            # Move current log to .1
-            backup_1 = log_path.with_name(f"{log_path.name}.1")
-            log_path.rename(backup_1)
-
-            # Create new empty primary file
+            log_path.rename(log_path.with_name(f"{log_path.name}.1"))
             log_path.touch()
-
             return True
         except Exception:
             return False
@@ -99,132 +77,61 @@ class ComplianceLogStore:
         message: str = "",
         status: str = "ok",
     ) -> None:
-        """Append event to compliance log (JSONL format).
-
-        Respects logging mode (passive/active/strict) and redacts sensitive fields.
-
-        Args:
-            event: Event name (e.g., 'ask_command', 'violation')
-            command: Command that triggered event
-            profile: SDD profile ('client' or 'master')
-            state: Handshake state at time of event
-            details: Event-specific details dict
-            agent_id: Agent/CLI identity. Falls back to SDD_AGENT_ID env var.
-            workspace_root: Root directory for log path resolution
-            log_path: Explicit log file path (overrides default)
-            level: Log level ('info', 'warn', 'error')
-            service: Service name (default 'sdd')
-            message: Human-readable message
-            status: Event status ('ok', 'warn', 'error')
-        """
-        from datetime import datetime, timezone
-
-        # Resolve paths
-        if workspace_root is None:
-            from sdd_core.utils.environment import find_workspace_root
-
-            workspace_root = find_workspace_root() or Path.cwd()
-
-        if log_path is None:
-            log_path = default_log_path(workspace_root)
-
-        if log_path is None:
+        """Append a validated compliance record to the active log file."""
+        workspace_root = _resolved_workspace_root(workspace_root)
+        target = log_path or default_log_path(workspace_root)
+        if target is None:
             return
-
-        # Determine logging mode
-        logging_mode = ComplianceModePolicy.resolve_logging_mode(profile)
-
-        # Check if event should be persisted
-        if not ComplianceModePolicy.should_persist_event(event, logging_mode):
+        mode = ComplianceModePolicy.resolve_logging_mode(profile)
+        if not ComplianceModePolicy.should_persist_event(event, mode):
             return
-
-        # Resolve agent identity: param > env var > empty (unknown)
-        resolved_agent_id = agent_id or os.environ.get("SDD_AGENT_ID", "")
-
-        # Build record
         record = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "event": event,
             "command": command,
             "profile": profile,
             "state": state,
-            "agent_id": resolved_agent_id,
+            "agent_id": agent_id or os.environ.get("SDD_AGENT_ID", ""),
             "details": ComplianceRecordValidator.redact_sensitive(details),
             "level": level,
             "service": service,
             "message": message,
             "status": status,
         }
-
-        # Validate record
         valid, missing = ComplianceRecordValidator.validate_record(record)
         if not valid:
-            import logging
-
-            logging.warning(f"Invalid compliance record, missing fields: {missing}")
+            logging.warning("Invalid compliance record, missing fields: %s", missing)
             return
-
-        # Rotate if needed
         ComplianceLogStore.rotate(
-            log_path, max_bytes=DEFAULT_MAX_LOG_BYTES, max_backups=DEFAULT_MAX_BACKUPS
+            target, max_bytes=DEFAULT_MAX_LOG_BYTES, max_backups=DEFAULT_MAX_BACKUPS
         )
-
-        # Write to log
         try:
-            log_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(log_path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(record) + "\n")
-        except Exception as e:
-            import logging
-
-            logging.error(f"Failed to write compliance event: {e}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with open(target, "a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record) + "\n")
+        except Exception as exc:
+            logging.error("Failed to write compliance event: %s", exc)
 
     @staticmethod
     def read(
         n: int = 50, *, workspace_root: Path | None = None, log_path: Path | None = None
     ) -> list[dict[str, Any]]:
-        """Read last N events from compliance log (JSONL format).
-
-        Tolerates JSON parse errors by skipping malformed lines.
-
-        Args:
-            n: Number of events to read (default 50, use 0 for all)
-            workspace_root: Root directory for log path resolution
-            log_path: Explicit log file path (overrides default)
-
-        Returns:
-            List of event dicts (up to N entries)
-        """
-        # Resolve path
-        if workspace_root is None:
-            from sdd_core.utils.environment import find_workspace_root
-
-            workspace_root = find_workspace_root() or Path.cwd()
-
-        if log_path is None:
-            log_path = default_log_path(workspace_root)
-
-        if log_path is None or not log_path.exists():
+        """Read compliance events from disk, optionally capped to the last `n`."""
+        target = log_path or default_log_path(_resolved_workspace_root(workspace_root))
+        if target is None or not target.exists():
             return []
-
-        events = []
         try:
-            with open(log_path, encoding="utf-8") as f:
-                for line in f:
+            events = []
+            with open(target, encoding="utf-8") as handle:
+                for line in handle:
                     line = line.strip()
                     if not line:
                         continue
                     try:
-                        event = json.loads(line)
-                        events.append(event)
+                        events.append(json.loads(line))
                     except json.JSONDecodeError:
-                        # Skip malformed lines
                         continue
-
-            # Return last N
-            if n > 0:
-                return events[-n:]
-            return events
+            return events if n <= 0 else events[-n:]
         except Exception:
             return []
 
@@ -240,20 +147,7 @@ class ComplianceLogStore:
         workspace_root: Path | None = None,
         log_path: Path | None = None,
     ) -> None:
-        """Log an ASK-specific event (ask or ask-full command).
-
-        Wraps append() with ASK-specific context.
-
-        Args:
-            event: Event type (ASK_COMMAND or ASK_FULL_COMMAND)
-            command: 'ask' (use --full flag for full mode)
-            profile: SDD profile
-            state: Handshake state
-            agent_id: Agent ID executing the ask
-            details: Event details (will have agent_id added)
-            workspace_root: Root directory for log resolution
-            log_path: Explicit log file path
-        """
+        """Append a normalized compliance record for an ask command invocation."""
         ComplianceLogStore.append(
             event,
             command=command,

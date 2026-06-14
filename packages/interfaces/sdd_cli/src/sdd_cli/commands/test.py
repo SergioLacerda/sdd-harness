@@ -1,10 +1,16 @@
 """Test."""
 
-import sys
 from pathlib import Path
 
 import typer
 
+from sdd_cli.commands._test_command_support import (
+    build_test_command,
+    run_test_pipeline,
+)
+from sdd_cli.commands._test_command_support import (
+    run_ci_validate as _run_ci_validate,
+)
 from sdd_cli.services.test_handler import (
     _check_import,
     _run_cli,
@@ -41,43 +47,16 @@ class TestCommand:
         if not script.exists():
             typer.echo(f"ERROR: Script not found: {script}")
             raise typer.Exit(1)
-
-        cmd = [sys.executable, str(script)]
-
-        if verbose:
-            cmd.append("--verbose")
-        if fail_fast:
-            cmd.append("--fail-fast")
-        if not coverage:
-            cmd.append("--no-coverage")
-        if cov_fail_under is not None:
-            cmd.extend(["--cov-fail-under", str(cov_fail_under)])
-
-        typer.echo(f"Running tests from: {script}")
-
-        from sdd_core.utils.process import (
-            ProcessAuthorizationError,
-            ProcessNonZeroExitError,
-            ProcessSpawnError,
-            ProcessTimeoutError,
-            SafeProcessRunner,
+        run_test_pipeline(
+            build_test_command(
+                script,
+                verbose=verbose,
+                fail_fast=fail_fast,
+                coverage=coverage,
+                cov_fail_under=cov_fail_under,
+            ),
+            root=root,
         )
-
-        try:
-            runner = SafeProcessRunner()
-            runner.run(cmd, cwd=root, check=True, capture_output=False)
-        except ProcessNonZeroExitError as err:
-            typer.echo(f"ERROR: test pipeline failed: {err}", err=True)
-            raise typer.Exit(1) from None
-        except ProcessAuthorizationError as err:
-            typer.echo(f"ERROR: execution blocked by policy: {err}", err=True)
-            raise typer.Exit(2) from None
-        except ProcessTimeoutError:
-            typer.echo("ERROR: test pipeline timed out", err=True)
-            raise typer.Exit(124) from None
-        except ProcessSpawnError as err:
-            typer.echo(f"ERROR: could not start test pipeline: {err}", err=True)
-            raise typer.Exit(127) from None
 
 
 @app.command()
@@ -130,94 +109,18 @@ def ci_validate(  # noqa: C901
     ),
 ) -> None:
     """Preflight CI validation: import checks + CI-like governance + tests."""
-    root = detect_repo_root()
-    failed = False
-
-    modules = [
-        "yaml",
-        "typer",
-        "rich",
-        "msgpack",
-        "sdd_core",
-        "sdd_compiler",
-        "sdd_integration",
-        "sdd_cli",
-    ]
-    typer.echo("=== Import checks ===")
-    for mod in modules:
-        ok = _check_import(mod)
-        typer.echo(f"  {'PASS' if ok else 'FAIL'}: {mod}")
-        if not ok:
-            failed = True
-
-    if health:
-        typer.echo("\n=== Health check ===")
-        script = root / "tools" / "health" / "health_check.py"
-        if not script.exists():
-            typer.echo(f"  FAIL: not found at {script}")
-            failed = True
-        else:
-            if _run_script(str(script), ["--verbose"], str(root)) != 0:
-                failed = True
-
-    if governance:
-        typer.echo("\n=== Governance compliance ===")
-        typer.echo("  Running governance compile...")
-        if _run_cli(["governance", "compile"], str(root)) != 0:
-            failed = True
-
-        typer.echo("  Running runtime status...")
-        runtime_rc = _run_cli(["runtime", "status", "--force"], str(root))
-        # CI accepts NOT_CONNECTED (rc=3) in some contexts.
-        if runtime_rc not in (0, 3):
-            failed = True
-
-        typer.echo("  Running governance score/adherence/validate...")
-        if _run_cli(["governance", "score", "--threshold", "0"], str(root)) != 0:
-            failed = True
-        if _run_cli(["governance", "adherence", "--threshold", "0"], str(root)) != 0:
-            failed = True
-        if _run_cli(["governance", "validate"], str(root)) != 0:
-            failed = True
-
-        script = root / "tools" / "governance" / "compliance.py"
-        if not script.exists():
-            typer.echo(f"  FAIL: not found at {script}")
-            failed = True
-        else:
-            if (
-                _run_script(str(script), ["--verify", "--check-integrity"], str(root))
-                != 0
-            ):
-                failed = True
-
-    if tests:
-        require_dev_module("pytest")
-        typer.echo("\n=== Test suite ===")
-        script = root / "tools" / "testing" / "run-all-tests.py"
-        if not script.exists():
-            typer.echo(f"  FAIL: not found at {script}")
-            failed = True
-        else:
-            if _run_script(str(script), [], str(root)) != 0:
-                failed = True
-
-    if soak_threads:
-        require_dev_module("pytest")
-        typer.echo("\n=== Thread soak ===")
-        soak_args = [
-            "packages/interfaces/sdd_cli/tests/test_metrics_reload_worker.py",
-            "-k",
-            "soak_restart_cycles",
-        ]
-        if _run_pytest(soak_args, str(root)) != 0:
-            failed = True
-
-    if failed:
-        typer.echo("\nERROR: One or more checks failed")
-        raise typer.Exit(1)
-
-    typer.echo("\nAll checks passed")
+    _run_ci_validate(
+        root=detect_repo_root(),
+        health=health,
+        governance=governance,
+        tests=tests,
+        soak_threads=soak_threads,
+        check_import=_check_import,
+        run_script=_run_script,
+        run_cli=_run_cli,
+        run_pytest=_run_pytest,
+        require_dev_module=require_dev_module,
+    )
 
 
 @app.command(name="review-golden")

@@ -21,6 +21,12 @@ from sdd_runtime import (
 )
 from sdd_runtime.otel import OtlpHttpExporter
 
+from sdd_cli.services._ask_telemetry_support import (
+    build_sink,
+    build_telemetry_details,
+    resolve_status,
+    resolve_workspace_id,
+)
 from sdd_cli.utils.telemetry_paths import resolve_compliance_events_path
 from sdd_core.output.canonical_event import CanonicalLogEvent, ProfileRenderer
 
@@ -33,9 +39,7 @@ class _EventSink(Protocol):
 
 
 def route_canonical_event(
-    event: CanonicalLogEvent,
-    *,
-    renderer: ProfileRenderer | None = None,
+    event: CanonicalLogEvent, *, renderer: ProfileRenderer | None = None
 ) -> str:
     """Route a canonical event per M020.
 
@@ -132,40 +136,28 @@ def emit_ask_telemetry(
 ) -> None:
     """Emit a typed RuntimeEvent to canonical JSONL sink. Best-effort."""
     try:
-        import configparser
-
         events_path = resolve_compliance_events_path(workspace_root=workspace_root)
-        workspace_id = "unknown"
-        profile_path = workspace_root / ".sdd" / "profile"
-        if profile_path.exists():
-            try:
-                parser = configparser.ConfigParser()
-                parser.read(profile_path)
-                workspace_id = parser.get("sdd", "workspace_id", fallback="unknown")
-            except Exception as exc:
-                if logger is not None:
-                    logger.debug("Failed to read config: %s", exc)
-
-        details: dict[str, Any] = {
-            "context_source": context_source,
-            "mandates_loaded": mandates_count,
-            "drift_detected": drift_detected,
-            "ahp_state": state,
-            "profile": profile,
-        }
-        if query_hash:
-            details["query_hash"] = query_hash
-        if extra_details:
-            details.update(extra_details)
-
-        status = "ok" if state in ("HEALTHY", "PARTIAL") else "warn"
+        workspace_id = resolve_workspace_id(
+            workspace_root=workspace_root, logger=logger
+        )
+        details = build_telemetry_details(
+            context_source=context_source,
+            mandates_count=mandates_count,
+            drift_detected=drift_detected,
+            profile=profile,
+            state=state,
+            query_hash=query_hash,
+            extra_details=extra_details,
+        )
+        status = resolve_status(state)
         otel_endpoint = os.environ.get("SDD_OTEL_ENDPOINT", "").strip()
-        sink: _EventSink
-        if otel_endpoint:
-            exporter = otlp_exporter_cls(endpoint=otel_endpoint)
-            sink = otel_bridge_cls(exporter=exporter, jsonl_path=events_path)
-        else:
-            sink = telemetry_sink_cls(jsonl_path=events_path, logging_mode="passive")
+        sink: _EventSink = build_sink(
+            otel_endpoint=otel_endpoint,
+            events_path=events_path,
+            telemetry_sink_cls=telemetry_sink_cls,
+            otel_bridge_cls=otel_bridge_cls,
+            otlp_exporter_cls=otlp_exporter_cls,
+        )
         sink.emit(
             RuntimeEvent(
                 event=event_name,
@@ -204,20 +196,10 @@ def upsert_ask_session(
 ) -> None:
     """Upsert SessionState for ask invocation. Best-effort."""
     try:
-        import configparser
-
-        profile_path = workspace_root / ".sdd" / "profile"
-        workspace_id = "unknown"
+        workspace_id = resolve_workspace_id(
+            workspace_root=workspace_root, logger=logger
+        )
         schema_version = ""
-        if profile_path.exists():
-            try:
-                parser = configparser.ConfigParser()
-                parser.read(profile_path)
-                workspace_id = parser.get("sdd", "workspace_id", fallback="unknown")
-            except Exception as exc:
-                if logger is not None:
-                    logger.debug("Failed to read config: %s", exc)
-
         runtime_dir = workspace_root / ".sdd" / "runtime"
         session = SessionState(
             workspace_id=workspace_id,

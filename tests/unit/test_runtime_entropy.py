@@ -7,8 +7,8 @@ from sdd_runtime.entropy import (
     EntropyScore,
     PathDistribution,
     SessionDriftScorer,
-    _compute_trend,
 )
+from sdd_runtime.entropy._convergence import _compute_trend
 
 
 def test_entropy_score_compute():

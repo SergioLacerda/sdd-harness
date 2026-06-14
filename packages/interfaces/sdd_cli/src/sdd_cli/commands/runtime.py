@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
-import contextlib
 import logging
 from pathlib import Path
 from typing import Any, Literal
 
 import typer
 
+from sdd_cli.commands._runtime_command_support import (
+    do_update_cache as _do_update_cache_impl,
+)
+from sdd_cli.commands._runtime_command_support import (
+    format_diagnostic_block as _format_diagnostic_block_impl,
+)
+from sdd_cli.commands._runtime_command_support import (
+    render_status_output as _render_status_output_impl,
+)
 from sdd_cli.services.runtime_handler import (
     _check_cache_staleness,
     _emit_runtime_status,  # noqa: F401  patchable by tests
@@ -140,102 +148,16 @@ def status(
 
 
 def _do_update_cache(root: Path) -> None:
-    """Print M003 compliance quiz from compiled governance and refresh .sdd-cache.md."""
-    import os as _os
-    import time as _time
-
-    gov_path = root / ".sdd" / "compiled" / "governance-core.json"
-    if not gov_path.exists():
-        typer.echo(
-            "ERROR: governance-core.json not found. Run: sdd governance compile",
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    try:
-        from sdd_compiler.ast import GovernanceAST
-    except ImportError as exc:
-        typer.echo(f"ERROR: sdd_compiler not installed — {exc}", err=True)
-        raise typer.Exit(2) from exc
-
-    ast = GovernanceAST.from_compiled_json(gov_path)
-    m003 = ast.item_by_id("M003")
-
-    if m003 is None or not m003.enforcement_steps:
-        typer.echo(
-            "ERROR: M003 enforcement_steps not compiled.\n"
-            "Run: sdd governance compile  (requires mandate-pipeline-enrichment)",
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    typer.echo("# M003 — Context Awareness & Task Caching\n")
-    typer.echo("Confirm the following before the cache is refreshed:\n")
-    for i, step in enumerate(m003.enforcement_steps, 1):
-        typer.echo(f"{i}. {step}")
-    typer.echo("\n---")
-    typer.echo("Refreshing .sdd-cache.md...")
-
-    cache_file = root / ".sdd" / "runtime" / ".sdd-cache.md"
-    cache_file.parent.mkdir(parents=True, exist_ok=True)
-    if cache_file.exists():
-        now = _time.time()
-        _os.utime(cache_file, (now, now))
-    else:
-        cache_file.write_text(
-            "# SDD Cache\n\nInitialized by: sdd runtime status --update-cache\n",
-            encoding="utf-8",
-        )
-
-    typer.echo("✓ .sdd-cache.md refreshed.")
+    _do_update_cache_impl(root)
 
 
 def _format_diagnostic_block(root: Path, *, cache_file: Path) -> str:
-    """Return the verbose diagnostic header block for --verbose output."""
-    import importlib.metadata
-    import time as _time
-
-    lines = ["═══ SDD Runtime Diagnostics ═══"]
-    lines.append(f"workspace root : {root}")
-
-    profile_path = profile_active_path(root)
-    profile_type = _read_profile(root) or "unknown"
-    try:
-        rel = profile_path.relative_to(root)
-    except ValueError:
-        rel = profile_path
-    lines.append(f"profile file   : {rel} [type={profile_type}]")
-
-    if cache_file.exists():
-        try:
-            import json as _json
-
-            mtime = cache_file.stat().st_mtime
-            age_sec = int(_time.time() - mtime)
-            raw = _json.loads(cache_file.read_text(encoding="utf-8"))
-            cached_state = raw.get("state", "?")
-            try:
-                rel_cache = cache_file.relative_to(root)
-            except ValueError:
-                rel_cache = cache_file
-            lines.append(
-                f"cache file     : {rel_cache} [age={age_sec}s, state={cached_state}]"
-            )
-        except Exception:
-            lines.append(
-                "cache file     : .sdd/runtime/governance-state.json [unreadable]"
-            )
-    else:
-        lines.append(
-            "cache file     : .sdd/runtime/governance-state.json [NONE, revalidating]"
-        )
-
-    for pkg in ("sdd-core", "sdd-cli"):
-        with contextlib.suppress(Exception):
-            ver = importlib.metadata.version(pkg)
-            lines.append(f"{pkg:<14} : {ver}")
-
-    return "\n".join(lines)
+    return _format_diagnostic_block_impl(
+        root,
+        cache_file=cache_file,
+        profile_active_path=profile_active_path,
+        read_profile=_read_profile,
+    )
 
 
 def _render_status_output(
@@ -251,39 +173,17 @@ def _render_status_output(
     output_json: bool,
     output_mode: str,
 ) -> None:
-    """Emit status output: AHP report, cache staleness warning, JSON or text footer."""
-    from sdd_cli.shared.contracts import build_error_result, build_ok_result
-
-    if not output_json:
-        typer.echo(ahp.format_combined_output(state, report, mode=output_mode))
-
-    if not output_json and cache_staleness["stale"]:
-        typer.echo(
-            f"\nWARNING L2: .sdd-cache.md is stale ({cache_staleness['age_min']} min ago)."
-            " Update it before committing to a protected branch."
-            "\n  → Run: sdd runtime status --update-cache",
-            err=False,
-        )
-
-    if output_json:
-        data = {
-            "state": state,
-            "exit_code": code,
-            "report": _normalize_report(report),
-            "drift": drift_info,
-            "ask_confidence": ask_confidence,
-            "governance_footer": governance_footer,
-            "cache_staleness": cache_staleness,
-        }
-        if code == 0:
-            payload = build_ok_result("runtime status", data)
-        else:
-            payload = build_error_result(
-                "runtime status",
-                data,
-                code="runtime_state_not_healthy",
-                message=f"runtime status returned non-success state '{state}'",
-            )
-        emit_json(payload, err=code != 0)
-    else:
-        typer.echo(governance_footer)
+    _render_status_output_impl(
+        ahp=ahp,
+        state=state,
+        report=report,
+        code=code,
+        drift_info=drift_info,
+        governance_footer=governance_footer,
+        cache_staleness=cache_staleness,
+        ask_confidence=ask_confidence,
+        output_json=output_json,
+        output_mode=output_mode,
+        normalize_report=_normalize_report,
+        emit_json_fn=emit_json,
+    )

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 from typing import Any
@@ -11,6 +10,13 @@ import click
 import typer
 from sdd_runtime import SkillEngine
 
+from sdd_cli.commands._skills_command_support import (
+    emit_pipeline_required,
+    emit_skill_description,
+    emit_skill_run_result,
+    emit_skills_export,
+    emit_skills_list,
+)
 from sdd_cli.commands.skills_learning import app as _learning_app
 from sdd_cli.services.skills_output import emit_skills_json as _emit_skills_json
 from sdd_cli.services.skills_registry import (
@@ -113,83 +119,15 @@ def _(
 @app.command("list")
 def list_cmd() -> None:
     """List Cmd."""
-    skills = list_skills()
-    if _ctx_json():
-        _emit_skills_json(
-            command="skills list",
-            data={
-                "state": "ok",
-                "profile": "default",
-                "skill": None,
-                "policy_result": "listed",
-                "reason": "skills loaded",
-                "exit_code": 0,
-                "skills": [
-                    {
-                        "name": s.name,
-                        "version": s.version,
-                        "category": s.category,
-                        "status": s.status,
-                        "risk_score": s.risk_score,
-                    }
-                    for s in skills
-                ],
-            },
-            ok=True,
-        )
-        return
-
-    typer.echo("Available skills:")
-    for s in skills:
-        typer.echo(
-            f"- {s.name} ({s.version}) [{s.category}] risk={s.risk_score} status={s.status}"
-        )
+    emit_skills_list(list_skills(), output_json=_ctx_json(), emit_fn=_emit_skills_json)
 
 
 @app.command("describe")
 def describe(name: str) -> None:
     """Describe."""
-    skill = get_skill(name)
-    if skill is None:
-        if _ctx_json():
-            _emit_skills_json(
-                command="skills describe",
-                data={
-                    "state": "error",
-                    "profile": "default",
-                    "skill": name,
-                    "policy_result": "missing_skill",
-                    "reason": "skill not found",
-                    "error": {"type": "LookupError", "message": "skill not found"},
-                    "exit_code": 1,
-                },
-                ok=False,
-                error_code="missing_skill",
-                error_message="skill not found",
-                err=True,
-            )
-        else:
-            typer.echo(f"ERROR: Skill not found: {name}", err=True)
-        raise typer.Exit(1)
-
-    payload = skill.to_dict()
-    if _ctx_json():
-        _emit_skills_json(
-            command="skills describe",
-            data={
-                "state": "ok",
-                "profile": "default",
-                "skill": name,
-                "policy_result": "described",
-                "reason": "skill metadata loaded",
-                "exit_code": 0,
-                "definition": payload,
-            },
-            ok=True,
-        )
-        return
-
-    typer.echo(json.dumps(payload, indent=2, ensure_ascii=False))
+    emit_skill_description(
+        name, get_skill(name), output_json=_ctx_json(), emit_fn=_emit_skills_json
+    )
 
 
 @app.command("run")
@@ -206,65 +144,10 @@ def run(
         "SDD_ENFORCE_PIPELINE_CORRECT", "0"
     ).strip().lower() in {"1", "true", "yes", "on"}
     if enforce_pipeline and name == "sdd-correct":
-        message = "pipeline_required_for_sdd_correct"
-        if _ctx_json():
-            _emit_skills_json(
-                command="skills run",
-                data={
-                    "state": "error",
-                    "profile": "default",
-                    "skill": name,
-                    "policy_result": "denied",
-                    "reason": message,
-                    "error": {"type": "PermissionError", "message": message},
-                    "exit_code": 1,
-                    "next_action": "sdd skills run sdd-pipeline",
-                },
-                ok=False,
-                error_code="pipeline_required_for_sdd_correct",
-                error_message=message,
-                err=True,
-            )
-        else:
-            typer.echo(
-                "ERROR: sdd-correct direto bloqueado por política. Use: sdd skills run sdd-pipeline",
-                err=True,
-            )
-        raise typer.Exit(1)
+        emit_pipeline_required(name, output_json=_ctx_json(), emit_fn=_emit_skills_json)
     engine = SkillEngine()
     result = engine.run_skill(name, execute=execute, profile="default")
-    fallback = result.fallback
-
-    if _ctx_json():
-        _emit_skills_json(
-            command="skills run",
-            data={
-                "state": result.state,
-                "profile": result.profile,
-                "skill": result.skill,
-                "policy_result": result.policy_result,
-                "reason": result.reason,
-                "exit_code": result.exit_code,
-                "governance_footer": result.governance_footer,
-                "fallback": fallback,
-                "command_results": result.command_results,
-                "artifacts": result.artifacts,
-            },
-            ok=result.exit_code == 0,
-            error_code=result.policy_result if result.exit_code != 0 else None,
-            error_message=result.reason if result.exit_code != 0 else None,
-        )
-    else:
-        typer.echo(f"skill={result.skill}")
-        typer.echo(f"policy_result={result.policy_result}")
-        typer.echo(f"reason={result.reason}")
-        typer.echo("fallback commands:")
-        for cmd in fallback:
-            typer.echo(f"  - {cmd}")
-        typer.echo(result.governance_footer)
-
-    if result.exit_code != 0:
-        raise typer.Exit(result.exit_code)
+    emit_skill_run_result(result, output_json=_ctx_json(), emit_fn=_emit_skills_json)
 
 
 @app.command("export")
@@ -282,21 +165,9 @@ def export(
         raise typer.BadParameter(
             "format must be one of: json, openai, langchain, crewai, autogen."
         )
-    payload = export_skills_payload(format)
-    if _ctx_json() or format == "json":
-        _emit_skills_json(
-            command="skills export",
-            data={
-                "state": "ok",
-                "profile": "default",
-                "skill": None,
-                "policy_result": "exported",
-                "reason": f"exported as {format}",
-                "exit_code": 0,
-                "payload": payload,
-            },
-            ok=True,
-        )
-        return
-
-    typer.echo(json.dumps(payload, indent=2, ensure_ascii=False))
+    emit_skills_export(
+        format,
+        export_skills_payload(format),
+        output_json=_ctx_json(),
+        emit_fn=_emit_skills_json,
+    )

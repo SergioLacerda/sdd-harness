@@ -16,6 +16,7 @@ SUBPROCESS_PATTERN = re.compile(
 ALLOWED_PACKAGES = {
     # process.py is the public facade; subprocess lives in the private submodules below
     "packages/core/sdd_core/src/sdd_core/utils/_process_runner.py",
+    "packages/core/sdd_core/src/sdd_core/utils/_process_runner_support.py",
     "packages/core/sdd_core/src/sdd_core/utils/_process_types.py",
 }
 

@@ -144,7 +144,7 @@ dev = [
 python_version = "3.10"
 strict = true
 ignore_missing_imports = false
-exclude = ["^generated/", "^site/", "^tests/", "^packages/.*/tests/", "^packages/features/sdd_wizard/tests/conftest\\.py", "build/", "dist/"]
+exclude = ["^generated/", "^site/", "^tests/", "^packages/.*/tests/", "^packages/features/sdd_wizard/tests/conftest\\.py", "build/", "dist/", "^packages/core/sdd_core/src/sdd_core/tools/(generate-specializations|_generate_.*)\\.py$"]
 cache_dir = "build/.mypy_cache"
 
 [[tool.mypy.overrides]]
@@ -325,6 +325,12 @@ runtime_bootstrap_ms = 500
 governance_compile_ms = 1000
 skill_routing_p99_ms = 100
 concurrent_agents_min = 50
+
+[tool.sdd.performance.telemetry]
+registry_lookup_p95_us = 10
+deduplicate_cold_p95_us = 100
+deduplicate_warm_p95_us = 12
+cached_timestamp_p95_us = 1
 
 [tool.sdd.paths]
 spec_root = "docs/spec"

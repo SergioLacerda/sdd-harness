@@ -5,42 +5,23 @@ Validates JSONL event records conform to Phase B schema and redacts sensitive fi
 
 from typing import Any
 
-# Required fields in each compliance event record (Phase B schema)
-_REQUIRED_RECORD_FIELDS = {
-    "timestamp",
-    "event",
-    "command",
-    "profile",
-    "state",
-    "details",
-    "level",
-    "service",
-    "message",
-    "status",
-}
+from sdd_core.constants import (
+    REDACTED_PLACEHOLDER,
+    REQUIRED_COMPLIANCE_RECORD_FIELDS,
+    SENSITIVE_COMPLIANCE_DETAIL_KEYS,
+)
 
-# Fields to redact when storing sensitive details
-_SENSITIVE_DETAIL_KEYS = {
-    "query",
-    "token",
-    "api_key",
-    "password",
-    "secret",
-    "credential",
-    "auth",
-    "signature",
-    "private_key",
-}
-
-_REDACTED_PLACEHOLDER = "[REDACTED]"
+_REQUIRED_RECORD_FIELDS = REQUIRED_COMPLIANCE_RECORD_FIELDS
+_SENSITIVE_DETAIL_KEYS = SENSITIVE_COMPLIANCE_DETAIL_KEYS
+_REDACTED_PLACEHOLDER = REDACTED_PLACEHOLDER
 
 
 class ComplianceRecordValidator:
     """Static class for compliance record validation and redaction."""
 
-    _REQUIRED_RECORD_FIELDS = _REQUIRED_RECORD_FIELDS
-    _SENSITIVE_DETAIL_KEYS = _SENSITIVE_DETAIL_KEYS
-    _REDACTED_PLACEHOLDER = _REDACTED_PLACEHOLDER
+    _REQUIRED_RECORD_FIELDS = REQUIRED_COMPLIANCE_RECORD_FIELDS
+    _SENSITIVE_DETAIL_KEYS = SENSITIVE_COMPLIANCE_DETAIL_KEYS
+    _REDACTED_PLACEHOLDER = REDACTED_PLACEHOLDER
 
     @staticmethod
     def validate_record(record: dict[str, Any]) -> tuple[bool, list[str]]:
@@ -53,9 +34,9 @@ class ComplianceRecordValidator:
             Tuple of (is_valid: bool, missing_fields: list[str])
         """
         if not isinstance(record, dict):
-            return False, list(_REQUIRED_RECORD_FIELDS)
+            return False, list(REQUIRED_COMPLIANCE_RECORD_FIELDS)
 
-        missing = [f for f in _REQUIRED_RECORD_FIELDS if f not in record]
+        missing = [f for f in REQUIRED_COMPLIANCE_RECORD_FIELDS if f not in record]
         return len(missing) == 0, missing
 
     @staticmethod
@@ -78,8 +59,8 @@ class ComplianceRecordValidator:
             return details
 
         redacted = details.copy()
-        for key in _SENSITIVE_DETAIL_KEYS:
+        for key in SENSITIVE_COMPLIANCE_DETAIL_KEYS:
             if key in redacted:
-                redacted[key] = _REDACTED_PLACEHOLDER
+                redacted[key] = REDACTED_PLACEHOLDER
 
         return redacted

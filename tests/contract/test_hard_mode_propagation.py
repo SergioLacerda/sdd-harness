@@ -21,7 +21,7 @@ _GOVERNANCE_SEEDS = (
     / "sdd_wizard"
     / "orchestration"
     / "seedlings"
-    / "governance_seeds.py"
+    / "_agent_instructions_content.py"
 )
 
 

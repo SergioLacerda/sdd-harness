@@ -1,22 +1,10 @@
-"""Compliance event logger — append-only JSONL audit trail (backward-compatible shim).
-
-Events are written to .sdd/runtime/compliance-events.jsonl.
-Each line is a self-contained JSON object (newline-delimited JSON).
-The file is NEVER truncated or rewritten — only appended.
-
-This module is now a shim that delegates to:
-- ComplianceModePolicy (mode resolution and event filtering)
-- ComplianceRecordValidator (schema validation and redaction)
-- ComplianceLogStore (I/O operations)
-- GovernanceAdherenceScorer (adherence computation)
-"""
+"""Backward-compatible compliance shim."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
 
-# Re-export constants
 from sdd_core.governance.compliance_constants import (
     ASK_COMMAND,
     ASK_FULL_COMMAND,
@@ -26,15 +14,11 @@ from sdd_core.governance.compliance_constants import (
     VIOLATION,
     WORKSPACE_INIT,
 )
-
-# Re-export log store
 from sdd_core.governance.compliance_log_store import (
     DEFAULT_MAX_BACKUPS,
     DEFAULT_MAX_LOG_BYTES,
     ComplianceLogStore,
 )
-
-# Re-export mode policy
 from sdd_core.governance.compliance_mode_policy import (
     _MANDATORY_EVENTS,
     LOGGING_MODE_ACTIVE,
@@ -42,15 +26,12 @@ from sdd_core.governance.compliance_mode_policy import (
     LOGGING_MODE_STRICT,
     ComplianceModePolicy,
 )
-
-# Re-export record validator
 from sdd_core.governance.compliance_record_validator import (
     _REDACTED_PLACEHOLDER,
     _REQUIRED_RECORD_FIELDS,
     ComplianceRecordValidator,
 )
 
-# Publicly exported for backward compatibility
 __all__ = [
     "ASK_COMMAND",
     "ASK_FULL_COMMAND",
@@ -77,48 +58,25 @@ __all__ = [
 ]
 
 
-# ==============================================================================
-# Backward-compatibility shim functions
-# ==============================================================================
-
-
 def resolve_logging_mode(profile: str = "") -> str:
-    """Resolve logging mode from environment, profile, or default.
-
-    **Shim for backward compatibility.** Delegates to ComplianceModePolicy.
-    """
+    """Resolve the compliance logging mode for a workspace profile."""
     return ComplianceModePolicy.resolve_logging_mode(profile)
 
 
 def _should_persist_event(event: str, logging_mode: str) -> bool:
-    """Determine if event should be persisted based on logging mode.
-
-    **Shim for backward compatibility.** Delegates to ComplianceModePolicy.
-    """
     return ComplianceModePolicy.should_persist_event(event, logging_mode)
 
 
 def _resolve_env() -> str:
-    """Detect environment: CI, dev, or prod.
-
-    **Shim for backward compatibility.** Delegates to ComplianceLogStore.
-    """
     return ComplianceLogStore._resolve_env()
 
 
 def validate_compliance_record(record: dict[str, Any]) -> tuple[bool, list[str]]:
-    """Validate compliance record against Phase B schema.
-
-    **Shim for backward compatibility.** Delegates to ComplianceRecordValidator.
-    """
+    """Validate a compliance record against the canonical schema."""
     return ComplianceRecordValidator.validate_record(record)
 
 
 def _redact_sensitive(details: dict[str, Any] | None) -> dict[str, Any] | None:
-    """Redact sensitive fields from details dict.
-
-    **Shim for backward compatibility.** Delegates to ComplianceRecordValidator.
-    """
     return ComplianceRecordValidator.redact_sensitive(details)
 
 
@@ -128,10 +86,7 @@ def rotate_compliance_log(
     max_bytes: int = DEFAULT_MAX_LOG_BYTES,
     max_backups: int = DEFAULT_MAX_BACKUPS,
 ) -> bool:
-    """Rotate compliance log file if it exceeds max size.
-
-    **Shim for backward compatibility.** Delegates to ComplianceLogStore.
-    """
+    """Rotate the compliance log when it exceeds the configured size."""
     return ComplianceLogStore.rotate(
         log_path, max_bytes=max_bytes, max_backups=max_backups
     )
@@ -151,10 +106,7 @@ def append_event(
     message: str = "",
     status: str = "ok",
 ) -> None:
-    """Append event to compliance log (JSONL format).
-
-    **Shim for backward compatibility.** Delegates to ComplianceLogStore.
-    """
+    """Append a governance compliance event to persistent storage."""
     return ComplianceLogStore.append(
         event,
         command=command,
@@ -173,10 +125,7 @@ def append_event(
 def read_events(
     n: int = 50, *, workspace_root: Path | None = None, log_path: Path | None = None
 ) -> list[dict[str, Any]]:
-    """Read last N events from compliance log (JSONL format).
-
-    **Shim for backward compatibility.** Delegates to ComplianceLogStore.
-    """
+    """Read recent compliance events from the active log."""
     return ComplianceLogStore.read(n, workspace_root=workspace_root, log_path=log_path)
 
 
@@ -191,10 +140,7 @@ def log_ask_event(
     workspace_root: Path | None = None,
     log_path: Path | None = None,
 ) -> None:
-    """Log an ASK-specific event (ask or ask-full command).
-
-    **Shim for backward compatibility.** Delegates to ComplianceLogStore.
-    """
+    """Persist a normalized compliance event for `ask` command execution."""
     return ComplianceLogStore.log_ask(
         event=event,
         command=command,
@@ -214,10 +160,7 @@ def compute_governance_adherence(
     state_path: Path | None = None,
     window_hours: int = 24,
 ) -> dict[str, Any]:
-    """Compute governance adherence score (backward-compatibility shim).
-
-    **Shim for backward compatibility.** Delegates to GovernanceAdherenceScorer.
-    """
+    """Compute governance adherence scores for the current workspace."""
     from sdd_core.governance.adherence_scorer import GovernanceAdherenceScorer
 
     return GovernanceAdherenceScorer.compute(

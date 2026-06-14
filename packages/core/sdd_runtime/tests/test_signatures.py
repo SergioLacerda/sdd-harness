@@ -267,14 +267,18 @@ def test_validate_artifact_signature_success_and_failures(tmp_path: Path) -> Non
         },
     )
 
-    with patch("sdd_runtime.signatures._verify_ed25519_signature", return_value=True):
+    with patch(
+        "sdd_runtime.signatures._validate._verify_ed25519_signature", return_value=True
+    ):
         ok = sig.validate_artifact_signature(
             artifact_path=artifact, sig_path=sig_path, strict=True, workspace_root=ws
         )
         assert ok.code == "OK"
         assert ok.ok is True
 
-    with patch("sdd_runtime.signatures._verify_ed25519_signature", return_value=False):
+    with patch(
+        "sdd_runtime.signatures._validate._verify_ed25519_signature", return_value=False
+    ):
         bad_sig = sig.validate_artifact_signature(
             artifact_path=artifact, sig_path=sig_path, strict=True, workspace_root=ws
         )
@@ -379,7 +383,9 @@ def test_validate_compiled_signatures(tmp_path: Path) -> None:
     compiled.mkdir()
     (compiled / "governance-core.json").write_text("{}", encoding="utf-8")
     (compiled / "governance-client.json").write_text("{}", encoding="utf-8")
-    with patch("sdd_runtime.signatures.validate_artifact_signature") as mocked:
+    with patch(
+        "sdd_runtime.signatures._validate.validate_artifact_signature"
+    ) as mocked:
         mocked.return_value = sig._ok()
         results = sig.validate_compiled_signatures(
             compiled, strict=False, workspace_root=tmp_path

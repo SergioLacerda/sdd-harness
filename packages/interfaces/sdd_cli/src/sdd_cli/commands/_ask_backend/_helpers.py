@@ -15,9 +15,7 @@ from typer.models import OptionInfo
 from sdd_cli.services.ask_context import (
     check_fingerprint_drift as _check_fingerprint_drift_impl,
 )
-from sdd_cli.services.ask_context import (
-    get_profile_state as _get_profile_state_impl,
-)
+from sdd_cli.services.ask_context import get_profile_state as _get_profile_state_impl
 from sdd_cli.services.ask_context import (
     load_compiled_governance as _load_compiled_governance_from_ctx,
 )
@@ -30,15 +28,9 @@ from sdd_cli.services.ask_filter import (
 from sdd_cli.services.ask_filter import (
     count_signals_from_tail as _count_signals_from_tail_impl,
 )
-from sdd_cli.services.ask_governance import (
-    GovResult as _GovResult,
-)
-from sdd_cli.services.ask_governance import (
-    fingerprint_file as _fingerprint_file_impl,
-)
-from sdd_cli.services.ask_governance import (
-    signature_mode as _signature_mode_impl,
-)
+from sdd_cli.services.ask_governance import GovResult as _GovResult
+from sdd_cli.services.ask_governance import fingerprint_file as _fingerprint_file_impl
+from sdd_cli.services.ask_governance import signature_mode as _signature_mode_impl
 from sdd_cli.services.ask_governance import (
     try_sdd_compiled_dir as _try_sdd_compiled_dir_impl,
 )
@@ -52,9 +44,7 @@ from sdd_cli.services.ask_renderer import (
     render_governance_footer as _render_governance_footer_impl,
 )
 from sdd_cli.utils.output import is_json_mode
-from sdd_cli.utils.sdd_authority import (
-    enforce_path_policy,
-)
+from sdd_cli.utils.sdd_authority import enforce_path_policy
 from sdd_cli.utils.sdd_authority import (
     resolve_workspace_root as resolve_authority_workspace_root,
 )
@@ -136,12 +126,6 @@ def _write_runtime_cache(workspace_root: Path, last_ask: dict[str, Any]) -> None
 
 
 def _runtime_drift_check(workspace_root: Path, loaded_fingerprint: str) -> bool:
-    """Return True if the loaded fingerprint differs from the cached governance state.
-
-    Compares ``loaded_fingerprint`` (current artifact) against the fingerprint
-    stored in governance-state.json from the previous run, so that a recompile
-    is detected on the next invocation.
-    """
     return _check_fingerprint_drift(workspace_root, loaded_fingerprint)
 
 

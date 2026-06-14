@@ -96,7 +96,7 @@ class TestGovernanceValidateNextStep:
         runner = CliRunner()
 
         with patch(
-            "sdd_cli.commands.governance.run_governance_validate_cmd",
+            "sdd_cli.commands._governance_command_registry.run_governance_validate_cmd",
             side_effect=RuntimeError("disk error"),
         ):
             result = runner.invoke(governance_app, ["validate"])

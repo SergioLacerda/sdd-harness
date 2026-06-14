@@ -199,7 +199,6 @@ def reconcile_registries(
         _atomic_write_json(
             workspace_root / ".sdd" / "skills" / "registry.json", skills_registry
         )
-
     return ReconciliationSummary(
         commands=command_stats, skills=skill_stats, drift_detected=drift_detected
     )

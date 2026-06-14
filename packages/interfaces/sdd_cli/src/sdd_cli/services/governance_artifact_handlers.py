@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +10,24 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from sdd_cli.services._governance_artifact_consistency import (
+    _count_items_by_type as _count_items_by_type,
+)
+from sdd_cli.services._governance_artifact_consistency import (
+    _has_malformed_titles as _has_malformed_titles,
+)
+from sdd_cli.services._governance_artifact_consistency import (
+    _load_consistency_artifacts as _load_consistency_artifacts,
+)
+from sdd_cli.services._governance_artifact_consistency import (
+    _safe_json as _safe_json,
+)
+from sdd_cli.services._governance_artifact_consistency import (
+    _validate_payload_vs_metadata as _validate_payload_vs_metadata,
+)
+from sdd_cli.services._governance_artifact_consistency import (
+    check_artifact_consistency as _check_artifact_consistency,
+)
 from sdd_cli.services.governance_payloads import (
     build_governance_compile_data,
     build_governance_generate_data,
@@ -154,99 +171,9 @@ def render_generate_table(
     )
 
 
-# ---------------------------------------------------------------------------
-# Artifact consistency checks (extracted from commands/governance.py)
-# ---------------------------------------------------------------------------
-
-
-def _safe_json(path: Path) -> dict[str, Any] | None:
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        return data if isinstance(data, dict) else None
-    except Exception:
-        return None
-
-
-def _load_consistency_artifacts(
-    compiled_dir: Path,
-) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]] | None:
-    audit_dir = compiled_dir / "audit"
-    core_json = _safe_json(compiled_dir / "governance-core.json") or _safe_json(
-        audit_dir / "governance-core.json"
-    )
-    client_json = _safe_json(compiled_dir / "governance-client.json") or _safe_json(
-        audit_dir / "governance-client.json"
-    )
-    core_meta = _safe_json(audit_dir / "metadata-core.json") or _safe_json(
-        compiled_dir / "metadata-core.json"
-    )
-    client_meta = _safe_json(audit_dir / "metadata-client-template.json") or _safe_json(
-        compiled_dir / "metadata-client-template.json"
-    )
-    if any(x is None for x in (core_json, client_json, core_meta, client_meta)):
-        return None
-    assert core_json is not None
-    assert client_json is not None
-    assert core_meta is not None
-    assert client_meta is not None
-    return core_json, client_json, core_meta, client_meta
-
-
-def _count_items_by_type(items: list[dict[str, Any]]) -> dict[str, int]:
-    counts: dict[str, int] = {}
-    for item in items:
-        item_type = str(item.get("type", "UNKNOWN")).upper()
-        counts[item_type] = counts.get(item_type, 0) + 1
-    return counts
-
-
-def _has_malformed_titles(items: list[dict[str, Any]]) -> bool:
-    for item in items:
-        title = str(item.get("title") or "").strip().lower()
-        if title.startswith("- status:"):
-            return True
-    return False
-
-
-def _validate_payload_vs_metadata(
-    payload: dict[str, Any], metadata: dict[str, Any], label: str
-) -> str | None:
-    items = payload.get("items", [])
-    if not isinstance(items, list):
-        return "invalid payload schema: items must be a list"
-    if payload.get("fingerprint") != metadata.get("fingerprint"):
-        return f"{label} fingerprint mismatch between payload and metadata"
-    if int(metadata.get("item_count", -1)) != len(items):
-        return f"{label} item_count mismatch"
-    if _count_items_by_type(items) != dict(metadata.get("items_by_type", {})):
-        return f"{label} items_by_type mismatch"
-    if label == "core" and _has_malformed_titles(items):
-        return "malformed mandate title detected"
-    return None
-
-
 def check_artifact_consistency(path: str) -> tuple[bool, str]:
-    """Cross-check compiled governance JSON and metadata consistency."""
-    compiled_dir = resolve_governance_compiled_dir(path)
-    if compiled_dir is None:
-        return (
-            False,
-            f"could not resolve compiled governance directory at {path} (check path policy or missing artifacts)",
-        )
-    loaded = _load_consistency_artifacts(compiled_dir)
-    if loaded is None:
-        return False, "missing governance JSON or metadata artifacts"
-    core_json, client_json, core_meta, client_meta = loaded
-
-    core_issue = _validate_payload_vs_metadata(core_json, core_meta, "core")
-    if core_issue:
-        return False, core_issue
-    client_issue = _validate_payload_vs_metadata(client_json, client_meta, "client")
-    if client_issue:
-        return False, client_issue
-    if client_json.get("fingerprint_core_salt") != client_meta.get(
-        "fingerprint_core_salt"
-    ):
-        return False, "client fingerprint_core_salt mismatch"
-
-    return True, "ok"
+    """Check compiled governance artifacts for consistency issues."""
+    return _check_artifact_consistency(
+        path,
+        resolve_compiled_dir_fn=resolve_governance_compiled_dir,
+    )

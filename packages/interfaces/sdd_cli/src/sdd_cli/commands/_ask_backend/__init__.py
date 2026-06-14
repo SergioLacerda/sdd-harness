@@ -72,8 +72,6 @@ from ._helpers import (  # noqa: E402
 )
 from ._helpers import _normalize_typer_value as _normalize_typer_value  # noqa: E402
 from ._pipeline import (  # noqa: E402
-    _emit_state_warnings,
-    _run_organize_intake,
     _should_use_organize,
     ask_cmd,
     build_governed_ask_snapshot,
@@ -81,6 +79,10 @@ from ._pipeline import (  # noqa: E402
 )
 from ._pipeline_runtime import _ask_cmd_impl as _ask_cmd_impl  # noqa: E402
 from ._pipeline_runtime import _check_budget_zone_and_compress  # noqa: E402
+from ._pipeline_session import (  # noqa: E402
+    _emit_state_warnings,
+    _run_organize_intake,
+)
 from ._telemetry import (  # noqa: E402
     OtelBridge,
     OtlpHttpExporter,

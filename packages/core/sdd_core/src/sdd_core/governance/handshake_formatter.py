@@ -4,21 +4,13 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from ._handshake_constants import STATES
+
 
 class HandshakeFormatter:
     """Formats handshake validation results."""
 
-    # State definitions
-    STATES = {
-        "NOT_CONNECTED": {"emoji": "X", "description": "No governance detected"},
-        "MISCONFIGURED": {"emoji": "!", "description": "Governance broken/invalid"},
-        "NOT_INITIALIZED": {
-            "emoji": "!",
-            "description": "Setup incomplete (PHASE 0 needed)",
-        },
-        "PARTIAL": {"emoji": "~", "description": "Runtime incomplete"},
-        "HEALTHY": {"emoji": "+", "description": "Fully operational"},
-    }
+    STATES = STATES
 
     def __init__(self) -> None:
         """Initialize formatter."""

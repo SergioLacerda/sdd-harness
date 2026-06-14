@@ -19,6 +19,13 @@ from sdd_cli.generators.agent_seeds import (
     generate_agent_prompt_commands,
     generate_agent_seeds,
 )
+from sdd_cli.services._skills_resolver_support import (
+    bootstrap_summary,
+    emit_bootstrap_error,
+    emit_bootstrap_text_summary,
+    run_bootstrap_generation,
+    run_bootstrap_generation_with_fallback,
+)
 from sdd_cli.services.registry_reconciliation import reconcile_registries
 from sdd_cli.services.skills_seed_reconciler import (
     _read_registry_ids as _read_registry_ids,
@@ -42,10 +49,7 @@ def _generate_adapters(output_base: Path) -> tuple[int, str | None]:
 
 
 def validate_and_load_governance(
-    compiled_path: Path,
-    *,
-    output_json: bool,
-    emit_fn: Callable[..., None],
+    compiled_path: Path, *, output_json: bool, emit_fn: Callable[..., None]
 ) -> dict[str, Any]:
     """Validate governance path and load config; raises typer.Exit(1) on failure."""
     if not validate_governance_path(str(compiled_path)):
@@ -54,19 +58,13 @@ def validate_and_load_governance(
             "Run step 2 first: sdd governance generate --full-bootstrap"
         )
         if output_json:
-            emit_fn(
-                command="skills full-bootstrap",
-                data={
-                    "state": "error",
-                    "policy_result": "missing_governance_artifacts",
-                    "reason": message,
-                    "error": {"type": "ValueError", "message": message},
-                    "exit_code": 1,
-                },
-                ok=False,
+            emit_bootstrap_error(
+                output_json=output_json,
+                emit_fn=emit_fn,
                 error_code="missing_governance_artifacts",
+                reason=message,
+                error_type="ValueError",
                 error_message=message,
-                err=True,
             )
         else:
             typer.echo(f"ERROR: {message}", err=True)
@@ -79,19 +77,13 @@ def validate_and_load_governance(
             "Run step 2 first: sdd governance generate --full-bootstrap"
         )
         if output_json:
-            emit_fn(
-                command="skills full-bootstrap",
-                data={
-                    "state": "error",
-                    "policy_result": "missing_governance_items",
-                    "reason": message,
-                    "error": {"type": "ValueError", "message": message},
-                    "exit_code": 1,
-                },
-                ok=False,
+            emit_bootstrap_error(
+                output_json=output_json,
+                emit_fn=emit_fn,
                 error_code="missing_governance_items",
+                reason=message,
+                error_type="ValueError",
                 error_message=message,
-                err=True,
             )
         else:
             typer.echo(f"ERROR: {message}", err=True)
@@ -100,10 +92,7 @@ def validate_and_load_governance(
 
 
 def handle_adapter_error(
-    adapter_error: str,
-    *,
-    output_json: bool,
-    emit_fn: Callable[..., None],
+    adapter_error: str, *, output_json: bool, emit_fn: Callable[..., None]
 ) -> None:
     """Emit adapter error and raise typer.Exit(1)."""
     message = (
@@ -111,20 +100,14 @@ def handle_adapter_error(
         "Fix adapters/templates and retry."
     )
     if output_json:
-        emit_fn(
-            command="skills full-bootstrap",
-            data={
-                "state": "error",
-                "policy_result": "adapter_generation_failed",
-                "reason": message,
-                "error": {"type": "RuntimeError", "message": adapter_error},
-                "exit_code": 1,
-                "details": {"error": adapter_error},
-            },
-            ok=False,
+        emit_bootstrap_error(
+            output_json=output_json,
+            emit_fn=emit_fn,
             error_code="adapter_generation_failed",
+            reason=message,
+            error_type="RuntimeError",
             error_message=adapter_error,
-            err=True,
+            details={"error": adapter_error},
         )
     else:
         typer.echo(f"ERROR: {message}", err=True)
@@ -133,11 +116,7 @@ def handle_adapter_error(
 
 
 def run_reconcile(
-    output_base: Path,
-    *,
-    dry_run: bool,
-    output_json: bool,
-    emit_fn: Callable[..., None],
+    output_base: Path, *, dry_run: bool, output_json: bool, emit_fn: Callable[..., None]
 ) -> tuple[int, int]:
     """Run seed reconciliation; raises typer.Exit(1) on failure."""
     try:
@@ -148,20 +127,14 @@ def run_reconcile(
     except Exception as exc:
         message = "seed reconciliation failed. Ensure canonical registries are valid and retry."
         if output_json:
-            emit_fn(
-                command="skills full-bootstrap",
-                data={
-                    "state": "error",
-                    "policy_result": "seed_reconciliation_failed",
-                    "reason": message,
-                    "error": {"type": type(exc).__name__, "message": str(exc)},
-                    "exit_code": 1,
-                    "details": {"error": str(exc)},
-                },
-                ok=False,
+            emit_bootstrap_error(
+                output_json=output_json,
+                emit_fn=emit_fn,
                 error_code="seed_reconciliation_failed",
+                reason=message,
+                error_type=type(exc).__name__,
                 error_message=str(exc),
-                err=True,
+                details={"error": str(exc)},
             )
         else:
             typer.echo(f"ERROR: {message}", err=True)
@@ -184,20 +157,29 @@ def run_full_bootstrap(
     )
 
     output_base = Path(ws_root)
-    seeds_dir = output_base / ".vscode" / "agents"
-    try:
-        seeds_info = generate_agent_seeds(seeds_dir, config)
-    except OSError:
-        seeds_dir = output_base / ".sdd" / "agents"
-        seeds_info = generate_agent_seeds(seeds_dir, config)
-
-    generate_agent_instruction_files(output_base, config)
-    generate_agent_prompt_commands(output_base, config)
-    skills_result = generate_skills_registry(str(output_base), config)
-    commands_result = generate_commands_registry(str(output_base), config)
-    reconciliation_summary = reconcile_registries(output_base)
-    skill_index_result = generate_skill_index(str(output_base), config)
-    cli_index_result = generate_cli_commands_index(str(output_base), config)
+    (
+        seeds_dir,
+        seeds_info,
+        skills_result,
+        commands_result,
+        reconciliation_summary,
+        skill_index_result,
+        cli_index_result,
+    ) = run_bootstrap_generation_with_fallback(
+        output_base=output_base,
+        config=config,
+        run_bootstrap_generation_fn=lambda **kwargs: run_bootstrap_generation(
+            **kwargs,
+            generate_agent_seeds_fn=generate_agent_seeds,
+            generate_agent_instruction_files_fn=generate_agent_instruction_files,
+            generate_agent_prompt_commands_fn=generate_agent_prompt_commands,
+            generate_skills_registry_fn=generate_skills_registry,
+            generate_commands_registry_fn=generate_commands_registry,
+            reconcile_registries_fn=reconcile_registries,
+            generate_skill_index_fn=generate_skill_index,
+            generate_cli_commands_index_fn=generate_cli_commands_index,
+        ),
+    )
 
     adapter_targets, adapter_error = _generate_adapters(output_base)
     if adapter_error is not None:
@@ -218,40 +200,37 @@ def run_full_bootstrap(
                 "policy_result": "skills_full_bootstrap_completed",
                 "reason": "generated all available skills/commands/seeds artifacts",
                 "exit_code": 0,
-                "summary": {
-                    "workspace": str(output_base),
-                    "compiled_path": str(compiled_path),
-                    "seeds_dir": str(seeds_dir),
-                    "seed_files": len(seeds_info),
-                    "skills_count": int(skills_result.get("skill_count", 0)),
-                    "commands_count": int(commands_result.get("command_count", 0)),
-                    "skill_index_count": int(skill_index_result.get("skill_count", 0)),
-                    "cli_index_count": int(cli_index_result.get("command_count", 0)),
-                    "adapter_targets": adapter_targets,
-                    "registry_reconciliation": reconciliation_summary.as_json(),
-                    "seeds_deleted": deleted_count,
-                    "seeds_would_delete": would_delete_count,
-                    "dry_run": dry_run,
-                },
+                "summary": bootstrap_summary(
+                    output_base=output_base,
+                    compiled_path=compiled_path,
+                    seeds_dir=seeds_dir,
+                    seeds_info=seeds_info,
+                    skills_result=skills_result,
+                    commands_result=commands_result,
+                    skill_index_result=skill_index_result,
+                    cli_index_result=cli_index_result,
+                    adapter_targets=adapter_targets,
+                    reconciliation_summary=reconciliation_summary,
+                    deleted_count=deleted_count,
+                    would_delete_count=would_delete_count,
+                    dry_run=dry_run,
+                ),
             },
             ok=True,
         )
         return
 
-    typer.echo("skills full bootstrap completed")
-    typer.echo(f"- workspace: {output_base}")
-    typer.echo(f"- compiled: {compiled_path}")
-    typer.echo(f"- seeds dir: {seeds_dir}")
-    typer.echo(f"- seed files: {len(seeds_info)}")
-    typer.echo(f"- skills: {int(skills_result.get('skill_count', 0))}")
-    typer.echo(f"- commands: {int(commands_result.get('command_count', 0))}")
-    typer.echo(
-        "- registries reconciled: "
-        f"commands(+{reconciliation_summary.commands['added']}/-{reconciliation_summary.commands['removed']}), "
-        f"skills(+{reconciliation_summary.skills['added']}/-{reconciliation_summary.skills['removed']})"
+    emit_bootstrap_text_summary(
+        output_base=output_base,
+        compiled_path=compiled_path,
+        seeds_dir=seeds_dir,
+        seeds_info=seeds_info,
+        skills_result=skills_result,
+        commands_result=commands_result,
+        reconciliation_summary=reconciliation_summary,
+        regenerate_seeds=regenerate_seeds,
+        dry_run=dry_run,
+        deleted_count=deleted_count,
+        would_delete_count=would_delete_count,
+        echo_fn=typer.echo,
     )
-    if regenerate_seeds:
-        if dry_run:
-            typer.echo(f"- stale seeds to delete (dry-run): {would_delete_count}")
-        else:
-            typer.echo(f"- stale seeds deleted: {deleted_count}")

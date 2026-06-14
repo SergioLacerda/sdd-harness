@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-06-12T22:54:08.860926Z",
+  "targets": {
+    "registry_lookup_p95_us": 10.0,
+    "deduplicate_cold_p95_us": 100.0,
+    "deduplicate_warm_p95_us": 12.0,
+    "cached_timestamp_p95_us": 1.0
+  },
+  "registry": {
+    "iterations": 20000,
+    "timestamp_match": {
+      "min_us": 0.836,
+      "p50_us": 0.889,
+      "p95_us": 0.956,
+      "max_us": 48.255,
+      "mean_us": 0.916
+    },
+    "uuid_match": {
+      "min_us": 1.065,
+      "p50_us": 1.114,
+      "p95_us": 1.187,
+      "max_us": 12.761,
+      "mean_us": 1.126
+    },
+    "miss": {
+      "min_us": 0.22,
+      "p50_us": 0.248,
+      "p95_us": 0.275,
+      "max_us": 8.593,
+      "mean_us": 0.25
+    }
+  },
+  "deduplication": {
+    "iterations": 5000,
+    "warm_cache_hit": {
+      "min_us": 7.735,
+      "p50_us": 7.992,
+      "p95_us": 8.17,
+      "max_us": 32.268,
+      "mean_us": 8.027
+    },
+    "cold_engine": {
+      "min_us": 79.303,
+      "p50_us": 80.787,
+      "p95_us": 83.409,
+      "max_us": 184.78,
+      "mean_us": 81.3
+    }
+  },
+  "timestamp_helper": {
+    "iterations": 20000,
+    "cached_timestamp": {
+      "min_us": 0.185,
+      "p50_us": 0.206,
+      "p95_us": 0.234,
+      "max_us": 6.817,
+      "mean_us": 0.209
+    },
+    "new_timestamp": {
+      "min_us": 0.185,
+      "p50_us": 0.206,
+      "p95_us": 0.234,
+      "max_us": 25.102,
+      "mean_us": 0.209
+    }
+  }
+}

@@ -89,7 +89,6 @@ def list_missions(
     if not any_mission:
         typer.echo("No analysis missions found.")
         return
-
     for state in _STATES:
         items = missions[state]
         typer.echo(f"\n[{state.upper()}]")
@@ -211,11 +210,7 @@ def clean_missions(
             {
                 "command": "analysis clean",
                 "ok": True,
-                "data": {
-                    "removed": count,
-                    "dry_run": dry_run,
-                    "files": removed,
-                },
+                "data": {"removed": count, "dry_run": dry_run, "files": removed},
             }
         )
         return

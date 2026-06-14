@@ -1,0 +1,20 @@
+"""Shared constants and reason codes for skill execution."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+
+MIN_DIAGNOSIS_CONFIDENCE_DEFAULT = 0.80
+ATTESTATION_TTL_MINUTES_DEFAULT = 30
+CONVERGENCE_FREEZE_ALIGNMENT_THRESHOLD = 0.60
+REASON_CODE_CONTRACT_MISSING_OR_INVALID = "contract.missing_or_invalid"
+REASON_CODE_DIAGNOSIS_MISSING = "diagnosis.missing"
+REASON_CODE_DIAGNOSIS_INCONCLUSIVE = "diagnosis.inconclusive"
+REASON_CODE_DIAGNOSIS_STALE = "diagnosis.stale"
+REASON_CODE_SCOPE_VIOLATION = "scope.violation"
+REASON_CODE_EVIDENCE_INSUFFICIENT = "evidence.insufficient"
+REASON_CODE_RULE_BLOCKED = "rule.blocked"
+REASON_CODE_CONVERGENCE_FREEZE = "convergence.freeze_mode_active"
+REASON_CODE_GATE_RULES_INVALID = "gate.rules.invalid"
+
+_FooterFn = Callable[[str, str], str]

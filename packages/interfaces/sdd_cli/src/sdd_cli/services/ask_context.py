@@ -13,9 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from sdd_cli.services.ask_governance import (
-    GovResult,
-)
+from sdd_cli.services.ask_governance import GovResult
 from sdd_cli.services.ask_governance import (
     load_compiled_governance as _load_compiled_governance_impl,
 )
@@ -163,8 +161,7 @@ def write_runtime_cache(workspace_root: Path, last_ask: dict[str, Any]) -> None:
 
 
 def load_ask_context(
-    workspace_root: Path | None = None,
-    profile: str | None = None,
+    workspace_root: Path | None = None, profile: str | None = None
 ) -> AskContext:
     """Load and return the complete workspace context for an ask invocation.
 

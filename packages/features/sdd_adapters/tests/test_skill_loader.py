@@ -122,6 +122,21 @@ class TestSkillLoader:
         commands = loader.load_commands(tmp_path / ".sdd")
         assert commands == []
 
+    def test_load_commands_skips_missing_yaml(self, tmp_path: Path) -> None:
+        commands_dir = tmp_path / ".sdd" / "commands"
+        commands_dir.mkdir(parents=True)
+        registry = {
+            "schema_version": "1.0.0",
+            "commands": [{"id": "ghost", "slash": "/ghost"}],
+        }
+        (commands_dir / "registry.json").write_text(
+            json.dumps(registry), encoding="utf-8"
+        )
+
+        loader = SkillLoader()
+        commands = loader.load_commands(tmp_path / ".sdd")
+        assert commands == []
+
     def test_load_skills_reads_skill_md_when_present(self, sdd_dir: Path) -> None:
         skill_dir = sdd_dir / "skills" / "diagnose"
         (skill_dir / "SKILL.md").write_text(
@@ -130,6 +145,36 @@ class TestSkillLoader:
         loader = SkillLoader()
         skills = loader.load_skills(sdd_dir)
         assert skills[0].get("skill_md") == "# Diagnose\nDetailed docs."
+
+    def test_load_skills_skips_unsafe_yaml_path(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        sdd = tmp_path / ".sdd"
+        skills_dir = sdd / "skills"
+        skills_dir.mkdir(parents=True)
+        registry = {"schema_version": "1.0.0", "skills": [{"name": "unsafe"}]}
+        (skills_dir / "registry.json").write_text(
+            json.dumps(registry), encoding="utf-8"
+        )
+        monkeypatch.setattr("sdd_adapters.skill_loader._safe_path", lambda *_args: None)
+
+        loader = SkillLoader()
+        assert loader.load_skills(sdd) == []
+
+    def test_load_commands_skips_unsafe_yaml_path(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        sdd = tmp_path / ".sdd"
+        commands_dir = sdd / "commands"
+        commands_dir.mkdir(parents=True)
+        registry = {"schema_version": "1.0.0", "commands": [{"id": "unsafe"}]}
+        (commands_dir / "registry.json").write_text(
+            json.dumps(registry), encoding="utf-8"
+        )
+        monkeypatch.setattr("sdd_adapters.skill_loader._safe_path", lambda *_args: None)
+
+        loader = SkillLoader()
+        assert loader.load_commands(sdd) == []
 
 
 class TestSafePath:
@@ -145,3 +190,14 @@ class TestSafePath:
         candidate = tmp_path / "skills" / "diagnose" / "skill.yaml"
         resolved = _safe_path(candidate, tmp_path)
         assert resolved == candidate.resolve()
+
+    def test_safe_path_returns_none_on_resolve_error(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        candidate = tmp_path / "skills" / "diagnose" / "skill.yaml"
+
+        def _boom() -> Path:
+            raise OSError("bad path")
+
+        monkeypatch.setattr(Path, "resolve", lambda self: _boom())  # type: ignore[method-assign]
+        assert _safe_path(candidate, tmp_path) is None

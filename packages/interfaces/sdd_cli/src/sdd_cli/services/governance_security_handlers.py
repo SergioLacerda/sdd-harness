@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-import base64
-import contextlib
-import hashlib
-import json as _json
-import tempfile
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 import typer
 from rich.console import Console
+
+from sdd_cli.services._governance_security_support import (
+    perform_artifact_signing_flow,
+    resolve_compiled_dir_path,
+    resolve_sign_targets,
+    update_trusted_keyring_flow,
+)
 
 
 def run_keygen(*, key_id: str, output_dir: str, console: Console) -> None:
@@ -54,24 +54,13 @@ def resolve_compiled_dir(
     """Resolve compiled governance directory with profile-aware fallback."""
     from sdd_core.utils.environment import get_sdd_paths, resolve_profile
 
-    c_dir = Path(compiled_dir) if compiled_dir else ws_root / ".sdd" / "compiled"
-    if not c_dir.exists():
-        try:
-            active_profile = resolve_profile(root=ws_root).type
-        except Exception:
-            active_profile = "master"
-        paths = get_sdd_paths()
-        c_dir = (
-            paths["master_compiled"]
-            if active_profile == "master"
-            else paths["client_compiled"]
-        )
-
-    if not c_dir.exists():
-        console.print(f"[red]ERROR: Compiled directory not found: {c_dir}[/red]")
-        console.print("  Hint: Run 'sdd governance compile' first.")
-        raise typer.Exit(1)
-    return c_dir
+    return resolve_compiled_dir_path(
+        ws_root=ws_root,
+        compiled_dir=compiled_dir,
+        console=console,
+        resolve_profile_fn=resolve_profile,
+        get_sdd_paths_fn=get_sdd_paths,
+    )
 
 
 def _perform_artifact_signing(
@@ -79,91 +68,25 @@ def _perform_artifact_signing(
 ) -> int:
     from sdd_core.utils.process import SafeProcessRunner
 
-    runner = SafeProcessRunner()
-    signed_count = 0
-
-    for filename in targets:
-        target_path = c_dir / filename
-        if not target_path.exists():
-            continue
-
-        sig_path = target_path.with_suffix(target_path.suffix + ".sig")
-        payload = target_path.read_bytes()
-        payload_hash = hashlib.sha256(payload).hexdigest()
-
-        with tempfile.TemporaryDirectory(prefix="sdd-sign-") as td:
-            msg_path = Path(td) / "msg.bin"
-            sig_raw_path = Path(td) / "sig.bin"
-            msg_path.write_bytes(payload_hash.encode("utf-8"))
-            runner.run(
-                [
-                    "openssl",
-                    "pkeyutl",
-                    "-sign",
-                    "-inkey",
-                    str(k_path),
-                    "-rawin",
-                    "-in",
-                    str(msg_path),
-                    "-out",
-                    str(sig_raw_path),
-                ],
-                check=True,
-            )
-            signature_b64 = base64.b64encode(sig_raw_path.read_bytes()).decode("utf-8")
-
-        manifest = {
-            "schema_version": "1.0",
-            "algorithm": "ed25519",
-            "key_id": key_id,
-            "artifact_name": filename,
-            "profile": "master" if "core" in filename else "client",
-            "payload_hash": payload_hash,
-            "signature": signature_b64,
-            "signed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        }
-        sig_path.write_text(_json.dumps(manifest, indent=2), encoding="utf-8")
-        console.print(f"[green]Signed {filename} -> {sig_path.name}[/green]")
-        signed_count += 1
-    return signed_count
+    return perform_artifact_signing_flow(
+        c_dir=c_dir,
+        k_path=k_path,
+        key_id=key_id,
+        targets=targets,
+        console=console,
+        runner=SafeProcessRunner(),
+    )
 
 
 def _update_trusted_keyring(
     *, ws_root: Path, k_path: Path, key_id: str, console: Console
 ) -> None:
-    trust_dir = ws_root / ".sdd" / "trust"
-    trust_dir.mkdir(parents=True, exist_ok=True)
-    keyring_path = trust_dir / "trusted-keys.json"
-
-    pub_key_path = k_path.with_suffix(".pub.pem")
-    if not pub_key_path.exists():
-        return
-
-    pub_pem = pub_key_path.read_text(encoding="utf-8")
-    keyring: dict[str, Any] = {"keys": []}
-    if keyring_path.exists():
-        with contextlib.suppress(Exception):
-            keyring = _json.loads(keyring_path.read_text(encoding="utf-8"))
-
-    keys = keyring.setdefault("keys", [])
-    existing = next((k for k in keys if k.get("key_id") == key_id), None)
-    if existing:
-        existing["public_key_pem"] = pub_pem
-        existing["status"] = "active"
-    else:
-        keys.append(
-            {
-                "key_id": key_id,
-                "public_key_pem": pub_pem,
-                "status": "active",
-                "not_before": datetime.now(timezone.utc)
-                .isoformat()
-                .replace("+00:00", "Z"),
-            }
-        )
-
-    keyring_path.write_text(_json.dumps(keyring, indent=2), encoding="utf-8")
-    console.print(f"[green]Updated keyring at {keyring_path}[/green]")
+    update_trusted_keyring_flow(
+        ws_root=ws_root,
+        k_path=k_path,
+        key_id=key_id,
+        console=console,
+    )
 
 
 def run_sign(
@@ -213,15 +136,13 @@ def run_sign_cmd(
 
     ws_root = resolve_workspace_root()
     ws_root = enforce_path_policy(ws_root, workspace_root=ws_root, mode="normal")
-
-    if source:
-        target_dir = ws_root / ".sdd" / "source"
-        targets = ["governance-core.json"]
-    else:
-        target_dir = resolve_compiled_dir(
-            ws_root=ws_root, compiled_dir=compiled_dir, console=console
-        )
-        targets = ["governance-core.json", "governance-client.json"]
+    target_dir, targets = resolve_sign_targets(
+        ws_root=ws_root,
+        source=source,
+        compiled_dir=compiled_dir,
+        console=console,
+        resolve_compiled_dir_fn=resolve_compiled_dir,
+    )
 
     run_sign(
         key_id=key_id,
