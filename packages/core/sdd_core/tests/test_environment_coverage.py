@@ -9,6 +9,7 @@ import pytest
 from sdd_core.utils.environment import (
     WorkspaceNotInitializedError,
     detect_profile,
+    find_workspace_root,
     get_profile_context,
     get_project_config,
     resolve_profile,
@@ -55,6 +56,38 @@ class TestVenvPaths:
         assert result == sdd_exe
         assert result.exists()
 
+    def test_resolve_venv_python_linux_path(self, tmp_path):
+        """Verify resolve_venv_python finds the Linux bin/python executable."""
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        python_bin = bin_dir / "python"
+        python_bin.touch()
+
+        result = resolve_venv_python(tmp_path)
+
+        assert result == python_bin
+
+    def test_resolve_venv_sdd_linux_path(self, tmp_path):
+        """Verify resolve_venv_sdd finds the Linux bin/sdd executable."""
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        sdd_bin = bin_dir / "sdd"
+        sdd_bin.touch()
+
+        result = resolve_venv_sdd(tmp_path)
+
+        assert result == sdd_bin
+
+
+class TestFindWorkspaceRoot:
+    """Test workspace root discovery."""
+
+    def test_find_workspace_root_returns_none_when_no_sdd_dir(self, tmp_path):
+        """Verify find_workspace_root returns None when no .sdd/ is found up the tree."""
+        result = find_workspace_root(tmp_path)
+
+        assert result is None
+
 
 class TestDetectProfile:
     """Test profile detection with fallback behavior."""
@@ -97,6 +130,18 @@ class TestResolveProfile:
         """Verify resolve_profile raises WorkspaceNotInitializedError when no .sdd/ exists."""
         with pytest.raises(WorkspaceNotInitializedError):
             resolve_profile(root=tmp_path)
+
+    def test_resolve_profile_raises_when_root_none_and_no_workspace_found(
+        self, monkeypatch
+    ):
+        """Verify resolve_profile raises when root is omitted and no workspace is discoverable."""
+        monkeypatch.setattr(
+            "sdd_core.utils._environment_workspace.find_workspace_root",
+            lambda *args, **kwargs: None,
+        )
+
+        with pytest.raises(WorkspaceNotInitializedError):
+            resolve_profile()
 
     def test_resolve_profile_raises_when_no_profile_file(self, tmp_path):
         """Verify resolve_profile raises when .sdd/ exists but profile file missing."""

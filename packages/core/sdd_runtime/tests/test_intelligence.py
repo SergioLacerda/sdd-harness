@@ -112,6 +112,25 @@ class TestLocalProviderIdentity:
         assert isinstance(LocalIntelligenceProvider(), IntelligenceProvider)
 
 
+class TestIntelligenceProviderProtocolStubs:
+    """Protocol method bodies are unreachable stubs; call them directly for coverage."""
+
+    def test_name_stub_returns_none(self) -> None:
+        assert IntelligenceProvider.name.fget(None) is None
+
+    def test_available_stub_returns_none(self) -> None:
+        assert IntelligenceProvider.available.fget(None) is None
+
+    def test_analyze_task_stub_returns_none(self) -> None:
+        assert IntelligenceProvider.analyze_task(None, None) is None
+
+    def test_compress_context_stub_returns_none(self) -> None:
+        assert IntelligenceProvider.compress_context(None, None) is None
+
+    def test_estimate_budget_stub_returns_none(self) -> None:
+        assert IntelligenceProvider.estimate_budget(None, None) is None
+
+
 # ---------------------------------------------------------------------------
 # LocalIntelligenceProvider — analyze_task task class
 # ---------------------------------------------------------------------------

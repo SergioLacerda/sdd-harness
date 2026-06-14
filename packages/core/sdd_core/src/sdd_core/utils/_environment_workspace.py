@@ -6,14 +6,13 @@ import configparser
 import os
 import uuid
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 from ._environment_models import (
     ProfileContext,
     SddProfile,
     WorkspaceNotInitializedError,
 )
-from ._environment_repo import detect_repo_root
 
 
 def _workspace_root_from_env() -> Path | None:
@@ -30,59 +29,6 @@ def find_workspace_root(start: Path | None = None) -> Path | None:
         if (candidate / ".sdd").is_dir():
             return candidate
     return None
-
-
-def get_sdd_paths(
-    *,
-    repo_root: Path | None = None,
-    workspace_root: Path | None = None,
-) -> dict[str, Path]:
-    """Resolve standard SDD paths for framework repo and client workspaces."""
-    if repo_root is None:
-        try:
-            resolved_repo_root = detect_repo_root()
-        except RuntimeError:
-            resolved_repo_root = Path.cwd().resolve()
-    else:
-        resolved_repo_root = repo_root.resolve()
-
-    resolved_workspace_root = (
-        workspace_root.resolve()
-        if workspace_root is not None
-        else _workspace_root_from_env() or find_workspace_root() or resolved_repo_root
-    )
-    generated = resolved_workspace_root / "generated"
-    isolated = _workspace_root_from_env() is not None and os.environ.get(
-        "SDD_TEST_ISOLATED_WORKSPACE", ""
-    ).strip().lower() in {"1", "true", "yes", "on"}
-    source_spec = (
-        resolved_workspace_root / ".sdd" / "source"
-        if (not isolated and (resolved_workspace_root / ".sdd" / "source").exists())
-        else generated / "client" / "build" / "docs-meta"
-    )
-
-    return {
-        "root": resolved_workspace_root,
-        "repo_root": resolved_repo_root,
-        "workspace_root": resolved_workspace_root,
-        "generated": generated,
-        "master": generated / "master",
-        "master_compiled": generated / "master" / "compiled",
-        "master_build": generated / "master" / "build",
-        "master_context": generated / "master" / "context",
-        "client": generated / "client",
-        "client_compiled": generated / "client" / "compiled",
-        "client_build": generated / "client" / "build",
-        "client_context": generated / "client" / "context",
-        "docs_meta": generated / "client" / "build" / "docs-meta",
-        "source_spec": source_spec,
-        "packages": resolved_repo_root / "packages",
-        "core_pkg": resolved_repo_root / "packages" / "core" / "sdd_core",
-        "tools": resolved_repo_root / "tools",
-        "scripts": resolved_repo_root / "scripts",
-        "compiler_output": generated / "master" / "compiled",
-        "wizard_runtime": generated / "client" / "compiled",
-    }
 
 
 def resolve_venv_python(venv_dir: Path) -> Path:
@@ -155,22 +101,6 @@ def detect_profile(root: Path | None = None) -> SddProfile:
         return resolve_profile(root=root).type
     except WorkspaceNotInitializedError:
         return "client"
-
-
-def get_profile_context(profile: SddProfile | None = None) -> dict[str, Any]:
-    try:
-        root = detect_repo_root()
-    except RuntimeError:
-        root = Path.cwd()
-
-    active_profile: SddProfile = profile or detect_profile(root)
-    return {
-        "profile": active_profile,
-        "root": root,
-        "paths": get_sdd_paths(),
-        "is_master": active_profile == "master",
-        "is_client": active_profile == "client",
-    }
 
 
 def write_profile(root: Path, profile_type: SddProfile, name: str) -> ProfileContext:
