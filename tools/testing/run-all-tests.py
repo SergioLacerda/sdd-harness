@@ -64,9 +64,19 @@ TEST_LAYERS = [
         "Package: sdd_telemetry", "packages/core/sdd_telemetry/tests", "Telemetry tests"
     ),
     TestLayer(
+        "Package: sdd_adapters",
+        "packages/features/sdd_adapters/tests",
+        "Adapter generation tests",
+    ),
+    TestLayer(
         "Package: sdd_integration",
         "packages/features/sdd_integration/tests",
         "Integration tests",
+    ),
+    TestLayer(
+        "Package: sdd_skills",
+        "packages/features/sdd_skills/tests",
+        "Skill contract tests",
     ),
     TestLayer(
         "Package: sdd_wizard",

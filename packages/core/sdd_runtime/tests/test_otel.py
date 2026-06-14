@@ -417,6 +417,15 @@ class TestOtelExporterProtocol:
         exporter = OtlpHttpExporter(endpoint="http://localhost:4318/v1/traces")
         assert isinstance(exporter, OtelExporter)
 
+    def test_export_stub_returns_none(self) -> None:
+        assert (
+            OtelExporter.export(None, _event(), OtelAttributes.from_event(_event()))
+            is None
+        )
+
+    def test_shutdown_stub_returns_none(self) -> None:
+        assert OtelExporter.shutdown(None) is None
+
 
 # ---------------------------------------------------------------------------
 # OtelAttributes — Token Economy namespace coverage

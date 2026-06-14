@@ -85,8 +85,7 @@ def _build_language_governance_advisories(
             "status": "pass" if has_language_guidelines else "warn",
             "message": "Universal language preference guidelines are present."
             if has_language_guidelines
-            else "Language preference guidelines were not found in "
-            ".sdd/source/guidelines.dsl or .sdd/source/guidelines/*.md.",
+            else "Language preference guidelines were not found in .sdd/source/guidelines.dsl or .sdd/source/guidelines/*.md.",
         }
     )
 

@@ -2,51 +2,56 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 from sdd_runtime.skills import _REGISTRY
 
+from sdd_wizard.orchestration.seedlings._agent_instructions_content import (
+    build_agent_instructions_content,
+)
+from sdd_wizard.templates._agent_instructions_template import build_agent_instructions
+from sdd_wizard.templates._hard_mode_rules import HARD_MODE_RULES_SECTION
+
 pytestmark = pytest.mark.unit
 
-_REPO_ROOT = Path(__file__).parent.parent.parent
 _CONTROLLED_SKILLS = ["sdd-ask", "sdd-converge", "sdd-correct", "sdd-stabilize"]
 
-_GOVERNANCE_SEEDS = (
-    _REPO_ROOT
-    / "packages"
-    / "interfaces"
-    / "sdd_wizard"
-    / "src"
-    / "sdd_wizard"
-    / "orchestration"
-    / "seedlings"
-    / "governance_seeds.py"
+_RENDERED_CONTENT = build_agent_instructions_content(
+    fingerprint="deadbeef",
+    generated_at="2026-06-14T00:00:00Z",
+    mandate_count=1,
+    ids_preview="M001",
+    mandates_list="- M001: Example",
+)
+_RENDERED_TEMPLATE = build_agent_instructions(
+    spec_fingerprint="deadbeef",
+    generated_at="2026-06-14T00:00:00Z",
+    mandates_list="- M001: Example",
 )
 
 
 class TestAgentInstructionsTemplate:
-    def test_governance_mode_section_present_in_template(self):
-        """governance_seeds.py template contains ## Governance Mode section."""
-        source = _GOVERNANCE_SEEDS.read_text(encoding="utf-8")
-        assert "## Governance Mode" in source
+    @pytest.mark.parametrize("rendered", [_RENDERED_CONTENT, _RENDERED_TEMPLATE])
+    def test_governance_mode_section_present_in_template(self, rendered: str):
+        """Both generators render the shared ## Governance Mode section."""
+        assert "## Governance Mode" in rendered
+        assert HARD_MODE_RULES_SECTION in rendered
 
-    def test_hard_mode_rule1_gate_present(self):
-        """Rule 1 (execution_gate=blocked → STOP) is in the template."""
-        source = _GOVERNANCE_SEEDS.read_text(encoding="utf-8")
-        assert "execution_gate" in source
-        assert "blocked" in source
+    @pytest.mark.parametrize("rendered", [_RENDERED_CONTENT, _RENDERED_TEMPLATE])
+    def test_hard_mode_rule1_gate_present(self, rendered: str):
+        """Rule 1 (execution_gate=blocked → STOP) is in the rendered output."""
+        assert "execution_gate" in rendered
+        assert "blocked" in rendered
 
-    def test_hard_mode_rule2_git_authorization_present(self):
-        """Rule 2 (git commands blocked without authorization) is in the template."""
-        source = _GOVERNANCE_SEEDS.read_text(encoding="utf-8")
-        assert "Task completion is NOT authorization" in source
+    @pytest.mark.parametrize("rendered", [_RENDERED_CONTENT, _RENDERED_TEMPLATE])
+    def test_hard_mode_rule2_git_authorization_present(self, rendered: str):
+        """Rule 2 (git commands blocked without authorization) is in the rendered output."""
+        assert "Task completion is NOT authorization" in rendered
 
-    def test_hard_mode_rule3_intake_none_not_permission(self):
-        """Rule 3 (intake_index_mode=none is not permission) is in the template."""
-        source = _GOVERNANCE_SEEDS.read_text(encoding="utf-8")
-        assert "intake_index_mode" in source
-        assert "not permission" in source.lower() or "surface" in source.lower()
+    @pytest.mark.parametrize("rendered", [_RENDERED_CONTENT, _RENDERED_TEMPLATE])
+    def test_hard_mode_rule3_intake_none_not_permission(self, rendered: str):
+        """Rule 3 (intake_index_mode=none is not permission) is in the rendered output."""
+        assert "intake_index_mode" in rendered
+        assert "not permission" in rendered.lower() or "surface" in rendered.lower()
 
 
 class TestSkillRegistryInvariants:

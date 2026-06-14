@@ -1,4 +1,4 @@
-"""Generate-phase governance handlers (generate_artifacts, bootstrap sequence)."""
+"""Generate-phase governance handlers."""
 
 from __future__ import annotations
 
@@ -15,6 +15,12 @@ from sdd_cli.generators.agent_seeds import (
     generate_agent_prompt_commands,
     generate_agent_seeds,
 )
+from sdd_cli.services._governance_generate_support import (
+    bootstrap_response,
+    generate_artifacts_flow,
+    run_bootstrap_signing_flow,
+    run_generate_flow,
+)
 from sdd_cli.services.governance_artifact_handlers import (
     render_generate_table,
     run_governance_generate_json,
@@ -29,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 def resolve_generate_path(path: str) -> str:
-    """Resolve governance config path for generate; source of truth is .sdd/compiled."""
+    """Resolve the output path for `sdd governance generate`."""
     if path:
         return path
     ws_root = resolve_workspace_root()
@@ -42,7 +48,7 @@ def resolve_generate_path(path: str) -> str:
 def generate_seeds(
     output_dir: str, config: dict[str, Any]
 ) -> tuple[list[tuple[str, Path, str]], Path]:
-    """Generate agent seeds at canonical output path."""
+    """Generate agent seed files into the output directory's `.vscode/agents`."""
     seeds_dir = Path(output_dir) / ".vscode" / "agents"
     seeds_info = generate_agent_seeds(seeds_dir, config)
     return seeds_info, seeds_dir
@@ -51,7 +57,7 @@ def generate_seeds(
 def write_instruction_files_safe(
     output_base: Path, config: dict[str, Any], *, console: Console
 ) -> None:
-    """Attempt to write agent instruction files; log warnings on failure."""
+    """Write agent instruction files, logging a warning on failure."""
     try:
         for label, target in generate_agent_instruction_files(output_base, config):
             console.print(f"[green]{label} instructions written to {target}[/green]")
@@ -62,7 +68,7 @@ def write_instruction_files_safe(
 def write_prompt_commands_safe(
     output_base: Path, config: dict[str, Any], *, console: Console
 ) -> None:
-    """Attempt to write agent prompt command files; log warnings on failure."""
+    """Write agent prompt command files, logging a warning on failure."""
     try:
         for label, target in generate_agent_prompt_commands(output_base, config):
             console.print(f"[green]{label} prompt commands written to {target}[/green]")
@@ -73,7 +79,7 @@ def write_prompt_commands_safe(
 
 
 def generate_adapters_safe(output_base: Path, *, console: Console) -> None:
-    """Generate agent adapter files (skills + commands) for all targets."""
+    """Generate adapter files, logging a warning on failure."""
     try:
         from sdd_adapters.adapter_generator import AdapterGenerator
 
@@ -94,11 +100,7 @@ def generate_adapters_safe(output_base: Path, *, console: Console) -> None:
 def run_generate_phases(
     output_base: str, config: dict[str, Any]
 ) -> tuple[bool, bool, bool]:
-    """Run skill registry, commands registry, and index generation phases.
-
-    Returns:
-        Tuple of (skills_generated, skill_index_generated, cli_index_generated).
-    """
+    """Run skill/command registry and index generation phases."""
     from sdd_cli.generators._commands import generate_commands_registry
     from sdd_cli.generators._indices import (
         generate_cli_commands_index,
@@ -136,122 +138,49 @@ def run_generate_phases(
 
 
 def complete_bootstrap_handshake() -> None:
-    """Create a default handshake response after successful bootstrap."""
-    import os
-
+    """Run and complete the agent handshake protocol for bootstrap."""
     from sdd_core.governance.handshake import AgentHandshakeProtocol
 
     ahp = AgentHandshakeProtocol()
     challenge = ahp.generate_challenge(task_description="Bootstrap Session")
-    skills = [
-        s.get("name")
-        for s in challenge.available_skills
-        if isinstance(s, dict) and isinstance(s.get("name"), str)
-    ]
-    response = {
-        "agent_id": os.environ.get("SDD_AGENT_ID", "bootstrap"),
-        "understood_mandates": challenge.active_mandates,
-        "skills_to_use": skills,
-        "acknowledged_signature": True,
-        "plan_summary": "bootstrap handshake auto-registered",
-        "compliance_declaration": True,
-    }
-    ahp.complete_handshake(response)
+    ahp.complete_handshake(bootstrap_response(challenge))
 
 
 def run_bootstrap_signing(key_id: str, *, keygen_fn: Any, sign_fn: Any) -> None:
-    """Run keygen/sign sequence for full bootstrap, tolerating existing keys."""
-    try:
-        keygen_fn(key_id=key_id, output_dir=".sdd/trust")
-    except typer.Exit as exc:
-        # keygen exits(0) when key already exists; continue bootstrap.
-        if int(exc.exit_code or 0) != 0:
-            raise
-
-    sign_fn(key_id=key_id, key_path=None, compiled_dir=None, source=False)
-    ws_root = resolve_workspace_root()
-    if (
-        ws_root is not None
-        and (ws_root / ".sdd" / "source" / "governance-core.json").exists()
-    ):
-        sign_fn(key_id=key_id, key_path=None, compiled_dir=None, source=True)
+    """Run the bootstrap key generation and signing flow."""
+    run_bootstrap_signing_flow(
+        key_id,
+        keygen_fn=keygen_fn,
+        sign_fn=sign_fn,
+        resolve_workspace_root_fn=resolve_workspace_root,
+    )
 
 
 def generate_artifacts(
-    *,
-    output_dir: str | None,
-    path: str,
-    output_json: bool,
-    console: Console,
+    *, output_dir: str | None, path: str, output_json: bool, console: Console
 ) -> None:
-    """Generate templates and agent seeds from compiled governance artifacts."""
-    if output_dir is None:
-        ws_root = resolve_workspace_root()
-        output_dir = str(ws_root)
-
-    resolved_path = resolve_generate_path(path)
-
-    if not validate_governance_path(resolved_path):
-        fail_generate_precondition(
-            output_json=output_json,
-            code="invalid_governance_path",
-            message=f"Invalid governance path: {resolved_path}",
-            data={
-                "resolved_path": resolved_path,
-                "output_dir": str(output_dir) if output_dir is not None else "",
-            },
-            console=console,
-        )
-
-    if not output_json:
-        console.print(
-            Panel("[bold cyan]Generating Agent Seeds[/bold cyan]", border_style="cyan")
-        )
-
-    config = load_governance_config(resolved_path)
-    items = config.get("items", []) if isinstance(config, dict) else []
-    if not isinstance(items, list) or len(items) == 0:
-        fail_generate_precondition(
-            output_json=output_json,
-            code="missing_governance_items",
-            message=(
-                "No governance items loaded. "
-                "Run 'sdd governance compile' before 'sdd governance generate'."
-            ),
-            data={
-                "resolved_path": resolved_path,
-                "output_dir": str(output_dir) if output_dir is not None else "",
-            },
-            console=console,
-        )
-
-    output_base = resolve_output_base(Path(output_dir))
-    seeds_info, seeds_dir = generate_seeds(str(output_base), config)
-
-    skills_generated, skill_index_generated, cli_index_generated = run_generate_phases(
-        str(output_base), config
+    """Generate agent artifacts (seeds, instructions, prompt commands, adapters)."""
+    generate_artifacts_flow(
+        output_dir=output_dir,
+        path=path,
+        output_json=output_json,
+        console=console,
+        resolve_workspace_root_fn=resolve_workspace_root,
+        resolve_generate_path_fn=resolve_generate_path,
+        validate_governance_path_fn=validate_governance_path,
+        fail_generate_precondition_fn=fail_generate_precondition,
+        load_governance_config_fn=load_governance_config,
+        resolve_output_base_fn=resolve_output_base,
+        generate_seeds_fn=generate_seeds,
+        run_generate_phases_fn=run_generate_phases,
+        run_governance_generate_json_fn=run_governance_generate_json,
+        emit_json_fn=emit_json,
+        render_generate_table_fn=render_generate_table,
+        write_instruction_files_safe_fn=write_instruction_files_safe,
+        write_prompt_commands_safe_fn=write_prompt_commands_safe,
+        generate_adapters_safe_fn=generate_adapters_safe,
+        panel_cls=Panel,
     )
-
-    rows = [
-        {"agent_template": agent, "location": str(file_path), "status": status}
-        for agent, file_path, status in seeds_info
-    ]
-    if output_json:
-        payload = run_governance_generate_json(
-            resolved_path=resolved_path,
-            output_base=output_base,
-            seeds_dir=seeds_dir,
-            rows=rows,
-            skills_generated=skills_generated,
-            skill_index_generated=skill_index_generated,
-            cli_index_generated=cli_index_generated,
-        )
-        emit_json(payload)
-    else:
-        render_generate_table(console=console, rows=rows, seeds_dir=seeds_dir)
-        write_instruction_files_safe(output_base, config, console=console)
-        write_prompt_commands_safe(output_base, config, console=console)
-        generate_adapters_safe(output_base, console=console)
 
 
 def run_generate(
@@ -267,32 +196,20 @@ def run_generate(
     keygen_fn: Any = None,
     sign_fn: Any = None,
 ) -> None:
-    """Orchestrate the generate command (with optional full-bootstrap sequence)."""
-    if not isinstance(full_bootstrap, bool):
-        full_bootstrap = False
-    if not isinstance(key_id, str):
-        key_id = "dev-01"
-    if not isinstance(profile, str):
-        profile = "client"
-
-    if not full_bootstrap:
-        generate_artifacts(
-            output_dir=output_dir, path=path, output_json=output_json, console=console
-        )
-        return
-
-    if not output_json:
-        console.print(
-            Panel(
-                "[bold cyan]Full Bootstrap[/bold cyan]\n"
-                "Running compile + generate + keygen + sign steps",
-                border_style="cyan",
-            )
-        )
-    if compile_fn is not None:
-        compile_fn(profile=profile)
-    generate_artifacts(
-        output_dir=output_dir, path=path, output_json=output_json, console=console
+    """Run the `sdd governance generate` command flow."""
+    run_generate_flow(
+        output_dir=output_dir,
+        path=path,
+        full_bootstrap=full_bootstrap,
+        key_id=key_id,
+        profile=profile,
+        output_json=output_json,
+        console=console,
+        compile_fn=compile_fn,
+        keygen_fn=keygen_fn,
+        sign_fn=sign_fn,
+        generate_artifacts_fn=generate_artifacts,
+        run_bootstrap_signing_fn=run_bootstrap_signing,
+        complete_bootstrap_handshake_fn=complete_bootstrap_handshake,
+        panel_cls=Panel,
     )
-    run_bootstrap_signing(key_id, keygen_fn=keygen_fn, sign_fn=sign_fn)
-    complete_bootstrap_handshake()

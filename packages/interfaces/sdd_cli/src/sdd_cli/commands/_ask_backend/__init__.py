@@ -8,7 +8,6 @@ Security:
 
 from __future__ import annotations
 
-import logging
 from contextvars import ContextVar
 
 import typer
@@ -46,15 +45,10 @@ __all__ = [
 ]
 
 app: typer.Typer = typer.Typer(help="Query SDD governance context.")
-logger = logging.getLogger(__name__)
-_LEARNING_WINDOW_DAYS = 7
 
-
-_TRUE_VALUES = {"1", "true", "yes", "on"}
 _JSON_MODE_OVERRIDE: ContextVar[bool | None] = ContextVar(
     "ask_json_mode_override", default=None
 )
-_BREACH_EXIT_CODE = 3
 
 
 from ._budget import _guard_budget_breach, _guard_handshake  # noqa: E402
@@ -72,8 +66,6 @@ from ._helpers import (  # noqa: E402
 )
 from ._helpers import _normalize_typer_value as _normalize_typer_value  # noqa: E402
 from ._pipeline import (  # noqa: E402
-    _emit_state_warnings,
-    _run_organize_intake,
     _should_use_organize,
     ask_cmd,
     build_governed_ask_snapshot,
@@ -81,6 +73,10 @@ from ._pipeline import (  # noqa: E402
 )
 from ._pipeline_runtime import _ask_cmd_impl as _ask_cmd_impl  # noqa: E402
 from ._pipeline_runtime import _check_budget_zone_and_compress  # noqa: E402
+from ._pipeline_session import (  # noqa: E402
+    _emit_state_warnings,
+    _run_organize_intake,
+)
 from ._telemetry import (  # noqa: E402
     OtelBridge,
     OtlpHttpExporter,

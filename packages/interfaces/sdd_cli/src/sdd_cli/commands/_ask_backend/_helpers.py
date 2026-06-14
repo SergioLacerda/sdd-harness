@@ -13,16 +13,17 @@ import click
 from typer.models import OptionInfo
 
 from sdd_cli.services.ask_context import (
-    check_fingerprint_drift as _check_fingerprint_drift_impl,
+    check_fingerprint_drift as _check_fingerprint_drift,
+)
+from sdd_cli.services.ask_context import get_profile_state as _get_profile_state_impl
+from sdd_cli.services.ask_context import (
+    load_compiled_governance as _load_compiled_governance,
 )
 from sdd_cli.services.ask_context import (
-    get_profile_state as _get_profile_state_impl,
+    resolve_workspace_root as _resolve_workspace_root,
 )
 from sdd_cli.services.ask_context import (
-    load_compiled_governance as _load_compiled_governance_from_ctx,
-)
-from sdd_cli.services.ask_context import (
-    write_runtime_cache as _write_runtime_cache_impl,
+    write_runtime_cache as _write_runtime_cache,
 )
 from sdd_cli.services.ask_filter import (
     collect_learning_signals as _collect_learning_signals_impl,
@@ -30,20 +31,9 @@ from sdd_cli.services.ask_filter import (
 from sdd_cli.services.ask_filter import (
     count_signals_from_tail as _count_signals_from_tail_impl,
 )
-from sdd_cli.services.ask_governance import (
-    GovResult as _GovResult,
-)
-from sdd_cli.services.ask_governance import (
-    fingerprint_file as _fingerprint_file_impl,
-)
-from sdd_cli.services.ask_governance import (
-    signature_mode as _signature_mode_impl,
-)
+from sdd_cli.services.ask_governance import signature_mode as _signature_mode_impl
 from sdd_cli.services.ask_governance import (
     try_sdd_compiled_dir as _try_sdd_compiled_dir_impl,
-)
-from sdd_cli.services.ask_governance import (
-    validate_signature_for_artifact as _validate_signature_for_artifact_impl,
 )
 from sdd_cli.services.ask_renderer import (
     render_context_header as _render_context_header,
@@ -52,12 +42,13 @@ from sdd_cli.services.ask_renderer import (
     render_governance_footer as _render_governance_footer_impl,
 )
 from sdd_cli.utils.output import is_json_mode
-from sdd_cli.utils.sdd_authority import (
-    enforce_path_policy,
-)
-from sdd_cli.utils.sdd_authority import (
-    resolve_workspace_root as resolve_authority_workspace_root,
-)
+
+__all__ = [
+    "_check_fingerprint_drift",
+    "_load_compiled_governance",
+    "_resolve_workspace_root",
+    "_write_runtime_cache",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -94,27 +85,6 @@ def _signature_mode() -> str:
     return _signature_mode_impl()
 
 
-def _validate_signature_for_artifact(
-    artifact_path: Path, *, signature_mode: str
-) -> tuple[bool, bool, str, str]:
-    return _validate_signature_for_artifact_impl(
-        artifact_path, signature_mode_value=signature_mode
-    )
-
-
-def _load_compiled_governance(workspace_root: Path) -> _GovResult:
-    return _load_compiled_governance_from_ctx(workspace_root)
-
-
-def _fingerprint_file(path: Path) -> str:
-    return _fingerprint_file_impl(path)
-
-
-def _resolve_workspace_root() -> Path:
-    root = resolve_authority_workspace_root()
-    return enforce_path_policy(root, workspace_root=root, mode="normal")
-
-
 def _get_cached_ahp() -> dict[str, Any] | None:
     ctx = click.get_current_context(silent=True)
     if ctx is not None and isinstance(ctx.obj, dict):
@@ -131,17 +101,7 @@ def _get_profile_state() -> tuple[str, str]:
     return _get_profile_state_impl(_backend._resolve_workspace_root())
 
 
-def _write_runtime_cache(workspace_root: Path, last_ask: dict[str, Any]) -> None:
-    _write_runtime_cache_impl(workspace_root, last_ask)
-
-
 def _runtime_drift_check(workspace_root: Path, loaded_fingerprint: str) -> bool:
-    """Return True if the loaded fingerprint differs from the cached governance state.
-
-    Compares ``loaded_fingerprint`` (current artifact) against the fingerprint
-    stored in governance-state.json from the previous run, so that a recompile
-    is detected on the next invocation.
-    """
     return _check_fingerprint_drift(workspace_root, loaded_fingerprint)
 
 
@@ -165,10 +125,6 @@ def _resolve_ask_degraded_reason(
     if degraded:
         return "degraded_unspecified"
     return ""
-
-
-def _check_fingerprint_drift(workspace_root: Path, loaded_fingerprint: str) -> bool:
-    return _check_fingerprint_drift_impl(workspace_root, loaded_fingerprint)
 
 
 def _render_context_output(

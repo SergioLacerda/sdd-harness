@@ -6,8 +6,15 @@ from typing import Any
 
 import typer
 from rich.console import Console
-from rich.table import Table
 
+from sdd_cli.services._governance_config_support import (
+    collect_validation_state,
+    emit_validation_outcome,
+    normalize_signature_mode,
+    render_advisory_table,
+    render_summary_table,
+    render_validation_table,
+)
 from sdd_cli.services.governance_config_reader import (
     _build_language_governance_advisories,
     _render_advisory_status,
@@ -53,13 +60,7 @@ def run_governance_load(
         payload = governance_ok("governance load", data)
         emit_json(payload)
         return
-
-    table = Table(title="Governance Summary", show_header=True, header_style="bold")
-    table.add_column("Property", style="cyan")
-    table.add_column("Value", style="green")
-    for key, value in summary.items():
-        table.add_row(key, str(value))
-    console.print(table)
+    render_summary_table(console=console, summary=summary)
 
 
 def run_governance_validate(  # noqa: C901
@@ -77,54 +78,35 @@ def run_governance_validate(  # noqa: C901
     run_runtime_preflight_fn: Any,
 ) -> None:
     """Execute governance validate flow with JSON/text output modes."""
-    structure_ok = validate_path(path)
-    config = load_config(path) if structure_ok else None
-
-    checks: list[tuple[str, bool]] = [
-        ("Structure validation", structure_ok),
-        ("Files accessible", check_files_accessible(path)),
-        ("Fingerprints valid", check_fingerprints_valid(config)),
-        ("No conflicts", check_no_conflicts(config)),
-    ]
-    consistency_ok, consistency_reason = check_artifact_consistency(path)
-    checks.append(("Artifact consistency", consistency_ok))
-
-    if skip_handshake:
-        handshake_active = True
-    else:
-        from sdd_core.governance.handshake import AgentHandshakeProtocol
-
-        ahp = AgentHandshakeProtocol()
-        handshake_active = ahp.is_handshake_valid()
-    checks.append(("Active handshake (M015)", handshake_active))
-
-    preflight = run_runtime_preflight_fn(path)
-    preflight_ok = preflight.passed
-    checks.append(("Runtime preflight", preflight_ok))
-
-    all_passed = True
-    check_payload: list[dict[str, Any]] = []
-    for check_name, passed in checks:
-        check_payload.append({"check": check_name, "passed": bool(passed)})
-        if not passed:
-            all_passed = False
-
-    advisory_payload = _build_language_governance_advisories(path=path, config=config)
+    state = collect_validation_state(
+        path=path,
+        skip_handshake=skip_handshake,
+        validate_path_fn=validate_path,
+        load_config_fn=load_config,
+        check_files_accessible_fn=check_files_accessible,
+        check_fingerprints_valid_fn=check_fingerprints_valid,
+        check_no_conflicts_fn=check_no_conflicts,
+        check_artifact_consistency_fn=check_artifact_consistency,
+        run_runtime_preflight_fn=run_runtime_preflight_fn,
+    )
+    advisory_payload = _build_language_governance_advisories(
+        path=path, config=state["config"]
+    )
 
     if output_json:
         data = build_governance_validate_data(
             path=path,
-            checks=check_payload,
+            checks=state["check_payload"],
             advisories=advisory_payload,
             preflight={
-                "passed": preflight_ok,
-                "reason": preflight.reason,
-                "details": preflight.details,
+                "passed": state["preflight_ok"],
+                "reason": state["preflight"].reason,
+                "details": state["preflight"].details,
             },
-            consistency_reason=consistency_reason,
-            exit_code=0 if all_passed else 1,
+            consistency_reason=state["consistency_reason"],
+            exit_code=0 if state["all_passed"] else 1,
         )
-        if all_passed:
+        if state["all_passed"]:
             payload = governance_ok("governance validate", data)
         else:
             payload = governance_error(
@@ -133,54 +115,28 @@ def run_governance_validate(  # noqa: C901
                 code="governance_validation_failed",
                 message="one or more governance checks failed",
             )
-        emit_json(payload, err=not all_passed)
-        if not all_passed:
+        emit_json(payload, err=not state["all_passed"])
+        if not state["all_passed"]:
             raise typer.Exit(1)
         return
 
-    table = Table(title="Validation Results", show_header=True, header_style="bold")
-    table.add_column("Check", style="cyan")
-    table.add_column("Status", style="green")
-    for item in check_payload:
-        status = "[green]PASS[/green]" if item["passed"] else "[red]FAIL[/red]"
-        table.add_row(str(item["check"]), status)
-    console.print(table)
-
+    render_validation_table(console=console, check_payload=state["check_payload"])
     if advisory_payload:
-        advisory_table = Table(
-            title="Language Governance Advisories",
-            show_header=True,
-            header_style="bold",
+        render_advisory_table(
+            console=console,
+            advisory_payload=advisory_payload,
+            render_status_fn=_render_advisory_status,
         )
-        advisory_table.add_column("Check", style="cyan")
-        advisory_table.add_column("Severity", style="yellow")
-        advisory_table.add_column("Status", style="green")
-        advisory_table.add_column("Message", style="white")
-        for item in advisory_payload:
-            advisory_table.add_row(
-                str(item["check"]),
-                str(item["severity"]).upper(),
-                _render_advisory_status(str(item["status"])),
-                str(item["message"]),
-            )
-        console.print(advisory_table)
-
-    if not preflight_ok and preflight.reason:
-        console.print(f"[yellow]runtime preflight: {preflight.reason}[/yellow]")
-    if not consistency_ok:
-        console.print(f"[yellow]artifact consistency: {consistency_reason}[/yellow]")
-
-    if all_passed:
-        console.print("[green]All validation checks passed[/green]")
-    else:
-        console.print("[red]ERROR: Some validation checks failed[/red]")
-        if not handshake_active:
-            console.print(
-                "  Next: run 'sdd governance handshake --init' to formalize session"
-            )
-        if not structure_ok or not consistency_ok or not preflight_ok:
-            console.print("  Next: run 'sdd governance compile' to rebuild artifacts")
-        raise typer.Exit(1)
+    emit_validation_outcome(
+        console=console,
+        all_passed=state["all_passed"],
+        handshake_active=state["handshake_active"],
+        structure_ok=bool(state["check_payload"][0]["passed"]),
+        consistency_ok=state["consistency_ok"],
+        consistency_reason=state["consistency_reason"],
+        preflight_ok=state["preflight_ok"],
+        preflight_reason=state["preflight"].reason,
+    )
 
 
 def run_governance_load_cmd(*, path: str, output_json: bool, console: Any) -> None:
@@ -219,7 +175,6 @@ def run_governance_validate_cmd(
     console: Any,
 ) -> None:
     """Convenience wrapper for run_governance_validate with default dependency injection."""
-    import typer
     from rich.panel import Panel
 
     from sdd_cli.services.governance_artifact_handlers import check_artifact_consistency
@@ -231,9 +186,7 @@ def run_governance_validate_cmd(
     from sdd_cli.services.runtime_preflight import run_runtime_preflight
     from sdd_cli.utils.loader import load_governance_config, validate_governance_path
 
-    signature_mode = signature_mode.strip().lower()
-    if signature_mode not in {"off", "warn", "strict"}:
-        raise typer.BadParameter("signature_mode must be off, warn, or strict.")
+    normalize_signature_mode(signature_mode)
     if not output_json:
         console.print(
             Panel(

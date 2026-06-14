@@ -72,15 +72,62 @@ def test_token_budget_multiple_calls():
     assert len(budget.ledger) == 2
 
 
-def test_token_budget_reset():
-    """Should allow budget reset."""
-    budget = TokenBudget(max_tokens=10000)
-    budget.consume("gpt-4o", 1000, 1000)
-    assert budget.consumed_tokens == 2000
+def test_token_budget_emits_consumption_event():
+    """Should emit an economy.token.consume event when emit_event is configured."""
+    events = []
+    budget = TokenBudget(max_tokens=10000, emit_event=events.append)
+    consumption = budget.consume("gpt-4o", 500, 500, category="reasoning")
 
-    if hasattr(budget, "reset"):
-        budget.reset()
-        assert budget.consumed_tokens == 0
+    assert len(events) == 1
+    event = events[0]
+    assert event.event == "economy.token.consume"
+    assert event.tokens_input == 500
+    assert event.tokens_output == 500
+    assert event.tokens_total == 1000
+    assert event.details["model"] == "gpt-4o"
+    assert event.details["category"] == "reasoning"
+    assert event.details["cost_usd"] == round(consumption.cost_usd, 4)
+
+
+def test_token_budget_emits_warning_event_near_token_limit():
+    """Should emit economy.budget.warn.tokens when usage crosses the 90% threshold."""
+    events = []
+    budget = TokenBudget(max_tokens=1000, emit_event=events.append)
+    budget.consume("gpt-4o", 600, 350)  # 950/1000 = 95%
+
+    warn_events = [e for e in events if e.event == "economy.budget.warn.tokens"]
+    assert len(warn_events) == 1
+    assert warn_events[0].status == "warn"
+    assert warn_events[0].details["consumed"] == 950
+    assert warn_events[0].details["limit"] == 1000
+
+
+def test_token_budget_emits_warning_event_near_cost_limit():
+    """Should emit economy.budget.warn.usd when cost crosses the 90% threshold."""
+    events = []
+    budget = TokenBudget(max_tokens=100000, max_cost_usd=0.02, emit_event=events.append)
+    budget.consume("gpt-4o", 1000, 900)  # cost = 0.0185 -> 92.5% of 0.02
+
+    warn_events = [e for e in events if e.event == "economy.budget.warn.usd"]
+    assert len(warn_events) == 1
+    assert warn_events[0].status == "warn"
+    assert warn_events[0].details["consumed"] == pytest.approx(0.0185)
+    assert warn_events[0].details["limit"] == 0.02
+
+
+def test_token_budget_emits_breach_event_on_token_breach():
+    """Should emit economy.budget.breach.tokens before raising on a hard breach."""
+    events = []
+    budget = TokenBudget(max_tokens=1000, emit_event=events.append)
+
+    with pytest.raises(TokenBudgetBreachError):
+        budget.consume("gpt-4o", 600, 500)
+
+    breach_events = [e for e in events if e.event == "economy.budget.breach.tokens"]
+    assert len(breach_events) == 1
+    assert breach_events[0].status == "error"
+    assert breach_events[0].details["consumed"] == 1100
+    assert breach_events[0].details["limit"] == 1000
 
 
 # ============================================================================

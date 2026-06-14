@@ -64,16 +64,12 @@ def _install_git_hook(hook_file: Path, git_hooks_dest: Path) -> bool:
     target = git_hooks_dest / hook_file.name
     if target.exists() or target.is_symlink():
         target.unlink()
-
-    # Create symlink (preferred: dest stays in sync with hooks_src)
     try:
         os.symlink(hook_file.absolute(), target)
         hook_file.chmod(0o755)
         typer.echo(f"  OK: Linked {hook_file.name}")
         return False
     except OSError:
-        # Symlinks unavailable on this platform (e.g. Windows without
-        # Developer Mode/admin) - fall back to copying the hook file.
         shutil.copy2(hook_file, target)
         target.chmod(0o755)
         typer.echo(
@@ -105,14 +101,10 @@ def setup_git_hooks(
             continue
         if _install_git_hook(hook_file, git_hooks_dest):
             any_copied = True
-
     if any_copied:
         typer.echo(
-            "\nNote: hooks were copied (not linked) because symlinks are unavailable "
-            "on this platform. Re-run 'sdd setup git-hooks' after pulling changes to "
-            "tools/scripts/git-hooks/."
+            "\nNote: hooks were copied (not linked) because symlinks are unavailable on this platform. Re-run 'sdd setup git-hooks' after pulling changes to tools/scripts/git-hooks/."
         )
-
     typer.echo("\n✅ SDD Internal Hooks Installed.")
 
 
@@ -127,31 +119,20 @@ def run_setup(  # noqa: C901
 
     python = sys.executable
     typer.echo(f"OK: Using Python: {python}")
-
-    # Create venv
     venv_dir = _REPO_ROOT / ".venv"
     if not venv_dir.exists():
         typer.echo("OK: Creating virtual environment...")
         _run([python, "-m", "venv", str(venv_dir)])
-
-    # Locate venv python (Linux/Mac or Windows)
     try:
         venv_python = resolve_venv_python(venv_dir)
     except RuntimeError:
         typer.echo("ERROR: Could not find venv python")
         raise typer.Exit(1) from None
-
     typer.echo("OK: Virtualenv ready")
-
-    # Bootstrap pip if missing (e.g. venvs created by `uv venv` ship without pip)
     if not _validate_module_import(str(venv_python), "pip"):
         typer.echo("OK: Bootstrapping pip (venv created without pip)...")
         _run([str(venv_python), "-m", "ensurepip", "--upgrade"])
-
-    # Upgrade pip (quiet)
     _run([str(venv_python), "-m", "pip", "install", "--upgrade", "pip", "-q"])
-
-    # Install ordered packages
     typer.echo("\nInstalling SDD packages...")
     ordered_packages = [
         "packages/core/sdd_core",
@@ -169,8 +150,6 @@ def run_setup(  # noqa: C901
             _run([str(venv_python), "-m", "pip", "install", "-e", str(pkg_path)])
         else:
             typer.echo(f"  WARN: Skipping {pkg} (no pyproject.toml)")
-
-    # Install any extra packages not in the ordered list
     for pkg_path in sorted(_REPO_ROOT.glob("packages/*/*")):
         if not (pkg_path / "pyproject.toml").exists():
             continue
@@ -178,15 +157,11 @@ def run_setup(  # noqa: C901
         if relative not in ordered_packages:
             typer.echo(f"  Installing (extra) {relative}")
             _run([str(venv_python), "-m", "pip", "install", "-e", str(pkg_path)])
-
-    # Install dev dependencies from root
     if (_REPO_ROOT / "pyproject.toml").exists():
         typer.echo("\nInstalling dev dependencies...")
         _run(
             [str(venv_python), "-m", "pip", "install", "-e", f"{_REPO_ROOT}[dev]", "-q"]
         )
-
-    # Validate imports
     typer.echo("\nValidating Python imports...")
     for module in ("sdd_core", "sdd_wizard", "sdd_cli"):
         if _validate_module_import(str(venv_python), module):
@@ -194,8 +169,6 @@ def run_setup(  # noqa: C901
         else:
             typer.echo(f"  ERROR: {module} FAILED")
             raise typer.Exit(1)
-
-    # Validate CLI
     typer.echo("\nValidating CLI...")
     try:
         venv_sdd = resolve_venv_sdd(venv_dir)
@@ -215,9 +188,7 @@ def run_setup(  # noqa: C901
 
     _ensure_phase_0_marker()
     typer.echo("  OK: Runtime phase-0 marker initialized")
-
     if hooks:
         typer.echo("")
         setup_git_hooks()
-
     typer.echo("\nSetup completed!")

@@ -106,3 +106,247 @@ def test_phase3_uses_pipeline_builder_save_outputs_contract(
     assert success is True
     assert (output_path / "source" / "governance-core.json").exists()
     assert (output_path / "source" / "governance-client.json").exists()
+
+
+def test_has_staged_input_files_reports_presence_and_absence(tmp_path: Path) -> None:
+    compiler = _make_compiler(tmp_path)
+    assert compiler.has_staged_input_files() is False
+
+    compiler.markdown_input_path.mkdir(parents=True)
+    (compiler.markdown_input_path / "file.md").write_text("x", encoding="utf-8")
+    assert compiler.has_staged_input_files() is True
+
+
+def test_load_wizard_config_reads_language(tmp_path: Path) -> None:
+    compiler = _make_compiler(tmp_path)
+    compiler.wizard_config_path.parent.mkdir(parents=True)
+    compiler.wizard_config_path.write_text('{"language": "Rust"}', encoding="utf-8")
+
+    assert compiler.load_wizard_config() is True
+    assert compiler.language == "Rust"
+
+
+def test_load_wizard_config_returns_false_on_invalid_json(tmp_path: Path) -> None:
+    messages: list[str] = []
+    compiler = Phase3Compiler(
+        markdown_input_path=tmp_path / "build" / "phase-2-input",
+        output_path=tmp_path / "compiled",
+        repo_root=tmp_path,
+        emitter=messages.append,
+    )
+    compiler.wizard_config_path.parent.mkdir(parents=True)
+    compiler.wizard_config_path.write_text("{bad json", encoding="utf-8")
+
+    assert compiler.load_wizard_config() is False
+    assert any("Error loading config" in message for message in messages)
+
+
+def test_create_structure_returns_false_when_output_is_invalid(tmp_path: Path) -> None:
+    compiler = _make_compiler(tmp_path)
+    compiler.output_path.write_text("not a directory", encoding="utf-8")
+
+    assert compiler.create_structure() is False
+
+
+def test_last_error_setter_updates_locator(tmp_path: Path) -> None:
+    compiler = _make_compiler(tmp_path)
+
+    compiler.last_error = "boom"
+
+    assert compiler.last_error == "boom"
+
+
+def test_log_emits_only_when_verbose(tmp_path: Path) -> None:
+    messages: list[str] = []
+    compiler = Phase3Compiler(
+        markdown_input_path=tmp_path / "build" / "phase-2-input",
+        output_path=tmp_path / "compiled",
+        repo_root=tmp_path,
+        verbose=True,
+        emitter=messages.append,
+    )
+
+    compiler.log("hello")
+
+    assert messages == ["  ℹ️  hello"]
+
+
+def test_parse_markdown_items_updates_selected_guidelines(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    compiler = _make_compiler(tmp_path)
+    monkeypatch.setattr(
+        compiler._parser,
+        "parse_items",
+        lambda _path: {
+            "mandates": [{"id": "M001"}],
+            "guidelines": [{"id": "G001"}, {"id": "G002"}],
+        },
+    )
+
+    items = compiler.parse_markdown_items()
+
+    assert items["mandates"] == [{"id": "M001"}]
+    assert compiler.selected_guidelines == ["G001", "G002"]
+
+
+def test_compile_with_pipeline_builder_uses_fallback_docs_meta(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict[str, object] = {}
+
+    class _FakeBuilder:
+        def __init__(self, spec_path: str, parsed_items: dict[str, object]) -> None:
+            captured["spec_path"] = spec_path
+
+        def build(self) -> None:
+            return None
+
+        def save_outputs(self, output_dir: str) -> None:
+            Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    compiler = _make_compiler(tmp_path)
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration.wizard.phase3_compiler.get_sdd_paths",
+        lambda: (_ for _ in ()).throw(RuntimeError("no env")),
+    )
+    monkeypatch.setattr(
+        "sdd_integration.builders.governance.pipeline_builder.PipelineBuilder",
+        _FakeBuilder,
+    )
+
+    assert (
+        compiler.compile_with_pipeline_builder({"mandates": [], "guidelines": []})
+        is True
+    )
+    assert (
+        str(tmp_path / "generated" / "client" / "build" / "docs-meta")
+        == captured["spec_path"]
+    )
+
+
+def test_load_compiled_governance_delegates_to_helper(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    compiler = _make_compiler(tmp_path)
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration.wizard.phase3_compiler._load_compiled_governance",
+        lambda output_path, emit: ([{"id": "M001"}], [{"id": "G001"}]),
+    )
+
+    mandates, guidelines = compiler.load_compiled_governance()
+
+    assert mandates == [{"id": "M001"}]
+    assert guidelines == [{"id": "G001"}]
+
+
+def test_run_returns_error_when_no_staged_files(tmp_path: Path) -> None:
+    compiler = _make_compiler(tmp_path)
+
+    result = compiler.run()
+
+    assert result["success"] is False
+    assert "No staged files found" in result["error"]
+
+
+def test_run_returns_error_when_compile_fails(tmp_path: Path, monkeypatch) -> None:
+    compiler = _make_compiler(tmp_path)
+    compiler.markdown_input_path.mkdir(parents=True)
+    (compiler.markdown_input_path / "input.md").write_text("x", encoding="utf-8")
+    monkeypatch.setattr(compiler, "compile_with_pipeline_builder", lambda _items: False)
+    monkeypatch.setattr(
+        compiler,
+        "parse_markdown_items",
+        lambda: {"mandates": [], "guidelines": []},
+    )
+
+    result = compiler.run()
+
+    assert result == {"success": False, "error": "Failed to compile"}
+
+
+def test_run_returns_error_when_copy_seedlings_fails(
+    tmp_path: Path, monkeypatch
+) -> None:
+    compiler = _make_compiler(tmp_path)
+    compiler.markdown_input_path.mkdir(parents=True)
+    (compiler.markdown_input_path / "input.md").write_text("x", encoding="utf-8")
+    monkeypatch.setattr(compiler, "copy_seedlings", lambda: False)
+    monkeypatch.setattr(compiler, "compile_with_pipeline_builder", lambda _items: True)
+    monkeypatch.setattr(
+        compiler,
+        "parse_markdown_items",
+        lambda: {"mandates": [], "guidelines": []},
+    )
+
+    result = compiler.run()
+
+    assert result == {"success": False, "error": "Failed to copy seedlings"}
+
+
+def test_run_returns_source_generation_error_when_helpers_fail(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    compiler = _make_compiler(tmp_path)
+    compiler.markdown_input_path.mkdir(parents=True)
+    (compiler.markdown_input_path / "input.md").write_text("x", encoding="utf-8")
+    monkeypatch.setattr(compiler, "compile_with_pipeline_builder", lambda _items: True)
+    monkeypatch.setattr(
+        compiler,
+        "parse_markdown_items",
+        lambda: {"mandates": [{"id": "M001"}], "guidelines": []},
+    )
+    monkeypatch.setattr(
+        compiler,
+        "load_compiled_governance",
+        lambda: ([{"id": "M001"}], [{"id": "G001"}]),
+    )
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration.wizard.phase3_compiler._generate_source_files",
+        lambda *_args: "Failed to generate source README",
+    )
+
+    result = compiler.run()
+
+    assert result == {"success": False, "error": "Failed to generate source README"}
+
+
+def test_run_success_returns_summary(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    messages: list[str] = []
+    compiler = Phase3Compiler(
+        markdown_input_path=tmp_path / "build" / "phase-2-input",
+        output_path=tmp_path / "compiled",
+        repo_root=tmp_path,
+        emitter=messages.append,
+    )
+    compiler.markdown_input_path.mkdir(parents=True)
+    (compiler.markdown_input_path / "input.md").write_text("x", encoding="utf-8")
+    monkeypatch.setattr(
+        compiler,
+        "parse_markdown_items",
+        lambda: {"mandates": [{"id": "M001"}], "guidelines": [{"id": "G001"}]},
+    )
+    monkeypatch.setattr(compiler, "compile_with_pipeline_builder", lambda _items: True)
+    monkeypatch.setattr(compiler, "copy_seedlings", lambda: True)
+    monkeypatch.setattr(
+        compiler,
+        "load_compiled_governance",
+        lambda: ([{"id": "M001"}], [{"id": "G001"}]),
+    )
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration.wizard.phase3_compiler._generate_source_files",
+        lambda *_args: None,
+    )
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration.wizard.phase3_compiler._generate_spec_file",
+        lambda *_args: None,
+    )
+
+    result = compiler.run()
+
+    assert result["success"] is True
+    assert result["mandates"] == 1
+    assert result["guidelines"] == 1
+    assert any("Compiled governance artifacts" in message for message in messages)

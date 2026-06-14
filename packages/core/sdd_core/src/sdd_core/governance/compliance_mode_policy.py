@@ -3,20 +3,25 @@
 Determines which events should be persisted based on logging mode (passive/active/strict).
 """
 
-# Logging mode constants
-LOGGING_MODE_PASSIVE = "passive"
-LOGGING_MODE_ACTIVE = "active"
-LOGGING_MODE_STRICT = "strict"
+from sdd_core.constants import (
+    LOGGING_MODE_ACTIVE,
+    LOGGING_MODE_PASSIVE,
+    LOGGING_MODE_STRICT,
+    MANDATORY_COMPLIANCE_EVENTS,
+    VALID_LOGGING_MODES,
+)
 
-_VALID_LOGGING_MODES = {LOGGING_MODE_PASSIVE, LOGGING_MODE_ACTIVE, LOGGING_MODE_STRICT}
+__all__ = [
+    "LOGGING_MODE_ACTIVE",
+    "LOGGING_MODE_PASSIVE",
+    "LOGGING_MODE_STRICT",
+    "_MANDATORY_EVENTS",
+    "_VALID_LOGGING_MODES",
+    "ComplianceModePolicy",
+]
 
-# Events that bypass passive filter
-_MANDATORY_EVENTS = {
-    "violation",
-    "workspace_init",
-    "compile_complete",
-    "governance_checked",
-}
+_VALID_LOGGING_MODES = VALID_LOGGING_MODES
+_MANDATORY_EVENTS = MANDATORY_COMPLIANCE_EVENTS
 
 
 class ComplianceModePolicy:
@@ -25,8 +30,8 @@ class ComplianceModePolicy:
     LOGGING_MODE_PASSIVE = LOGGING_MODE_PASSIVE
     LOGGING_MODE_ACTIVE = LOGGING_MODE_ACTIVE
     LOGGING_MODE_STRICT = LOGGING_MODE_STRICT
-    _VALID_LOGGING_MODES = _VALID_LOGGING_MODES
-    _MANDATORY_EVENTS = _MANDATORY_EVENTS
+    _VALID_LOGGING_MODES = VALID_LOGGING_MODES
+    _MANDATORY_EVENTS = MANDATORY_COMPLIANCE_EVENTS
 
     @staticmethod
     def resolve_logging_mode(profile: str = "") -> str:
@@ -47,7 +52,7 @@ class ComplianceModePolicy:
 
         # Check environment override
         env_mode = os.environ.get("SDD_LOGGING_MODE", "").strip().lower()
-        if env_mode in _VALID_LOGGING_MODES:
+        if env_mode in VALID_LOGGING_MODES:
             return env_mode
 
         # Profile-specific defaults
@@ -78,4 +83,4 @@ class ComplianceModePolicy:
             return True
 
         # Passive mode: only mandatory events
-        return event.lower() in _MANDATORY_EVENTS
+        return event.lower() in MANDATORY_COMPLIANCE_EVENTS

@@ -17,6 +17,16 @@ import click
 import typer
 from rich.console import Console
 
+from sdd_cli.commands._metrics_command_support import (
+    bind_server,
+    emit_missing_file,
+    emit_serve_load_error,
+    emit_summary_load_error,
+    emit_summary_output,
+    load_collector,
+    load_snapshot,
+    run_server_loop,
+)
 from sdd_cli.services.metrics_handler import (
     _CollectorRef,
     _resolve_jsonl_path,
@@ -24,10 +34,6 @@ from sdd_cli.services.metrics_handler import (
     build_metrics_handler,
     build_summary_json_data,
     build_summary_table,
-)
-from sdd_cli.shared.contracts import (
-    build_error_result,
-    build_ok_result,
 )
 from sdd_cli.utils.output import emit_json, is_json_mode
 
@@ -49,6 +55,52 @@ def _is_json_mode(ctx: typer.Context) -> bool:
     return is_json_mode(click.get_current_context(silent=True))
 
 
+def _emit_missing_file(
+    command: str, jsonl_path: Path, *, output_json: bool, port: int | None = None
+) -> None:
+    emit_missing_file(
+        command=command,
+        jsonl_path=jsonl_path,
+        output_json=output_json,
+        port=port,
+        console=console,
+        emit_json_fn=emit_json,
+    )
+
+
+def _emit_summary_load_error(exc: Exception, *, output_json: bool) -> None:
+    emit_summary_load_error(
+        exc=exc, output_json=output_json, console=console, emit_json_fn=emit_json
+    )
+
+
+def _emit_serve_load_error(
+    exc: Exception, *, jsonl_path: Path, port: int, output_json: bool
+) -> None:
+    emit_serve_load_error(
+        exc=exc,
+        jsonl_path=jsonl_path,
+        port=port,
+        output_json=output_json,
+        console=console,
+        emit_json_fn=emit_json,
+    )
+
+
+def _bind_server(
+    *, port: int, handler_cls: Any, jsonl_path: Path, output_json: bool
+) -> Any:
+    return bind_server(
+        port=port,
+        handler_cls=handler_cls,
+        jsonl_path=jsonl_path,
+        output_json=output_json,
+        console=console,
+        emit_json_fn=emit_json,
+        http_server_cls=http.server.HTTPServer,
+    )
+
+
 @app.command()
 def summary(
     ctx: typer.Context,
@@ -60,78 +112,21 @@ def summary(
     ),
 ) -> None:
     """Print token economy summary table."""
-    from sdd_runtime.metrics import TokenEconomyCollector
-    from sdd_runtime.reader import TelemetryReader
-
-    # Resolve JSONL path
     jsonl_path = _resolve_jsonl_path(jsonl)
-
     output_json = _is_json_mode(ctx)
-
     if not jsonl_path.exists():
-        if output_json:
-            data: dict[str, Any] = {"exit_code": 1}
-            payload = build_error_result(
-                "metrics summary",
-                code="events_file_not_found",
-                message=f"Events file not found: {jsonl_path}",
-                data=data,
-            )
-            emit_json(payload, err=True)
-        else:
-            console.print(
-                f"[red]Error:[/red] Events file not found: {jsonl_path}", style="bold"
-            )
-        raise typer.Exit(1)
-
-    # Load and process events
+        _emit_missing_file("metrics summary", jsonl_path, output_json=output_json)
     try:
-        reader = TelemetryReader(jsonl_path)
-        collector = TokenEconomyCollector.from_reader(reader)
-        snap = collector.snapshot()
+        snap = load_snapshot(jsonl_path)
     except Exception as exc:
-        if output_json:
-            data = {"exit_code": 1}
-            payload = build_error_result(
-                "metrics summary",
-                code="metrics_load_failed",
-                message=f"Error loading events: {exc}",
-                data=data,
-            )
-            emit_json(payload, err=True)
-        else:
-            console.print(f"[red]Error loading events:[/red] {exc}", style="bold")
-        raise typer.Exit(1) from None
-
-    # JSON output mode (machine-readable envelope).
-    if output_json:
-        data = build_summary_json_data(snap)
-        payload = build_ok_result("metrics summary", data)
-        emit_json(payload)
-        return
-
-    console.print(build_summary_table(snap))
-
-    # Budget utilization indicator
-    util_pct = snap.budget_utilization_pct
-    if util_pct >= 100:
-        color = "red"
-        status = "🔴 BREACH"
-    elif util_pct >= 90:
-        color = "yellow"
-        status = "🟡 WARNING (>90%)"
-    else:
-        color = "green"
-        status = "🟢 OK"
-
-    console.print(
-        f"\nBudget utilization: [{color}]{util_pct:.1f}%[/{color}] {status}",
-        style="bold",
-    )
-
-    # Event counts
-    console.print(
-        f"\nEvent summary: {snap.warn_count} warns | {snap.breach_count} breaches | {snap.retry_cap_count} retry caps",
+        _emit_summary_load_error(exc, output_json=output_json)
+    emit_summary_output(
+        snap=snap,
+        output_json=output_json,
+        console=console,
+        build_summary_json_data=build_summary_json_data,
+        build_summary_table=build_summary_table,
+        emit_json_fn=emit_json,
     )
 
 
@@ -159,94 +154,37 @@ def serve(  # noqa: C901
     ),
 ) -> None:
     """Start Prometheus metrics scrape endpoint (foreground, Ctrl+C to stop)."""
-    from sdd_runtime.metrics import TokenEconomyCollector
-    from sdd_runtime.reader import TelemetryReader
-
-    # Resolve JSONL path
     jsonl_path = _resolve_jsonl_path(jsonl)
-
     if not jsonl_path.exists():
-        if json_output:
-            data = {"events_file": str(jsonl_path), "port": port, "exit_code": 1}
-            payload = build_error_result(
-                "metrics serve",
-                data,
-                code="events_file_not_found",
-                message=f"Events file not found: {jsonl_path}",
-            )
-            emit_json(payload, err=True)
-        else:
-            console.print(
-                f"[red]Error:[/red] Events file not found: {jsonl_path}", style="bold"
-            )
-        raise typer.Exit(1)
-
-    # Build initial collector
+        _emit_missing_file(
+            "metrics serve", jsonl_path, output_json=json_output, port=port
+        )
     try:
-        reader = TelemetryReader(jsonl_path)
-        collector = TokenEconomyCollector.from_reader(reader)
+        collector = load_collector(jsonl_path)
     except Exception as exc:
-        if json_output:
-            data = {"events_file": str(jsonl_path), "port": port, "exit_code": 1}
-            payload = build_error_result(
-                "metrics serve",
-                data,
-                code="metrics_load_failed",
-                message=f"Error loading events: {exc}",
-            )
-            emit_json(payload, err=True)
-        else:
-            console.print(f"[red]Error loading events:[/red] {exc}", style="bold")
-        raise typer.Exit(1) from None
-
-    # Shared runtime state used by HTTP handler and reload worker.
+        _emit_serve_load_error(
+            exc, jsonl_path=jsonl_path, port=port, output_json=json_output
+        )
     collector_ref = _CollectorRef(collector)
     stop_event = threading.Event()
-
     MetricsHandler = build_metrics_handler(collector_ref)
-
-    # Bind first. In restricted environments this can fail (PermissionError/OSError),
-    # and we must fail fast before starting background workers.
-    try:
-        server = http.server.HTTPServer(("", port), MetricsHandler)
-    except OSError as exc:
-        if json_output:
-            data = {"events_file": str(jsonl_path), "port": port, "exit_code": 1}
-            payload = build_error_result(
-                "metrics serve",
-                data,
-                code="metrics_bind_failed",
-                message=f"Cannot bind to port {port}: {exc}",
-            )
-            emit_json(payload, err=True)
-        else:
-            console.print(
-                f"[red]Error starting metrics server:[/red] cannot bind to port {port}: {exc}",
-                style="bold",
-            )
-        raise typer.Exit(1) from None
-
+    server = _bind_server(
+        port=port,
+        handler_cls=MetricsHandler,
+        jsonl_path=jsonl_path,
+        output_json=json_output,
+    )
     reload_thread = _start_reload_worker(
         jsonl_path=jsonl_path,
         refresh=refresh,
         collector_ref=collector_ref,
         stop_event=stop_event,
     )
-    server.timeout = 1.0
-    console.print(
-        f"[green][SDD][/green] Metrics endpoint: [cyan]http://localhost:{port}/metrics[/cyan]"
+    run_server_loop(
+        server=server,
+        reload_thread=reload_thread,
+        stop_event=stop_event,
+        port=port,
+        refresh=refresh,
+        console=console,
     )
-    console.print(
-        f"[yellow]Reloading JSONL every {refresh}s. Press Ctrl+C to stop.[/yellow]"
-    )
-
-    try:
-        while not stop_event.is_set():
-            server.handle_request()
-    except KeyboardInterrupt:
-        console.print("[yellow]\n[SDD] Metrics server stopped.[/yellow]")
-        raise typer.Exit(0) from None
-    finally:
-        stop_event.set()
-        server.server_close()
-        reload_thread.join(timeout=max(2, refresh + 1))

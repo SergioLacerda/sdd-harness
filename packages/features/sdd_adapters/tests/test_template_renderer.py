@@ -102,5 +102,20 @@ class TestTemplateRenderer:
         from jinja2 import TemplateNotFound
 
         renderer = TemplateRenderer()
-        with pytest.raises(TemplateNotFound):
+        with pytest.raises(
+            TemplateNotFound, match="Template not found: claude/nonexistent.md.tpl"
+        ):
             renderer.render("claude", "nonexistent.md", skill=SAMPLE_SKILL)
+
+    def test_custom_templates_dir_is_respected(self, tmp_path: Path) -> None:
+        template_dir = tmp_path / "templates"
+        (template_dir / "claude").mkdir(parents=True)
+        (template_dir / "claude" / "command.md.tpl").write_text(
+            "Hello {{ skill.name }}", encoding="utf-8"
+        )
+
+        renderer = TemplateRenderer(template_dir)
+        content = renderer.render("claude", "command.md", skill=SAMPLE_SKILL)
+
+        assert renderer.templates_dir == template_dir
+        assert content == "Hello diagnose"

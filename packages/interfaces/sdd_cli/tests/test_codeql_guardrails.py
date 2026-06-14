@@ -121,19 +121,20 @@ def _assert_no_bare_raise_in_except(tree: object, filename: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Unused import guardrail — yaml removed from skills.py
+# Unused import guardrail — yaml must stay out of the public skills surface
 # ---------------------------------------------------------------------------
 
 
 def test_yaml_not_imported_at_module_level_in_skills() -> None:
-    """skills.py must not import yaml — that belongs in _skill_registry.py."""
+    """Public skills package must not import yaml at module level."""
     src = (
         Path(__file__).parents[3]
         / "core"
         / "sdd_runtime"
         / "src"
         / "sdd_runtime"
-        / "skills.py"
+        / "skills"
+        / "__init__.py"
     )
     source = src.read_text(encoding="utf-8")
     lines = source.splitlines()
@@ -141,6 +142,6 @@ def test_yaml_not_imported_at_module_level_in_skills() -> None:
         stripped = line.strip()
         if stripped in ("import yaml", "import yaml  # noqa"):
             raise AssertionError(
-                f"skills.py still imports yaml at module level: {line!r}. "
-                "yaml belongs in _skill_registry.py."
+                f"skills public surface still imports yaml at module level: {line!r}. "
+                "yaml must stay in internal runtime modules only."
             )

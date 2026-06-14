@@ -1,21 +1,11 @@
-"""
-PHASE 4: Deployment Manager
-Deploy compiled governance files to runtime/compiled/
-
-Workflow:
-1. Validate compiled files exist and are valid
-2. Create runtime/compiled/ directory structure
-3. Copy msgpack files to runtime location
-4. Copy metadata files to runtime location
-5. Create deployment checklist
-6. Generate deployment manifest
-7. Provide git commands for commit + tag
-"""
+"""Deploy compiled governance files into `.sdd/compiled/`."""
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any
 
+from sdd_core._deployment_cli import print_deployment_result
+from sdd_core._deployment_types import DeploymentResult
 from sdd_core.artifact_bootstrapper import (
     GOVERNANCE_ARTIFACTS,
 )
@@ -28,19 +18,8 @@ from sdd_core.deployment_validator import DeploymentValidator
 from sdd_core.utils.environment import get_sdd_paths
 
 
-class DeploymentResult(TypedDict):
-    """DeploymentResult."""
-
-    success: bool
-    deployed_files: dict[str, str]
-    deployment_location: str
-    checklist: dict[str, bool]
-    manifest: dict[str, Any]
-    next_steps: list[str]
-
-
 class DeploymentManager:
-    """Manages deployment of compiled governance files to runtime"""
+    """Manages deployment of compiled governance files to runtime."""
 
     def __init__(
         self,
@@ -48,7 +27,7 @@ class DeploymentManager:
         workspace_root: str | None = None,
         emit: Callable[[str], None] | None = None,
     ):
-        """Initialize deployment manager"""
+        """Initialize deployment manager."""
         root_path = Path(repo_root).resolve() if repo_root is not None else None
         workspace_path = (
             Path(workspace_root).resolve() if workspace_root is not None else None
@@ -61,16 +40,11 @@ class DeploymentManager:
         )
         self.paths = paths
 
-        # Deployment target: Client Runtime (.sdd/compiled/)
         self.runtime_compiled = self.workspace_root / ".sdd" / "compiled"
         self.runtime_audit = self.runtime_compiled / "audit"
-
-        # Source of truth for deployment: client/compiled only.
         self.compiled_dir = paths["client_compiled"]
         self.master_compiled_dir = paths["master_compiled"]
         self._emit = emit
-
-        # Delegate artifact bootstrapping to dedicated class
         self._bootstrapper = _ArtifactBootstrapper(
             self.compiled_dir,
             self.master_compiled_dir,
@@ -95,42 +69,27 @@ class DeploymentManager:
         return self.compiled_dir / filename
 
     def deploy(self) -> DeploymentResult:
-        """
-        Execute complete deployment
-
-        Returns:
-            Dictionary with deployment results
-        """
+        """Deploy compiled governance artifacts into the runtime layout."""
         self._out("🚀 Starting PHASE 4: Deployment...")
-
-        # Step 1: Validate compiled files
         self._out("📋 Step 1: Validating compiled files...")
         if not self._validate_compiled_files():
             self._out("❌ Validation failed")
             return self._failed_result()
         self._out("✅ Validation passed")
-
-        # Step 2: Create runtime directory structure
         self._out("📁 Step 2: Creating runtime directory structure...")
         self._create_runtime_structure()
         self._out("✅ Runtime structure created")
-
-        # Step 3: Copy files
         self._out("📦 Step 3: Copying compiled files to runtime...")
         copy_result = self._copy_files_transactional()
         if not copy_result:
             self._out("❌ Copy failed")
             return self._failed_result()
         self._out("✅ Files copied successfully")
-
-        # Step 4: Verify deployment
         self._out("✔️ Step 4: Verifying deployment...")
         if not self._verify_deployment():
             self._out("❌ Verification failed")
             return self._failed_result()
         self._out("✅ Deployment verified")
-
-        # Step 5: Generate checklist and manifest
         checklist = self._generate_checklist()
         manifest = self._generate_manifest()
         self._cleanup_legacy_manifests()
@@ -215,45 +174,8 @@ class DeploymentManager:
 
 
 def main() -> None:
-    """Run the deployment CLI entrypoint."""
-    manager = DeploymentManager()
-    result = manager.deploy()
-
-    if result.get("success"):
-        print()  # noqa: T201
-        print("=" * 70)  # noqa: T201
-        print("🎉 PHASE 4: DEPLOYMENT COMPLETE")  # noqa: T201
-        print("=" * 70)  # noqa: T201
-        print()  # noqa: T201
-
-        print("📋 Deployment Checklist:")  # noqa: T201
-        for check, status in result.get("checklist", {}).items():
-            status_icon = "✅" if status else "❌"
-            print(f"  {status_icon} {check}")  # noqa: T201
-
-        print()  # noqa: T201
-        print("📦 Deployment Location:")  # noqa: T201
-        print(f"  {result.get('deployment_location')}")  # noqa: T201
-
-        print()  # noqa: T201
-        print("📄 Artifacts Deployed:")  # noqa: T201
-        for name, path in result.get("manifest", {}).get("artifacts", {}).items():
-            print(f"  - {name}: {path}")  # noqa: T201
-
-        print()  # noqa: T201
-        print("🔗 Next Steps:")  # noqa: T201
-        for step in result.get("next_steps", []):
-            print(f"  {step}")  # noqa: T201
-
-        print()  # noqa: T201
-        status_value = result.get("manifest", {}).get("status")
-        if isinstance(status_value, str):
-            print(f"✅ Status: {status_value.upper()}")  # noqa: T201
-        else:
-            print("✅ Status: UNKNOWN")  # noqa: T201
-    else:
-        print()  # noqa: T201
-        print("❌ Deployment failed")  # noqa: T201
+    """Run the deployment manager as a standalone script."""
+    print_deployment_result(DeploymentManager().deploy())
 
 
 if __name__ == "__main__":  # pragma: no cover

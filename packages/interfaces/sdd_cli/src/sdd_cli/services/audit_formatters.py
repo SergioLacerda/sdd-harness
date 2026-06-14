@@ -61,10 +61,7 @@ def _parse_since_date(value: str | None) -> datetime | None:
 
 
 def _filter_events(
-    events: list[dict[str, Any]],
-    *,
-    since: datetime | None,
-    event_type: str | None,
+    events: list[dict[str, Any]], *, since: datetime | None, event_type: str | None
 ) -> list[dict[str, Any]]:
     from sdd_cli.services.audit_runner import _event_ts, _parse_ts, _ts_sort_key
 
@@ -151,16 +148,8 @@ def _build_export_payload(
     return csv_blob, manifest
 
 
-# ---------------------------------------------------------------------------
-# Public rendering helpers
-# ---------------------------------------------------------------------------
-
-
 def render_audit_text(
-    summary: dict[str, Any],
-    top: int,
-    rows: list[Any],
-    source: Path,
+    summary: dict[str, Any], top: int, rows: list[Any], source: Path
 ) -> None:
     """Emit human-readable audit summary via typer.echo."""
     typer.echo("SDD Audit Summary")

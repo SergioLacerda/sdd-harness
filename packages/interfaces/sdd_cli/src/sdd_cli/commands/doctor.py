@@ -86,7 +86,6 @@ def _apply_score_gate(score_threshold: int) -> None:
                 if artifact_fp:
                     hash_ok = artifact_fp[:16] == profile_ctx.core_hash
                 else:
-                    # Backward compatibility for artifacts without embedded fingerprint
                     clean = {
                         k: v
                         for k, v in data.items()
@@ -112,8 +111,7 @@ def _apply_score_gate(score_threshold: int) -> None:
 
         if score < score_threshold:
             typer.echo(
-                f"[SDD] Governance score {score}/100 below threshold {score_threshold}. "
-                "Run 'sdd governance score --verbose' for details.",
+                f"[SDD] Governance score {score}/100 below threshold {score_threshold}. Run 'sdd governance score --verbose' for details.",
                 err=True,
             )
             raise typer.Exit(1)
@@ -135,8 +133,7 @@ def _apply_adherence_gate(adherence_threshold: int) -> None:
 
         if adherence < adherence_threshold:
             typer.echo(
-                f"[SDD] Governance adherence {adherence}/100 below threshold {adherence_threshold}. "
-                "Run 'sdd governance adherence --verbose' for details.",
+                f"[SDD] Governance adherence {adherence}/100 below threshold {adherence_threshold}. Run 'sdd governance adherence --verbose' for details.",
                 err=True,
             )
             raise typer.Exit(1)
@@ -153,10 +150,7 @@ def _apply_adherence_gate(adherence_threshold: int) -> None:
 )
 def run(
     spec: Path = typer.Option(None, help="Path to integration flow spec"),  # noqa: B008
-    mode: str = typer.Option(
-        "isolated",
-        help="Execution mode for doctor checks",
-    ),
+    mode: str = typer.Option("isolated", help="Execution mode for doctor checks"),
     score_threshold: int = typer.Option(
         0,
         "--score-threshold",
@@ -177,23 +171,17 @@ def run(
         from sdd_integration.engine.integration_engine import IntegrationEngine
     except ImportError:
         typer.echo(
-            (
-                "Command 'doctor' is unavailable because optional dependency "
-                "'sdd_integration' could not be loaded.\n"
-                "Run `sdd setup run` or install the missing package dependencies."
-            ),
+            "Command 'doctor' is unavailable because optional dependency 'sdd_integration' could not be loaded.\nRun `sdd setup run` or install the missing package dependencies.",
             err=True,
         )
         raise typer.Exit(1) from None
 
-    # Guard: workspace must be initialized before running diagnostics.
     workspace_root = resolve_workspace_root()
     enforce_path_policy(workspace_root, workspace_root=workspace_root, mode="normal")
 
     _apply_score_gate(score_threshold)
     _apply_adherence_gate(adherence_threshold)
 
-    # Use provided spec or resolve default based on detected root
     target_spec = spec or _get_default_spec()
 
     if not target_spec.exists():
@@ -207,10 +195,7 @@ def run(
 
     context_overrides = None
     if mode == "real":
-        context_overrides = {
-            "working_dir": str(detect_repo_root()),
-            "isolation": False,
-        }
+        context_overrides = {"working_dir": str(detect_repo_root()), "isolation": False}
 
     engine = IntegrationEngine(str(target_spec), context_overrides=context_overrides)
     report = engine.run()

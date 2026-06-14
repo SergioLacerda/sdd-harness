@@ -222,6 +222,96 @@ class TestCompileGuidelinesDsl:
         # verbose=True should call print internally — no assertion needed, just no crash
 
 
+class TestCompileToBinary:
+    def test_msgpack_format_returns_packed_bytes(self) -> None:
+        import msgpack
+
+        from sdd_wizard.orchestration.mandate_compiler import compile_to_binary
+
+        mandates = [{"id": "M001", "type": "HARD"}]
+        binary_data = compile_to_binary(mandates, format="msgpack")
+
+        assert isinstance(binary_data, bytes)
+        decoded = msgpack.unpackb(binary_data, raw=False)
+        assert decoded["count"] == 1
+        assert decoded["mandates"] == mandates
+
+
+class TestCompileMandateSpecEdgeCases:
+    def test_logs_when_no_mandates_found(self, tmp_path: Path, capsys: Any) -> None:
+        from sdd_wizard.orchestration.mandate_compiler import MandateCompiler
+
+        input_file = tmp_path / "mandate.spec"
+        input_file.write_text("# no mandates here\n", encoding="utf-8")
+        output_file = tmp_path / "mandates.bin"
+
+        compiler = MandateCompiler(verbose=True)
+        result = compiler.compile_mandate_spec(
+            input_file, output_file, format="json_compressed"
+        )
+
+        assert result is True
+        captured = capsys.readouterr()
+        assert "No mandates found" in captured.out
+
+    def test_returns_false_on_compile_error(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from sdd_wizard.orchestration import mandate_compiler
+        from sdd_wizard.orchestration.mandate_compiler import MandateCompiler
+
+        input_file = tmp_path / "mandate.spec"
+        input_file.write_text(MANDATE_SPEC_SAMPLE, encoding="utf-8")
+        output_file = tmp_path / "output.bin"
+
+        def _boom(*args: Any, **kwargs: Any) -> bytes:
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(mandate_compiler, "compile_to_binary", _boom)
+
+        compiler = MandateCompiler()
+        result = compiler.compile_mandate_spec(
+            input_file, output_file, format="json_compressed"
+        )
+
+        assert result is False
+
+
+class TestCompileGuidelinesDslEdgeCases:
+    def test_compiles_successfully_with_msgpack_default(self, tmp_path: Path) -> None:
+        from sdd_wizard.orchestration.mandate_compiler import MandateCompiler
+
+        input_file = tmp_path / "guidelines.dsl"
+        input_file.write_text(GUIDELINES_DSL_SAMPLE, encoding="utf-8")
+        output_file = tmp_path / "guidelines.bin"
+
+        compiler = MandateCompiler()
+        result = compiler.compile_guidelines_dsl(input_file, output_file)
+
+        assert result is True
+        assert output_file.exists()
+
+    def test_returns_false_on_compile_error(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from sdd_wizard.orchestration import mandate_compiler
+        from sdd_wizard.orchestration.mandate_compiler import MandateCompiler
+
+        input_file = tmp_path / "guidelines.dsl"
+        input_file.write_text(GUIDELINES_DSL_SAMPLE, encoding="utf-8")
+        output_file = tmp_path / "guidelines.bin"
+
+        def _boom(*args: Any, **kwargs: Any) -> bytes:
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(mandate_compiler.msgpack, "packb", _boom)
+
+        compiler = MandateCompiler()
+        result = compiler.compile_guidelines_dsl(input_file, output_file)
+
+        assert result is False
+
+
 class TestMandateCompilerLog:
     def test_log_prints_when_verbose(self, capsys: Any) -> None:
         from sdd_wizard.orchestration.mandate_compiler import MandateCompiler

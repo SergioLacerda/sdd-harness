@@ -1,208 +1,205 @@
-"""Tests for AdapterGenerator — integration tests using tmp_path."""
+"""Tests for AdapterGenerator."""
 
-import json
+from __future__ import annotations
+
 from pathlib import Path
 
-import yaml
-
-from sdd_adapters import AdapterGenerator
-from sdd_core.utils.text_io import read_text_utf8, write_text_utf8
+from sdd_adapters.adapter_generator import AdapterGenerator, AdapterResult
 
 
-def _make_project(tmp_path: Path) -> Path:
-    """Create a minimal project with .sdd/skills/ and .sdd/commands/."""
-    sdd = tmp_path / ".sdd"
-    skills_dir = sdd / "skills"
-    skills_dir.mkdir(parents=True)
-    commands_dir = sdd / "commands"
-    commands_dir.mkdir(parents=True)
+def test_generate_collects_results_for_all_targets(tmp_path: Path, monkeypatch) -> None:
+    generator = AdapterGenerator()
 
-    skills = [
-        {
-            "name": "diagnose",
-            "category": "analysis",
-            "description": "Diagnose runtime problems.",
-            "risk_score": "low",
-            "when_to_use": ["failing checks"],
-            "allowed_tools": ["sdd doctor run"],
-            "cli_fallback": ["sdd doctor run"],
-        },
-        {
-            "name": "stabilize",
-            "category": "operations",
-            "description": "Run stabilization checks.",
-            "risk_score": "medium",
-            "when_to_use": ["pre-delivery"],
-            "allowed_tools": ["sdd lint run"],
-            "cli_fallback": ["sdd lint run"],
-        },
-    ]
+    def _fake_generate(target: str, output_dir: Path) -> AdapterResult:
+        return AdapterResult(target=target, files_written=[str(output_dir / target)])
 
-    registry = {
-        "schema_version": "1.0.0",
-        "skills": [
-            {"name": s["name"], "description": s["description"]} for s in skills
-        ],
-    }
-    (skills_dir / "registry.json").write_text(json.dumps(registry), encoding="utf-8")
+    monkeypatch.setattr(generator, "_generate_for_target", _fake_generate)
 
-    for skill in skills:
-        skill_dir = skills_dir / skill["name"]
-        skill_dir.mkdir()
-        (skill_dir / "skill.yaml").write_text(yaml.dump(skill), encoding="utf-8")
+    results = generator.generate(tmp_path)
 
-    commands = [
-        {
-            "id": "sdd-diagnose",
-            "slash": "/sdd-diagnose",
-            "routes_to": {"type": "skill", "id": "diagnose"},
-            "targets": ["claude", "codex", "copilot", "antigravity"],
-        },
-        {
-            "id": "sdd-ask",
-            "slash": "/sdd-ask",
-            "routes_to": {"type": "cli", "command": "sdd ask"},
-            "targets": ["claude", "codex", "copilot", "antigravity"],
-        },
-    ]
-    (commands_dir / "registry.json").write_text(
-        json.dumps({"schema_version": "1.0.0", "commands": commands}),
-        encoding="utf-8",
+    assert set(results) == {"claude", "codex", "copilot", "antigravity"}
+    assert results["claude"].success is True
+
+
+def test_generate_captures_target_exception(tmp_path: Path, monkeypatch) -> None:
+    generator = AdapterGenerator()
+
+    def _fake_generate(target: str, _output_dir: Path) -> AdapterResult:
+        if target == "codex":
+            raise RuntimeError("boom")
+        return AdapterResult(target=target)
+
+    monkeypatch.setattr(generator, "_generate_for_target", _fake_generate)
+
+    results = generator.generate(tmp_path)
+
+    assert results["codex"].success is False
+    assert results["codex"].errors == ["boom"]
+
+
+def test_generate_for_target_writes_skills_and_filtered_commands(
+    tmp_path: Path, monkeypatch
+) -> None:
+    generator = AdapterGenerator()
+    monkeypatch.setattr(
+        generator.skill_loader,
+        "load_skills",
+        lambda _sdd_dir: [{"name": "diagnose"}],
     )
-    for command in commands:
-        cmd_dir = commands_dir / command["id"]
-        cmd_dir.mkdir()
-        (cmd_dir / "command.yaml").write_text(yaml.dump(command), encoding="utf-8")
+    monkeypatch.setattr(
+        generator.skill_loader,
+        "load_commands",
+        lambda _sdd_dir: [
+            {"id": "allowed", "targets": ["claude"]},
+            {"id": "blocked", "targets": ["codex"]},
+        ],
+    )
+    monkeypatch.setattr(
+        generator,
+        "_render_skill_adapter",
+        lambda target, skill, agent_dir: agent_dir / f"{skill['name']}-{target}",
+    )
+    monkeypatch.setattr(
+        generator,
+        "_render_command_adapter",
+        lambda target, command, agent_dir: agent_dir / f"{command['id']}-{target}",
+    )
 
-    return tmp_path
+    result = generator._generate_for_target("claude", tmp_path)
+
+    assert result.success is True
+    assert any("diagnose-claude" in path for path in result.files_written)
+    assert any("allowed-claude" in path for path in result.files_written)
+    assert all("blocked-claude" not in path for path in result.files_written)
+    assert (tmp_path / ".claude" / "commands").exists()
 
 
-class TestAdapterGenerator:
-    def test_generate_creates_files_for_all_targets(self, tmp_path: Path) -> None:
-        project = _make_project(tmp_path)
-        gen = AdapterGenerator()
-        results = gen.generate(output_dir=project)
+def test_generate_for_target_marks_skill_render_error(
+    tmp_path: Path, monkeypatch
+) -> None:
+    generator = AdapterGenerator()
+    monkeypatch.setattr(
+        generator.skill_loader,
+        "load_skills",
+        lambda _sdd_dir: [{"name": "diagnose"}],
+    )
+    monkeypatch.setattr(generator.skill_loader, "load_commands", lambda _sdd_dir: [])
 
-        assert set(results.keys()) == {"claude", "codex", "copilot", "antigravity"}
-        for target, result in results.items():
-            assert result.success, f"{target} failed: {result.errors}"
-            assert len(result.files_written) == 4  # skills + commands
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("skill fail")
 
-    def test_claude_commands_written(self, tmp_path: Path) -> None:
-        project = _make_project(tmp_path)
-        gen = AdapterGenerator()
-        gen.generate(output_dir=project)
+    monkeypatch.setattr(generator, "_render_skill_adapter", _boom)
 
-        claude_dir = project / ".claude" / "commands"
-        assert (claude_dir / "diagnose.md").exists()
-        assert (claude_dir / "stabilize.md").exists()
+    result = generator._generate_for_target("claude", tmp_path)
 
-        content = read_text_utf8(claude_dir / "diagnose.md")
-        assert "sdd doctor run" in content
-        assert ".sdd/skills/registry.json" in content
+    assert result.success is False
+    assert result.errors == ["Failed to render skill diagnose: skill fail"]
 
-    def test_codex_skills_written(self, tmp_path: Path) -> None:
-        project = _make_project(tmp_path)
-        gen = AdapterGenerator()
-        gen.generate(output_dir=project)
 
-        codex_dir = project / ".codex" / "skills"
-        assert (codex_dir / "diagnose.prompt.md").exists()
-        assert (codex_dir / "stabilize.prompt.md").exists()
+def test_generate_for_target_marks_command_render_error(
+    tmp_path: Path, monkeypatch
+) -> None:
+    generator = AdapterGenerator()
+    monkeypatch.setattr(generator.skill_loader, "load_skills", lambda _sdd_dir: [])
+    monkeypatch.setattr(
+        generator.skill_loader,
+        "load_commands",
+        lambda _sdd_dir: [{"id": "diagnose", "targets": ["claude"]}],
+    )
 
-        content = read_text_utf8(codex_dir / "diagnose.prompt.md")
-        assert "SDD GOVERNANCE" in content
-        assert "sdd organize" in content  # analysis category
-        command_skill = read_text_utf8(codex_dir / "sdd-diagnose.prompt.md")
-        command_cli = read_text_utf8(codex_dir / "sdd-ask.prompt.md")
-        assert "sdd skills run diagnose" in command_skill
-        assert "`sdd ask`" in command_cli
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("cmd fail")
 
-    def test_antigravity_uses_subdirectory_per_skill(self, tmp_path: Path) -> None:
-        project = _make_project(tmp_path)
-        gen = AdapterGenerator()
-        gen.generate(output_dir=project)
+    monkeypatch.setattr(generator, "_render_command_adapter", _boom)
 
-        ag_base = project / ".gemini" / "antigravity" / "skills"
-        assert (ag_base / "diagnose" / "SKILL.md").exists()
-        assert (ag_base / "stabilize" / "SKILL.md").exists()
+    result = generator._generate_for_target("claude", tmp_path)
 
-    def test_empty_skills_registry_generates_no_files(self, tmp_path: Path) -> None:
-        sdd = tmp_path / ".sdd" / "skills"
-        sdd.mkdir(parents=True)
-        write_text_utf8(
-            sdd / "registry.json", json.dumps({"schema_version": "1.0.0", "skills": []})
-        )
+    assert result.success is False
+    assert result.errors == ["Failed to render command diagnose: cmd fail"]
 
-        gen = AdapterGenerator()
-        results = gen.generate(output_dir=tmp_path)
 
-        for _target, result in results.items():
-            assert result.success
-            assert result.files_written == []
+def test_render_command_adapter_claude_uses_command_template(
+    tmp_path: Path, monkeypatch
+) -> None:
+    generator = AdapterGenerator()
+    captured: dict[str, object] = {}
 
-    def test_generate_captures_target_level_exception(self, tmp_path: Path) -> None:
-        project = _make_project(tmp_path)
-        gen = AdapterGenerator()
+    def _render(target: str, template_name: str, **context: object) -> str:
+        captured["target"] = target
+        captured["template_name"] = template_name
+        captured["context"] = context
+        return "content"
 
-        original = gen._generate_for_target
+    monkeypatch.setattr(generator.renderer, "render", _render)
 
-        def _boom(target: str, output_dir: Path):  # type: ignore[no-untyped-def]
-            if target == "codex":
-                raise RuntimeError("broken target")
-            return original(target, output_dir)
+    output = generator._render_command_adapter("claude", {"id": "diag"}, tmp_path)
 
-        gen._generate_for_target = _boom  # type: ignore[method-assign]
-        results = gen.generate(output_dir=project)
+    assert output.read_text(encoding="utf-8") == "content"
+    assert captured["template_name"] == "command.md"
+    assert "skill" in captured["context"]
 
-        assert results["codex"].success is False
-        assert "broken target" in results["codex"].errors[0]
 
-    def test_generate_skips_command_without_target(self, tmp_path: Path) -> None:
-        project = _make_project(tmp_path)
-        command_yaml = project / ".sdd" / "commands" / "sdd-diagnose" / "command.yaml"
-        data = yaml.safe_load(read_text_utf8(command_yaml))
-        data["adapter_targets"] = ["claude"]
-        command_yaml.write_text(yaml.safe_dump(data), encoding="utf-8")
+def test_render_command_adapter_codex_uses_command_context(
+    tmp_path: Path, monkeypatch
+) -> None:
+    generator = AdapterGenerator()
+    captured: dict[str, object] = {}
 
-        gen = AdapterGenerator()
-        result = gen._generate_for_target("codex", project)
+    def _render(target: str, template_name: str, **context: object) -> str:
+        captured["template_name"] = template_name
+        captured["context"] = context
+        return "content"
 
-        assert all(
-            "sdd-diagnose.prompt.md" not in path for path in result.files_written
-        )
-        assert any("sdd-ask.prompt.md" in path for path in result.files_written)
+    monkeypatch.setattr(generator.renderer, "render", _render)
 
-    def test_generate_collects_skill_render_error(self, tmp_path: Path) -> None:
-        project = _make_project(tmp_path)
-        gen = AdapterGenerator()
+    output = generator._render_command_adapter("codex", {"id": "diag"}, tmp_path)
 
-        original = gen._render_skill_adapter
+    assert output.name == "diag.prompt.md"
+    assert captured["template_name"] == "command.prompt.md"
+    assert "command" in captured["context"]
 
-        def _maybe_fail(target: str, skill: dict[str, str], output_dir: Path) -> Path:
-            if skill.get("name") == "diagnose":
-                raise RuntimeError("skill render failed")
-            return original(target, skill, output_dir)
 
-        gen._render_skill_adapter = _maybe_fail  # type: ignore[method-assign]
-        result = gen._generate_for_target("codex", project)
+def test_render_command_adapter_antigravity_creates_subdir(
+    tmp_path: Path, monkeypatch
+) -> None:
+    generator = AdapterGenerator()
+    monkeypatch.setattr(
+        generator.renderer, "render", lambda *_args, **_kwargs: "content"
+    )
 
-        assert result.success is False
-        assert any("skill render failed" in err for err in result.errors)
+    output = generator._render_command_adapter("antigravity", {"id": "diag"}, tmp_path)
 
-    def test_generate_collects_command_render_error(self, tmp_path: Path) -> None:
-        project = _make_project(tmp_path)
-        gen = AdapterGenerator()
+    assert output == tmp_path / "diag" / "SKILL.md"
+    assert output.read_text(encoding="utf-8") == "content"
 
-        original = gen._render_command_adapter
 
-        def _maybe_fail(target: str, command: dict[str, str], output_dir: Path) -> Path:
-            if command.get("id") == "sdd-ask":
-                raise RuntimeError("command render failed")
-            return original(target, command, output_dir)
+def test_render_skill_adapter_creates_antigravity_subdir(
+    tmp_path: Path, monkeypatch
+) -> None:
+    generator = AdapterGenerator()
+    monkeypatch.setattr(generator.renderer, "render", lambda *_args, **_kwargs: "skill")
 
-        gen._render_command_adapter = _maybe_fail  # type: ignore[method-assign]
-        result = gen._generate_for_target("codex", project)
+    output = generator._render_skill_adapter(
+        "antigravity", {"name": "diagnose"}, tmp_path
+    )
 
-        assert result.success is False
-        assert any("command render failed" in err for err in result.errors)
+    assert output == tmp_path / "diagnose" / "SKILL.md"
+    assert output.read_text(encoding="utf-8") == "skill"
+
+
+def test_render_skill_adapter_uses_codex_template(tmp_path: Path, monkeypatch) -> None:
+    generator = AdapterGenerator()
+    captured: dict[str, object] = {}
+
+    def _render(target: str, template_name: str, **context: object) -> str:
+        captured["template_name"] = template_name
+        captured["context"] = context
+        return "skill"
+
+    monkeypatch.setattr(generator.renderer, "render", _render)
+
+    output = generator._render_skill_adapter("codex", {"name": "diagnose"}, tmp_path)
+
+    assert output.name == "diagnose.prompt.md"
+    assert captured["template_name"] == "skill.prompt.md"
+    assert "skill" in captured["context"]

@@ -14,9 +14,7 @@ from sdd_runtime.otel import OtlpHttpExporter as OtlpHttpExporter
 from sdd_cli.services.ask_dossier import (
     build_and_output_dossier as _build_and_output_dossier_impl,
 )
-from sdd_cli.services.ask_dossier import (
-    build_dossier_lines as _build_dossier_lines_impl,
-)
+from sdd_cli.services.ask_dossier import build_dossier_lines as _build_dossier_lines
 from sdd_cli.services.ask_dossier import (
     handle_dossier_error as _handle_dossier_error_impl,
 )
@@ -24,29 +22,27 @@ from sdd_cli.services.ask_dossier import (
     load_dossier_artifact as _load_dossier_artifact_impl,
 )
 from sdd_cli.services.ask_dossier import (
-    resolve_dossier_budget as _resolve_dossier_budget_impl,
+    resolve_dossier_budget as _resolve_dossier_budget,
 )
 from sdd_cli.services.ask_telemetry import (
     emit_ask_telemetry as _emit_ask_telemetry_impl,
 )
-from sdd_cli.services.ask_telemetry import (
-    resolve_tokens as _resolve_tokens_impl,
-)
+from sdd_cli.services.ask_telemetry import resolve_tokens as _resolve_tokens
 from sdd_cli.services.ask_telemetry import (
     upsert_ask_session as _upsert_ask_session_impl,
 )
 from sdd_cli.utils.sdd_authority import compiled_active_dir
 
+__all__ = [
+    "OtelBridge",
+    "OtlpHttpExporter",
+    "TelemetrySink",
+    "_build_dossier_lines",
+    "_resolve_dossier_budget",
+    "_resolve_tokens",
+]
+
 logger = logging.getLogger(__name__)
-
-
-# ---------------------------------------------------------------------------
-# sdd_runtime telemetry integration
-# ---------------------------------------------------------------------------
-
-
-def _resolve_tokens(query: str, output_text: str) -> tuple[int | None, int | None, str]:
-    return _resolve_tokens_impl(query, output_text)
 
 
 def _emit_ask_telemetry(
@@ -106,11 +102,6 @@ def _emit_ask_telemetry(
     )
 
 
-# ---------------------------------------------------------------------------
-# sdd_runtime session integration
-# ---------------------------------------------------------------------------
-
-
 def _upsert_ask_session(
     workspace_root: Path,
     agent_id: str,
@@ -126,17 +117,8 @@ def _upsert_ask_session(
     )
 
 
-# ---------------------------------------------------------------------------
-# Dossier builder (C1)
-# ---------------------------------------------------------------------------
-
-
 def _handle_dossier_error(exc: Exception) -> None:
-    _handle_dossier_error_impl(
-        exc,
-        logger=logger,
-        typer_module=typer,
-    )
+    _handle_dossier_error_impl(exc, logger=logger, typer_module=typer)
 
 
 def _build_and_output_dossier(
@@ -161,14 +143,9 @@ def _build_and_output_dossier(
     )
 
 
-def _resolve_dossier_budget(budget: int | None) -> int:
-    return _resolve_dossier_budget_impl(budget)
-
-
 def _load_dossier_artifact(workspace_root: Path) -> Any | None:
     artifact = _load_dossier_artifact_impl(
-        workspace_root,
-        compiled_active_dir_fn=compiled_active_dir,
+        workspace_root, compiled_active_dir_fn=compiled_active_dir
     )
     if artifact is None:
         compiled_path = compiled_active_dir(workspace_root) / "governance-core.json"
@@ -176,36 +153,10 @@ def _load_dossier_artifact(workspace_root: Path) -> Any | None:
     return artifact
 
 
-def _build_dossier_lines(
-    query: str,
-    skill: str | None,
-    budget: int,
-    mandates_count: int,
-    budget_utilization_pct: float,
-    context_result: Any,
-) -> list[str]:
-    return _build_dossier_lines_impl(
-        query=query,
-        skill=skill,
-        budget=budget,
-        mandates_count=mandates_count,
-        budget_utilization_pct=budget_utilization_pct,
-        context_result=context_result,
-    )
-
-
-# ---------------------------------------------------------------------------
-# Token capture
-# ---------------------------------------------------------------------------
-
-
 def _capture_effective_tokens(
     tokens_input: int | None, tokens_output: int | None
 ) -> tuple[int | None, int | None]:
-    """Capture token counts from CLI flags or environment variables.
-
-    Backward-compatible public helper that returns only token counts.
-    """
+    """Capture token counts from CLI flags or environment variables."""
     effective_tokens_input, effective_tokens_output, _ = (
         _capture_effective_tokens_with_source(tokens_input, tokens_output)
     )
