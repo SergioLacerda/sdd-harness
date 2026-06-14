@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import os
 
-from ._compiled_artifact import CompiledArtifact
+from ._compiled_artifact import ArtifactLoadResult, CompiledArtifact
 from ._governance_item import GovernanceItem
 from ._item_type import _normalize_item_type, _resolve_item_type
-from ._load_result import ArtifactLoadResult
 
 __all__ = [
     "ArtifactLoadResult",

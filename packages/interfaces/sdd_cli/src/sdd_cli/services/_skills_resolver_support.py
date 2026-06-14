@@ -110,14 +110,37 @@ def run_bootstrap_generation_with_fallback(
 ]:
     seeds_dir = output_base / ".vscode" / "agents"
     try:
-        return seeds_dir, *run_bootstrap_generation_fn(
+        (
+            seeds_info,
+            skills_result,
+            commands_result,
+            reconciliation_summary,
+            skill_index_result,
+            cli_index_result,
+        ) = run_bootstrap_generation_fn(
             output_base=output_base, seeds_dir=seeds_dir, config=config
         )
     except OSError:
         seeds_dir = output_base / ".sdd" / "agents"
-        return seeds_dir, *run_bootstrap_generation_fn(
+        (
+            seeds_info,
+            skills_result,
+            commands_result,
+            reconciliation_summary,
+            skill_index_result,
+            cli_index_result,
+        ) = run_bootstrap_generation_fn(
             output_base=output_base, seeds_dir=seeds_dir, config=config
         )
+    return (
+        seeds_dir,
+        seeds_info,
+        skills_result,
+        commands_result,
+        reconciliation_summary,
+        skill_index_result,
+        cli_index_result,
+    )
 
 
 def emit_bootstrap_text_summary(

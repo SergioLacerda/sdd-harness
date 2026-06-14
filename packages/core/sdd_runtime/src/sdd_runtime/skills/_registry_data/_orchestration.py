@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from ..._skill_contracts import TOKEN_BUDGET_MEDIUM, SkillDefinition
 
+__all__ = ["_ORCHESTRATION_SKILLS"]
+
 _ORCHESTRATION_SKILLS: dict[str, SkillDefinition] = {
     "sdd-ask": SkillDefinition(
         name="sdd-ask",

@@ -37,6 +37,21 @@ from sdd_cli.services.governance_payloads import (
 from sdd_cli.utils.loader import resolve_governance_compiled_dir
 from sdd_cli.utils.output import emit_json
 
+__all__ = [
+    "check_artifact_consistency",
+    "emit_generate_invalid_path_error",
+    "emit_generate_missing_items_error",
+    "render_generate_table",
+    "render_governance_compile_table",
+    "run_governance_compile_json",
+    "run_governance_generate_json",
+    "_count_items_by_type",
+    "_has_malformed_titles",
+    "_load_consistency_artifacts",
+    "_safe_json",
+    "_validate_payload_vs_metadata",
+]
+
 
 def run_governance_compile_json(
     *,

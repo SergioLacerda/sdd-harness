@@ -77,13 +77,12 @@ def guard_repo_root_mutation(output_dir: Path) -> None:
     if not test_output_dir:
         return
 
-    should_block = False
     try:
-        output_resolved = output_dir.resolve()
-        if is_repo_root(output_resolved):
-            should_block = True
+        output_resolved: Path | None = output_dir.resolve()
     except (OSError, ValueError):
-        pass
+        output_resolved = None
+
+    should_block = output_resolved is not None and is_repo_root(output_resolved)
 
     if should_block:
         msg = f"SDD_ISOLATION_ERROR: Mutation of repo root blocked ({output_dir})"

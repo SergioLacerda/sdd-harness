@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+__all__ = [
+    "_MANDATORY_EVENTS",
+    "_PATH_BUDGET_BYTES",
+    "_ZONE_BREACH_PCT",
+    "_ZONE_RED_PCT",
+]
+
 # ---- Logging modes (SOFT governance parameter §13.5) ------------------------
 MODE_PASSIVE = "passive"
 MODE_ACTIVE = "active"
