@@ -7,6 +7,12 @@ __all__ = [
     "_PATH_BUDGET_BYTES",
     "_ZONE_BREACH_PCT",
     "_ZONE_RED_PCT",
+    "MODE_PASSIVE",
+    "MODE_ACTIVE",
+    "MODE_STRICT",
+    "ECONOMY_BUDGET_WARN",
+    "ECONOMY_COMPRESSION_SKIP",
+    "ECONOMY_RETRY_CAP_REACHED",
 ]
 
 # ---- Logging modes (SOFT governance parameter §13.5) ------------------------
