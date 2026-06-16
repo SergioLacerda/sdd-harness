@@ -158,7 +158,7 @@ lock:
 	uv lock
 
 selector-build:
-	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir docs/selector
+	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir site/selector
 
 docs-build: selector-build
 	$(PYTHON) -m mkdocs build --strict
