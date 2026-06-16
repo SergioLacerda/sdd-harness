@@ -1,5 +1,7 @@
 # SDD Harness
 
+> **📖 [Documentation](https://sergiolacerda.github.io/sdd-harness/)** &nbsp;·&nbsp; **🧭 [Selector](https://sergiolacerda.github.io/sdd-harness/selector/)**
+
 **Executable governance platform for agentic systems**
 
 SDD Harness turns architectural and governance specifications into executable

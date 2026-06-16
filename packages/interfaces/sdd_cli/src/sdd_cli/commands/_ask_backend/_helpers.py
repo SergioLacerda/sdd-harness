@@ -41,6 +41,8 @@ from sdd_cli.services.ask_renderer import (
 from sdd_cli.services.ask_renderer import (
     render_governance_footer as _render_governance_footer_impl,
 )
+from sdd_cli.shared.constants import LEARNING_WINDOW_DAYS as _LEARNING_WINDOW_DAYS
+from sdd_cli.shared.constants import TRUE_VALUES as _TRUE_VALUES
 from sdd_cli.utils.output import is_json_mode
 
 __all__ = [
@@ -51,9 +53,6 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
-
-_LEARNING_WINDOW_DAYS = 7
-_TRUE_VALUES = {"1", "true", "yes", "on"}
 
 
 def _now() -> str:

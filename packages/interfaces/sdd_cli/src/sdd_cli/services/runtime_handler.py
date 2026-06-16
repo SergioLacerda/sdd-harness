@@ -21,12 +21,11 @@ from sdd_cli.services._runtime_handler_support import (
     read_profile_value,
     runtime_context,
 )
+from sdd_cli.shared.constants import RUNTIME_DIR as _RUNTIME_DIR
 from sdd_cli.utils.sdd_authority import compiled_active_dir, profile_active_path
 from sdd_cli.utils.telemetry_paths import resolve_compliance_events_path
 
 logger = logging.getLogger(__name__)
-
-_RUNTIME_DIR = Path(".sdd") / "runtime"
 
 
 def _read_workspace_id(root: Path) -> str:

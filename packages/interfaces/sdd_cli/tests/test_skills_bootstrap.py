@@ -21,7 +21,7 @@ class TestValidateAndLoadGovernance:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_bootstrap.validate_governance_path",
+                "sdd_cli.services.skills_bootstrap_validation.validate_governance_path",
                 return_value=False,
             ),
             pytest.raises(typer.Exit) as exc_info,
@@ -38,7 +38,7 @@ class TestValidateAndLoadGovernance:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_bootstrap.validate_governance_path",
+                "sdd_cli.services.skills_bootstrap_validation.validate_governance_path",
                 return_value=False,
             ),
             pytest.raises(typer.Exit),
@@ -55,11 +55,11 @@ class TestValidateAndLoadGovernance:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_bootstrap.validate_governance_path",
+                "sdd_cli.services.skills_bootstrap_validation.validate_governance_path",
                 return_value=True,
             ),
             patch(
-                "sdd_cli.services.skills_bootstrap.load_governance_config",
+                "sdd_cli.services.skills_bootstrap_validation.load_governance_config",
                 return_value={"items": []},
             ),
             pytest.raises(typer.Exit) as exc_info,
@@ -75,11 +75,11 @@ class TestValidateAndLoadGovernance:
         mock_emit = MagicMock()
         with (
             patch(
-                "sdd_cli.services.skills_bootstrap.validate_governance_path",
+                "sdd_cli.services.skills_bootstrap_validation.validate_governance_path",
                 return_value=True,
             ),
             patch(
-                "sdd_cli.services.skills_bootstrap.load_governance_config",
+                "sdd_cli.services.skills_bootstrap_validation.load_governance_config",
                 return_value={"items": []},
             ),
             pytest.raises(typer.Exit),

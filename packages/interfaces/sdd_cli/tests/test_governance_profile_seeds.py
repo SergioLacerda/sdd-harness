@@ -171,7 +171,7 @@ class TestRegenerateSeeds:
     def test_no_workspace_does_nothing(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("SDD_SKIP_SEED_REGEN", raising=False)
         with patch(
-            "sdd_cli.services.governance_compile_handlers.resolve_workspace_root",
+            "sdd_cli.services.governance_compile_telemetry.resolve_workspace_root",
             return_value=None,
         ):
             regenerate_seeds(console=_console())
@@ -183,7 +183,7 @@ class TestRegenerateSeeds:
         console = _console()
         with (
             patch(
-                "sdd_cli.services.governance_compile_handlers.resolve_workspace_root",
+                "sdd_cli.services.governance_compile_telemetry.resolve_workspace_root",
                 return_value=tmp_path,
             ),
             patch("sdd_cli.utils.loader.validate_governance_path", return_value=True),
@@ -214,7 +214,7 @@ class TestRegenerateSeeds:
         console = _console()
         with (
             patch(
-                "sdd_cli.services.governance_compile_handlers.resolve_workspace_root",
+                "sdd_cli.services.governance_compile_telemetry.resolve_workspace_root",
                 return_value=tmp_path,
             ),
             patch("sdd_cli.utils.loader.validate_governance_path", return_value=False),
@@ -238,7 +238,7 @@ class TestRegenerateSeeds:
         console = _console()
         with (
             patch(
-                "sdd_cli.services.governance_compile_handlers.resolve_workspace_root",
+                "sdd_cli.services.governance_compile_telemetry.resolve_workspace_root",
                 return_value=tmp_path,
             ),
             patch("sdd_cli.utils.loader.validate_governance_path", return_value=True),
@@ -260,7 +260,7 @@ class TestRegenerateSeeds:
         console = _console()
         with (
             patch(
-                "sdd_cli.services.governance_compile_handlers.resolve_workspace_root",
+                "sdd_cli.services.governance_compile_telemetry.resolve_workspace_root",
                 return_value=tmp_path,
             ),
             patch("sdd_cli.utils.loader.validate_governance_path", return_value=True),

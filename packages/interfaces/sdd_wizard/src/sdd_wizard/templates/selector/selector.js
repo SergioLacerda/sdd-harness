@@ -1,3 +1,53 @@
+const STRINGS = {
+  en: {
+    title:          "SDD Selector",
+    subtitle:       "Select governed items and export a JSON artifact.",
+    searchPlaceholder: "Search items",
+    export:         "Export JSON",
+    import:         "Import JSON",
+    clear:          "Clear",
+    selected:       (n) => `${n} selected`,
+    depends:        (ids) => `Depends: ${ids}`,
+    mandatory:      "mandatory",
+    optional:       "optional",
+    imported:       (n) => `Imported ${n} selected item(s).`,
+    cleared:        "Selection cleared.",
+    errReadFile:    "Failed to read selection file.",
+    errImportJson:  "Failed to import selection JSON.",
+    errUnknownId:   (id) => `Unknown selector ID: ${id}`,
+    warnUnknown:    (id) => `Unknown selected item: ${id}`,
+    warnMissingDep: (a, b) => `${a} references missing dependency ${b}`,
+    warnRequires:   (a, b) => `${a} requires ${b}`,
+  },
+  pt: {
+    title:          "SDD Selector",
+    subtitle:       "Selecione itens governados e exporte um artefato JSON.",
+    searchPlaceholder: "Buscar itens",
+    export:         "Exportar JSON",
+    import:         "Importar JSON",
+    clear:          "Limpar",
+    selected:       (n) => `${n} selecionado(s)`,
+    depends:        (ids) => `Depende de: ${ids}`,
+    mandatory:      "obrigatório",
+    optional:       "opcional",
+    imported:       (n) => `${n} item(s) importado(s).`,
+    cleared:        "Seleção limpa.",
+    errReadFile:    "Falha ao ler o arquivo.",
+    errImportJson:  "Falha ao importar JSON de seleção.",
+    errUnknownId:   (id) => `ID desconhecido: ${id}`,
+    warnUnknown:    (id) => `Item selecionado desconhecido: ${id}`,
+    warnMissingDep: (a, b) => `${a} referencia dependência ausente ${b}`,
+    warnRequires:   (a, b) => `${a} requer ${b}`,
+  },
+};
+
+function getLang() {
+  const p = new URLSearchParams(location.search).get("lang");
+  return p === "pt" ? "pt" : "en";
+}
+
+const T = STRINGS[getLang()];
+
 const state = {
   items: [],
   selected: new Set(),
@@ -35,16 +85,16 @@ function resolveSelection() {
     visiting.add(itemId);
     const item = byId.get(itemId);
     if (!item) {
-      warnings.push(`Unknown selected item: ${itemId}`);
+      warnings.push(T.warnUnknown(itemId));
       continue;
     }
     for (const dep of item.depends_on || []) {
       if (!byId.has(dep)) {
-        warnings.push(`${item.id} references missing dependency ${dep}`);
+        warnings.push(T.warnMissingDep(item.id, dep));
         continue;
       }
       if (!resolved.has(dep)) {
-        warnings.push(`${item.id} requires ${dep}`);
+        warnings.push(T.warnRequires(item.id, dep));
         resolved.add(dep);
         queue.push(dep);
       }
@@ -67,7 +117,7 @@ function updateWarnings() {
 
 function updateSummary() {
   const { resolved } = resolveSelection();
-  document.getElementById("summary").textContent = `${resolved.length} selected`;
+  document.getElementById("summary").textContent = T.selected(resolved.length);
 }
 
 function showStatus(message, type = "info") {
@@ -115,7 +165,7 @@ function renderItems() {
   const items = filterItems();
   node.innerHTML = items.map((item) => {
     const checked = state.selected.has(item.id) ? "checked" : "";
-    const depends = item.depends_on.length === 0 ? "" : `<span class="pill">Depends: ${item.depends_on.join(", ")}</span>`;
+    const depends = item.depends_on.length === 0 ? "" : `<span class="pill">${T.depends(item.depends_on.join(", "))}</span>`;
     const itemType = item.item_type || "mandate";
     return `<article class="card" data-item-type="${itemType}">
       <label><input type="checkbox" data-item="${item.id}" ${checked}> ${item.id}</label>
@@ -124,7 +174,7 @@ function renderItems() {
       <div class="meta">
         <span class="pill pill--type pill--${itemType}">${itemType}</span>
         <span class="pill">${item.category}</span>
-        <span class="pill">${item.mandatory ? "mandatory" : "optional"}</span>
+        <span class="pill">${item.mandatory ? T.mandatory : T.optional}</span>
         ${depends}
       </div>
     </article>`;
@@ -186,7 +236,7 @@ function loadSelectionPayload(payload) {
       throw new Error("Selection ids must be strings.");
     }
     if (!byId.has(itemId)) {
-      throw new Error(`Unknown selector ID: ${itemId}`);
+      throw new Error(T.errUnknownId(itemId));
     }
     state.selected.add(itemId);
   }
@@ -202,13 +252,13 @@ function importSelectionFile(file) {
     try {
       const payload = JSON.parse(String(reader.result));
       loadSelectionPayload(payload);
-      showStatus(`Imported ${state.selected.size} selected item(s).`, "success");
+      showStatus(T.imported(state.selected.size), "success");
     } catch (error) {
-      showStatus(error.message || "Failed to import selection JSON.", "error");
+      showStatus(error.message || T.errImportJson, "error");
     }
   };
   reader.onerror = () => {
-    showStatus("Failed to read selection file.", "error");
+    showStatus(T.errReadFile, "error");
   };
   reader.readAsText(file);
 }
@@ -219,10 +269,18 @@ function clearSelection() {
   renderItems();
   updateWarnings();
   updateSummary();
-  showStatus("Selection cleared.", "info");
+  showStatus(T.cleared, "info");
 }
 
 async function boot() {
+  document.title = T.title;
+  document.querySelector(".hero h1").textContent = T.title;
+  document.querySelector(".hero p").textContent  = T.subtitle;
+  document.getElementById("search").placeholder  = T.searchPlaceholder;
+  document.getElementById("export").textContent  = T.export;
+  document.getElementById("import").textContent  = T.import;
+  document.getElementById("clear").textContent   = T.clear;
+
   const response = await fetch("data.json");
   const payload = await response.json();
   state.items = payload.items;

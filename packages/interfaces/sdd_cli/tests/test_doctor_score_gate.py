@@ -15,6 +15,7 @@ import sdd_core.governance.handshake as handshake_mod
 import sdd_core.governance.scoring as scoring_mod
 import sdd_core.utils.environment as env_mod
 from sdd_cli.commands import doctor as doctor_mod
+from sdd_cli.commands import doctor_gates as doctor_gates_mod
 
 
 class TestDoctorHelpers:
@@ -35,9 +36,11 @@ class TestDoctorHelpers:
     ) -> None:
         doctor_mod._apply_score_gate(0)
 
-        monkeypatch.setattr(doctor_mod, "resolve_workspace_root", lambda: tmp_path)
         monkeypatch.setattr(
-            doctor_mod, "enforce_path_policy", lambda ws_root, **kwargs: None
+            doctor_gates_mod, "resolve_workspace_root", lambda: tmp_path
+        )
+        monkeypatch.setattr(
+            doctor_gates_mod, "enforce_path_policy", lambda ws_root, **kwargs: None
         )
         doctor_mod._apply_score_gate(10)
 
@@ -51,12 +54,14 @@ class TestDoctorHelpers:
             encoding="utf-8",
         )
 
-        monkeypatch.setattr(doctor_mod, "resolve_workspace_root", lambda: tmp_path)
         monkeypatch.setattr(
-            doctor_mod, "enforce_path_policy", lambda ws_root, **kwargs: ws_root
+            doctor_gates_mod, "resolve_workspace_root", lambda: tmp_path
         )
         monkeypatch.setattr(
-            doctor_mod, "compiled_active_dir", lambda ws_root: compiled_dir
+            doctor_gates_mod, "enforce_path_policy", lambda ws_root, **kwargs: ws_root
+        )
+        monkeypatch.setattr(
+            doctor_gates_mod, "compiled_active_dir", lambda ws_root: compiled_dir
         )
 
         class _FakeAHP:
@@ -87,12 +92,14 @@ class TestDoctorHelpers:
             json.dumps({"fingerprint": "0123456789abcdef"}), encoding="utf-8"
         )
 
-        monkeypatch.setattr(doctor_mod, "resolve_workspace_root", lambda: tmp_path)
         monkeypatch.setattr(
-            doctor_mod, "enforce_path_policy", lambda ws_root, **kwargs: ws_root
+            doctor_gates_mod, "resolve_workspace_root", lambda: tmp_path
         )
         monkeypatch.setattr(
-            doctor_mod, "compiled_active_dir", lambda ws_root: compiled_dir
+            doctor_gates_mod, "enforce_path_policy", lambda ws_root, **kwargs: ws_root
+        )
+        monkeypatch.setattr(
+            doctor_gates_mod, "compiled_active_dir", lambda ws_root: compiled_dir
         )
 
         class _FakeAHP:
@@ -132,12 +139,14 @@ class TestDoctorHelpers:
             json.dumps(payload, sort_keys=True).encode()
         ).hexdigest()[:16]
 
-        monkeypatch.setattr(doctor_mod, "resolve_workspace_root", lambda: tmp_path)
         monkeypatch.setattr(
-            doctor_mod, "enforce_path_policy", lambda ws_root, **kwargs: ws_root
+            doctor_gates_mod, "resolve_workspace_root", lambda: tmp_path
         )
         monkeypatch.setattr(
-            doctor_mod, "compiled_active_dir", lambda ws_root: compiled_dir
+            doctor_gates_mod, "enforce_path_policy", lambda ws_root, **kwargs: ws_root
+        )
+        monkeypatch.setattr(
+            doctor_gates_mod, "compiled_active_dir", lambda ws_root: compiled_dir
         )
 
         class _FakeAHP:
@@ -163,12 +172,14 @@ class TestDoctorHelpers:
         compiled_dir.mkdir(parents=True)
         (compiled_dir / "governance-core.json").write_bytes(b"not-json")
 
-        monkeypatch.setattr(doctor_mod, "resolve_workspace_root", lambda: tmp_path)
         monkeypatch.setattr(
-            doctor_mod, "enforce_path_policy", lambda ws_root, **kwargs: ws_root
+            doctor_gates_mod, "resolve_workspace_root", lambda: tmp_path
         )
         monkeypatch.setattr(
-            doctor_mod, "compiled_active_dir", lambda ws_root: compiled_dir
+            doctor_gates_mod, "enforce_path_policy", lambda ws_root, **kwargs: ws_root
+        )
+        monkeypatch.setattr(
+            doctor_gates_mod, "compiled_active_dir", lambda ws_root: compiled_dir
         )
 
         class _FakeAHP:
@@ -197,7 +208,9 @@ class TestDoctorHelpers:
             "compute_governance_adherence",
             lambda workspace_root: {"score": 10},
         )
-        monkeypatch.setattr(doctor_mod, "resolve_workspace_root", lambda: Path("/tmp"))
+        monkeypatch.setattr(
+            doctor_gates_mod, "resolve_workspace_root", lambda: Path("/tmp")
+        )
         with pytest.raises(typer.Exit):
             doctor_mod._apply_adherence_gate(50)
 

@@ -108,7 +108,7 @@ class TestGenerateCliCommandsIndex:
 
     def test_error_returns_fallback(self, tmp_path: Path) -> None:
         with patch(
-            "sdd_cli.generators._indices.Path.mkdir",
+            "sdd_cli.generators._cli_commands_index.Path.mkdir",
             side_effect=OSError("boom"),
         ):
             result = generate_cli_commands_index(str(tmp_path), {})

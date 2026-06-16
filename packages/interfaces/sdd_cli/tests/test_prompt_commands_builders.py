@@ -6,11 +6,13 @@ import json
 from pathlib import Path
 
 from sdd_cli.generators._prompt_commands_builders import (
+    _prompt_spec_for_command,
+    _slash_aliases_markdown,
+)
+from sdd_cli.generators._prompt_commands_data import (
     _default_command_entries,
     _load_command_entries,
     _load_slash_aliases,
-    _prompt_spec_for_command,
-    _slash_aliases_markdown,
 )
 
 

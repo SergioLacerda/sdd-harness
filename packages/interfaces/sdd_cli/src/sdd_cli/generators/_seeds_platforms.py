@@ -2,7 +2,22 @@
 
 from typing import Any
 
+from ._seeds_platforms_b import (
+    _generate_antigravity_seed,
+    _generate_cortex_seed,
+    _generate_gemini_seed,
+)
 from ._shared import _fingerprint_prefix, _format_rules, _render_instruction_document
+
+__all__ = [
+    "_generate_antigravity_seed",
+    "_generate_claude_seed",
+    "_generate_copilot_seed",
+    "_generate_cortex_seed",
+    "_generate_cursor_seed",
+    "_generate_gemini_seed",
+    "_generate_generic_seed",
+]
 
 
 def _generate_cursor_seed(
@@ -148,96 +163,3 @@ def _generate_claude_seed(
         ],
         config=config,
     )
-
-
-def _generate_gemini_seed(
-    config: dict[str, Any],
-    mandatory_rules: list[dict[str, Any]],
-    customizable_items: list[dict[str, Any]],
-) -> str:
-    """Generate Gemini-specific agent seed."""
-    client_fp = _fingerprint_prefix(config, "client_fingerprint")
-    return f"""# Gemini Governance Context
-
-## Workspace Snapshot
-- **Client Fingerprint**: {client_fp}
-- **Managed Items**: {len(config.get("items", []))}
-- **Customizable Items**: {len(customizable_items)}
-
-## Immutable Rules
-
-{_format_rules(mandatory_rules)}
-
-## Working Protocol
-1. Confirm active governance items before code suggestions
-2. Preserve architectural decisions and mandatory rules
-3. Query compiled artifacts: `sdd ask --full "<question>"`
-4. Validate with `sdd governance validate` before completion
-"""
-
-
-def _generate_cortex_seed(
-    config: dict[str, Any],
-    mandatory_rules: list[dict[str, Any]],
-    customizable_items: list[dict[str, Any]],
-) -> str:
-    """Generate Snowflake Cortex Code agent seed."""
-    core_fp = _fingerprint_prefix(config, "core_fingerprint")
-    return f"""# Cortex Code Agent Configuration
-
-## Governance Context
-- **Core Fingerprint**: {core_fp}
-- **Status**: Production Ready
-- **Total Items**: {len(config.get("items", []))}
-
-## Mandatory Governance Rules
-These rules must be enforced in every implementation:
-
-{_format_rules(mandatory_rules)}
-
-## Governance Checklist
-Before implementing any feature:
-- [ ] Validate against mandatory rules
-- [ ] Check for conflicts with existing items
-- [ ] Ensure customizable items are respected
-- [ ] Verify fingerprints match core specification
-
-## Customizable Items
-Your project can customize {len(customizable_items)} governance items.
-
-See `.sdd/source/` for complete specification.
-
-## Integration Points
-- Bootstrap status: `sdd runtime status`
-- Validate changes: `sdd governance validate`
-- Generate templates: `sdd governance generate`
-- Query context: `sdd ask --full "<question>"`
-"""
-
-
-def _generate_antigravity_seed(
-    config: dict[str, Any],
-    mandatory_rules: list[dict[str, Any]],
-    customizable_items: list[dict[str, Any]],
-) -> str:
-    """Generate Antigravity-specific agent seed."""
-    core_fp = _fingerprint_prefix(config, "core_fingerprint")
-    client_fp = _fingerprint_prefix(config, "client_fingerprint")
-    return f"""# Antigravity Governance Context
-
-## Governance Envelope
-- **Core Fingerprint**: {core_fp}
-- **Client Fingerprint**: {client_fp}
-- **Managed Items**: {len(config.get("items", []))}
-- **Customizable Items**: {len(customizable_items)}
-
-## Mandatory Rules
-
-{_format_rules(mandatory_rules)}
-
-## Enforcement Notes
-1. Treat governance mandates as non-negotiable
-2. Use compiled artifacts as source of truth: `.sdd/compiled/`
-3. Query context: `sdd ask --full "<question>"`
-4. Run `sdd governance validate` and `sdd runtime status` before handoff
-"""

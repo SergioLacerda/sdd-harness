@@ -9,10 +9,11 @@ from typing import TYPE_CHECKING, Any, cast
 
 from rich.table import Table
 
+from sdd_cli.shared.constants import RUNTIME_DIR as _RUNTIME_DIR
+
 if TYPE_CHECKING:
     from sdd_runtime.metrics import EconomySnapshot
 
-_RUNTIME_DIR = Path(".sdd") / "runtime"
 _EVENTS_FILENAME = "compliance-events.jsonl"
 
 

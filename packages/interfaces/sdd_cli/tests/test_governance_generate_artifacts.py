@@ -11,11 +11,11 @@ import pytest
 import typer
 from rich.console import Console
 
-from sdd_cli.services.governance_generate_handlers import (
+from sdd_cli.services.governance_bootstrap_handlers import (
     complete_bootstrap_handshake,
-    generate_artifacts,
     run_bootstrap_signing,
 )
+from sdd_cli.services.governance_generate_handlers import generate_artifacts
 
 
 def _console() -> Console:
@@ -72,7 +72,7 @@ class TestRunBootstrapSigning:
         keygen_fn = MagicMock()
         sign_fn = MagicMock()
         with patch(
-            "sdd_cli.services.governance_generate_handlers.resolve_workspace_root",
+            "sdd_cli.services.governance_bootstrap_handlers.resolve_workspace_root",
             return_value=tmp_path,
         ):
             run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)
@@ -86,7 +86,7 @@ class TestRunBootstrapSigning:
         keygen_fn = MagicMock(side_effect=typer.Exit(0))
         sign_fn = MagicMock()
         with patch(
-            "sdd_cli.services.governance_generate_handlers.resolve_workspace_root",
+            "sdd_cli.services.governance_bootstrap_handlers.resolve_workspace_root",
             return_value=tmp_path,
         ):
             run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)
@@ -97,7 +97,7 @@ class TestRunBootstrapSigning:
         sign_fn = MagicMock()
         with (
             patch(
-                "sdd_cli.services.governance_generate_handlers.resolve_workspace_root",
+                "sdd_cli.services.governance_bootstrap_handlers.resolve_workspace_root",
                 return_value=tmp_path,
             ),
             pytest.raises(typer.Exit) as exc_info,
@@ -114,7 +114,7 @@ class TestRunBootstrapSigning:
         keygen_fn = MagicMock()
         sign_fn = MagicMock()
         with patch(
-            "sdd_cli.services.governance_generate_handlers.resolve_workspace_root",
+            "sdd_cli.services.governance_bootstrap_handlers.resolve_workspace_root",
             return_value=tmp_path,
         ):
             run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)
@@ -128,7 +128,7 @@ class TestRunBootstrapSigning:
         keygen_fn = MagicMock()
         sign_fn = MagicMock()
         with patch(
-            "sdd_cli.services.governance_generate_handlers.resolve_workspace_root",
+            "sdd_cli.services.governance_bootstrap_handlers.resolve_workspace_root",
             return_value=None,
         ):
             run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)

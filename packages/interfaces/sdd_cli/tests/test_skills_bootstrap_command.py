@@ -33,7 +33,7 @@ def test_skills_full_bootstrap_json_missing_governance_uses_canonical_error(
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
         patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
         patch(
-            "sdd_cli.services.skills_bootstrap.validate_governance_path",
+            "sdd_cli.services.skills_bootstrap_validation.validate_governance_path",
             return_value=False,
         ),
     ):
@@ -99,11 +99,11 @@ def test_skills_full_bootstrap_json_uses_canonical_envelope(tmp_path) -> None:
         runner.isolated_filesystem(temp_dir=str(tmp_path)),
         patch("sdd_cli.commands.skills.resolve_workspace_root", return_value=tmp_path),
         patch(
-            "sdd_cli.services.skills_bootstrap.validate_governance_path",
+            "sdd_cli.services.skills_bootstrap_validation.validate_governance_path",
             return_value=True,
         ),
         patch(
-            "sdd_cli.services.skills_bootstrap.load_governance_config",
+            "sdd_cli.services.skills_bootstrap_validation.load_governance_config",
             return_value={"items": [{"id": "M001"}]},
         ),
         patch(

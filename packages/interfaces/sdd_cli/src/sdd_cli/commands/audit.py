@@ -16,10 +16,9 @@ from sdd_cli.commands._audit_command_support import (
     run_compliance_pack_workflow,
     write_export_manifest,
 )
+from sdd_cli.services.audit_export import _build_export_payload, _event_to_row
 from sdd_cli.services.audit_formatters import (
-    _build_export_payload,
     _ctx_json,
-    _event_to_row,
     _filter_events,
     _parse_since_date,
     render_audit_text,

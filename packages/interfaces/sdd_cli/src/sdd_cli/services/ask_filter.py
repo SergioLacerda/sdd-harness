@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-_LEARNING_WINDOW_DAYS = 7
+from sdd_cli.shared.constants import LEARNING_WINDOW_DAYS as _LEARNING_WINDOW_DAYS
 
 
 def _safe_parse_iso(value: str) -> datetime | None:
