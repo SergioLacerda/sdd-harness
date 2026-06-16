@@ -32,6 +32,26 @@
   --focus: 0 0 0 3px rgba(68,83,189,.4);
 }
 
+[data-theme="dark"] {
+  --canvas: #0f1117;
+  --surface: #1a1f2e;
+  --sunken: #141824;
+  --border: #2a3050;
+  --border-strong: #364070;
+  --border-subtle: #222840;
+  --ink-900: #f0f2f8;
+  --ink-800: #d8dce8;
+  --ink-700: #b0b8d0;
+  --ink-500: #8090b0;
+  --ink-400: #6070a0;
+  --ink-300: #4a5a80;
+  --ink-200: #354070;
+  --pill-bg: #1e2a4a;
+  --pill-fg: #8fa0cc;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.3), 0 1px 1px rgba(0,0,0,.2);
+  --shadow-md: 0 2px 8px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -49,6 +69,32 @@ body {
   margin: 0 auto;
   padding: 32px 20px 56px;
 }
+
+/* ---- Topbar ---- */
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.icon-btn:hover { background: var(--sunken); border-color: var(--border-strong); color: var(--ink-900); }
+.icon-btn svg { flex-shrink: 0; }
 
 /* ---- Hero (inline .brand-mark SVG lives in index.html) ---- */
 .hero { margin-bottom: 28px; }
