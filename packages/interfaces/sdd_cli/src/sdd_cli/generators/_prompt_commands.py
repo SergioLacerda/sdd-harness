@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from sdd_cli.generators._prompt_commands_builders import (
+from sdd_cli.generators._prompt_commands_data import (
     _load_command_entries,
     _load_slash_aliases,
 )

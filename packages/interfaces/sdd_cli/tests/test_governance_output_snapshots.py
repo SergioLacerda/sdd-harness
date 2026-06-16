@@ -185,7 +185,7 @@ def test_governance_validate_snapshot(monkeypatch) -> None:
         lambda _: PreflightResult(passed=True, reason="", details={}),
     )
     monkeypatch.setattr(
-        "sdd_cli.services.governance_config_handlers._build_language_governance_advisories",
+        "sdd_cli.services.governance_validate_handlers._build_language_governance_advisories",
         lambda **_: [],
     )
     result = runner.invoke(app, ["governance", "validate", "--path", "runtime"])

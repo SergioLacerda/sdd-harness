@@ -1,5 +1,7 @@
 # SDD Harness Documentation
 
+[🧭 Explorar mandatos e diretrizes](selector/){ .md-button .md-button--primary }
+
 This page is the routing surface for the published docs site. It points readers
 to the shortest path by intent and leaves canonical technical detail in the
 deeper docs tree.

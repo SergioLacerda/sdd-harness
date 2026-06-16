@@ -28,7 +28,7 @@ def _invoke_init(tmp_path: Path, extra_args: list[str], step_side_effect=None):
     step_mock = None
     if step_side_effect is not None:
         step_mock = MagicMock(side_effect=step_side_effect)
-        patches.append(patch("sdd_cli.commands.init._run_cli_step", step_mock))
+        patches.append(patch("sdd_cli.commands.init_steps._run_cli_step", step_mock))
 
     with (
         patch.multiple(
@@ -39,7 +39,7 @@ def _invoke_init(tmp_path: Path, extra_args: list[str], step_side_effect=None):
         patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
     ):
         if step_mock is not None:
-            with patch("sdd_cli.commands.init._run_cli_step", step_mock):
+            with patch("sdd_cli.commands.init_steps._run_cli_step", step_mock):
                 result = runner.invoke(app, extra_args)
         else:
             result = runner.invoke(app, extra_args)

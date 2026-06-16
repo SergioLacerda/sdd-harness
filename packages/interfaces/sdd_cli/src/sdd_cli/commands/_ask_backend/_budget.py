@@ -13,10 +13,9 @@ from sdd_cli.commands._ask_backend._helpers import (
     _json_mode,
     _signature_mode,
 )
+from sdd_cli.shared.constants import BREACH_EXIT_CODE as _BREACH_EXIT_CODE
 
 logger = logging.getLogger(__name__)
-
-_BREACH_EXIT_CODE = 3
 
 
 def _guard_budget_breach() -> None:

@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from sdd_cli.commands.init import _run_cli_step
+from sdd_cli.commands.init_steps import _run_cli_step
 
 # ---------------------------------------------------------------------------
 # _run_cli_step helper

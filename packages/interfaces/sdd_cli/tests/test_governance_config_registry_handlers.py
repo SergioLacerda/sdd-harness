@@ -8,11 +8,9 @@ import pytest
 import typer
 from rich.console import Console
 
-from sdd_cli.services.governance_config_handlers import (
-    run_governance_load,
-    run_governance_validate,
-)
+from sdd_cli.services.governance_config_handlers import run_governance_load
 from sdd_cli.services.governance_registry_handlers import run_reconcile_registries
+from sdd_cli.services.governance_validate_handlers import run_governance_validate
 from sdd_cli.services.registry_reconciliation import ReconciliationError
 
 
@@ -185,7 +183,7 @@ def test_governance_validate_json_failure_exits() -> None:
 
 def test_governance_validate_json_success() -> None:
     preflight = SimpleNamespace(passed=True, reason="", details={})
-    with patch("sdd_cli.services.governance_config_handlers.emit_json") as emit_json:
+    with patch("sdd_cli.services.governance_validate_handlers.emit_json") as emit_json:
         run_governance_validate(
             path=".sdd/compiled",
             skip_handshake=True,
@@ -226,7 +224,7 @@ def test_governance_validate_advisories_include_analysis_classification(
     )
 
     preflight = SimpleNamespace(passed=True, reason="", details={})
-    with patch("sdd_cli.services.governance_config_handlers.emit_json") as emit_json:
+    with patch("sdd_cli.services.governance_validate_handlers.emit_json") as emit_json:
         run_governance_validate(
             path=str(compiled),
             skip_handshake=True,

@@ -128,6 +128,7 @@ docs = [
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.0.0",
     "pymdown-extensions>=10.21.3",  # CVE-2026-46338: path traversal via sibling prefix
+    "mkdocs-static-i18n>=1.0.0",
 ]
 dev = [
     { include-group = "lint" },
@@ -158,6 +159,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["pytest_xdist"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["httpx"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

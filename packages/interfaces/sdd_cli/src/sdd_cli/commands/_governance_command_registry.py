@@ -7,10 +7,7 @@ from collections.abc import Callable
 import typer
 from rich.console import Console
 
-from sdd_cli.services.governance_config_handlers import (
-    run_governance_load_cmd,
-    run_governance_validate_cmd,
-)
+from sdd_cli.services.governance_config_handlers import run_governance_load_cmd
 from sdd_cli.services.governance_registry_handlers import run_reconcile_registries
 from sdd_cli.services.governance_runtime_handlers import (
     run_governance_audit,
@@ -20,6 +17,7 @@ from sdd_cli.services.governance_scoring_output import (
     run_governance_adherence_cmd,
     run_governance_score_cmd,
 )
+from sdd_cli.services.governance_validate_handlers import run_governance_validate_cmd
 from sdd_cli.utils.command_errors import handle_cli_errors
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 

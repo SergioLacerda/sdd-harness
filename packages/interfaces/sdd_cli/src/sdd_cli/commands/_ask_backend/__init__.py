@@ -72,8 +72,8 @@ from ._pipeline import (  # noqa: E402
     build_governed_ask_snapshot,
     run_sdd_organize,
 )
+from ._pipeline_metrics import _check_budget_zone_and_compress  # noqa: E402
 from ._pipeline_runtime import _ask_cmd_impl as _ask_cmd_impl  # noqa: E402
-from ._pipeline_runtime import _check_budget_zone_and_compress  # noqa: E402
 from ._pipeline_session import (  # noqa: E402
     _emit_state_warnings,
     _run_organize_intake,

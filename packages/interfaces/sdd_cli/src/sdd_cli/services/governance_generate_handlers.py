@@ -16,14 +16,16 @@ from sdd_cli.generators.agent_seeds import (
     generate_agent_seeds,
 )
 from sdd_cli.services._governance_generate_support import (
-    bootstrap_response,
     generate_artifacts_flow,
-    run_bootstrap_signing_flow,
     run_generate_flow,
 )
 from sdd_cli.services.governance_artifact_handlers import (
     render_generate_table,
     run_governance_generate_json,
+)
+from sdd_cli.services.governance_bootstrap_handlers import (
+    complete_bootstrap_handshake,
+    run_bootstrap_signing,
 )
 from sdd_cli.services.governance_command_output import fail_generate_precondition
 from sdd_cli.services.governance_compile_handlers import resolve_output_base
@@ -135,25 +137,6 @@ def run_generate_phases(
         cli_index_generated = False
 
     return skills_generated, skill_index_generated, cli_index_generated
-
-
-def complete_bootstrap_handshake() -> None:
-    """Run and complete the agent handshake protocol for bootstrap."""
-    from sdd_core.governance.handshake import AgentHandshakeProtocol
-
-    ahp = AgentHandshakeProtocol()
-    challenge = ahp.generate_challenge(task_description="Bootstrap Session")
-    ahp.complete_handshake(bootstrap_response(challenge))
-
-
-def run_bootstrap_signing(key_id: str, *, keygen_fn: Any, sign_fn: Any) -> None:
-    """Run the bootstrap key generation and signing flow."""
-    run_bootstrap_signing_flow(
-        key_id,
-        keygen_fn=keygen_fn,
-        sign_fn=sign_fn,
-        resolve_workspace_root_fn=resolve_workspace_root,
-    )
 
 
 def generate_artifacts(
