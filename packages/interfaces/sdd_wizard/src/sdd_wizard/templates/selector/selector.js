@@ -1,3 +1,10 @@
+// Prevent flash of unstyled content before boot() runs
+(function () {
+  const saved = localStorage.getItem("sdd-theme");
+  const dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+})();
+
 const STRINGS = {
   en: {
     title:          "SDD Selector",
@@ -272,6 +279,35 @@ function clearSelection() {
   showStatus(T.cleared, "info");
 }
 
+function applyTheme(dark) {
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  const sun  = document.getElementById("icon-sun");
+  const moon = document.getElementById("icon-moon");
+  if (sun)  sun.style.display  = dark ? "" : "none";
+  if (moon) moon.style.display = dark ? "none" : "";
+}
+
+function initTopbar() {
+  const dark = document.documentElement.dataset.theme === "dark";
+  applyTheme(dark);
+
+  const langLabel = document.getElementById("lang-label");
+  if (langLabel) langLabel.textContent = getLang() === "en" ? "PT" : "EN";
+
+  document.getElementById("toggle-theme").addEventListener("click", () => {
+    const nowDark = document.documentElement.dataset.theme === "dark";
+    localStorage.setItem("sdd-theme", nowDark ? "light" : "dark");
+    applyTheme(!nowDark);
+  });
+
+  document.getElementById("toggle-lang").addEventListener("click", () => {
+    const next = getLang() === "en" ? "pt" : "en";
+    const url = new URL(location.href);
+    url.searchParams.set("lang", next);
+    location.href = url.toString();
+  });
+}
+
 async function boot() {
   document.title = T.title;
   document.querySelector(".hero h1").textContent = T.title;
@@ -280,10 +316,22 @@ async function boot() {
   document.getElementById("export").textContent  = T.export;
   document.getElementById("import").textContent  = T.import;
   document.getElementById("clear").textContent   = T.clear;
+  initTopbar();
 
-  const response = await fetch("data.json");
-  const payload = await response.json();
-  state.items = payload.items;
+  let payload;
+  try {
+    const response = await fetch("data.json");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    payload = await response.json();
+  } catch (err) {
+    showStatus(
+      `Failed to load data.json: ${err.message}. ` +
+        "Serve the selector over HTTP (e.g. python -m http.server) instead of opening it as a file://.",
+      "error"
+    );
+    return;
+  }
+  state.items = payload.items || [];
   for (const item of state.items) {
     state.categories.add(item.category);
   }

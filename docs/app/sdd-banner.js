@@ -10,9 +10,20 @@
  * Edit BANNER_TEXT / BANNER_CTA / SELECTOR_PATH below to taste.
  */
 (function () {
-  var BANNER_TEXT = "Explore os mandatos e diretrizes governados no Seletor interativo.";
-  var BANNER_CTA  = "Explorar mandatos e diretrizes →";
   var lang = document.documentElement.lang || "en";
+  var BANNER_STRINGS = {
+    en: {
+      text: "Explore the mandates and directives governed in the interactive Selector.",
+      cta:  "Explore mandates and directives →",
+    },
+    pt: {
+      text: "Explore os mandatos e diretrizes governados no Seletor interativo.",
+      cta:  "Explorar mandatos e diretrizes →",
+    },
+  };
+  var _s = lang.startsWith("pt") ? BANNER_STRINGS.pt : BANNER_STRINGS.en;
+  var BANNER_TEXT = _s.text;
+  var BANNER_CTA  = _s.cta;
   var SELECTOR_PATH = "selector/" + (lang.startsWith("pt") ? "?lang=pt" : "");
 
   function rootHref() {
