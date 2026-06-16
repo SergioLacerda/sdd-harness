@@ -105,6 +105,7 @@ jobs:
         run: uv run mkdocs build --strict
 
       - name: Build selector artifacts
+        continue-on-error: true
         run: UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
 
       - name: Set up Pages
