@@ -50,6 +50,7 @@ class SelectorCompiler:
     def _build_items(self) -> list[SelectorItem]:
         if not self._metadata_path().exists() or not self._mandates_path().exists():
             import sys
+
             print(
                 f"[selector_compiler] WARN: governance artifacts not found at {self.repo_root / '.sdd'}. "
                 "Run 'sdd governance generate' to populate. Emitting empty selector.",
