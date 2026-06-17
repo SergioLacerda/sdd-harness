@@ -177,6 +177,7 @@ class AskLatencyBenchmark:
 
             sys.path.insert(0, "packages/core/sdd_runtime/src")
             sys.path.insert(0, "packages/core/sdd_core/src")
+            sys.path.insert(0, "packages/features/sdd_skills/src")
 
             from sdd_runtime.cache import get_context_cache
             from sdd_runtime.context import ContextLoader, ContextRequest

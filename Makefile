@@ -39,7 +39,7 @@ help:
 	@echo "hooks-install  - Install local git hooks (SDD shell hooks + pre-commit)"
 	@echo "governance-bootstrap - Generate full governance artifacts for local workspace"
 	@echo "docs-build      - Build MkDocs site (strict mode)"
-	@echo "docs-serve      - Serve MkDocs docs locally"
+	@echo "docs-serve      - Build full site (docs + selector) and serve on http://localhost:8000"
 	@echo "docs-link-check - Check internal relative links in docs"
 	@echo "docs-link-fix   - Apply deterministic internal-link rewrites"
 	@echo "docker-build    - Build Docker image"
@@ -164,8 +164,8 @@ docs-build:
 	$(PYTHON) -m mkdocs build --strict
 	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
 
-docs-serve: selector-build
-	$(PYTHON) -m mkdocs serve
+docs-serve: docs-build
+	$(PYTHON) -m http.server 8000 --directory build/site
 
 docs-link-check:
 	$(PYTHON) tools/docs/check_links.py --mode ci
