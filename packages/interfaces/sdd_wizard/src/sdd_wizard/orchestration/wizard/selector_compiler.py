@@ -177,9 +177,10 @@ class SelectorCompiler:
         seen_ids: set[str] = set()
 
         for md_file in sorted(canonical_root.rglob("*.md")):
-            try:
+            content = None
+            with contextlib.suppress(OSError):
                 content = md_file.read_text(encoding="utf-8", errors="ignore")
-            except Exception:
+            if content is None:
                 continue
             item = self._parse_canonical_mandate(content)
             if item is None or item.id in seen_ids:
