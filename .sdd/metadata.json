@@ -1,0 +1,53 @@
+{
+  "version": "3.0",
+  "generated_at": "2026-06-14T09:05:22.915745",
+  "language": "Python",
+  "language_context": {
+    "preferred_human_language": "Portugu\u00eas (Brasil)",
+    "preferred_chat_language": "Portugu\u00eas (Brasil)",
+    "preferred_ui_language": "Portugu\u00eas (Brasil)",
+    "preferred_local_docs_language": "English"
+  },
+  "language_policy": {
+    "mandatory_surfaces": [
+      "code",
+      "technical_docs",
+      "governance",
+      "cli_help"
+    ],
+    "contextual_surfaces": [
+      "chat",
+      "ui",
+      "workspace_local_docs",
+      "analysis_docs"
+    ],
+    "workspace_local_docs_paths": [
+      ".analysis/"
+    ],
+    "mandate_anchor": "M011",
+    "guideline_anchors": [
+      "G021",
+      "G022"
+    ]
+  },
+  "adoption_level": "FULL",
+  "mandates_count": 1,
+  "guidelines_count": 1,
+  "categories": [
+    "other"
+  ],
+  "fingerprints": {
+    "combined": "f95a3c901a84b222",
+    "mandates": {
+      "M001": "a9c036fcb20a016c"
+    }
+  },
+  "mandates": {
+    "M001": "Bootstrap Governance Baseline"
+  },
+  "structure": {
+    "source": "Governance source of truth for agent queries",
+    "runtime": "Pre-cache instructions for agents",
+    "seedlings": ".vscode, .cursor directories with references to .sdd/source"
+  }
+}
