@@ -21,6 +21,7 @@ const STRINGS = {
     cleared:        "Selection cleared.",
     errReadFile:    "Failed to read selection file.",
     errImportJson:  "Failed to import selection JSON.",
+    errImportFormat: "Invalid file: import a selection file exported via 'Export JSON', not data.json.",
     errUnknownId:   (id) => `Unknown selector ID: ${id}`,
     warnUnknown:    (id) => `Unknown selected item: ${id}`,
     warnMissingDep: (a, b) => `${a} references missing dependency ${b}`,
@@ -41,6 +42,7 @@ const STRINGS = {
     cleared:        "Seleção limpa.",
     errReadFile:    "Falha ao ler o arquivo.",
     errImportJson:  "Falha ao importar JSON de seleção.",
+    errImportFormat: "Arquivo inválido: importe um arquivo de seleção exportado pelo botão 'Exportar JSON', não o data.json.",
     errUnknownId:   (id) => `ID desconhecido: ${id}`,
     warnUnknown:    (id) => `Item selecionado desconhecido: ${id}`,
     warnMissingDep: (a, b) => `${a} referencia dependência ausente ${b}`,
@@ -234,7 +236,7 @@ function loadSelectionPayload(payload) {
     ? payload.selected_ids
     : payload.resolved_ids;
   if (!Array.isArray(selectedIds)) {
-    throw new Error("Selection payload must include selected_ids or resolved_ids.");
+    throw new Error(T.errImportFormat);
   }
   const byId = itemMap();
   state.selected.clear();

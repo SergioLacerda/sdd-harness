@@ -113,6 +113,14 @@ Thumbs.db
 .sdd/compiled/*
 !.sdd/compiled/governance-core.json.sig
 !.sdd/compiled/governance-client.json.sig
+# Selector: metadata e mandates são fontes canônicas necessárias para o selector em CI/CD
+!.sdd/metadata.json
+!.sdd/source/
+.sdd/source/*
+!.sdd/source/mandates/
+.sdd/source/mandates/*
+!.sdd/source/mandates/mandates.md
+!.sdd/source/guidelines.dsl
 
 # Project Specific
 test_output.log
