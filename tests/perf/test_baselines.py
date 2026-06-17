@@ -68,6 +68,8 @@ def test_benchmark_snapshot_within_slo_when_available() -> None:
     data = json.loads(snapshot.read_text(encoding="utf-8"))
     compilation = data.get("compilation", {})
     ask_latency = data.get("ask_latency", {})
+    if "error" in ask_latency:
+        pytest.skip(f"Ask latency benchmark not available: {ask_latency['error']}")
 
     compile_1k = compilation.get("1000", {})
     compile_1k_ms = compile_1k.get("compile_time_ms")

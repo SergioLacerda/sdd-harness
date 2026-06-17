@@ -35,4 +35,5 @@ def test_docs_build_publishes_selector_artifacts() -> None:
 
 def test_docs_serve_runs_selector_build() -> None:
     content = MAKEFILE.read_text(encoding="utf-8")
-    assert "docs-serve: selector-build" in content
+    # docs-serve depends on docs-build, which already includes the selector compiler step
+    assert "docs-serve: docs-build" in content
