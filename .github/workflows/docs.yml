@@ -13,6 +13,11 @@ on:
       - '.markdownlint-cli2.jsonc'
       - 'packages/interfaces/sdd_cli/src/sdd_cli/commands/docs.py'
       - '.github/workflows/docs.yml'
+      - '.sdd/metadata.json'
+      - '.sdd/source/mandates/mandates.md'
+      - '.sdd/source/guidelines.dsl'
+      - 'packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/wizard/selector_compiler.py'
+      - 'packages/interfaces/sdd_wizard/src/sdd_wizard/templates/selector/**'
   pull_request:
     branches: [main, develop]
     paths:
@@ -25,6 +30,11 @@ on:
       - '.markdownlint-cli2.jsonc'
       - 'packages/interfaces/sdd_cli/src/sdd_cli/commands/docs.py'
       - '.github/workflows/docs.yml'
+      - '.sdd/metadata.json'
+      - '.sdd/source/mandates/mandates.md'
+      - '.sdd/source/guidelines.dsl'
+      - 'packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/wizard/selector_compiler.py'
+      - 'packages/interfaces/sdd_wizard/src/sdd_wizard/templates/selector/**'
   workflow_dispatch:
 
 permissions:
