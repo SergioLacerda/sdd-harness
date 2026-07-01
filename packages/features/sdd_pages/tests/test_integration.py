@@ -52,8 +52,10 @@ class TestFullPipeline:
         assert manifest_path.exists()
 
         publisher = GitHubPagesPublisher(remote="origin")
-        with patch("sdd_pages.publisher.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        with patch("sdd_pages.publisher.SafeProcessRunner.run") as mock_run:
+            mock_run.return_value = MagicMock(
+                success=True, stdout="", stderr="", returncode=0
+            )
             publish_result = publisher.publish(site_dir, branch="gh-pages")
 
         assert publish_result.success is True

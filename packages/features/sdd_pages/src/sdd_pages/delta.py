@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess  # nosec B404 - argv is a fixed list, never passed through a shell
 from pathlib import Path
 from typing import cast
 
+from sdd_core.utils.process import SafeProcessRunner
 from sdd_pages.selector import DocumentEntry, DocumentIndexer
 
 
@@ -38,13 +38,12 @@ class DeltaIndexer:
     def changed_files(self, source_dir: Path, base_ref: str = "HEAD~1") -> list[Path]:
         """Return paths under source_dir that changed since base_ref (git diff)."""
         try:
-            result = subprocess.run(  # nosec B603 B607 - fixed argv, no shell; git resolved via PATH intentionally
+            runner = SafeProcessRunner()
+            result = runner.run(
                 ["git", "diff", "--name-only", base_ref, "HEAD", "--", str(source_dir)],
                 capture_output=True,
-                text=True,
-                check=False,
             )
-            if result.returncode != 0:
+            if not result.success:
                 return []
             changed: list[Path] = []
             for line in result.stdout.splitlines():
@@ -52,7 +51,7 @@ class DeltaIndexer:
                 if path.is_file():
                     changed.append(path)
             return changed
-        except FileNotFoundError:
+        except Exception:
             return []
 
     def incremental_index(

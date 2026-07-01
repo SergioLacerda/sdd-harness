@@ -37,8 +37,10 @@ class TestGitHubPagesPublisherPublish:
 
     def test_publish_success_calls_git_subtree(self, tmp_path: Path) -> None:
         publisher = GitHubPagesPublisher(remote="origin")
-        with patch("sdd_pages.publisher.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        with patch("sdd_pages.publisher.SafeProcessRunner.run") as mock_run:
+            mock_run.return_value = MagicMock(
+                success=True, stdout="", stderr="", returncode=0
+            )
             result = publisher.publish(tmp_path, branch="gh-pages")
 
         assert result.success is True
@@ -50,9 +52,9 @@ class TestGitHubPagesPublisherPublish:
 
     def test_publish_failure_captures_stderr(self, tmp_path: Path) -> None:
         publisher = GitHubPagesPublisher()
-        with patch("sdd_pages.publisher.subprocess.run") as mock_run:
+        with patch("sdd_pages.publisher.SafeProcessRunner.run") as mock_run:
             mock_run.return_value = MagicMock(
-                returncode=1, stdout="", stderr="fatal: error"
+                success=False, stdout="", stderr="fatal: error", returncode=1
             )
             result = publisher.publish(tmp_path)
 
@@ -61,7 +63,10 @@ class TestGitHubPagesPublisherPublish:
 
     def test_publish_handles_missing_git_executable(self, tmp_path: Path) -> None:
         publisher = GitHubPagesPublisher()
-        with patch("sdd_pages.publisher.subprocess.run", side_effect=FileNotFoundError):
+        with patch(
+            "sdd_pages.publisher.SafeProcessRunner.run",
+            side_effect=Exception("git executable not found"),
+        ):
             result = publisher.publish(tmp_path)
 
         assert result.success is False

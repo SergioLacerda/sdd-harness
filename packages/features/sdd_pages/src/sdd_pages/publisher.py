@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import subprocess  # nosec B404 - argv is a fixed list, never passed through a shell
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+
+from sdd_core.utils.process import SafeProcessRunner
 
 
 @dataclass
@@ -48,7 +49,8 @@ class GitHubPagesPublisher(PublisherInterface):
                 message=f"Source directory not found: {source_dir}",
             )
         try:
-            result = subprocess.run(  # nosec B603 B607 - fixed argv, no shell; git resolved via PATH intentionally
+            runner = SafeProcessRunner()
+            result = runner.run(
                 [
                     "git",
                     "subtree",
@@ -59,17 +61,15 @@ class GitHubPagesPublisher(PublisherInterface):
                     branch,
                 ],
                 capture_output=True,
-                text=True,
-                check=False,
             )
-            if result.returncode == 0:
+            if result.success:
                 return PublishResult(success=True, branch=branch)
             return PublishResult(
                 success=False,
                 branch=branch,
                 message=result.stderr.strip() or result.stdout.strip(),
             )
-        except FileNotFoundError:
+        except Exception:
             return PublishResult(
                 success=False,
                 branch=branch,

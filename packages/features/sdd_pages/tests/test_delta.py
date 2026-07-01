@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -26,14 +26,17 @@ def _make_docs(tmp_path: Path, files: dict[str, str]) -> Path:
 class TestChangedFiles:
     def test_returns_empty_when_git_not_available(self, tmp_path: Path) -> None:
         docs = _make_docs(tmp_path, {"a.md": "# A"})
-        with patch("sdd_pages.delta.subprocess.run", side_effect=FileNotFoundError):
+        with patch(
+            "sdd_pages.delta.SafeProcessRunner.run",
+            side_effect=Exception("git not found"),
+        ):
             result = DeltaIndexer().changed_files(docs)
         assert result == []
 
     def test_returns_empty_when_git_fails(self, tmp_path: Path) -> None:
         docs = _make_docs(tmp_path, {"a.md": "# A"})
-        with patch("sdd_pages.delta.subprocess.run") as mock_run:
-            mock_run.return_value = type("R", (), {"returncode": 1, "stdout": ""})()
+        with patch("sdd_pages.delta.SafeProcessRunner.run") as mock_run:
+            mock_run.return_value = MagicMock(success=False, stdout="")
             result = DeltaIndexer().changed_files(docs)
         assert result == []
 
