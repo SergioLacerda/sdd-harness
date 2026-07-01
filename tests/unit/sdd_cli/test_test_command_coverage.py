@@ -6,7 +6,6 @@ import builtins
 import sys
 import types
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 import typer
@@ -29,7 +28,7 @@ class _Runner:
         if isinstance(self.behavior, Exception):
             raise self.behavior
         if isinstance(self.behavior, int):
-            return SimpleNamespace(returncode=self.behavior)
+            return types.SimpleNamespace(returncode=self.behavior)
         return self.behavior
 
 
@@ -349,7 +348,7 @@ class TestReviewGolden:
                 return "{}"
 
             def diff(self, current: object):
-                return SimpleNamespace(
+                return types.SimpleNamespace(
                     breaking_changes=[],
                     non_breaking_changes=[],
                     added_items=[],
@@ -428,7 +427,7 @@ class TestReviewGolden:
 
         class _CurrentAST:
             def diff(self, current: object):
-                return SimpleNamespace(
+                return types.SimpleNamespace(
                     breaking_changes=[],
                     non_breaking_changes=[],
                     added_items=[],
@@ -472,12 +471,16 @@ class TestReviewGolden:
 
         class _BreakingDiff:
             breaking_changes = [
-                SimpleNamespace(item_id="M1", change_type="changed", before=1, after=2)
+                types.SimpleNamespace(
+                    item_id="M1", change_type="changed", before=1, after=2
+                )
             ]
             non_breaking_changes = [
-                SimpleNamespace(item_id="M2", field="title", before="old", after="new")
+                types.SimpleNamespace(
+                    item_id="M2", field="title", before="old", after="new"
+                )
             ]
-            added_items = [SimpleNamespace(item_id="M3", after="added")]
+            added_items = [types.SimpleNamespace(item_id="M3", after="added")]
             is_clean = False
             has_breaking_changes = True
 

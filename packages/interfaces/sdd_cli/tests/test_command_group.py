@@ -6,7 +6,6 @@ import click
 import pytest
 import typer
 from click.testing import CliRunner
-from typer import Exit as TyperClickExit
 
 from sdd_cli._command_group import (
     COMMAND_SPECS,
@@ -147,7 +146,7 @@ def test_invoke_typer_click_exit_converted() -> None:
 
     with (
         patch("sdd_cli.utils.profile.governance_gate"),
-        patch("click.Group.invoke", side_effect=TyperClickExit(2)),
+        patch("click.Group.invoke", side_effect=typer.Exit(2)),
         pytest.raises(click.exceptions.Exit) as exc_info,
     ):
         group.invoke(ctx)
