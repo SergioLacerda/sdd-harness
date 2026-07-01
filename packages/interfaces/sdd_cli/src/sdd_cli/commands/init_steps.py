@@ -9,7 +9,7 @@ from typing import Any
 
 import typer
 
-from sdd_core.utils.environment import SddProfile
+from sdd_core.utils.environment import SddProfile, resolve_sdd_child_cmd
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +52,12 @@ def _run_cli_step(label: str, args: list[str], cwd: Path) -> bool:
     from sdd_core.utils.process import SafeProcessRunner
 
     typer.echo(f"\n[bootstrap] {label}...")
+    sdd_cmd = resolve_sdd_child_cmd()
     env = os.environ.copy()
     env.setdefault("PYTHONUTF8", "1")
     runner = SafeProcessRunner()
     result = runner.run(
-        ["sdd"] + args,
+        [sdd_cmd] + args,
         cwd=cwd,
         env=env,
         capture_output=False,

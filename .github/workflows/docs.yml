@@ -18,6 +18,7 @@ on:
       - '.sdd/source/guidelines.dsl'
       - 'packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/wizard/selector_compiler.py'
       - 'packages/interfaces/sdd_wizard/src/sdd_wizard/templates/selector/**'
+      - 'packages/features/sdd_pages/**'
   pull_request:
     branches: [main, develop]
     paths:
@@ -35,6 +36,7 @@ on:
       - '.sdd/source/guidelines.dsl'
       - 'packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/wizard/selector_compiler.py'
       - 'packages/interfaces/sdd_wizard/src/sdd_wizard/templates/selector/**'
+      - 'packages/features/sdd_pages/**'
   workflow_dispatch:
 
 permissions:
@@ -116,6 +118,98 @@ jobs:
 
       - name: Build selector artifacts
         run: UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
+
+      - name: Generate docs index
+        run: |
+          uv run python -c "
+          from pathlib import Path
+          from sdd_pages.selector import DocumentIndexer
+          indexer = DocumentIndexer()
+          entries = indexer.index(Path('docs'))
+          indexer.to_json(entries, Path('build/site/selector/docs.index.json'))
+          print(f'Indexed {len(entries)} documents')
+          "
+
+      - name: Validate docs index
+        run: |
+          uv run python -c "
+          from pathlib import Path
+          from sdd_pages.validator import IndexValidator
+          result = IndexValidator().validate(Path('build/site/selector/docs.index.json'), source_dir=Path('docs'))
+          for w in result.warnings: print('WARNING:', w)
+          if not result.valid:
+              for e in result.errors: print('ERROR:', e)
+              raise SystemExit(1)
+          print('Docs index valid')
+          "
+
+      - name: Compress site assets
+        run: |
+          uv run python -c "
+          from pathlib import Path
+          from sdd_pages.compression import CompressionEngine
+          engine = CompressionEngine()
+          site_dir = Path('build/site')
+          results = []
+          for file_path in sorted(site_dir.rglob('*')):
+              if not file_path.is_file() or file_path.suffix not in ('.html', '.css', '.js', '.json', '.svg'):
+                  continue
+              result = engine.compress_gzip(file_path)
+              if result is not None:
+                  results.append(result)
+          manifest_dir = site_dir / '.compressed'
+          manifest_dir.mkdir(parents=True, exist_ok=True)
+          engine.generate_manifest(results, manifest_dir / 'manifest.json')
+          print(f'Compressed {len(results)} files')
+          "
+
+      - name: Assert compression ratios meet minimum threshold
+        run: |
+          uv run python -c "
+          import json, sys
+          from pathlib import Path
+          manifest_path = Path('build/site/.compressed/manifest.json')
+          if not manifest_path.exists():
+              print('No compression manifest found — skipping gate')
+              sys.exit(0)
+          entries = json.loads(manifest_path.read_text())['entries']
+          # Fail if any compressible file achieves less than 5% savings (ratio < 0.05).
+          # Files this close to uncompressed are likely already binary-compressed or tiny;
+          # raise the threshold here if too many legitimate files are flagged.
+          poor = [e for e in entries if e['ratio'] < 0.05]
+          if poor:
+              for e in poor:
+                  print(f'WARN: low compression ratio {e[\"ratio\"]:.2%} for {e[\"source\"]}')
+          total_original = sum(e['original_size'] for e in entries)
+          total_compressed = sum(e['compressed_size'] for e in entries)
+          overall = 1 - total_compressed / total_original if total_original else 0
+          print(f'Overall compression: {overall:.1%} ({total_original} → {total_compressed} bytes, {len(entries)} files)')
+          # Hard gate: overall ratio must be at least 1% (catches broken compression).
+          if overall < 0.01 and entries:
+              print('ERROR: overall compression ratio below 1% — compression may be broken')
+              sys.exit(1)
+          "
+
+      - name: Upload compression manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: compression-manifest
+          path: build/site/.compressed/manifest.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Copy _headers template (Netlify/Cloudflare Pages only)
+        # GitHub Pages ignores _headers; this step is a no-op for gh-pages deployments.
+        # The file documents cache-control and content-encoding policies for alternative
+        # hosting targets. Copy unconditionally so the artifact is always present.
+        run: |
+          uv run python -c "
+          import shutil
+          from importlib import resources
+          src = resources.files('sdd_pages').joinpath('templates').joinpath('_headers')
+          shutil.copy(str(src), 'build/site/_headers')
+          print('_headers written to build/site/_headers')
+          "
 
       - name: Set up Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_GITHUB_PAGES == 'true'

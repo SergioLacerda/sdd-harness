@@ -1,0 +1,31 @@
+# Netlify / Cloudflare Pages — Content-Encoding headers for pre-compressed assets.
+#
+# NOTE: GitHub Pages ignores this file entirely; it does not support custom response
+# headers. Copy this file into your site root when deploying to Netlify or Cloudflare
+# Pages to serve pre-compressed gzip variants automatically.
+#
+# How it works:
+#   1. The compression step produces *.gz alongside each original file.
+#   2. Clients that send "Accept-Encoding: gzip" receive the *.gz variant via the
+#      Content-Encoding header below — no server-side negotiation required.
+#   3. Clients without gzip support fall back to the original file.
+#
+# Adjust the path patterns below to match your actual site structure.
+
+/*.html
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.json
+  Cache-Control: no-cache
+  Content-Type: application/json; charset=utf-8
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

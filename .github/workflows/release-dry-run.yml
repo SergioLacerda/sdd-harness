@@ -67,7 +67,6 @@ jobs:
             if uv sync --all-groups \
               && uv pip install -e packages/core/sdd_core \
               && uv pip install -e packages/core/sdd_telemetry \
-              && uv pip install -e packages/core/sdd_compiler \
               && uv pip install -e packages/features/sdd_integration \
               && uv pip install -e packages/interfaces/sdd_wizard \
               && uv pip install -e packages/interfaces/sdd_cli; then
@@ -119,6 +118,16 @@ jobs:
               python -m build "$pkg_dir" --outdir dist/
             fi
           done
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: tools/sdd-compile/go.sum
+
+      - name: Build sdd-compile binary
+        shell: bash
+        run: make build-compiler
 
       - name: Compile governance artifacts (dry run)
         shell: bash

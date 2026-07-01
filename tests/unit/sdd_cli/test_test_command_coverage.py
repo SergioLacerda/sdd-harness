@@ -60,7 +60,7 @@ def _install_golden_ast(
     current_ast: object,
     golden_ast: object,
 ) -> None:
-    ast_mod = types.ModuleType("sdd_compiler.ast")
+    ast_mod = types.ModuleType("sdd_core.governance.ast")
 
     class _GovernanceAST:
         @classmethod
@@ -72,10 +72,7 @@ def _install_golden_ast(
             return golden_ast
 
     ast_mod.GovernanceAST = _GovernanceAST
-    compiler_mod = types.ModuleType("sdd_compiler")
-    compiler_mod.ast = ast_mod
-    monkeypatch.setitem(sys.modules, "sdd_compiler", compiler_mod)
-    monkeypatch.setitem(sys.modules, "sdd_compiler.ast", ast_mod)
+    monkeypatch.setitem(sys.modules, "sdd_core.governance.ast", ast_mod)
 
 
 class TestRunCommand:
@@ -317,12 +314,9 @@ class TestReviewGolden:
             def diff(self, current: object) -> _Diff:
                 return _Diff()
 
-        fake_ast_mod = types.ModuleType("sdd_compiler.ast")
+        fake_ast_mod = types.ModuleType("sdd_core.governance.ast")
         fake_ast_mod.GovernanceAST = _AST
-        compiler_mod = types.ModuleType("sdd_compiler")
-        compiler_mod.ast = fake_ast_mod
-        monkeypatch.setitem(sys.modules, "sdd_compiler.ast", fake_ast_mod)
-        monkeypatch.setitem(sys.modules, "sdd_compiler", compiler_mod)
+        monkeypatch.setitem(sys.modules, "sdd_core.governance.ast", fake_ast_mod)
         monkeypatch.setattr(test_mod, "detect_repo_root", lambda: root)
 
         _save_golden(golden, _AST())
@@ -387,12 +381,9 @@ class TestReviewGolden:
             def from_compiled_json(cls, path: Path):
                 raise ValueError("bad artifact")
 
-        fake_ast_mod = types.ModuleType("sdd_compiler.ast")
+        fake_ast_mod = types.ModuleType("sdd_core.governance.ast")
         fake_ast_mod.GovernanceAST = _BrokenCurrentAST
-        compiler_mod = types.ModuleType("sdd_compiler")
-        compiler_mod.ast = fake_ast_mod
-        monkeypatch.setitem(sys.modules, "sdd_compiler.ast", fake_ast_mod)
-        monkeypatch.setitem(sys.modules, "sdd_compiler", compiler_mod)
+        monkeypatch.setitem(sys.modules, "sdd_core.governance.ast", fake_ast_mod)
         with pytest.raises(typer.Exit):
             test_mod.review_golden(
                 update=False, fail_on_breaking=True, artifact=artifact, golden=golden
@@ -413,7 +404,7 @@ class TestReviewGolden:
         real_import = builtins.__import__
 
         def _blocked_import(name: str, globals=None, locals=None, fromlist=(), level=0):
-            if name == "sdd_compiler.ast":
+            if name == "sdd_core.governance.ast":
                 raise ImportError("blocked")
             return real_import(name, globals, locals, fromlist, level)
 
@@ -455,12 +446,9 @@ class TestReviewGolden:
             def from_dict(cls, raw: dict[str, object]):
                 raise ValueError("bad golden")
 
-        ast_mod = types.ModuleType("sdd_compiler.ast")
+        ast_mod = types.ModuleType("sdd_core.governance.ast")
         ast_mod.GovernanceAST = _GovernanceAST
-        compiler_mod = types.ModuleType("sdd_compiler")
-        compiler_mod.ast = ast_mod
-        monkeypatch.setitem(sys.modules, "sdd_compiler", compiler_mod)
-        monkeypatch.setitem(sys.modules, "sdd_compiler.ast", ast_mod)
+        monkeypatch.setitem(sys.modules, "sdd_core.governance.ast", ast_mod)
         monkeypatch.setattr(test_mod, "detect_repo_root", lambda: root)
         with pytest.raises(typer.Exit):
             test_mod.review_golden(

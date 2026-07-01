@@ -5,8 +5,8 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from sdd_compiler.governance_compiler import CompilationResult
 from sdd_core._governance_orchestrator_types import Phase1Result, Phase2Result
+from sdd_core.utils.compiler_runner import CompilationResult
 from sdd_core.utils.environment import resolve_profile
 
 logger = logging.getLogger(__name__)

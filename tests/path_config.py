@@ -19,7 +19,6 @@ CLIENT_GENERATED = GENERATED_DIR / "client"
 # Internal Framework Paths
 CORE = CORE_DIR / "core"
 WIZARD = CORE_DIR / "interfaces" / "sdd_wizard"
-COMPILER = CORE_DIR / "core" / "sdd_compiler"
 
 # Decision and Spec Paths
 CANONICAL_SPEC = SPEC_DIR / "canonical"

@@ -25,7 +25,6 @@ FORBIDDEN: dict[str, set[str]] = {
 # Package prefixes that identify intra-project imports (underscore convention).
 SDD_PREFIXES = (
     "sdd_core",
-    "sdd_compiler",
     "sdd_telemetry",
     "sdd_integration",
     "sdd_cli",
@@ -63,7 +62,7 @@ def _target_layer(module: str) -> str | None:
     """Map a module name to its layer, or None if not an SDD module."""
     for prefix in SDD_PREFIXES:
         if module == prefix or module.startswith(prefix + "."):
-            if prefix in ("sdd_core", "sdd_compiler", "sdd_telemetry"):
+            if prefix in ("sdd_core", "sdd_telemetry"):
                 return "core"
             if prefix == "sdd_integration":
                 return "features"

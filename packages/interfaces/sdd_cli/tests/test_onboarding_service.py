@@ -28,11 +28,38 @@ class TestOnboardingOrchestrator:
         monkeypatch.setattr(
             "sdd_cli.services.onboarding.SafeProcessRunner", lambda: _Runner()
         )
+        monkeypatch.setattr(
+            "sdd_cli.services.onboarding.resolve_sdd_child_cmd", lambda: "sdd"
+        )
         orc = OnboardingOrchestrator(tmp_path)
         assert orc._run_step("x", ["runtime", "status"]) is True
         assert seen["cmd"] == ["sdd", "runtime", "status"]
         assert seen["cwd"] == tmp_path
         assert seen["env"]["PYTHONUTF8"] == "1"
+
+    def test_run_step_uses_resolved_executable(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """_run_step passes the resolved executable, not bare 'sdd'."""
+        from sdd_cli.services.onboarding import OnboardingOrchestrator
+
+        seen: dict[str, object] = {}
+
+        class _Runner:
+            def run(self, cmd, **_kwargs):  # noqa: ANN001
+                seen["cmd"] = cmd
+                return type("R", (), {"success": True})()
+
+        resolved = "/resolved/bin/sdd"
+        monkeypatch.setattr(
+            "sdd_cli.services.onboarding.SafeProcessRunner", lambda: _Runner()
+        )
+        monkeypatch.setattr(
+            "sdd_cli.services.onboarding.resolve_sdd_child_cmd", lambda: resolved
+        )
+        orc = OnboardingOrchestrator(tmp_path)
+        orc._run_step("x", ["setup", "git-hooks"])
+        assert seen["cmd"] == [resolved, "setup", "git-hooks"]
 
     def test_step_governance_skipped_when_artifacts_exist_no_force(
         self, tmp_path: Path
@@ -222,3 +249,41 @@ class TestOnboardingOrchestrator:
             result = orc.step_hooks(force=False)
         mock_run.assert_called_once_with("setup git-hooks", ["setup", "git-hooks"])
         assert result is True
+
+    def test_step_hooks_failure_emits_executable_in_diagnostics(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Hook failure message includes the resolved executable path."""
+        import sdd_cli.services.onboarding as mod
+        from sdd_cli.services.onboarding import OnboardingOrchestrator
+
+        monkeypatch.setattr(mod, "resolve_sdd_child_cmd", lambda: "/test/bin/sdd")
+        (tmp_path / ".git" / "hooks").mkdir(parents=True)
+
+        orc = OnboardingOrchestrator(tmp_path)
+        with patch.object(orc, "_run_step", return_value=False):
+            orc.step_hooks(force=False)
+
+        captured = capsys.readouterr()
+        assert "/test/bin/sdd" in captured.err
+
+    def test_run_hooks_failure_message_includes_executable(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """OnboardingResult messages include the resolved executable on hook failure."""
+        import sdd_cli.services.onboarding as mod
+        from sdd_cli.services.onboarding import OnboardingOrchestrator
+
+        monkeypatch.setattr(mod, "resolve_sdd_child_cmd", lambda: "/test/bin/sdd")
+
+        orc = OnboardingOrchestrator(tmp_path)
+        with (
+            patch.object(orc, "step_governance", return_value=True),
+            patch.object(orc, "step_skills", return_value=True),
+            patch.object(orc, "step_validate", return_value=True),
+            patch.object(orc, "step_hooks", return_value=False),
+        ):
+            result = orc.run(force=False)
+
+        assert result.failed_step == "hooks"
+        assert any("/test/bin/sdd" in m for m in result.messages)

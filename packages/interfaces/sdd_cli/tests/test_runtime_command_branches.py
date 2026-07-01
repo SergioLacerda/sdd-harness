@@ -78,7 +78,7 @@ def test_do_update_cache_writes_new_cache(monkeypatch, tmp_path: Path, capsys) -
             )
         )
     )
-    monkeypatch.setitem(__import__("sys").modules, "sdd_compiler.ast", fake_module)
+    monkeypatch.setitem(__import__("sys").modules, "sdd_core.governance.ast", fake_module)
     runtime_cmd._do_update_cache(tmp_path)
     out = capsys.readouterr().out
     assert ".sdd-cache.md refreshed" in out

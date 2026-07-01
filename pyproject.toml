@@ -76,24 +76,24 @@ constraint-dependencies = [
 [tool.uv.workspace]
 members = [
     "packages/core/sdd_core",
-    "packages/core/sdd_compiler",
     "packages/core/sdd_telemetry",
     "packages/core/sdd_runtime",
     "packages/features/sdd_integration",
     "packages/features/sdd_adapters",
     "packages/features/sdd_skills",
+    "packages/features/sdd_pages",
     "packages/interfaces/sdd_wizard",
     "packages/interfaces/sdd_cli",
 ]
 
 [tool.uv.sources]
 sdd-core        = { workspace = true }
-sdd-compiler    = { workspace = true }
 sdd-telemetry   = { workspace = true }
 sdd-runtime     = { workspace = true }
 sdd-integration = { workspace = true }
 sdd-adapters    = { workspace = true }
 sdd-skills      = { workspace = true }
+sdd-pages       = { workspace = true }
 sdd-wizard      = { workspace = true }
 sdd-cli         = { workspace = true }
 
@@ -202,11 +202,11 @@ max-complexity = 10
 [tool.ruff.lint.isort]
 known-first-party = [
     "sdd_core",
-    "sdd_compiler",
     "sdd_telemetry",
     "sdd_integration",
     "sdd_adapters",
     "sdd_skills",
+    "sdd_pages",
     "sdd_wizard",
     "sdd_cli",
 ]
@@ -266,12 +266,12 @@ markers = [
 pythonpath = [
     ".",
     "packages/core/sdd_core/src",
-    "packages/core/sdd_compiler/src",
     "packages/core/sdd_runtime/src",
     "packages/core/sdd_telemetry/src",
     "packages/features/sdd_integration/src",
     "packages/features/sdd_adapters/src",
     "packages/features/sdd_skills/src",
+    "packages/features/sdd_pages/src",
     "packages/interfaces/sdd_wizard/src",
     "packages/interfaces/sdd_cli/src"
 ]

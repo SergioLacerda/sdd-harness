@@ -28,13 +28,10 @@ from pathlib import Path
 # Repo root is two levels up from tools/testing/
 REPO_ROOT = Path(__file__).resolve().parents[2]
 _SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "sdd_core" / "src"
-_SDD_COMPILER_SRC = REPO_ROOT / "packages" / "core" / "sdd_compiler" / "src"
 _SDD_RUNTIME_SRC = REPO_ROOT / "packages" / "core" / "sdd_runtime" / "src"
 _SDD_TELEMETRY_SRC = REPO_ROOT / "packages" / "core" / "sdd_telemetry" / "src"
 if str(_SDD_CORE_SRC) not in sys.path:
     sys.path.insert(0, str(_SDD_CORE_SRC))
-if str(_SDD_COMPILER_SRC) not in sys.path:
-    sys.path.insert(0, str(_SDD_COMPILER_SRC))
 if str(_SDD_RUNTIME_SRC) not in sys.path:
     sys.path.insert(0, str(_SDD_RUNTIME_SRC))
 if str(_SDD_TELEMETRY_SRC) not in sys.path:
@@ -53,9 +50,6 @@ class TestLayer:
 TEST_LAYERS = [
     TestLayer(
         "Package: sdd_core", "packages/core/sdd_core/tests", "Core package tests"
-    ),
-    TestLayer(
-        "Package: sdd_compiler", "packages/core/sdd_compiler/tests", "Compiler tests"
     ),
     TestLayer(
         "Package: sdd_runtime", "packages/core/sdd_runtime/tests", "Runtime tests"

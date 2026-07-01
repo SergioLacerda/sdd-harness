@@ -8,6 +8,7 @@ from pathlib import Path
 
 import typer
 
+from sdd_core.utils.environment import resolve_sdd_child_cmd
 from sdd_core.utils.process import SafeProcessRunner
 
 
@@ -28,11 +29,12 @@ class OnboardingOrchestrator:
         self.cwd = cwd
 
     def _run_step(self, _label: str, args: list[str]) -> bool:
+        sdd_cmd = resolve_sdd_child_cmd()
         env = os.environ.copy()
         env.setdefault("PYTHONUTF8", "1")
         runner = SafeProcessRunner()
         result = runner.run(
-            ["sdd"] + args,
+            [sdd_cmd] + args,
             cwd=self.cwd,
             env=env,
             capture_output=False,
@@ -90,11 +92,19 @@ class OnboardingOrchestrator:
             typer.echo("[5/5] Installing git hooks... (skipped — already installed)")
             return True
         typer.echo("[5/5] Installing git hooks...")
+        sdd_cmd = resolve_sdd_child_cmd()
         ok = self._run_step(
             "setup git-hooks",
             ["setup", "git-hooks"],
         )
         typer.echo(f"      {'✓' if ok else '✗'} setup git-hooks")
+        if not ok:
+            typer.echo(
+                f"      executable used: {sdd_cmd}\n"
+                "      validate the command tree with: sdd setup --help\n"
+                f"      then retry: {sdd_cmd} setup git-hooks",
+                err=True,
+            )
         return ok
 
     def run(self, *, force: bool) -> OnboardingResult:
@@ -126,10 +136,14 @@ class OnboardingOrchestrator:
                 ],
             )
         if not self.step_hooks(force=force):
+            sdd_cmd = resolve_sdd_child_cmd()
             return OnboardingResult(
                 success=False,
                 failed_step="hooks",
                 exit_code=5,
-                messages=["git hooks install failed — run: sdd setup git-hooks"],
+                messages=[
+                    f"git hooks install failed — run: {sdd_cmd} setup git-hooks",
+                    "validate command tree first: sdd setup --help",
+                ],
             )
         return OnboardingResult(success=True, exit_code=0)

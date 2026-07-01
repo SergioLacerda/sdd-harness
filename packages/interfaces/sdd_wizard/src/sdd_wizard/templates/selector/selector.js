@@ -61,6 +61,8 @@ const state = {
   items: [],
   selected: new Set(),
   categories: new Set(),
+  docs: [],       // loaded from docs.index.json if available
+  docsLoaded: false,
 };
 
 function itemMap() {
@@ -310,6 +312,18 @@ function initTopbar() {
   });
 }
 
+async function loadDocsIndex() {
+  try {
+    const response = await fetch("docs.index.json");
+    if (!response.ok) return;          // not available — silent fallback
+    const index = await response.json();
+    state.docs = (index && Array.isArray(index.documents)) ? index.documents : [];
+    state.docsLoaded = true;
+  } catch {
+    // docs.index.json is optional — fetch failure is non-fatal
+  }
+}
+
 async function boot() {
   document.title = T.title;
   document.querySelector(".hero h1").textContent = T.title;
@@ -337,6 +351,10 @@ async function boot() {
   for (const item of state.items) {
     state.categories.add(item.category);
   }
+
+  // Load docs.index.json in parallel — optional, non-blocking
+  await loadDocsIndex();
+
   restoreSelection();
   renderFilters();
   renderItems();

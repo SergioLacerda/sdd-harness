@@ -100,7 +100,7 @@ def _print_diff(diff: Any) -> None:
 
 def _load_golden_ast(golden_path: Path) -> Any:
     """Load golden AST from file; raise typer.Exit(1) on error."""
-    from sdd_compiler.ast import GovernanceAST
+    from sdd_core.governance.ast import GovernanceAST
 
     try:
         return GovernanceAST.from_dict(
@@ -120,10 +120,10 @@ def run_review_golden(
 ) -> None:
     """Compare current compiled artifact against the golden AST snapshot."""
     try:
-        from sdd_compiler.ast import GovernanceAST
+        from sdd_core.governance.ast import GovernanceAST
     except ImportError:
         typer.echo(
-            "ERROR: sdd_compiler is not installed. Run 'sdd setup run'.",
+            "ERROR: sdd_core.governance.ast is not importable. Run 'sdd setup run'.",
             err=True,
         )
         raise typer.Exit(1) from None

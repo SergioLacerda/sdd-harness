@@ -9,7 +9,9 @@ Usage:
 """
 
 import json
+import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +28,7 @@ def _find_repo_root() -> Path:
 
 def _bootstrap_imports(repo_root: Path) -> None:
     """Add package src dirs to sys.path so we can import without installing."""
-    for pkg in ("sdd_compiler", "sdd_integration", "sdd_core"):
+    for pkg in ("sdd_integration", "sdd_core"):
         for layer in ("core", "features", "interfaces"):
             src = repo_root / "packages" / layer / pkg / "src"
             if src.is_dir() and str(src) not in sys.path:
@@ -59,11 +61,11 @@ def _build_artifacts(spec_dir: Path, out_dir: Path) -> tuple[int, Path]:
 
     print("Compiling governance artifacts...")
     try:
-        from sdd_compiler.governance_compiler import GovernanceCompiler
+        from sdd_core.utils.compiler_runner import CompilerRunner
 
-        result: Any = GovernanceCompiler(str(out_dir)).compile(str(out_dir))
+        result: Any = CompilerRunner().compile(out_dir, out_dir)
     except ImportError as e:
-        print(f"ERROR: Could not import GovernanceCompiler: {e}")
+        print(f"ERROR: Could not import CompilerRunner: {e}")
         return 1, Path()
     except Exception as e:
         print(f"ERROR: Compilation failed: {e}")
@@ -88,7 +90,7 @@ def main() -> int:
         "--out-dir",
         type=Path,
         default=None,
-        help="Compiled output directory (default: /tmp/sdd-debug-compiled)",
+        help="Compiled output directory (default: <tmp>/sdd-debug-compiled-<uid>)",
     )
     parser.add_argument(
         "--compiled-only",
@@ -101,7 +103,7 @@ def main() -> int:
     _bootstrap_imports(repo_root)
 
     spec_dir = args.spec_dir or (repo_root / "docs" / "spec" / "canonical")
-    out_dir = args.out_dir or Path("/tmp/sdd-debug-compiled")
+    out_dir = args.out_dir or Path(tempfile.gettempdir()) / f"sdd-debug-compiled-{os.getuid()}"
 
     if args.compiled_only:
         candidates = list(out_dir.rglob("*.msgpack"))

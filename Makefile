@@ -15,7 +15,7 @@ else
   PYTHON := $(VENV_PYTHON)
 endif
 
-.PHONY: check ci-pr ci-pr-full test test-fast test-perf lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check
+.PHONY: check ci-pr ci-pr-full test test-fast test-perf lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check build-compiler test-compiler-go lint-go
 
 help:
 	@echo "SDD Architecture Development"
@@ -46,7 +46,20 @@ help:
 	@echo "release-dry-run - Validate version, changelog, and tags before release"
 	@echo "clean           - Remove temporary files"
 
-install:
+build-compiler:
+	go build -C tools/sdd-compile -o bin/sdd-compile .
+
+test-compiler-go:
+	go test -C tools/sdd-compile ./tests/ -count=1
+
+lint-go:
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		golangci-lint run ./tools/sdd-compile/...; \
+	else \
+		echo "golangci-lint not installed — skipping Go lint"; \
+	fi
+
+install: build-compiler
 	uv sync --all-groups --all-packages --extra test
 
 install-docs:

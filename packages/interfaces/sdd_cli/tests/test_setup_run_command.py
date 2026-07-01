@@ -173,3 +173,25 @@ class TestRunSetup:
         assert result.exit_code == 0
         calls_str = str(mock_runner.run.call_args_list)
         assert "ensurepip" in calls_str
+
+
+class TestSetupGitHooksCommandTree:
+    """Command-tree regression: setup git-hooks must be registered in the CLI."""
+
+    def test_setup_git_hooks_help_is_registered(self) -> None:
+        """setup git-hooks --help exits 0, proving the subcommand is in the tree."""
+        from sdd_cli.main import app
+
+        result = CliRunner().invoke(app, ["setup", "git-hooks", "--help"])
+        assert result.exit_code == 0, (
+            f"setup git-hooks --help failed (exit {result.exit_code}):\n{result.output}"
+        )
+        assert "git-hooks" in result.output.lower() or "hook" in result.output.lower()
+
+    def test_setup_subgroup_lists_git_hooks(self) -> None:
+        """sdd setup --help lists git-hooks as a registered subcommand."""
+        from sdd_cli.main import app
+
+        result = CliRunner().invoke(app, ["setup", "--help"])
+        assert result.exit_code == 0
+        assert "git-hooks" in result.output

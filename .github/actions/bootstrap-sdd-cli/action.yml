@@ -4,7 +4,14 @@ description: Initialize SDD workspace using uv (uv must already be installed)
 runs:
   using: composite
   steps:
-    - name: Install all dependencies
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.22"
+        cache: true
+        cache-dependency-path: tools/sdd-compile/go.sum
+
+    - name: Install all dependencies (includes sdd-compile build)
       shell: bash
       run: make install
 

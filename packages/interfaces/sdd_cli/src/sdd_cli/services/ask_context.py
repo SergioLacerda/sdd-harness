@@ -1,9 +1,4 @@
-"""ask_context — workspace context loading for sdd ask.
-
-Exposes `load_ask_context` as the primary entry point. No Click dependency
-in public functions; Click context is accessed only via internal helpers
-that guard with `silent=True`.
-"""
+"""Workspace context loading for sdd ask — primary entry point: `load_ask_context`."""
 
 from __future__ import annotations
 

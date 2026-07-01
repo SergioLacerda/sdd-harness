@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+from sdd_cli.shared.constants import TRUE_VALUES as _TRUE_VALUES
+
 
 def handle_dossier_error(exc: Exception, *, logger: Any, typer_module: Any) -> None:
     """Handle errors during dossier generation."""
@@ -134,7 +136,7 @@ def build_and_output_dossier(
                     str(os.environ.get("SDD_ASK_PREFER_FULL_SUMMARY", ""))
                     .strip()
                     .lower()
-                    in {"1", "true", "yes", "on"}
+                    in _TRUE_VALUES
                 ),
             )
         )

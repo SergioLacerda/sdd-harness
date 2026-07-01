@@ -1,3 +1,10 @@
+# Stage 0: Go binary builder
+FROM golang:1.22-alpine AS go-builder
+
+WORKDIR /build
+COPY tools/sdd-compile/ .
+RUN go mod download && go build -o sdd-compile .
+
 # Stage 1: Builder
 FROM python:3.14-slim AS builder
 
@@ -24,6 +31,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv venv /app/.venv && \
     UV_PROJECT_ENVIRONMENT=/app/.venv \
     uv sync --frozen --no-group docs --all-packages --extra test
+
+# Install sdd-compile Go binary into builder PATH
+COPY --from=go-builder /build/sdd-compile /usr/local/bin/sdd-compile
 
 # Pre-compile governance artifacts so tests don't rebuild from a different source path
 ENV PATH="/app/.venv/bin:${PATH}"
@@ -56,6 +66,7 @@ RUN groupadd -g 1000 sdd && \
 WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
+COPY --from=go-builder /build/sdd-compile /usr/local/bin/sdd-compile
 COPY --chown=sdd:sdd . /app
 
 # Overlay pre-compiled governance artifacts from builder (not in git)
