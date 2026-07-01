@@ -7,7 +7,6 @@ import json
 import sys
 import types
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -31,7 +30,7 @@ def _install_fake_sdd_runtime(  # noqa: C901
     class _CompiledArtifact:
         @classmethod
         def from_sdd_compiled_dir(cls, compiled_dir: Path, profile: str):
-            return SimpleNamespace(compiled_dir=compiled_dir, profile=profile)
+            return types.SimpleNamespace(compiled_dir=compiled_dir, profile=profile)
 
     class _Injection:
         loaded = True

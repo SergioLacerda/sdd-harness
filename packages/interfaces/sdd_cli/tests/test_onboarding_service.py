@@ -257,7 +257,7 @@ class TestOnboardingOrchestrator:
         capsys: pytest.CaptureFixture,
     ) -> None:
         """Hook failure message includes the resolved executable path."""
-        import sdd_cli.services.onboarding as mod
+        from sdd_cli.services import onboarding as mod
         from sdd_cli.services.onboarding import OnboardingOrchestrator
 
         monkeypatch.setattr(mod, "resolve_sdd_child_cmd", lambda: "/test/bin/sdd")
@@ -274,7 +274,7 @@ class TestOnboardingOrchestrator:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """OnboardingResult messages include the resolved executable on hook failure."""
-        import sdd_cli.services.onboarding as mod
+        from sdd_cli.services import onboarding as mod
         from sdd_cli.services.onboarding import OnboardingOrchestrator
 
         monkeypatch.setattr(mod, "resolve_sdd_child_cmd", lambda: "/test/bin/sdd")

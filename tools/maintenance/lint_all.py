@@ -66,6 +66,10 @@ def _run_arch_steps() -> bool:
             [sys.executable, "tools/architecture/validate_imports.py"],
         ),
         (
+            "tools/architecture/validate_import_style.py",
+            [sys.executable, "tools/architecture/validate_import_style.py"],
+        ),
+        (
             "tools/architecture/validate_cycles.py",
             [sys.executable, "tools/architecture/validate_cycles.py"],
         ),

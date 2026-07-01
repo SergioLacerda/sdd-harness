@@ -18,10 +18,9 @@ from types import ModuleType
 from typing import Any
 
 import yaml
-from yaml import SafeLoader
 
 
-class _MkDocsLoader(SafeLoader):
+class _MkDocsLoader(yaml.SafeLoader):
     """SafeLoader extended to ignore !!python/name: tags in mkdocs.yml."""
 
 

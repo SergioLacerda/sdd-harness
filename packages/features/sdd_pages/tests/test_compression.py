@@ -54,7 +54,7 @@ class TestCompressBrotli:
     def test_returns_none_when_brotli_unavailable(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        import sdd_pages.compression as mod
+        from sdd_pages import compression as mod
 
         monkeypatch.setattr(mod, "_BROTLI_AVAILABLE", False)
         file_path = tmp_path / "app.js"
@@ -66,7 +66,7 @@ class TestCompressBrotli:
     def test_compresses_when_brotli_available(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        import sdd_pages.compression as mod
+        from sdd_pages import compression as mod
 
         class _FakeBrotli:
             @staticmethod

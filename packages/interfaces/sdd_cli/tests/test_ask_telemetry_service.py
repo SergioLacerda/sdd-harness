@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 import types
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 
@@ -44,7 +43,7 @@ def _install_fake_sdd_runtime(monkeypatch: pytest.MonkeyPatch) -> None:
         def emit(self, event: object) -> None:
             self.events.append(event)
 
-    class _SessionState(SimpleNamespace):
+    class _SessionState(types.SimpleNamespace):
         pass
 
     class _SessionManager:
