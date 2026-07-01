@@ -30,7 +30,9 @@ class SelectorGenerator:
 
     def generate(self, entry: DocumentEntry) -> str:
         """Return a CSS-id-safe selector derived from the document path."""
-        slug = entry.path.strip("/").replace("/", "-").replace(" ", "-").replace(".", "-")
+        slug = (
+            entry.path.strip("/").replace("/", "-").replace(" ", "-").replace(".", "-")
+        )
         slug = "".join(ch for ch in slug if ch.isalnum() or ch == "-")
         return f"doc-{slug.lower()}" if slug else "doc-root"
 

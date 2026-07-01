@@ -73,7 +73,10 @@ class DeltaIndexer:
             file_path.relative_to(source_dir).as_posix()
             for file_path in source_dir.glob(glob)
             if file_path.is_file()
-            and any(str(file_path).endswith(c) or c.endswith(str(file_path)) for c in changed)
+            and any(
+                str(file_path).endswith(c) or c.endswith(str(file_path))
+                for c in changed
+            )
         }
 
         fresh = self._indexer.index(source_dir, glob=glob)
@@ -81,7 +84,9 @@ class DeltaIndexer:
 
         merged: dict[str, DocumentEntry] = {}
         for path, entry in existing_by_path.items():
-            merged[path] = fresh_by_path.get(path, entry) if path in updated_paths else entry
+            merged[path] = (
+                fresh_by_path.get(path, entry) if path in updated_paths else entry
+            )
         for path, entry in fresh_by_path.items():
             if path not in merged:
                 merged[path] = entry

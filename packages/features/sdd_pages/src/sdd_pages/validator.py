@@ -43,7 +43,9 @@ class IndexValidator:
         warnings: list[str] = []
 
         if not index_path.exists():
-            return ValidationResult(valid=False, errors=[f"Index file not found: {index_path}"])
+            return ValidationResult(
+                valid=False, errors=[f"Index file not found: {index_path}"]
+            )
 
         try:
             data = json.loads(index_path.read_text(encoding="utf-8"))
@@ -68,7 +70,9 @@ class IndexValidator:
         for i, entry in enumerate(documents):
             self._validate_entry(i, entry, source_dir, errors, warnings)
 
-        return ValidationResult(valid=len(errors) == 0, errors=errors, warnings=warnings)
+        return ValidationResult(
+            valid=len(errors) == 0, errors=errors, warnings=warnings
+        )
 
     def _validate_entry(
         self,

@@ -114,9 +114,7 @@ class TestHashedName:
         hash2 = engine.hashed_name(file2).split(".")[1]
         assert hash1 == hash2
 
-    def test_hashed_name_differs_for_different_content(
-        self, tmp_path: Path
-    ) -> None:
+    def test_hashed_name_differs_for_different_content(self, tmp_path: Path) -> None:
         file1 = tmp_path / "a.js"
         file2 = tmp_path / "b.js"
         file1.write_bytes(b"content one")

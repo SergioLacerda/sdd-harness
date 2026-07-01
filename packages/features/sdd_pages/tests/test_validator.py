@@ -113,7 +113,9 @@ class TestIndexValidatorSourceDir:
             p,
             {
                 "schema_version": INDEX_SCHEMA_VERSION,
-                "documents": [{"path": "missing.md", "title": "X", "url": "/missing.md"}],
+                "documents": [
+                    {"path": "missing.md", "title": "X", "url": "/missing.md"}
+                ],
             },
         )
         result = IndexValidator().validate(p, source_dir=source)

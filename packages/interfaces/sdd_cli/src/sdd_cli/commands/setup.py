@@ -190,9 +190,7 @@ def run_setup(  # noqa: C901
     if compile_bin.exists():
         typer.echo("  OK: sdd-compile binary found")
     else:
-        typer.echo(
-            "  WARN: sdd-compile binary not found — run 'make build-compiler'"
-        )
+        typer.echo("  WARN: sdd-compile binary not found — run 'make build-compiler'")
 
     _ensure_phase_0_marker()
     typer.echo("  OK: Runtime phase-0 marker initialized")

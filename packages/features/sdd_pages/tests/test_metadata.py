@@ -66,8 +66,6 @@ class TestExtractFromText:
 class TestExtractFromFile:
     def test_extracts_from_file_on_disk(self, tmp_path: Path) -> None:
         file_path = tmp_path / "doc.md"
-        file_path.write_text(
-            "---\ntitle: From File\n---\nContent\n", encoding="utf-8"
-        )
+        file_path.write_text("---\ntitle: From File\n---\nContent\n", encoding="utf-8")
         metadata = MetadataExtractor().extract(file_path)
         assert metadata.title == "From File"

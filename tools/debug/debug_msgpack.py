@@ -103,7 +103,10 @@ def main() -> int:
     _bootstrap_imports(repo_root)
 
     spec_dir = args.spec_dir or (repo_root / "docs" / "spec" / "canonical")
-    out_dir = args.out_dir or Path(tempfile.gettempdir()) / f"sdd-debug-compiled-{os.getuid()}"
+    out_dir = (
+        args.out_dir
+        or Path(tempfile.gettempdir()) / f"sdd-debug-compiled-{os.getuid()}"
+    )
 
     if args.compiled_only:
         candidates = list(out_dir.rglob("*.msgpack"))

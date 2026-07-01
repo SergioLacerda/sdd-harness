@@ -30,7 +30,11 @@ class SafeProcessRunner:
         telemetry_sink: Any | None = None,
         authorizer: ProcessAuthorizer | None = None,
     ) -> None:
-        _bins = authorized_binaries if authorized_binaries is not None else AUTHORIZED_BINARIES
+        _bins = (
+            authorized_binaries
+            if authorized_binaries is not None
+            else AUTHORIZED_BINARIES
+        )
         self._authorizer = authorizer or ProcessAuthorizer(_bins)
         if telemetry_sink is not None:
             self._sink = telemetry_sink

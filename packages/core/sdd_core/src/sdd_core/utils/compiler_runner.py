@@ -115,7 +115,9 @@ class CompilerRunner:
             raise CompilerRunnerError(f"sdd-compile version failed: {result.stderr}")
         return result.stdout.strip()
 
-    def compile(self, input_dir: str | Path, output_dir: str | Path) -> CompilationResult:
+    def compile(
+        self, input_dir: str | Path, output_dir: str | Path
+    ) -> CompilationResult:
         """Compile governance JSON to msgpack artifacts via the Go binary."""
         result = self._runner.run(
             [

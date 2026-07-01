@@ -31,9 +31,10 @@ class TestFullPipeline:
         indexer.to_json(entries, index_path)
 
         assert len(entries) == 1
-        assert json.loads(index_path.read_text(encoding="utf-8"))["documents"][0][
-            "title"
-        ] == "Intro"
+        assert (
+            json.loads(index_path.read_text(encoding="utf-8"))["documents"][0]["title"]
+            == "Intro"
+        )
 
         engine = CompressionEngine()
         compression_results = []

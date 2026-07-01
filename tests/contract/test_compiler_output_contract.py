@@ -7,6 +7,7 @@ All tests verify format and structural contracts defined in contracts/compiler-i
 To run:
     uv run python -m pytest tests/contract/test_compiler_output_contract.py -v
 """
+
 from __future__ import annotations
 
 import json
@@ -28,7 +29,9 @@ def compiled_dir() -> Path:
 
 
 def test_governance_core_json_schema(compiled_dir: Path) -> None:
-    data = json.loads((compiled_dir / "governance-core.json").read_text(encoding="utf-8"))
+    data = json.loads(
+        (compiled_dir / "governance-core.json").read_text(encoding="utf-8")
+    )
     assert "category" in data
     assert "version" in data
     assert "fingerprint" in data
@@ -65,11 +68,15 @@ def test_metadata_core_schema(compiled_dir: Path) -> None:
 
 
 def test_fingerprint_format_64_hex_chars(compiled_dir: Path) -> None:
-    core = json.loads((compiled_dir / "governance-core.json").read_text(encoding="utf-8"))
+    core = json.loads(
+        (compiled_dir / "governance-core.json").read_text(encoding="utf-8")
+    )
     assert _FINGERPRINT_RE.match(str(core["fingerprint"])), (
         f"Core fingerprint {core['fingerprint']!r} is not 64 lowercase hex chars"
     )
-    client = json.loads((compiled_dir / "governance-client.json").read_text(encoding="utf-8"))
+    client = json.loads(
+        (compiled_dir / "governance-client.json").read_text(encoding="utf-8")
+    )
     assert _FINGERPRINT_RE.match(str(client["fingerprint"])), (
         f"Client fingerprint {client['fingerprint']!r} is not 64 lowercase hex chars"
     )
@@ -89,8 +96,12 @@ def test_msgpack_no_magic_header(compiled_dir: Path) -> None:
 
 
 def test_client_fingerprint_salt_equals_core_fingerprint(compiled_dir: Path) -> None:
-    core = json.loads((compiled_dir / "governance-core.json").read_text(encoding="utf-8"))
-    client = json.loads((compiled_dir / "governance-client.json").read_text(encoding="utf-8"))
+    core = json.loads(
+        (compiled_dir / "governance-core.json").read_text(encoding="utf-8")
+    )
+    client = json.loads(
+        (compiled_dir / "governance-client.json").read_text(encoding="utf-8")
+    )
     assert "fingerprint_core_salt" in client, (
         "governance-client.json must contain 'fingerprint_core_salt'"
     )
@@ -100,7 +111,9 @@ def test_client_fingerprint_salt_equals_core_fingerprint(compiled_dir: Path) -> 
 
 
 def test_metadata_fingerprint_matches_json(compiled_dir: Path) -> None:
-    core_json = json.loads((compiled_dir / "governance-core.json").read_text(encoding="utf-8"))
+    core_json = json.loads(
+        (compiled_dir / "governance-core.json").read_text(encoding="utf-8")
+    )
     meta = json.loads((compiled_dir / "metadata-core.json").read_text(encoding="utf-8"))
     assert meta["fingerprint"] == core_json["fingerprint"], (
         "metadata-core.json fingerprint must match governance-core.json fingerprint"
@@ -108,16 +121,28 @@ def test_metadata_fingerprint_matches_json(compiled_dir: Path) -> None:
 
 
 def test_core_and_client_fingerprints_differ(compiled_dir: Path) -> None:
-    core = json.loads((compiled_dir / "governance-core.json").read_text(encoding="utf-8"))
-    client = json.loads((compiled_dir / "governance-client.json").read_text(encoding="utf-8"))
+    core = json.loads(
+        (compiled_dir / "governance-core.json").read_text(encoding="utf-8")
+    )
+    client = json.loads(
+        (compiled_dir / "governance-client.json").read_text(encoding="utf-8")
+    )
     assert core["fingerprint"] != client["fingerprint"], (
         "Core and client fingerprints must be different values"
     )
 
 
 def test_governance_client_json_schema(compiled_dir: Path) -> None:
-    data = json.loads((compiled_dir / "governance-client.json").read_text(encoding="utf-8"))
-    for field in ("category", "version", "fingerprint", "fingerprint_core_salt", "items"):
+    data = json.loads(
+        (compiled_dir / "governance-client.json").read_text(encoding="utf-8")
+    )
+    for field in (
+        "category",
+        "version",
+        "fingerprint",
+        "fingerprint_core_salt",
+        "items",
+    ):
         assert field in data, f"governance-client.json missing required field: {field}"
     assert isinstance(data["items"], list)
 

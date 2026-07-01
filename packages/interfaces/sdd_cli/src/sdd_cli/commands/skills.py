@@ -143,9 +143,10 @@ def run(
     ),
 ) -> None:
     """Run a skill in dry-run or execute mode."""
-    enforce_pipeline = os.environ.get(
-        "SDD_ENFORCE_PIPELINE_CORRECT", "0"
-    ).strip().lower() in _TRUE_VALUES
+    enforce_pipeline = (
+        os.environ.get("SDD_ENFORCE_PIPELINE_CORRECT", "0").strip().lower()
+        in _TRUE_VALUES
+    )
     if enforce_pipeline and name == "sdd-correct":
         emit_pipeline_required(name, output_json=_ctx_json(), emit_fn=_emit_skills_json)
     engine = SkillEngine()

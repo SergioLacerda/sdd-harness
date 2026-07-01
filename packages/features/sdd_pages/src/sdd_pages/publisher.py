@@ -49,7 +49,15 @@ class GitHubPagesPublisher(PublisherInterface):
             )
         try:
             result = subprocess.run(  # nosec B603 B607 - fixed argv, no shell; git resolved via PATH intentionally
-                ["git", "subtree", "push", "--prefix", str(source_dir), self.remote, branch],
+                [
+                    "git",
+                    "subtree",
+                    "push",
+                    "--prefix",
+                    str(source_dir),
+                    self.remote,
+                    branch,
+                ],
                 capture_output=True,
                 text=True,
                 check=False,

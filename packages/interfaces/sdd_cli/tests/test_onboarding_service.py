@@ -251,7 +251,10 @@ class TestOnboardingOrchestrator:
         assert result is True
 
     def test_step_hooks_failure_emits_executable_in_diagnostics(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture,
     ) -> None:
         """Hook failure message includes the resolved executable path."""
         import sdd_cli.services.onboarding as mod

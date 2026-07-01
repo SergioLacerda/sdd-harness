@@ -97,7 +97,9 @@ def build_search_index(
 @app.command(name="validate-index")
 def validate_index(
     index_path: Path = typer.Argument(..., help="Path to docs.index.json to validate."),
-    source_dir: Path = typer.Option(None, help="Source directory for existence checks."),
+    source_dir: Path = typer.Option(
+        None, help="Source directory for existence checks."
+    ),
 ) -> None:
     """Validate a docs.index.json file for schema and consistency."""
     result = IndexValidator().validate(index_path, source_dir=source_dir)

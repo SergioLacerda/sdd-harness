@@ -91,7 +91,9 @@ class TestCachedIndex:
         entries, _ = indexer.cached_index(docs, output, cache)
         indexer._indexer.to_json(entries, output)
 
-        (docs / "a.md").write_text("---\ntitle: A Modified\n---\nNew body", encoding="utf-8")
+        (docs / "a.md").write_text(
+            "---\ntitle: A Modified\n---\nNew body", encoding="utf-8"
+        )
 
         entries2, was_cached = indexer.cached_index(docs, output, cache)
         assert was_cached is False
