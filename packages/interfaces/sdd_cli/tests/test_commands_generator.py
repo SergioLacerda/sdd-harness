@@ -31,7 +31,9 @@ class TestGenerateCommandsRegistry:
         from sdd_runtime.skills import _REGISTRY
 
         result = generate_commands_registry(str(tmp_path), {})
-        assert result["command_count"] == len(_REGISTRY) + len(_CLI_COMMANDS)
+        cli_ids = {cmd["id"] for cmd in _CLI_COMMANDS}
+        expected = len(cli_ids) + sum(1 for name in _REGISTRY if name not in cli_ids)
+        assert result["command_count"] == expected
 
     def test_registry_json_contains_skill_routed_commands(self, tmp_path: Path) -> None:
         from sdd_runtime.skills import _REGISTRY

@@ -127,13 +127,14 @@ class TestDriftCause:
 
 class TestWindowEvents:
     def test_excludes_events_with_unparseable_timestamps(self) -> None:
-        from datetime import datetime, timezone
+        from datetime import datetime, timedelta, timezone
 
+        now = datetime.now(timezone.utc)
+        recent_ts = (now - timedelta(days=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
         events = [
             {"event": "x", "start_ts": "not-a-date"},
-            {"event": "y", "start_ts": "2026-05-20T10:00:00Z"},
+            {"event": "y", "start_ts": recent_ts},
         ]
-        now = datetime.now(timezone.utc)
         result = _window_events(events, now_utc=now, days=30)
         assert len(result) == 1
 
