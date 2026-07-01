@@ -23,9 +23,9 @@ def do_update_cache(root: Path) -> None:
         )
         raise typer.Exit(1)
     try:
-        from sdd_compiler.ast import GovernanceAST
+        from sdd_core.governance.ast import GovernanceAST
     except ImportError as exc:
-        typer.echo(f"ERROR: sdd_compiler not installed — {exc}", err=True)
+        typer.echo(f"ERROR: sdd_core.governance.ast not importable — {exc}", err=True)
         raise typer.Exit(2) from exc
     ast = GovernanceAST.from_compiled_json(gov_path)
     m003 = ast.item_by_id("M003")

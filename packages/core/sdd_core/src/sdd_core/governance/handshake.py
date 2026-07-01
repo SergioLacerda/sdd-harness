@@ -70,8 +70,6 @@ class AgentHandshakeProtocol:
         )
         self._telemetry = HandshakeTelemetry()
 
-    _find_project_root = staticmethod(find_project_root)
-
     def should_run_handshake(self, user_input: str) -> bool:
         """Return whether input should trigger handshake evaluation."""
         return self._trigger.should_run_handshake(user_input)
@@ -118,9 +116,6 @@ class AgentHandshakeProtocol:
         self.spec_fingerprint = self._cache.spec_fingerprint
         self.gap_status = self._cache.gap_status
 
-    def _extract_skill_profile(self) -> str:
-        return self._cache.extract_skill_profile()
-
     def _emit_governance_event(self, final_state: str, confidence: float) -> None:
         self._telemetry.emit(
             self.agent_id,
@@ -132,9 +127,6 @@ class AgentHandshakeProtocol:
             self.spec_fingerprint,
             self.mandates_loaded,
         )
-
-    def _resolve_signature_status(self) -> str:
-        return self._challenge._resolve_signature_status()
 
     def format_gap_output(
         self, mode: Literal["silent", "compact", "verbose"] = "compact"

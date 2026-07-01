@@ -71,7 +71,6 @@ def compile_governance() -> bool:
     # Identify workspace source directories to support uninstalled execution
     package_roots = [
         REPO_ROOT / "packages/core/sdd_core/src",
-        REPO_ROOT / "packages/core/sdd_compiler/src",
         REPO_ROOT / "packages/core/sdd_telemetry/src",
         REPO_ROOT / "packages/features/sdd_integration/src",
         REPO_ROOT / "packages/interfaces/sdd_wizard/src",

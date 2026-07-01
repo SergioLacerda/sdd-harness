@@ -55,6 +55,29 @@ def resolve_venv_sdd(venv_dir: Path) -> Path:
     raise RuntimeError("Could not find sdd executable in virtualenv")
 
 
+def resolve_sdd_child_cmd() -> str:
+    """Resolve a deterministic SDD executable for child subprocess steps.
+
+    Resolution order:
+    1. sys.argv[0] when it is an absolute path to an sdd console script.
+    2. sdd / sdd.exe beside the current Python executable (virtualenv pattern).
+    3. Bare "sdd" as a PATH-dependent fallback.
+    """
+    import sys
+
+    argv0 = Path(sys.argv[0])
+    if argv0.name in ("sdd", "sdd.exe") and argv0.is_absolute() and argv0.exists():
+        return str(argv0)
+
+    python_bin_dir = Path(sys.executable).parent
+    for candidate_name in ("sdd", "sdd.exe"):
+        candidate = python_bin_dir / candidate_name
+        if candidate.exists():
+            return str(candidate)
+
+    return "sdd"
+
+
 def resolve_profile(
     root: Path | None = None,
     override: str | None = None,

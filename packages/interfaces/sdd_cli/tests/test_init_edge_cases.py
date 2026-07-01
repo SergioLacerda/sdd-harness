@@ -28,7 +28,12 @@ class TestRunCliStep:
         assert result is False
 
     def test_invokes_sdd_cli_module(self, tmp_path: Path) -> None:
-        with patch("subprocess.run") as mock_run:
+        with (
+            patch(
+                "sdd_cli.commands.init_steps.resolve_sdd_child_cmd", return_value="sdd"
+            ),
+            patch("subprocess.run") as mock_run,
+        ):
             mock_run.return_value = MagicMock(returncode=0)
             _run_cli_step("test", ["governance", "compile"], tmp_path)
         call_args = mock_run.call_args

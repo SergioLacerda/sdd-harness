@@ -13,7 +13,7 @@ authors = [
 ]
 
 dependencies = [
-    "msgpack>=1.0",
+    "msgpack>=1.2.1",
 ]
 
 [project.urls]

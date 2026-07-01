@@ -22,6 +22,7 @@ AUTHORIZED_BINARIES: frozenset[str] = frozenset(
         "pytest",
         "uv",
         "sdd",
+        "sdd-compile",
     }
 )
 

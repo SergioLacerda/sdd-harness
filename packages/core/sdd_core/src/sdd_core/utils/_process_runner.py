@@ -30,11 +30,12 @@ class SafeProcessRunner:
         telemetry_sink: Any | None = None,
         authorizer: ProcessAuthorizer | None = None,
     ) -> None:
-        self._authorizer = authorizer or ProcessAuthorizer(
+        _bins = (
             authorized_binaries
             if authorized_binaries is not None
             else AUTHORIZED_BINARIES
         )
+        self._authorizer = authorizer or ProcessAuthorizer(_bins)
         if telemetry_sink is not None:
             self._sink = telemetry_sink
         else:
@@ -45,7 +46,6 @@ class SafeProcessRunner:
             except Exception:
                 self._sink = None
 
-    _new_trace_id = staticmethod(new_trace_id)
     _normalize_status = staticmethod(normalize_status)
 
     def _emit_telemetry(
@@ -82,7 +82,7 @@ class SafeProcessRunner:
         timeout: float | None = None,
     ) -> ProcessResult:
         self._authorizer.validate_args(args)
-        trace_id = self._new_trace_id()
+        trace_id = new_trace_id()
         try:
             binary_name = self._authorizer.authorize(args)
         except ProcessAuthorizationError:
@@ -148,7 +148,7 @@ class SafeProcessRunner:
         timeout: float | None = None,
     ) -> ProcessResult:
         self._authorizer.validate_args(args)
-        trace_id = self._new_trace_id()
+        trace_id = new_trace_id()
         try:
             binary_name = self._authorizer.authorize(args)
         except ProcessAuthorizationError:

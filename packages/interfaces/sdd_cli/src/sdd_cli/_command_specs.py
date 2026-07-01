@@ -7,6 +7,14 @@ from dataclasses import dataclass
 
 import click
 
+__all__ = [
+    "COMMAND_SPECS",
+    "CommandSpec",
+    "_WORKSPACE_REQUIRED_COMMANDS",
+    "_build_unavailable_command",
+    "_requested_top_level_command",
+]
+
 
 @dataclass(frozen=True)
 class CommandSpec:

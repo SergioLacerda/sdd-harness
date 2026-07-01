@@ -37,6 +37,7 @@ from sdd_cli.services.skills_resolver import (
     _read_registry_ids,  # noqa: F401  backward-compat re-export for unit tests
     _reconcile_root_seed_artifacts,  # noqa: F401  backward-compat re-export for unit tests
 )
+from sdd_cli.shared.constants import TRUE_VALUES as _TRUE_VALUES
 from sdd_cli.utils.output import is_json_mode
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
@@ -142,9 +143,10 @@ def run(
     ),
 ) -> None:
     """Run a skill in dry-run or execute mode."""
-    enforce_pipeline = os.environ.get(
-        "SDD_ENFORCE_PIPELINE_CORRECT", "0"
-    ).strip().lower() in {"1", "true", "yes", "on"}
+    enforce_pipeline = (
+        os.environ.get("SDD_ENFORCE_PIPELINE_CORRECT", "0").strip().lower()
+        in _TRUE_VALUES
+    )
     if enforce_pipeline and name == "sdd-correct":
         emit_pipeline_required(name, output_json=_ctx_json(), emit_fn=_emit_skills_json)
     engine = SkillEngine()

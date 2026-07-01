@@ -109,12 +109,12 @@ _ORCHESTRATION_SKILLS: dict[str, SkillDefinition] = {
             ],
             "stop_conditions": [
                 "execution_gate=blocked",
-                "governance_mode=hard and intake_index_mode=none",
             ],
             "forbidden_behaviors": [
                 "self_authorize_git_on_task_completion",
                 "proceed_when_gate_blocked",
-                "treat_intake_index_mode_none_as_permission",
+                "hide_intake_index_mode_none",
+                "describe_intake_index_mode_none_as_gate_blocked_when_execution_gate_allowed",
             ],
         },
     ),

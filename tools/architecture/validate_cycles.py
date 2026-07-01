@@ -16,7 +16,6 @@ from pathlib import Path
 
 SDD_PREFIXES = (
     "sdd_core",
-    "sdd_compiler",
     "sdd_telemetry",
     "sdd_integration",
     "sdd_cli",

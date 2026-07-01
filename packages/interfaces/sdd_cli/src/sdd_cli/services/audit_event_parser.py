@@ -3,22 +3,13 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from sdd_cli.services._audit_models import DriftRow
 
-@dataclass
-class DriftRow:
-    """Represents a single drift event row in the audit log."""
-
-    ts: str
-    drift_type: str
-    command: str
-    status: str
-    fingerprint_short: str
-    cause: str
+__all__ = ["DriftRow"]
 
 
 def _parse_int(value: Any) -> int | None:

@@ -20,7 +20,6 @@ from pathlib import Path
 SUB_PACKAGES = [
     "packages/core/sdd_core",
     "packages/core/sdd_runtime",
-    "packages/core/sdd_compiler",
     "packages/core/sdd_telemetry",
     "packages/features/sdd_integration",
     "packages/interfaces/sdd_wizard",

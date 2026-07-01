@@ -49,7 +49,7 @@ def get_governance_config() -> dict[str, str]:
     if not pyproject.exists() or tomllib is None:
         return {
             "source_root": "docs/spec/canonical/core/policies",
-            "compiled_output": "packages/core/sdd_compiler/src/sdd_compiler/compiled",
+            "compiled_output": ".sdd/compiled",
         }
 
     with open(pyproject, "rb") as f:

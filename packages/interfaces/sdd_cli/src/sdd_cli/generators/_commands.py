@@ -52,8 +52,13 @@ def generate_commands_registry(
 
         commands: list[dict[str, Any]] = []
 
-        # Skill-routed commands: one per registered skill
+        # CLI-routed commands take precedence; build an exclusion set first.
+        cli_ids = {cmd["id"] for cmd in _CLI_COMMANDS}
+
+        # Skill-routed commands: one per registered skill, unless a CLI route already owns the id.
         for skill_name in _REGISTRY:
+            if skill_name in cli_ids:
+                continue
             commands.append(
                 {
                     "id": skill_name,
@@ -63,7 +68,7 @@ def generate_commands_registry(
                 }
             )
 
-        # CLI-routed commands
+        # CLI-routed commands (canonical route for sdd-ask and sdd-organize)
         commands.extend(_CLI_COMMANDS)
 
         # Write individual command.yaml files

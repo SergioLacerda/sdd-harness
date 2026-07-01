@@ -138,7 +138,6 @@ def run_setup(  # noqa: C901
         "packages/core/sdd_core",
         "packages/core/sdd_telemetry",
         "packages/core/sdd_runtime",
-        "packages/core/sdd_compiler",
         "packages/features/sdd_integration",
         "packages/interfaces/sdd_wizard",
         "packages/interfaces/sdd_cli",
@@ -185,6 +184,13 @@ def run_setup(  # noqa: C901
         typer.echo("  ERROR: CLI not responding")
         raise typer.Exit(1)
     typer.echo("  OK: CLI responding")
+
+    typer.echo("\nChecking sdd-compile (Go governance compiler)...")
+    compile_bin = _REPO_ROOT / "tools" / "sdd-compile" / "bin" / "sdd-compile"
+    if compile_bin.exists():
+        typer.echo("  OK: sdd-compile binary found")
+    else:
+        typer.echo("  WARN: sdd-compile binary not found — run 'make build-compiler'")
 
     _ensure_phase_0_marker()
     typer.echo("  OK: Runtime phase-0 marker initialized")

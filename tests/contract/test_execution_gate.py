@@ -31,13 +31,13 @@ def _base_kwargs(**overrides):
 
 
 class TestExecutionGateBlocked:
-    def test_execution_gate_blocked_when_intake_none(self):
-        """execution_gate=blocked when intake_index_mode=none and hard mode."""
+    def test_execution_gate_blocked_when_unexpected_intake_failure(self):
+        """execution_gate=blocked when indexing was expected but did not run."""
         payload = build_ask_json_data(
             **_base_kwargs(intake_index_mode="none", intake_chunks=0),
             governance_mode="hard",
             execution_gate="blocked",
-            gate_reason="intake_index_mode=none: governance context not indexed; agent must not proceed",
+            gate_reason="organize was expected but did not run; governance context not indexed",
         )
         assert payload["execution_gate"] == "blocked"
 
@@ -47,7 +47,7 @@ class TestExecutionGateBlocked:
             **_base_kwargs(intake_index_mode="none"),
             governance_mode="hard",
             execution_gate="blocked",
-            gate_reason="intake_index_mode=none: governance context not indexed; agent must not proceed",
+            gate_reason="organize was expected but did not run; governance context not indexed",
         )
         assert "gate_reason" in payload
         assert payload["gate_reason"] is not None
@@ -62,6 +62,20 @@ class TestExecutionGateAllowed:
             execution_gate="allowed",
         )
         assert payload["execution_gate"] == "allowed"
+
+    def test_execution_gate_allowed_when_intake_none_light_input(self):
+        """execution_gate=allowed when intake_index_mode=none for a short/light query.
+
+        intake_index_mode:none is a disclosure signal — it does not imply a blocked gate.
+        Only execution_gate:blocked is the mandatory stop condition (canonical policy).
+        """
+        payload = build_ask_json_data(
+            **_base_kwargs(intake_index_mode="none", intake_chunks=0),
+            governance_mode="hard",
+            execution_gate="allowed",
+        )
+        assert payload["execution_gate"] == "allowed"
+        assert "gate_reason" not in payload
 
     def test_gate_reason_absent_when_allowed(self):
         """gate_reason field is absent when execution_gate=allowed."""

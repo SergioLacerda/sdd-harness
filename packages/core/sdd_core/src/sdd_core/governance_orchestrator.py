@@ -7,8 +7,6 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from sdd_compiler.governance_compiler import GovernanceCompiler
-from sdd_core._governance_orchestrator_main import print_pipeline_result
 from sdd_core._governance_orchestrator_support import (
     copy_build_artifacts,
     deployment_summary,
@@ -23,6 +21,7 @@ from sdd_core._governance_orchestrator_types import (
     PipelineResult,
 )
 from sdd_core.governance.spec_bootstrapper import SourceSpecBootstrapper
+from sdd_core.utils.compiler_runner import CompilerRunner
 from sdd_core.utils.environment import get_sdd_paths, resolve_profile
 from sdd_integration.builders.governance.pipeline_builder import PipelineBuilder
 
@@ -170,9 +169,9 @@ class GovernanceOrchestrator:
 
     def _run_phase_2(self) -> Phase2Result:
         try:
-            compiler = GovernanceCompiler(str(self.build_dir))
-            result = compiler.compile(str(self.compiled_dir))
-            if not compiler.validate_compilation(str(self.compiled_dir)):
+            runner = CompilerRunner(repo_root=self.repo_root)
+            result = runner.compile(str(self.build_dir), str(self.compiled_dir))
+            if not runner.validate_compilation(str(self.compiled_dir)):
                 self._out("❌ Compilation validation failed", level=logging.ERROR)
                 return {"success": False, "error": "Compilation validation failed"}
             copy_build_artifacts(self.build_dir, self.compiled_dir)
@@ -195,8 +194,3 @@ class GovernanceOrchestrator:
     def get_deployment_summary(self) -> dict[str, Any]:
         """Return the deployment artifact summary."""
         return deployment_summary(self.compiled_dir)
-
-
-if __name__ == "__main__":
-    orchestrator = GovernanceOrchestrator()
-    print_pipeline_result(orchestrator, orchestrator.run_full_pipeline())

@@ -268,7 +268,7 @@ class TestRunPhase2:
         mock_compiler.validate_compilation.return_value = False
 
         with patch(
-            "sdd_core.governance_orchestrator.GovernanceCompiler",
+            "sdd_core.governance_orchestrator.CompilerRunner",
             return_value=mock_compiler,
         ):
             result = orch._run_phase_2()
@@ -281,7 +281,7 @@ class TestRunPhase2:
         mock_compiler.compile.side_effect = RuntimeError("compile error")
 
         with patch(
-            "sdd_core.governance_orchestrator.GovernanceCompiler",
+            "sdd_core.governance_orchestrator.CompilerRunner",
             return_value=mock_compiler,
         ):
             result = orch._run_phase_2()
@@ -329,7 +329,7 @@ class TestRunPhase2:
         mock_compiler.validate_compilation.return_value = True
 
         with patch(
-            "sdd_core.governance_orchestrator.GovernanceCompiler",
+            "sdd_core.governance_orchestrator.CompilerRunner",
             return_value=mock_compiler,
         ):
             result = orch._run_phase_2()

@@ -76,7 +76,6 @@ def run_ci_validate(
         "rich",
         "msgpack",
         "sdd_core",
-        "sdd_compiler",
         "sdd_integration",
         "sdd_cli",
     ]:
