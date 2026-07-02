@@ -63,6 +63,10 @@ At a high level, the platform is organized into three layers:
 | Features | compilation, integration, skill and adapter workflows | `sdd_compiler`, `sdd_integration`, `sdd_skills` |
 | Interfaces | user-facing entrypoints | `sdd_cli`, `sdd_wizard` |
 
+Outside `packages/`, `apps/landing/` is the public landing page (Astro +
+React), published at the site root (`/`) alongside the MkDocs docs
+(`/docs/`) and the interactive Selector (`/selector/`).
+
 Execution flow:
 
 ```text

@@ -1,0 +1,35 @@
+@import './tokens.css';
+
+html, body {
+  margin: 0;
+  background: #fff;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/*
+ * "Guardian" motif — a very subtle breathing halo, a slow-rotating dashed
+ * ring, and a couple of drifting light motes around the SDD Harness mark.
+ * Intentionally understated: this is governance tooling, not a game.
+ */
+@keyframes guardianHalo {
+  0%, 100% { opacity: .45; transform: scale(1); }
+  50%      { opacity: .85; transform: scale(1.07); }
+}
+@keyframes guardianRing {
+  to { transform: rotate(360deg); }
+}
+@keyframes guardianMote {
+  0%   { opacity: 0;   transform: translateY(0) scale(.6); }
+  18%  { opacity: .6; }
+  82%  { opacity: .2; }
+  100% { opacity: 0;   transform: translateY(-42px) scale(1); }
+}
