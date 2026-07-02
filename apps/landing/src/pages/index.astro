@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Landing } from '../components/Landing';
+import { loadGovernanceStats } from '../lib/governance-data.server';
+
+const stats = loadGovernanceStats();
+---
+<BaseLayout title="SDD Harness — Selector">
+  <Landing client:load stats={stats} />
+</BaseLayout>

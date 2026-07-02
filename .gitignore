@@ -9,8 +9,11 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Anchored to repo root: unanchored `lib/` was silently matching
+# apps/landing/src/lib/ (and would match any future non-Python lib/ dir in
+# this monorepo), excluding real source from git.
+/lib/
+/lib64/
 parts/
 sdist/
 var/

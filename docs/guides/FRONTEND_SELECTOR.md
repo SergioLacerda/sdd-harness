@@ -33,38 +33,47 @@ Selector UI → selector-selection.json
 
 ## Available Commands
 
+The Selector, the MkDocs documentation, and the Astro landing page
+(`apps/landing/`) are all assembled into one shared publication root,
+`build/site/` — landing at `/`, docs at `/docs/`, Selector at `/selector/`.
+See `.analysis/archived/selector-landing-mkdocs-refinement-20260702-adr.md`
+for the topology decision.
+
 | Command | What it does |
 |---------|--------------|
-| `make selector-build` | Build selector assets into `docs/selector/` (a generated, gitignored directory inside the MkDocs `docs_dir`) |
-| `make docs-build` | Runs `selector-build`, then `mkdocs build --strict`. MkDocs copies `docs/selector/` into `build/site/selector/` as a static asset |
-| `make docs-serve` | Runs `selector-build`, then `mkdocs serve`. The selector UI is served at `/selector/` alongside the rest of the docs |
+| `make build-web` | Builds the Astro landing app (`apps/landing/`) into `build/site/` |
+| `make docs-build` | Runs `build-web`, then `mkdocs build --strict` (writes to `build/site/docs/`), then the Selector compiler directly to `build/site/selector/` |
+| `make docs-serve` | Runs `docs-build`, then serves `build/site/` on `http://127.0.0.1:8000/` — landing at `/`, docs at `/docs/`, Selector at `/selector/` |
 | `python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir <dir>` | Standalone compiler; `--repo-root` defaults to `.` |
+| `make selector-build` | Legacy/standalone target — writes to `site/selector` (not `build/site/selector`), and is **not** part of the `docs-build` chain above. Kept for ad-hoc standalone Selector builds outside the full publication pipeline. |
 
 ## Build and Open
 
-```bash
-make selector-build
-# then open docs/selector/index.html in a browser
-```
-
-Or build the full site (selector included at `build/site/selector/`):
+Build the full site (selector included at `build/site/selector/`):
 
 ```bash
 make docs-build
 # then open build/site/selector/index.html
 ```
 
-Or serve docs and selector together, live:
+Or serve everything together, live:
 
 ```bash
 make docs-serve
 # then open http://127.0.0.1:8000/selector/
 ```
 
+For a standalone Selector build only (no docs, no landing):
+
+```bash
+make selector-build
+# then open site/selector/index.html in a browser
+```
+
 ## Workflow
 
-1. Run `make selector-build` (or `make docs-build` / `make docs-serve`).
-2. Open `docs/selector/index.html` (or `build/site/selector/index.html`, or
+1. Run `make docs-build` (or `make docs-serve`).
+2. Open `build/site/selector/index.html` (or
    `http://127.0.0.1:8000/selector/` when serving) in a browser.
 3. Select the mandates (M-IDs) and guidelines (G-IDs) you want to keep.
    - Cards with a **blue left border** are mandates.

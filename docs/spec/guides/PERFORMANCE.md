@@ -97,6 +97,15 @@ The `@cached_load(cache)` decorator automatically caches results from `ContextLo
 
 ## §5.3.C — Benchmark Suite
 
+> **Compiler benchmarks superseded (2026-07-01):** the compilation-time figures
+> originally published in this section came from `tests/perf/benchmark_performance.py`,
+> whose "compile" step only ran `spec.split("\n")` — it never called the real compiler.
+> They did not measure `sdd_compiler` (deleted) or `tools/sdd-compile` (its Go
+> replacement). See **[ADR-015](../decisions/ADR-015-go-compiler-migration-performance.md)**
+> for a real, reproducible measurement of both implementations and the corrected
+> numbers. `tests/perf/benchmark_performance.py` itself has not been fixed and should
+> not be used for compiler performance claims until it calls the real compile path.
+
 ### Files
 
 **Location:** `tests/perf/benchmark_performance.py`
@@ -108,13 +117,23 @@ The `@cached_load(cache)` decorator automatically caches results from `ContextLo
 
 Tests parsing and encoding of synthetic specs.
 
-**Scales:**
+**Scales (as published; see the superseded-figures note above):**
 
 - 1K mandates: 1,800 bytes spec → 1.8ms compile
 - 5K mandates: 1.8MB spec → 9.8ms compile
 - 10K mandates: 3.7MB spec → 20.2ms compile
 
 **Throughput:** ~500K items/sec (consistent across scales)
+
+**Real compiler comparison (400 mandates, same machine, see ADR-015):**
+
+| Implementation | Result |
+|---|---|
+| Python `sdd_compiler.compile_string` (real, historical) | avg 4.76ms |
+| Go `tools/sdd-compile` (`internal/compiler.Compile`) | 3.27ms/op |
+
+Go is ~1.45× faster than the real Python compiler — a real but modest gain, not the
+orders-of-magnitude implied by the placeholder-derived figures above.
 
 #### 2. Ask Latency Benchmark
 
@@ -135,15 +154,19 @@ python tests/perf/benchmark_performance.py
 
 # Run specific benchmark
 pytest tests/perf/benchmark_performance.py::CompileTimeBenchmark -v
+
+# Go compiler benchmark (tools/sdd-compile)
+cd tools/sdd-compile && go test ./tests/ -bench BenchmarkCompile400Mandates
 ```
 
 ### Results Summary
 
 | Metric | Measured | Target | Status |
 |--------|----------|--------|--------|
-| Compile 1K | 1.8ms | <2000ms | ✅ 1100× faster |
-| Compile 5K | 9.8ms | <2000ms | ✅ 200× faster |
-| Compile 10K | 20.2ms | <2000ms | ✅ 100× faster |
+| Compile 1K | 1.8ms | <2000ms | ⚠️ placeholder, see note above |
+| Compile 5K | 9.8ms | <2000ms | ⚠️ placeholder, see note above |
+| Compile 10K | 20.2ms | <2000ms | ⚠️ placeholder, see note above |
+| Compile 400 (Go, real) | 3.27ms/op | <50ms | ✅ ~15× faster (see ADR-015) |
 | Ask P95 | 0.008ms | <500ms | ✅ 62,500× faster |
 | Cache hit rate | 95% | >80% | ✅ Target exceeded |
 

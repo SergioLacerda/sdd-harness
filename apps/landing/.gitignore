@@ -1,0 +1,14 @@
+# build output
+dist/
+.astro/
+coverage/
+
+# deps
+node_modules/
+
+# env
+.env
+.env.production
+
+# editor / OS
+.DS_Store

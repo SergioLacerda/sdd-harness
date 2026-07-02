@@ -15,7 +15,7 @@ else
   PYTHON := $(VENV_PYTHON)
 endif
 
-.PHONY: check ci-pr ci-pr-full test test-fast test-perf lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check build-compiler test-compiler-go lint-go
+.PHONY: check ci-pr ci-pr-full test test-fast test-perf lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check build-compiler test-compiler-go lint-go install-web build-web lint-web test-web cover-web
 
 help:
 	@echo "SDD Architecture Development"
@@ -45,6 +45,11 @@ help:
 	@echo "docker-build    - Build Docker image"
 	@echo "release-dry-run - Validate version, changelog, and tags before release"
 	@echo "clean           - Remove temporary files"
+	@echo "install-web     - Install apps/landing dependencies (npm ci)"
+	@echo "build-web       - Build the landing app (apps/landing) into build/site/"
+	@echo "lint-web        - Run landing app diagnostics (astro check)"
+	@echo "test-web        - Run landing app tests (vitest)"
+	@echo "cover-web       - Run landing app coverage (vitest, 70% gate on src/lib)"
 
 build-compiler:
 	go build -C tools/sdd-compile -o bin/sdd-compile .
@@ -58,6 +63,21 @@ lint-go:
 	else \
 		echo "golangci-lint not installed — skipping Go lint"; \
 	fi
+
+install-web:
+	cd apps/landing && npm ci
+
+build-web: install-web
+	cd apps/landing && npm run build
+
+lint-web: install-web
+	cd apps/landing && npm run lint
+
+test-web: install-web
+	cd apps/landing && npm run test
+
+cover-web: install-web
+	cd apps/landing && npm run cover
 
 install: build-compiler
 	uv sync --all-groups --all-packages --extra test
@@ -173,7 +193,7 @@ lock:
 selector-build:
 	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir site/selector
 
-docs-build:
+docs-build: build-web
 	$(PYTHON) -m mkdocs build --strict
 	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
 
