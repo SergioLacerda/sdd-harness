@@ -65,12 +65,12 @@ export function Landing({ stats = PLACEHOLDER_GOVERNANCE_STATS }: LandingProps) 
             <svg width={44} height={44} viewBox="0 0 44 44" style={{ position: 'absolute', animation: 'guardianRing 70s linear infinite', pointerEvents: 'none' }} aria-hidden="true">
               <circle cx={22} cy={22} r={21} fill="none" stroke="var(--indigo-200)" strokeWidth={1} strokeDasharray="1 5" />
             </svg>
-            <span style={{ position: 'absolute', left: -3, top: 6, width: 3, height: 3, borderRadius: 999, background: 'var(--blue-500)', animation: 'guardianMote 8s ease-in-out infinite', animationDelay: '0s', pointerEvents: 'none' }} />
-            <span style={{ position: 'absolute', right: -4, bottom: 8, width: 2.5, height: 2.5, borderRadius: 999, background: 'var(--green-500)', animation: 'guardianMote 9.5s ease-in-out infinite', animationDelay: '-3.5s', pointerEvents: 'none' }} />
-            <span style={{ position: 'absolute', left: 6, top: -4, width: 3, height: 3, borderRadius: 999, background: 'var(--indigo-400)', animation: 'guardianMote 6.5s ease-in-out infinite', animationDelay: '-1.5s', pointerEvents: 'none' }} />
-            <span style={{ position: 'absolute', right: 8, bottom: -3, width: 3, height: 3, borderRadius: 999, background: 'var(--blue-500)', animation: 'guardianMote 9s ease-in-out infinite', animationDelay: '-5s', pointerEvents: 'none' }} />
-            <span style={{ position: 'absolute', left: '50%', top: -4, marginLeft: -1.25, width: 2.5, height: 2.5, borderRadius: 999, background: 'var(--green-500)', animation: 'guardianMote 7.8s ease-in-out infinite', animationDelay: '-2.4s', pointerEvents: 'none' }} />
-            <span style={{ position: 'absolute', right: 2, top: -2, width: 2.5, height: 2.5, borderRadius: 999, background: 'var(--indigo-300)', animation: 'guardianMote 8s ease-in-out infinite', animationDelay: '-6.2s', pointerEvents: 'none' }} />
+            <span style={{ position: 'absolute', left: 2, top: 3, width: 4, height: 4, borderRadius: 999, background: 'var(--blue-500)', animation: 'guardianMote 7s ease-in-out infinite', animationDelay: '0s', pointerEvents: 'none' }} />
+            <span style={{ position: 'absolute', right: 4, bottom: 3, width: 3.5, height: 3.5, borderRadius: 999, background: 'var(--green-500)', animation: 'guardianMote 8.5s ease-in-out infinite', animationDelay: '-3s', pointerEvents: 'none' }} />
+            <span style={{ position: 'absolute', left: 34, top: -2, width: 3, height: 3, borderRadius: 999, background: 'var(--indigo-400)', animation: 'guardianMote 6.5s ease-in-out infinite', animationDelay: '-1.5s', pointerEvents: 'none' }} />
+            <span style={{ position: 'absolute', right: 46, bottom: -2, width: 3, height: 3, borderRadius: 999, background: 'var(--blue-400)', animation: 'guardianMote 9s ease-in-out infinite', animationDelay: '-5s', pointerEvents: 'none' }} />
+            <span style={{ position: 'absolute', left: '50%', top: -3, width: 2.5, height: 2.5, borderRadius: 999, background: 'var(--green-400)', animation: 'guardianMote 7.8s ease-in-out infinite', animationDelay: '-2.4s', pointerEvents: 'none' }} />
+            <span style={{ position: 'absolute', right: 8, top: 1, width: 2.5, height: 2.5, borderRadius: 999, background: 'var(--indigo-300)', animation: 'guardianMote 8s ease-in-out infinite', animationDelay: '-6.2s', pointerEvents: 'none' }} />
             <img src={`${BASE_URL}assets/sdd-mark.svg`} width={28} height={28} alt="" style={{ position: 'relative', zIndex: 1 }} />
           </span>
           <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--ink-900)' }}>

@@ -39,7 +39,7 @@ help:
 	@echo "hooks-install  - Install local git hooks (SDD shell hooks + pre-commit)"
 	@echo "governance-bootstrap - Generate full governance artifacts for local workspace"
 	@echo "docs-build      - Build MkDocs site (strict mode)"
-	@echo "docs-serve      - Build full site (docs + selector) and serve on http://localhost:8000"
+	@echo "docs-serve      - Build full site (docs + selector) and serve on http://localhost:8000/sdd-harness/"
 	@echo "docs-link-check - Check internal relative links in docs"
 	@echo "docs-link-fix   - Apply deterministic internal-link rewrites"
 	@echo "docker-build    - Build Docker image"
@@ -195,7 +195,15 @@ docs-build: build-web
 	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
 
 docs-serve: docs-build
-	$(PYTHON) -m http.server 8000 --directory build/site
+	@# The Astro landing app is built with base: '/sdd-harness/' (astro.config.mjs)
+	@# for GitHub Pages sub-path deployment, so every href/asset it emits is
+	@# prefixed with /sdd-harness/. Serving build/site directly at the server
+	@# root breaks those references (unstyled CSS, /sdd-harness/selector/ 404s).
+	@# Mount build/site under that same prefix locally so it matches production.
+	@mkdir -p build/serve-root
+	@ln -sfn ../site build/serve-root/sdd-harness
+	@echo "Serving at http://localhost:8000/sdd-harness/"
+	$(PYTHON) -m http.server 8000 --directory build/serve-root
 
 docs-link-check:
 	$(PYTHON) tools/docs/check_links.py --mode ci
