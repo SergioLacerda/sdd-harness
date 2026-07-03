@@ -63,6 +63,13 @@ func (c *GovCompiler) Compile(outputDir string) (*CompilationResult, error) {
 		return nil, fmt.Errorf("load governance-client.json: %w", err)
 	}
 
+	if err := validateSerializable(coreData); err != nil {
+		return nil, fmt.Errorf("governance-core.json rejected before msgpack serialization: %w", err)
+	}
+	if err := validateSerializable(clientData); err != nil {
+		return nil, fmt.Errorf("governance-client.json rejected before msgpack serialization: %w", err)
+	}
+
 	coreMsgpackBytes, err := serializeToMsgpack(coreData)
 	if err != nil {
 		return nil, fmt.Errorf("serialize core to msgpack: %w", err)
@@ -201,8 +208,53 @@ func convertNumbers(v any) any {
 	return v
 }
 
+// Limits enforced by validateSerializable before governance data reaches the
+// msgpack encoder. github.com/shamaton/msgpack/v2 v2.4.1 has a known
+// resource-exhaustion issue (GO-2026-4740) with no fixed release available
+// upstream yet; these bounds keep pathological or hostile governance source
+// files from reaching the vulnerable encoding path. Values are generous
+// relative to real governance artifacts (low hundreds of items, a handful of
+// nesting levels).
+const (
+	maxSerializeDepth = 32
+	maxSerializeNodes = 200_000
+)
+
+// validateSerializable walks data and rejects structures that are too deep
+// or too large to safely hand to the msgpack encoder.
+func validateSerializable(data map[string]any) error {
+	nodes := 0
+	return walkSerializable(data, 1, &nodes)
+}
+
+func walkSerializable(v any, depth int, nodes *int) error {
+	*nodes++
+	if depth > maxSerializeDepth {
+		return fmt.Errorf("exceeds max nesting depth (%d)", maxSerializeDepth)
+	}
+	if *nodes > maxSerializeNodes {
+		return fmt.Errorf("exceeds max node count (%d)", maxSerializeNodes)
+	}
+	switch x := v.(type) {
+	case map[string]any:
+		for _, val := range x {
+			if err := walkSerializable(val, depth+1, nodes); err != nil {
+				return err
+			}
+		}
+	case []any:
+		for _, val := range x {
+			if err := walkSerializable(val, depth+1, nodes); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // serializeToMsgpack encodes data as plain msgpack (no magic header), matching
-// Python's msgpack.packb(data, use_bin_type=True).
+// Python's msgpack.packb(data, use_bin_type=True). Callers must run
+// validateSerializable first (see GO-2026-4740 mitigation above).
 func serializeToMsgpack(data map[string]any) ([]byte, error) {
 	return shamaton.Marshal(data)
 }

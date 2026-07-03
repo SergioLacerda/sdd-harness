@@ -53,6 +53,75 @@ def test_unset_url_skips_validation(monkeypatch: pytest.MonkeyPatch) -> None:
     assert provider._url is None
 
 
+def test_http_remote_host_rejected_without_opt_in(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """http:// for a non-local host is rejected unless explicitly allowed."""
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "http://intel.example.com")
+    monkeypatch.delenv("SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP", raising=False)
+    with pytest.raises(ValueError, match="plaintext HTTP for non-local host"):
+        HttpProvider()
+
+
+def test_http_remote_host_allowed_with_opt_in(monkeypatch: pytest.MonkeyPatch) -> None:
+    """http:// for a non-local host is accepted when explicitly opted in."""
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "http://intel.example.com")
+    monkeypatch.setenv("SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP", "true")
+    provider = HttpProvider()
+    assert provider._url == "http://intel.example.com"
+
+
+def test_https_remote_host_not_in_allow_list_rejected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A host allow-list restricts remote endpoints even over HTTPS."""
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "https://untrusted.example.com")
+    monkeypatch.setenv("SDD_INTELLIGENCE_ALLOWED_HOSTS", "trusted.example.com")
+    with pytest.raises(ValueError, match="not in SDD_INTELLIGENCE_ALLOWED_HOSTS"):
+        HttpProvider()
+
+
+def test_https_remote_host_in_allow_list_accepted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A host present in the allow-list is accepted."""
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "https://trusted.example.com")
+    monkeypatch.setenv("SDD_INTELLIGENCE_ALLOWED_HOSTS", "trusted.example.com")
+    provider = HttpProvider()
+    assert provider._url == "https://trusted.example.com"
+
+
+def test_remote_without_token_warns(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """A remote endpoint without an auth token logs a warning but is allowed."""
+    import logging
+
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "https://intel.example.com")
+    monkeypatch.delenv("SDD_INTELLIGENCE_TOKEN", raising=False)
+    with caplog.at_level(logging.WARNING, logger="sdd_runtime.providers.http_provider"):
+        HttpProvider()
+    assert any("without SDD_INTELLIGENCE_TOKEN" in r.message for r in caplog.records)
+
+
+def test_auth_headers_include_bearer_token_when_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """_auth_headers returns a Bearer header when SDD_INTELLIGENCE_TOKEN is set."""
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "https://intel.example.com")
+    monkeypatch.setenv("SDD_INTELLIGENCE_TOKEN", "secret-token")
+    provider = HttpProvider()
+    assert provider._auth_headers() == {"Authorization": "Bearer secret-token"}
+
+
+def test_auth_headers_empty_when_no_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_auth_headers returns no headers when no token is configured."""
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "http://localhost:8080")
+    monkeypatch.delenv("SDD_INTELLIGENCE_TOKEN", raising=False)
+    provider = HttpProvider()
+    assert provider._auth_headers() == {}
+
+
 @pytest.mark.asyncio
 async def test_is_available_false_when_url_unset(
     monkeypatch: pytest.MonkeyPatch,

@@ -10,6 +10,7 @@ from sdd_integration.engine.context import ExecutionContext
 from sdd_integration.engine.step_executor import StepExecutor, StepResult
 from sdd_integration.engine.types import (
     KNOWN_STEP_TYPES,
+    PRIVILEGED_STEP_TYPES,
     CommandExecStep,
     ConfigValidateStep,
     ContextSpec,
@@ -71,14 +72,38 @@ class IntegrationEngine:
 
         context = ExecutionContext.from_spec(effective_spec, self.spec_dir)
         steps = self._coerce_steps(effective_spec.get("steps", []))
+        trusted = bool(effective_spec.get("trusted", False))
 
         try:
-            results = [self.executor.execute(step, context) for step in steps]
+            results = [
+                self._execute_step(step, context, trusted=trusted) for step in steps
+            ]
 
         finally:
             context.cleanup()
 
         return Report(results)
+
+    def _execute_step(
+        self, step: StepSpec, context: ExecutionContext, *, trusted: bool
+    ) -> StepResult:
+        if (
+            not isinstance(step, InvalidStep)
+            and step.type in PRIVILEGED_STEP_TYPES
+            and not trusted
+        ):
+            return StepResult(
+                name=step.id or "unnamed_step",
+                success=False,
+                messages=[
+                    f"step type '{step.type}' requires an explicit 'trusted: true' "
+                    "declaration on the integration spec; refusing to execute an "
+                    "untrusted command.exec/git step"
+                ],
+                runner_status="untrusted_spec",
+                error_code="untrusted_spec",
+            )
+        return self.executor.execute(step, context)
 
     def _coerce_steps(self, raw_steps: object) -> list[StepSpec]:
         if not isinstance(raw_steps, list):
@@ -134,4 +159,5 @@ class IntegrationEngine:
             return spec
         spec["context"] = self._coerce_context_spec(raw_spec.get("context", {}))
         spec["steps"] = self._coerce_steps(raw_spec.get("steps", []))
+        spec["trusted"] = bool(raw_spec.get("trusted", False))
         return spec

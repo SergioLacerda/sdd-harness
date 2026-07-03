@@ -4,8 +4,10 @@
  *
  * Self-contained: needs NO theme override / custom_dir. It injects a site-wide
  * CTA banner (styled by sdd-theme.css) that links to the static Selector. The
- * link is resolved relative to the site root, so it works on every page and on
- * the GitHub Pages sub-path (…github.io/sdd-harness/).
+ * Selector build output sits as a sibling of the docs root (build/site/docs/
+ * vs build/site/selector/), so the link is resolved relative to the docs
+ * root and then up one level, so it works on every page and on the GitHub
+ * Pages sub-path (…github.io/sdd-harness/docs/).
  *
  * Edit BANNER_TEXT / BANNER_CTA / SELECTOR_PATH below to taste.
  */
@@ -43,16 +45,18 @@
   function build() {
     if (document.querySelector(".sdd-banner")) return;     // avoid duplicates
     if (!document.body) return;
-    var url = rootHref() + SELECTOR_PATH;
+    var url = rootHref() + "../" + SELECTOR_PATH;
     var bar = document.createElement("div");
     bar.className = "sdd-banner";
-    bar.innerHTML =
-      '<div class="sdd-banner-inner">' +
-        '<span class="sdd-banner-text"></span>' +
-        '<a class="sdd-banner-cta"></a>' +
-      "</div>";
-    bar.querySelector(".sdd-banner-text").textContent = BANNER_TEXT;
-    var a = bar.querySelector(".sdd-banner-cta");
+    var inner = document.createElement("div");
+    inner.className = "sdd-banner-inner";
+    var textSpan = document.createElement("span");
+    textSpan.className = "sdd-banner-text";
+    var a = document.createElement("a");
+    a.className = "sdd-banner-cta";
+    inner.append(textSpan, a);
+    bar.append(inner);
+    textSpan.textContent = BANNER_TEXT;
     a.textContent = BANNER_CTA;
     a.setAttribute("href", url);
     // Open in a new tab — sidesteps Material's navigation.instant (which would

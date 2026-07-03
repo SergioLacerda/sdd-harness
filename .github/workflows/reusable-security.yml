@@ -4,6 +4,24 @@ on:
   workflow_call:
 
 jobs:
+  bootstrap-fingerprint-check:
+    name: Bootstrap Fingerprint Drift Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Compare AGENTS.md fingerprint against .sdd/metadata.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          combined=$(python3 -c "import json; print(json.load(open('.sdd/metadata.json'))['fingerprints']['combined'])")
+          agents_fp=$(grep -oP 'Governance fingerprint: \K[0-9a-f]+' AGENTS.md)
+          if [[ "$combined" != "$agents_fp" ]]; then
+            echo "AGENTS.md fingerprint ($agents_fp) does not match .sdd/metadata.json fingerprints.combined ($combined)."
+            echo "Run 'uv run python -m sdd_cli governance generate' and sync AGENTS.md, then commit the update."
+            exit 1
+          fi
+
   bandit:
     name: Bandit Security Scan
     runs-on: ubuntu-latest
@@ -67,6 +85,54 @@ jobs:
           # PYSEC-2026-89: markdown (transitive via mkdocs/mkdocs-material).
           # No fix available for 3.10.x series; markdown only renders internal
           # docs (not attacker-controlled input), so DoS risk is not applicable.
+
+  npm-audit:
+    name: npm Audit (apps/landing)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        working-directory: apps/landing
+        run: npm ci
+      - name: Audit Dependencies
+        working-directory: apps/landing
+        run: npm audit --audit-level=high
+
+  govulncheck:
+    name: govulncheck (tools/sdd-compile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5.6.0
+        with:
+          go-version-file: tools/sdd-compile/go.mod
+      - name: Run govulncheck
+        working-directory: tools/sdd-compile
+        shell: bash
+        run: |
+          set -o pipefail
+          # GO-2026-4740 (github.com/shamaton/msgpack/v2): no fixed release
+          # exists upstream yet. Mitigated in internal/govcompiler via
+          # validateSerializable (depth/node-count limits before Marshal is
+          # called) — see gov_compiler.go. Accepted-risk exception: fail the
+          # build only if a *different* vulnerability is reported.
+          output=$(go run golang.org/x/vuln/cmd/govulncheck@latest ./... 2>&1) || true
+          echo "$output"
+          other_vulns=$(echo "$output" | grep -oE 'GO-[0-9]{4}-[0-9]+' | sort -u | grep -v '^GO-2026-4740$' || true)
+          if [[ -n "$other_vulns" ]]; then
+            echo "Unaccepted vulnerabilities found: $other_vulns"
+            exit 1
+          fi
+          if ! echo "$output" | grep -q 'GO-2026-4740'; then
+            echo "GO-2026-4740 no longer reported — remove the accepted-risk exception in this step."
+          fi
 
   container-scan:
     name: Container Security (Trivy)

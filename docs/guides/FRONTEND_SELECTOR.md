@@ -45,7 +45,6 @@ for the topology decision.
 | `make docs-build` | Runs `build-web`, then `mkdocs build --strict` (writes to `build/site/docs/`), then the Selector compiler directly to `build/site/selector/` |
 | `make docs-serve` | Runs `docs-build`, then serves `build/site/` on `http://127.0.0.1:8000/` — landing at `/`, docs at `/docs/`, Selector at `/selector/` |
 | `python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir <dir>` | Standalone compiler; `--repo-root` defaults to `.` |
-| `make selector-build` | Legacy/standalone target — writes to `site/selector` (not `build/site/selector`), and is **not** part of the `docs-build` chain above. Kept for ad-hoc standalone Selector builds outside the full publication pipeline. |
 
 ## Build and Open
 
@@ -61,13 +60,6 @@ Or serve everything together, live:
 ```bash
 make docs-serve
 # then open http://127.0.0.1:8000/selector/
-```
-
-For a standalone Selector build only (no docs, no landing):
-
-```bash
-make selector-build
-# then open site/selector/index.html in a browser
 ```
 
 ## Workflow

@@ -179,6 +179,13 @@ class IntegrationSpec(TypedDict, total=False):
 
     context: ContextSpec
     steps: list[StepSpec]
+    trusted: bool
+
+
+# Step types powerful enough to mutate the workspace or run arbitrary
+# commands; specs must explicitly declare provenance (`trusted: true`)
+# before these are allowed to run.
+PRIVILEGED_STEP_TYPES = frozenset({"command.exec", "git.commit"})
 
 
 # First arg is intentionally Any: each runner receives its own Pydantic inputs

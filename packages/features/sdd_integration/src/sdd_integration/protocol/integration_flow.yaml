@@ -5,6 +5,9 @@ metadata:
   description: Validate SDD onboarding end-to-end
   author: sdd_framework
 
+# First-party spec shipped with sdd_integration; trusted to run command.exec/git steps.
+trusted: true
+
 context:
   working_dir: temp
   isolation: true

@@ -44,15 +44,18 @@ class HttpProvider:
     _fallback_compressed_context = staticmethod(_fallback_compressed_context_impl)
     _fallback_budget_estimate = staticmethod(_fallback_budget_estimate_impl)
 
+    _LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
+
     def __init__(self) -> None:
         """Initialize HTTP provider with service URL from environment."""
         self._url: str | None = os.environ.get("SDD_INTELLIGENCE_URL")
         if self._url:
             self._validate_url(self._url)
+        self._token: str | None = os.environ.get("SDD_INTELLIGENCE_TOKEN")
         self._available: bool | None = None  # Cache availability
 
-    @staticmethod
-    def _validate_url(url: str) -> None:
+    @classmethod
+    def _validate_url(cls, url: str) -> None:
         from urllib.parse import urlparse
 
         parsed = urlparse(url)
@@ -61,10 +64,41 @@ class HttpProvider:
                 f"SDD_INTELLIGENCE_URL has unsupported scheme '{parsed.scheme}'. "
                 "Use http:// or https://."
             )
+        hostname = parsed.hostname or ""
+        is_local = hostname in cls._LOCAL_HOSTS
+
         if parsed.scheme == "http":
+            allow_insecure = os.environ.get(
+                "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP", ""
+            ).lower() in ("1", "true", "yes")
+            if not is_local and not allow_insecure:
+                raise ValueError(
+                    f"SDD_INTELLIGENCE_URL uses plaintext HTTP for non-local host '{hostname}'. "
+                    "Use https:// for remote endpoints, or set "
+                    "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP=true to explicitly opt in."
+                )
             logger.warning(
                 "SDD_INTELLIGENCE_URL uses plaintext HTTP; consider HTTPS for non-local endpoints."
             )
+
+        allowed_hosts_raw = os.environ.get("SDD_INTELLIGENCE_ALLOWED_HOSTS", "")
+        allowed_hosts = {h.strip() for h in allowed_hosts_raw.split(",") if h.strip()}
+        if allowed_hosts and not is_local and hostname not in allowed_hosts:
+            raise ValueError(
+                f"SDD_INTELLIGENCE_URL host '{hostname}' is not in "
+                "SDD_INTELLIGENCE_ALLOWED_HOSTS."
+            )
+
+        if not is_local and not os.environ.get("SDD_INTELLIGENCE_TOKEN"):
+            logger.warning(
+                "SDD_INTELLIGENCE_URL points to a remote host without "
+                "SDD_INTELLIGENCE_TOKEN configured; requests will be unauthenticated."
+            )
+
+    def _auth_headers(self) -> dict[str, str]:
+        if self._token:
+            return {"Authorization": f"Bearer {self._token}"}
+        return {}
 
     @property
     def name(self) -> str:
@@ -92,7 +126,9 @@ class HttpProvider:
             import httpx
 
             async with httpx.AsyncClient(timeout=2) as client:
-                resp = await client.get(self._url + "/health")
+                resp = await client.get(
+                    self._url + "/health", headers=self._auth_headers()
+                )
                 self._available = resp.status_code == 200
         except Exception as exc:
             logger.debug("HTTP provider health check failed: %s", exc)
@@ -178,7 +214,7 @@ class HttpProvider:
 
         url = f"{self._url}/{operation}"
         async with httpx.AsyncClient(timeout=5) as client:
-            resp = await client.post(url, json=payload)
+            resp = await client.post(url, json=payload, headers=self._auth_headers())
             resp.raise_for_status()
             response_data: dict[str, Any] = resp.json()
 

@@ -245,7 +245,12 @@ class TestHttpProvider:
         mock_resp.status_code = 200
 
         with patch.dict(
-            "os.environ", {"SDD_INTELLIGENCE_URL": "http://svc"}, clear=False
+            "os.environ",
+            {
+                "SDD_INTELLIGENCE_URL": "http://svc",
+                "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+            },
+            clear=False,
         ):
             provider = HttpProvider()
             mock_client = AsyncMock()
@@ -259,7 +264,12 @@ class TestHttpProvider:
         from unittest.mock import AsyncMock
 
         with patch.dict(
-            "os.environ", {"SDD_INTELLIGENCE_URL": "http://svc"}, clear=False
+            "os.environ",
+            {
+                "SDD_INTELLIGENCE_URL": "http://svc",
+                "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+            },
+            clear=False,
         ):
             provider = HttpProvider()
             mock_client = AsyncMock()
@@ -280,7 +290,12 @@ class TestHttpProvider:
         mock_resp.raise_for_status = MagicMock()
 
         with patch.dict(
-            "os.environ", {"SDD_INTELLIGENCE_URL": "http://svc"}, clear=False
+            "os.environ",
+            {
+                "SDD_INTELLIGENCE_URL": "http://svc",
+                "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+            },
+            clear=False,
         ):
             provider = HttpProvider()
             mock_client = AsyncMock()
@@ -297,7 +312,12 @@ class TestHttpProvider:
         from unittest.mock import AsyncMock
 
         with patch.dict(
-            "os.environ", {"SDD_INTELLIGENCE_URL": "http://svc"}, clear=False
+            "os.environ",
+            {
+                "SDD_INTELLIGENCE_URL": "http://svc",
+                "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+            },
+            clear=False,
         ):
             provider = HttpProvider()
             provider._available = True
@@ -855,7 +875,13 @@ class TestHttpProviderServiceIntegration:
             }
         )
         with (
-            patch.dict("os.environ", {"SDD_INTELLIGENCE_URL": "http://mock"}),
+            patch.dict(
+                "os.environ",
+                {
+                    "SDD_INTELLIGENCE_URL": "http://mock",
+                    "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+                },
+            ),
             patch("httpx.AsyncClient", return_value=mock_client),
         ):
             provider = HttpProvider()
@@ -881,7 +907,13 @@ class TestHttpProviderServiceIntegration:
             }
         )
         with (
-            patch.dict("os.environ", {"SDD_INTELLIGENCE_URL": "http://mock"}),
+            patch.dict(
+                "os.environ",
+                {
+                    "SDD_INTELLIGENCE_URL": "http://mock",
+                    "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+                },
+            ),
             patch("httpx.AsyncClient", return_value=mock_client),
         ):
             provider = HttpProvider()
@@ -904,7 +936,13 @@ class TestHttpProviderServiceIntegration:
             {"estimated_bytes": 30000, "suggested_path_id": "B", "confidence": 0.8}
         )
         with (
-            patch.dict("os.environ", {"SDD_INTELLIGENCE_URL": "http://mock"}),
+            patch.dict(
+                "os.environ",
+                {
+                    "SDD_INTELLIGENCE_URL": "http://mock",
+                    "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+                },
+            ),
             patch("httpx.AsyncClient", return_value=mock_client),
         ):
             provider = HttpProvider()
@@ -930,7 +968,13 @@ class TestHttpProviderServiceIntegration:
             }
         )
         with (
-            patch.dict("os.environ", {"SDD_INTELLIGENCE_URL": "http://mock"}),
+            patch.dict(
+                "os.environ",
+                {
+                    "SDD_INTELLIGENCE_URL": "http://mock",
+                    "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+                },
+            ),
             patch("httpx.AsyncClient", return_value=mock_client),
         ):
             provider = HttpProvider()
@@ -954,7 +998,13 @@ class TestHttpProviderServiceIntegration:
             }
         )
         with (
-            patch.dict("os.environ", {"SDD_INTELLIGENCE_URL": "http://mock"}),
+            patch.dict(
+                "os.environ",
+                {
+                    "SDD_INTELLIGENCE_URL": "http://mock",
+                    "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+                },
+            ),
             patch("httpx.AsyncClient", return_value=mock_client),
         ):
             provider = HttpProvider()
@@ -971,7 +1021,13 @@ class TestHttpProviderServiceIntegration:
             {"estimated_bytes": 40000, "suggested_path_id": "B", "confidence": 0.75}
         )
         with (
-            patch.dict("os.environ", {"SDD_INTELLIGENCE_URL": "http://mock"}),
+            patch.dict(
+                "os.environ",
+                {
+                    "SDD_INTELLIGENCE_URL": "http://mock",
+                    "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+                },
+            ),
             patch("httpx.AsyncClient", return_value=mock_client),
         ):
             provider = HttpProvider()
@@ -984,7 +1040,13 @@ class TestHttpProviderServiceIntegration:
         """_call_service should raise for invalid result type."""
         mock_client = self._make_httpx_mock({"test": "data"})
         with (
-            patch.dict("os.environ", {"SDD_INTELLIGENCE_URL": "http://mock"}),
+            patch.dict(
+                "os.environ",
+                {
+                    "SDD_INTELLIGENCE_URL": "http://mock",
+                    "SDD_INTELLIGENCE_ALLOW_INSECURE_HTTP": "true",
+                },
+            ),
             patch("httpx.AsyncClient", return_value=mock_client),
         ):
             provider = HttpProvider()
