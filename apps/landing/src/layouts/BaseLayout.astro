@@ -15,7 +15,7 @@ const { title, description = 'SDD Harness — executable governance for agentic 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>
-    <link rel="icon" href="/assets/sdd-mark.svg" />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}assets/sdd-mark.svg`} />
     <!-- IBM Plex Sans + Mono — see the design system note in tokens.css about
          vendoring these locally (assets/fonts/) for a fully offline build. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

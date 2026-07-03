@@ -11,6 +11,8 @@ import {
 type Page = 'overview' | 'capabilities';
 type CapTab = 'audit' | 'context' | 'runtime' | 'compile';
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 interface LandingProps {
   stats?: GovernanceStats;
 }
@@ -69,7 +71,7 @@ export function Landing({ stats = PLACEHOLDER_GOVERNANCE_STATS }: LandingProps) 
             <span style={{ position: 'absolute', right: 8, bottom: -3, width: 3, height: 3, borderRadius: 999, background: 'var(--blue-500)', animation: 'guardianMote 9s ease-in-out infinite', animationDelay: '-5s', pointerEvents: 'none' }} />
             <span style={{ position: 'absolute', left: '50%', top: -4, marginLeft: -1.25, width: 2.5, height: 2.5, borderRadius: 999, background: 'var(--green-500)', animation: 'guardianMote 7.8s ease-in-out infinite', animationDelay: '-2.4s', pointerEvents: 'none' }} />
             <span style={{ position: 'absolute', right: 2, top: -2, width: 2.5, height: 2.5, borderRadius: 999, background: 'var(--indigo-300)', animation: 'guardianMote 8s ease-in-out infinite', animationDelay: '-6.2s', pointerEvents: 'none' }} />
-            <img src="/assets/sdd-mark.svg" width={28} height={28} alt="" style={{ position: 'relative', zIndex: 1 }} />
+            <img src={`${BASE_URL}assets/sdd-mark.svg`} width={28} height={28} alt="" style={{ position: 'relative', zIndex: 1 }} />
           </span>
           <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--ink-900)' }}>
             SDD<span style={{ fontWeight: 400, color: 'var(--ink-500)' }}>Harness</span>
@@ -79,10 +81,10 @@ export function Landing({ stats = PLACEHOLDER_GOVERNANCE_STATS }: LandingProps) 
         <nav style={{ display: 'flex', gap: 30, fontSize: 13, letterSpacing: '.03em', textTransform: 'uppercase', alignItems: 'center' }}>
           <button type="button" onClick={() => setPage('overview')} style={navBtnStyle(page === 'overview')}>{c.navOverview}</button>
           <button type="button" onClick={() => setPage('capabilities')} style={navBtnStyle(page === 'capabilities')}>{c.navCapabilities}</button>
-          <a href="/selector/" style={navBtnStyle(false)}>Selector</a>
+          <a href={`${BASE_URL}selector/`} style={navBtnStyle(false)}>Selector</a>
           <span style={{ width: 1, height: 14, background: 'var(--border-strong)' }} />
           {/* MkDocs documentation is deployed alongside this app (see the CI/CD workflow) at /docs/ */}
-          <a href="/docs/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink-500)', textDecoration: 'none', fontSize: 13, letterSpacing: '.03em', textTransform: 'uppercase' }}>
+          <a href={`${BASE_URL}docs/`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink-500)', textDecoration: 'none', fontSize: 13, letterSpacing: '.03em', textTransform: 'uppercase' }}>
             {c.navDocs}<span style={{ fontSize: 11 }}>↗</span>
           </a>
         </nav>
@@ -107,7 +109,7 @@ export function Landing({ stats = PLACEHOLDER_GOVERNANCE_STATS }: LandingProps) 
             <h1 style={{ margin: 0, maxWidth: 780, fontSize: 44, lineHeight: 1.18, letterSpacing: '-0.015em', fontWeight: 600, color: '#fff' }}>{c.heroTitle}</h1>
             <p style={{ margin: '24px 0 0', fontSize: 17, lineHeight: 1.65, color: 'var(--indigo-100)', maxWidth: 560 }}>{c.heroSub}</p>
             <div style={{ display: 'flex', gap: 14, marginTop: 34 }}>
-              <a href="/selector/" style={{ display: 'inline-flex', alignItems: 'center', height: 46, padding: '0 26px', borderRadius: 3, background: '#fff', color: 'var(--indigo-800)', fontSize: 14, fontWeight: 600, letterSpacing: '.02em', textDecoration: 'none', whiteSpace: 'nowrap' }}>{c.heroCtaPrimary}</a>
+              <a href={`${BASE_URL}selector/`} style={{ display: 'inline-flex', alignItems: 'center', height: 46, padding: '0 26px', borderRadius: 3, background: '#fff', color: 'var(--indigo-800)', fontSize: 14, fontWeight: 600, letterSpacing: '.02em', textDecoration: 'none', whiteSpace: 'nowrap' }}>{c.heroCtaPrimary}</a>
               <button type="button" onClick={() => setPage('capabilities')} style={{ display: 'inline-flex', alignItems: 'center', height: 46, padding: '0 26px', borderRadius: 3, background: 'transparent', border: '1px solid rgba(255,255,255,.35)', color: '#fff', fontSize: 14, fontWeight: 600, letterSpacing: '.02em', cursor: 'pointer', whiteSpace: 'nowrap' }}>{c.heroCtaSecondary}</button>
             </div>
 
@@ -296,12 +298,12 @@ export function Landing({ stats = PLACEHOLDER_GOVERNANCE_STATS }: LandingProps) 
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--ink-400)', marginBottom: 12 }}>{c.previewEyebrow}</div>
         <h2 style={{ margin: '0 0 10px', fontSize: 28, fontWeight: 600, letterSpacing: '-0.015em', color: 'var(--ink-900)' }}>{c.previewTitle}</h2>
         <p style={{ margin: '0 auto 24px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-600)', maxWidth: 560 }}>{c.previewSub}</p>
-        <a href="/selector/" style={{ display: 'inline-flex', alignItems: 'center', height: 46, padding: '0 26px', borderRadius: 3, background: 'var(--indigo-700)', color: '#fff', fontSize: 14, fontWeight: 600, letterSpacing: '.02em', textDecoration: 'none', whiteSpace: 'nowrap' }}>{c.heroCtaPrimary}</a>
+        <a href={`${BASE_URL}selector/`} style={{ display: 'inline-flex', alignItems: 'center', height: 46, padding: '0 26px', borderRadius: 3, background: 'var(--indigo-700)', color: '#fff', fontSize: 14, fontWeight: 600, letterSpacing: '.02em', textDecoration: 'none', whiteSpace: 'nowrap' }}>{c.heroCtaPrimary}</a>
       </div>
 
       {/* FOOTER — mirrors hero, always visible */}
       <div style={{ background: 'var(--indigo-900)', padding: '40px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center' }}>
-        <img src="/assets/sdd-mark.svg" width={26} height={26} alt="" />
+        <img src={`${BASE_URL}assets/sdd-mark.svg`} width={26} height={26} alt="" />
         <span style={{ fontSize: 13, color: 'var(--indigo-100)', fontFamily: 'var(--font-mono)' }}>{c.footerNote}</span>
         <GovernanceFooter drift="clean" governance="active" profile="client" surface="dark" />
       </div>
