@@ -13,7 +13,7 @@ authors = [
     {name = "Sergio Lacerda", email = "sergio.lacerda.vieira@gmail.com"},
 ]
 dependencies = [
-    "structlog>=25.5.0",
+    "structlog>=26.1.0",
 ]
 
 [project.optional-dependencies]
