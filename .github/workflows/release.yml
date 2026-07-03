@@ -173,7 +173,7 @@ jobs:
             && uv pip install -e packages/interfaces/sdd_cli
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.26"
           cache-dependency-path: tools/sdd-compile/go.sum
