@@ -61,11 +61,13 @@ plugins:
 # + design-system re-skin (lives at docs/app/sdd-theme.css)
 extra_css:
   - app/sdd-theme.css
+  # + shared dynamic site header, synced from apps/landing/public/shared/
+  #   (see docs/app/site-header.js for the sync note)
+  - app/site-header.css
 
 extra_javascript:
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
-  # + CTA banner injector (lives at docs/app/sdd-banner.js)
-  - app/sdd-banner.js
+  - app/site-header.js
 
 nav:
   - Home: README.md

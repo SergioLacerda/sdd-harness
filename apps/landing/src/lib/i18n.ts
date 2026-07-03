@@ -86,7 +86,7 @@ export const LANDING_CONTENT: Record<Lang, LandingCopy> = {
     howEyebrow: 'Como funciona', howTitle: 'Da seleção ao contrato de runtime',
     previewEyebrow: 'Preview interativo', previewTitle: 'Experimente o Selector',
     previewSub: 'Marque mandates e guidelines. Veja as dependências resolverem e a seleção se consolidar em selector-selection.json.',
-    footerNote: 'Governança é mandatória e autoritativa a partir de .sdd.',
+    footerNote: 'Governança é mandatória e autoritativa a partir de .sdd',
     zones: [
       { zone: 'GREEN', range: '< 70%', action: 'Prossegue normalmente.', dot: 'var(--green-500)' },
       { zone: 'YELLOW', range: '70–90%', action: 'Aplica compressão antes de carregar mais contexto.', dot: 'var(--amber-500)' },
@@ -143,7 +143,7 @@ export const LANDING_CONTENT: Record<Lang, LandingCopy> = {
     howEyebrow: 'How it works', howTitle: 'From selection to runtime contract',
     previewEyebrow: 'Interactive preview', previewTitle: 'Try the Selector',
     previewSub: 'Check mandates and guidelines. Watch dependencies resolve and the selection consolidate into selector-selection.json.',
-    footerNote: 'Governance is mandatory and authoritative from .sdd.',
+    footerNote: 'Governance is mandatory and authoritative from .sdd',
     zones: [
       { zone: 'GREEN', range: '< 70%', action: 'Proceed normally.', dot: 'var(--green-500)' },
       { zone: 'YELLOW', range: '70–90%', action: 'Compress before loading more context.', dot: 'var(--amber-500)' },

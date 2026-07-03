@@ -326,35 +326,6 @@ function clearSelection() {
   showStatus(T.cleared, "info");
 }
 
-function applyTheme(dark) {
-  document.documentElement.dataset.theme = dark ? "dark" : "light";
-  const sun  = document.getElementById("icon-sun");
-  const moon = document.getElementById("icon-moon");
-  if (sun)  sun.style.display  = dark ? "" : "none";
-  if (moon) moon.style.display = dark ? "none" : "";
-}
-
-function initTopbar() {
-  const dark = document.documentElement.dataset.theme === "dark";
-  applyTheme(dark);
-
-  const langLabel = document.getElementById("lang-label");
-  if (langLabel) langLabel.textContent = getLang() === "en" ? "PT" : "EN";
-
-  document.getElementById("toggle-theme").addEventListener("click", () => {
-    const nowDark = document.documentElement.dataset.theme === "dark";
-    localStorage.setItem("sdd-theme", nowDark ? "light" : "dark");
-    applyTheme(!nowDark);
-  });
-
-  document.getElementById("toggle-lang").addEventListener("click", () => {
-    const next = getLang() === "en" ? "pt" : "en";
-    const url = new URL(location.href);
-    url.searchParams.set("lang", next);
-    location.href = url.toString();
-  });
-}
-
 async function loadDocsIndex() {
   try {
     const response = await fetch("docs.index.json");
@@ -375,7 +346,6 @@ async function boot() {
   document.getElementById("export").textContent  = T.export;
   document.getElementById("import").textContent  = T.import;
   document.getElementById("clear").textContent   = T.clear;
-  initTopbar();
 
   let payload;
   try {

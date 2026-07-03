@@ -91,26 +91,3 @@
   border-color: var(--md-primary-fg-color);
   color: #fff;
 }
-
-/* ---- CTA banner injected by sdd-banner.js (both schemes) ---- */
-.sdd-banner {
-  background: #eef0fb;
-  color: #283173;
-  border-bottom: 1px solid #d8dcf4;
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
-}
-.sdd-banner-inner {
-  display: flex; align-items: center; justify-content: center;
-  gap: 16px; flex-wrap: wrap;
-  max-width: 61rem; margin: 0 auto;
-  padding: 8px 16px;
-  font-size: 0.72rem;
-}
-.sdd-banner-text { font-weight: 500; }
-.sdd-banner-cta {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: #4453bd; color: #fff !important; text-decoration: none;
-  font-weight: 600; padding: 6px 14px; border-radius: 999px;
-  transition: background 0.12s ease, transform 0.12s ease;
-}
-.sdd-banner-cta:hover { background: #3a45a6; transform: translateY(-1px); }

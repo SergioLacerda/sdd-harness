@@ -342,7 +342,13 @@ class SelectorCompiler:
 
     def _copy_assets(self, output_dir: Path) -> None:
         asset_dir = self._asset_dir()
-        for name in ("index.html", "selector.js", "style.css"):
+        for name in (
+            "index.html",
+            "selector.js",
+            "style.css",
+            "site-header.js",
+            "site-header.css",
+        ):
             shutil.copy2(asset_dir / name, output_dir / name)
 
     def _asset_dir(self) -> Path:

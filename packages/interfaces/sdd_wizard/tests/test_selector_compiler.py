@@ -28,7 +28,13 @@ def _write_repo_fixture(
 def _write_assets(tmp_path: Path) -> Path:
     asset_dir = tmp_path / "assets"
     asset_dir.mkdir()
-    for name in ("index.html", "selector.js", "style.css"):
+    for name in (
+        "index.html",
+        "selector.js",
+        "style.css",
+        "site-header.js",
+        "site-header.css",
+    ):
         (asset_dir / name).write_text(name, encoding="utf-8")
     return asset_dir
 

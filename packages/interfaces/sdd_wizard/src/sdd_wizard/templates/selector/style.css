@@ -70,32 +70,6 @@ body {
   padding: 32px 20px 56px;
 }
 
-/* ---- Topbar ---- */
-.topbar {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 12px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-700);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background .12s, border-color .12s, color .12s;
-}
-.icon-btn:hover { background: var(--sunken); border-color: var(--border-strong); color: var(--ink-900); }
-.icon-btn svg { flex-shrink: 0; }
-
 /* ---- Hero (inline .brand-mark SVG lives in index.html) ---- */
 .hero { margin-bottom: 28px; }
 .hero .brand-mark { display: block; width: 56px; height: 56px; margin-bottom: 14px; }
