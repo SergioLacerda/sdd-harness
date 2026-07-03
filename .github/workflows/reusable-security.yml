@@ -18,7 +18,7 @@ jobs:
           agents_fp=$(grep -oP 'Governance fingerprint: \K[0-9a-f]+' AGENTS.md)
           if [[ "$combined" != "$agents_fp" ]]; then
             echo "AGENTS.md fingerprint ($agents_fp) does not match .sdd/metadata.json fingerprints.combined ($combined)."
-            echo "Run 'sdd governance generate' and sync AGENTS.md, then commit the update."
+            echo "Run 'uv run python -m sdd_cli governance generate' and sync AGENTS.md, then commit the update."
             exit 1
           fi
 
