@@ -111,6 +111,7 @@ Thumbs.db
 !.sdd/trust/
 .sdd/trust/*
 !.sdd/trust/trusted-keys.json
+!.sdd/trust/README.md
 # Compiled: apenas assinaturas dos artifacts são commitadas
 !.sdd/compiled/
 .sdd/compiled/*

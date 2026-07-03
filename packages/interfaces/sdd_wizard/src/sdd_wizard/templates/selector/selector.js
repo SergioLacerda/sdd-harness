@@ -123,7 +123,13 @@ function updateWarnings() {
     return;
   }
   node.classList.remove("hidden");
-  node.innerHTML = warnings.map((warning) => `<div>${warning}</div>`).join("");
+  node.replaceChildren(
+    ...warnings.map((warning) => {
+      const div = document.createElement("div");
+      div.textContent = warning;
+      return div;
+    })
+  );
 }
 
 function updateSummary() {
@@ -162,39 +168,76 @@ function toggleSelection(itemId, checked) {
 function renderFilters() {
   const node = document.getElementById("filters");
   const names = [...state.categories].sort();
-  node.innerHTML = names.map((name) => `<button data-filter="${name}" type="button">${name}</button>`).join("");
-  for (const button of node.querySelectorAll("[data-filter]")) {
-    button.addEventListener("click", () => {
-      button.classList.toggle("active");
-      renderItems();
-    });
+  node.replaceChildren(
+    ...names.map((name) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.filter = name;
+      button.textContent = name;
+      button.addEventListener("click", () => {
+        button.classList.toggle("active");
+        renderItems();
+      });
+      return button;
+    })
+  );
+}
+
+function buildItemCard(item) {
+  const itemType = item.item_type || "mandate";
+
+  const article = document.createElement("article");
+  article.className = "card";
+  article.dataset.itemType = itemType;
+
+  const label = document.createElement("label");
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.dataset.item = item.id;
+  checkbox.checked = state.selected.has(item.id);
+  checkbox.addEventListener("change", (event) => {
+    toggleSelection(event.target.dataset.item, event.target.checked);
+  });
+  label.append(checkbox, ` ${item.id}`);
+
+  const title = document.createElement("h2");
+  title.textContent = item.title;
+
+  const description = document.createElement("p");
+  description.textContent = item.description;
+
+  const meta = document.createElement("div");
+  meta.className = "meta";
+
+  const typePill = document.createElement("span");
+  typePill.className = `pill pill--type pill--${itemType}`;
+  typePill.textContent = itemType;
+
+  const categoryPill = document.createElement("span");
+  categoryPill.className = "pill";
+  categoryPill.textContent = item.category;
+
+  const mandatoryPill = document.createElement("span");
+  mandatoryPill.className = "pill";
+  mandatoryPill.textContent = item.mandatory ? T.mandatory : T.optional;
+
+  meta.append(typePill, categoryPill, mandatoryPill);
+
+  if (item.depends_on.length > 0) {
+    const dependsPill = document.createElement("span");
+    dependsPill.className = "pill";
+    dependsPill.textContent = T.depends(item.depends_on.join(", "));
+    meta.append(dependsPill);
   }
+
+  article.append(label, title, description, meta);
+  return article;
 }
 
 function renderItems() {
   const node = document.getElementById("items");
   const items = filterItems();
-  node.innerHTML = items.map((item) => {
-    const checked = state.selected.has(item.id) ? "checked" : "";
-    const depends = item.depends_on.length === 0 ? "" : `<span class="pill">${T.depends(item.depends_on.join(", "))}</span>`;
-    const itemType = item.item_type || "mandate";
-    return `<article class="card" data-item-type="${itemType}">
-      <label><input type="checkbox" data-item="${item.id}" ${checked}> ${item.id}</label>
-      <h2>${item.title}</h2>
-      <p>${item.description}</p>
-      <div class="meta">
-        <span class="pill pill--type pill--${itemType}">${itemType}</span>
-        <span class="pill">${item.category}</span>
-        <span class="pill">${item.mandatory ? T.mandatory : T.optional}</span>
-        ${depends}
-      </div>
-    </article>`;
-  }).join("");
-  for (const input of node.querySelectorAll("[data-item]")) {
-    input.addEventListener("change", (event) => {
-      toggleSelection(event.target.dataset.item, event.target.checked);
-    });
-  }
+  node.replaceChildren(...items.map(buildItemCard));
 }
 
 function downloadSelection() {

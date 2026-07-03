@@ -190,9 +190,6 @@ pre-delivery: lint test
 lock:
 	uv lock
 
-selector-build:
-	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir site/selector
-
 docs-build: build-web
 	$(PYTHON) -m mkdocs build --strict
 	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
