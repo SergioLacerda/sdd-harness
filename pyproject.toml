@@ -69,6 +69,19 @@ bypass-selection = true
 # Workspace root — not a publishable package, only orchestrates the workspace.
 managed = true
 package = false
+# crewai pins pydantic<2.13, which is incompatible with the pydantic>=2.13.4
+# required by `test`; the two extras/groups are never installed together, so
+# mark them conflicting to keep the universal lock resolvable.
+conflicts = [
+    [
+        { extra = "test" },
+        { extra = "examples-crewai" },
+    ],
+    [
+        { group = "test" },
+        { extra = "examples-crewai" },
+    ],
+]
 constraint-dependencies = [
     "idna>=3.15",  # CVE-2026-45409: DoS via arbitrarily large inputs in idna.encode()
 ]

@@ -6,6 +6,7 @@ export default defineConfig({
   integrations: [react()],
   output: 'static',
   site: 'https://sergiolacerda.github.io/sdd-harness/',
+  base: '/sdd-harness/',
   // Output straight into the shared publication root used by the docs
   // pipeline (see mkdocs.yml `site_dir` and .github/workflows/docs.yml).
   // MkDocs writes to build/site/docs/, the Selector compiler writes to
