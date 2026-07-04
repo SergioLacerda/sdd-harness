@@ -16,8 +16,8 @@ _FAKE_PATHS: dict = {
 
 _PATCHES = (
     "sdd_core.utils.environment.get_sdd_paths",
-    "sdd_wizard.orchestration.phase4_governance_loader.GovernanceLoader",
-    "sdd_wizard.orchestration.phase6_seedlings_orchestrator.SeedlingsOrchestrator",
+    "sdd_wizard.orchestration.wizard.seedlings_runtime.GovernanceLoader",
+    "sdd_wizard.orchestration.wizard.seedlings_runtime.SeedlingsOrchestrator",
 )
 
 

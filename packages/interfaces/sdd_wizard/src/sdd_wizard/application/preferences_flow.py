@@ -40,6 +40,8 @@ class PreferencesFlow:
         interaction_language_choices: list[str],
         local_docs_language_choices: list[str],
         locale_by_language: dict[str, str],
+        handshake_choices: list[str],
+        handshake_map: dict[str, str],
     ) -> dict[str, Any]:
         """Collect wizard preferences and return the persisted config payload."""
         enforcement = self._select_enforcement(enforcement_choices, enforcement_map)
@@ -50,12 +52,14 @@ class PreferencesFlow:
         docs_language = self._select_docs_language(
             interaction_language, local_docs_language_choices
         )
+        handshake = self._select_handshake_mode(handshake_choices, handshake_map)
         return self._build_config(
             enforcement_mode=enforcement,
             language=language,
             interaction_language=interaction_language,
             docs_language=docs_language,
             locale_by_language=locale_by_language,
+            handshake_mode=handshake,
         )
 
     def _select_enforcement(
@@ -101,6 +105,19 @@ class PreferencesFlow:
             return interaction_language
         return selected
 
+    def _select_handshake_mode(
+        self, handshake_choices: list[str], handshake_map: dict[str, str]
+    ) -> str:
+        self._emit(
+            "\n5️⃣  Prefere que todo prompt seja filtrado pela governança (hook) OU"
+            " invocar a governança seletivamente (slash commands, CLI)?"
+            "\n   (modo hook pode ser desativado a qualquer momento com"
+            " 'sdd governance hook disable')"
+        )
+        selected = self._prompter.select("Selecione o handshake:", handshake_choices)
+        self._emit(f"   ✅ Selecionado: {selected}")
+        return handshake_map.get(selected, "standard")
+
     def _build_config(
         self,
         *,
@@ -109,6 +126,7 @@ class PreferencesFlow:
         interaction_language: str,
         docs_language: str,
         locale_by_language: dict[str, str],
+        handshake_mode: str,
     ) -> dict[str, Any]:
         return {
             "language": language,
@@ -116,6 +134,7 @@ class PreferencesFlow:
             "docs_language": docs_language,
             "docs_locale": locale_by_language.get(docs_language, "en"),
             "enforcement_mode": enforcement_mode,
+            "handshake_mode": handshake_mode,
             "language_context": self._build_language_context(
                 interaction_language, docs_language
             ),

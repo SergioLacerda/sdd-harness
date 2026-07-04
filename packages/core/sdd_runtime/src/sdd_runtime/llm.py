@@ -11,6 +11,14 @@ import os
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+_ENV_TOKENS_INPUT = "SDD_TOKENS_INPUT"
+_ENV_TOKENS_OUTPUT = "SDD_TOKENS_OUTPUT"
+
+
+def _read_token_env_vars() -> tuple[str | None, str | None]:
+    """Return the raw (unparsed) SDD_TOKENS_INPUT/SDD_TOKENS_OUTPUT env values."""
+    return os.environ.get(_ENV_TOKENS_INPUT), os.environ.get(_ENV_TOKENS_OUTPUT)
+
 
 @dataclass
 class TokenCounts:
@@ -91,8 +99,7 @@ class ClaudeTokenCapture:
         Returns:
             TokenCounts if SDD_TOKENS_INPUT and SDD_TOKENS_OUTPUT are set, None otherwise.
         """
-        tokens_input_str = os.environ.get("SDD_TOKENS_INPUT")
-        tokens_output_str = os.environ.get("SDD_TOKENS_OUTPUT")
+        tokens_input_str, tokens_output_str = _read_token_env_vars()
 
         if tokens_input_str is None or tokens_output_str is None:
             return None
@@ -133,8 +140,7 @@ class SimulatedTokenCapture:
         Raises:
             ValueError: If env vars are set but not valid integers.
         """
-        tokens_input_str = os.environ.get("SDD_TOKENS_INPUT")
-        tokens_output_str = os.environ.get("SDD_TOKENS_OUTPUT")
+        tokens_input_str, tokens_output_str = _read_token_env_vars()
 
         if tokens_input_str is None or tokens_output_str is None:
             return None

@@ -62,6 +62,8 @@ from ._interactive_wizard_constants import (
     _ENFORCEMENT_CHOICES,
     _ENFORCEMENT_MAP,
     _FINAL_TEMPLATE_DIRNAME,
+    _HANDSHAKE_CHOICES,
+    _HANDSHAKE_MAP,
     _INTERACTION_LANGUAGE_CHOICES,
     _LANGUAGE_CHOICES,
     _LOCAL_DOCS_LANGUAGE_CHOICES,
@@ -187,6 +189,8 @@ class InteractiveWizard:
             interaction_language_choices=_INTERACTION_LANGUAGE_CHOICES,
             local_docs_language_choices=_LOCAL_DOCS_LANGUAGE_CHOICES,
             locale_by_language=_LOCALE_BY_LANGUAGE,
+            handshake_choices=_HANDSHAKE_CHOICES,
+            handshake_map=_HANDSHAKE_MAP,
         )
 
     def save_config(self, config: dict[str, Any]) -> Path:

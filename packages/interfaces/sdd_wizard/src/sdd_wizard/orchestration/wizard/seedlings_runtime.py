@@ -4,7 +4,23 @@ import json
 from collections.abc import Callable
 from pathlib import Path
 
+from sdd_wizard.orchestration.phase4_governance_loader import GovernanceLoader
+from sdd_wizard.orchestration.phase6_seedlings_orchestrator import (
+    SeedlingsOrchestrator,
+)
 from sdd_wizard.orchestration.wizard.messages import phase6_seedlings_success_message
+
+_HOOK_MODE_SEEDLING_KEYS = {
+    "governance",
+    "agent-prep",
+    "personal-overlay",
+    "compliance",
+    "activation-guide",
+    "verify",
+    "claude",
+    "codex",
+    "gemini",
+}
 
 
 def _resolve_governance_paths(
@@ -43,10 +59,6 @@ def run_phase6_seedlings_generation(
 ) -> bool:
     """Run Phase 6 governance loading + seedlings generation."""
     from sdd_core.utils.environment import get_sdd_paths
-    from sdd_wizard.orchestration.phase4_governance_loader import GovernanceLoader
-    from sdd_wizard.orchestration.phase6_seedlings_orchestrator import (
-        SeedlingsOrchestrator,
-    )
 
     if wizard_config_path.exists():
         with open(wizard_config_path, encoding="utf-8") as f:
@@ -84,7 +96,16 @@ def run_phase6_seedlings_generation(
         paths=paths,
         verbose=True,
     )
-    if not orchestrator.generate():
+    handshake_mode = config.get("handshake_mode", "standard")
+    selected = _HOOK_MODE_SEEDLING_KEYS if handshake_mode == "hook" else None
+    if handshake_mode == "hook":
+        emitter(
+            "  ℹ️  handshake_mode=hook: generating prompt-submit hooks for Claude/Codex/"
+            "Gemini only. Copilot/Cursor/VS Code seeds are skipped — those platforms "
+            "have no confirmed prompt hook, so they would not be governed by this mode "
+            "anyway. Run in standard mode separately if you also use those tools."
+        )
+    if not orchestrator.generate(selected=selected):
         emitter("  ❌ Failed to generate intelligent seedlings")
         return False
 

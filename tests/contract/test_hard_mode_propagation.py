@@ -53,6 +53,16 @@ class TestAgentInstructionsTemplate:
         assert "intake_index_mode" in rendered
         assert "not permission" in rendered.lower() or "surface" in rendered.lower()
 
+    @pytest.mark.parametrize("rendered", [_RENDERED_CONTENT, _RENDERED_TEMPLATE])
+    def test_hard_mode_rule3_does_not_force_stop_when_gate_allowed(self, rendered: str):
+        """Rule 3 must not instruct an unconditional stop when execution_gate is allowed."""
+        rule3_start = rendered.index("Rule 3")
+        rule3_text = rendered[rule3_start : rule3_start + 700]
+        assert "execution_gate: blocked" in rule3_text
+        stop_idx = rule3_text.lower().find("stop and wait")
+        gate_idx = rule3_text.lower().find("execution_gate: blocked")
+        assert stop_idx == -1 or stop_idx > gate_idx
+
 
 class TestSkillRegistryInvariants:
     def test_sdd_ask_has_hard_mode_protocol(self):

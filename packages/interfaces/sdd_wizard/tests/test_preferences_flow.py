@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from sdd_wizard.application._interactive_wizard_constants import (
+    _HANDSHAKE_CHOICES,
+    _HANDSHAKE_MAP,
+)
 from sdd_wizard.application.preferences_flow import PreferencesFlow
 from sdd_wizard.application.prompter import _CallablePrompter
 
@@ -13,7 +17,7 @@ def test_select_phase_returns_matching_key() -> None:
 
 
 def test_collect_preferences_builds_language_context() -> None:
-    responses = iter(["2", "4", "2", "3"])
+    responses = iter(["2", "4", "2", "3", "1"])
     flow = PreferencesFlow(_CallablePrompter(lambda _: next(responses)))
     config = flow.collect_preferences(
         enforcement_choices=["Sem Alertas", "Alertas", "Bloquear"],
@@ -30,6 +34,8 @@ def test_collect_preferences_builds_language_context() -> None:
             "Same as interaction",
         ],
         locale_by_language={"English": "en", "Português (Brasil)": "pt-BR"},
+        handshake_choices=_HANDSHAKE_CHOICES,
+        handshake_map=_HANDSHAKE_MAP,
     )
     assert config["enforcement_mode"] == "warn_mode"
     assert config["language"] == "Go"
@@ -39,3 +45,37 @@ def test_collect_preferences_builds_language_context() -> None:
     assert config["language_context"]["preferred_local_docs_language"] == (
         "Português (Brasil)"
     )
+
+
+def test_collect_preferences_includes_handshake_mode() -> None:
+    responses = iter(["1", "1", "1", "1", "2"])
+    flow = PreferencesFlow(_CallablePrompter(lambda _: next(responses)))
+    config = flow.collect_preferences(
+        enforcement_choices=["Sem Alertas", "Alertas", "Bloquear"],
+        enforcement_map={
+            "Sem Alertas": "silent_mode",
+            "Alertas": "warn_mode",
+            "Bloquear": "strict_mode",
+        },
+        language_choices=["Python", "Java", "TypeScript", "Go"],
+        interaction_language_choices=["English", "Português (Brasil)"],
+        local_docs_language_choices=[
+            "English",
+            "Português (Brasil)",
+            "Same as interaction",
+        ],
+        locale_by_language={"English": "en", "Português (Brasil)": "pt-BR"},
+        handshake_choices=_HANDSHAKE_CHOICES,
+        handshake_map=_HANDSHAKE_MAP,
+    )
+    assert config["handshake_mode"] == "standard"
+
+
+def test_select_handshake_mode_prompt_mentions_disable_escape_hatch() -> None:
+    emitted: list[str] = []
+    responses = iter(["1"])
+    flow = PreferencesFlow(
+        _CallablePrompter(lambda _: next(responses)), emitter=emitted.append
+    )
+    flow._select_handshake_mode(_HANDSHAKE_CHOICES, _HANDSHAKE_MAP)
+    assert any("sdd governance hook disable" in message for message in emitted)

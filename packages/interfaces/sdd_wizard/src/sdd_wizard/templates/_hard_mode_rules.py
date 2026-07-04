@@ -37,5 +37,7 @@ Task completion is NOT authorization. Only explicit phrases like "commit this", 
 This is **separate from Rule 1** — `execution_gate` may be `allowed` while
 `intake_index_mode` is still `none` (e.g. for short queries). Surface this
 condition to the user by name and value — do not describe it as "the gate is
-blocked" unless `execution_gate: blocked` is also present. Then stop and wait for
-the user to decide how to continue."""
+blocked" unless `execution_gate: blocked` is also present. If `execution_gate:
+blocked` is present, follow Rule 1 (stop and wait for re-authorization). If
+`execution_gate: allowed`, proceed normally — `intake_index_mode: none` alone
+is informational, not a stop condition."""

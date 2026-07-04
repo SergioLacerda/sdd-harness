@@ -124,9 +124,10 @@ class TestAskUserPreferences:
         language: str,
         interaction_language: str = "1",
         local_docs_language: str = "3",
+        handshake: str = "1",
     ) -> InteractiveWizard:
         responses = iter(
-            [enforcement, language, interaction_language, local_docs_language]
+            [enforcement, language, interaction_language, local_docs_language, handshake]
         )
         return _make_wizard(tmp_path, prompter=lambda _: next(responses))
 
@@ -285,7 +286,7 @@ class TestPhase1Generate:
 
     def test_success(self, tmp_path: Path) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": True}
@@ -297,7 +298,7 @@ class TestPhase1Generate:
         assert result["success"] is True
 
     def test_success_in_zero_state_without_docs_meta(self, tmp_path: Path) -> None:
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": True}
@@ -309,7 +310,7 @@ class TestPhase1Generate:
 
     def test_exception_returns_failure(self, tmp_path: Path) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         sys.modules[
             "sdd_wizard.orchestration.wizard.phase1_generator"
@@ -325,7 +326,7 @@ class TestPhase1Generate:
         self, tmp_path: Path
     ) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         wizard.selector_output_path.write_text(
             json.dumps(
@@ -356,7 +357,7 @@ class TestPhase1Generate:
 
     def test_emits_selector_site_hint_when_site_exists(self, tmp_path: Path) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         logs: list[str] = []
         wizard = _make_wizard(
             tmp_path, prompter=lambda _: next(responses), emitter=logs.append
@@ -383,7 +384,7 @@ class TestPhase1Generate:
         self, tmp_path: Path
     ) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         logs: list[str] = []
         wizard = _make_wizard(
             tmp_path, prompter=lambda _: next(responses), emitter=logs.append
@@ -422,7 +423,7 @@ class TestPhase1Generate:
         self, tmp_path: Path
     ) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         logs: list[str] = []
         wizard = _make_wizard(
             tmp_path, prompter=lambda _: next(responses), emitter=logs.append
@@ -793,7 +794,7 @@ class TestPhase1GenerateTemplatesFailurePaths:
 
     def test_fails_when_docs_meta_not_ready(self, tmp_path: Path) -> None:
         """Covers lines 291-296: _ensure_docs_meta_ready returns False."""
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         with patch.object(
             wizard, "_ensure_docs_meta_ready", return_value=(False, "no artifacts")
@@ -805,7 +806,7 @@ class TestPhase1GenerateTemplatesFailurePaths:
     def test_generator_failure_records_status(self, tmp_path: Path) -> None:
         """Covers line 338: generator returns success=False."""
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": False, "error": "gen failed"}
