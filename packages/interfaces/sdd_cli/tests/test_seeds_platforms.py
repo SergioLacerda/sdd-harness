@@ -4,7 +4,6 @@ from sdd_cli.generators._seeds_platforms import (
     _generate_antigravity_seed,
     _generate_claude_seed,
     _generate_copilot_seed,
-    _generate_cortex_seed,
     _generate_cursor_seed,
     _generate_gemini_seed,
     _generate_generic_seed,
@@ -83,14 +82,6 @@ def test_generate_gemini_seed_includes_client_fingerprint() -> None:
     content = _generate_gemini_seed(config, mandatory, customizable)
     assert CLIENT_FP[:8] in content
     assert "Gemini Governance Context" in content
-
-
-def test_generate_cortex_seed_includes_core_fingerprint() -> None:
-    config = _sample_config()
-    mandatory, customizable = _mandatory_and_customizable(config)
-    content = _generate_cortex_seed(config, mandatory, customizable)
-    assert CORE_FP[:8] in content
-    assert "Cortex Code Agent Configuration" in content
 
 
 def test_generate_antigravity_seed_includes_both_fingerprints() -> None:

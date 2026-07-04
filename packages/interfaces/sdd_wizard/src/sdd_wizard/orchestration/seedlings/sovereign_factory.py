@@ -75,7 +75,7 @@ class SovereignFactoryGenerator(BaseSeedlingGenerator):
             # 3. Plant Antigravity Skills (e.g. sdd-harness SKILL.md for Gemini CLI)
             src_antigravity = template_src / "antigravity"
             if src_antigravity.exists():
-                antigravity_dest = self.output_base / ".antigravity"
+                antigravity_dest = self.output_base / ".gemini" / "antigravity"
                 antigravity_dest.mkdir(parents=True, exist_ok=True)
                 for item in src_antigravity.rglob("*"):
                     if item.is_file():
@@ -85,7 +85,7 @@ class SovereignFactoryGenerator(BaseSeedlingGenerator):
                         shutil.copy2(item, dest_file)
                 skill_count = sum(1 for _ in src_antigravity.rglob("*.md"))
                 self.log(
-                    f"✅ Planted antigravity skills in .antigravity/ ({skill_count} files)"
+                    f"✅ Planted antigravity skills in .gemini/antigravity/ ({skill_count} files)"
                 )
 
             return True

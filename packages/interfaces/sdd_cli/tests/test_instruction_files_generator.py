@@ -76,15 +76,12 @@ def test_static_gemini_instructions_no_spec_config() -> None:
     assert ".sdd/agent-instructions.md" in content
 
 
-def test_static_antigravity_instructions_no_spec_config() -> None:
+def test_no_legacy_antigravity_template_shipped() -> None:
+    """Package data must not ship a legacy top-level `.antigravity` template."""
     f = _sdd_integration_template(".antigravity/antigravity-instructions.md")
-    if not f.exists():
-        return
-    content = f.read_text(encoding="utf-8")
-    assert ".spec.config" not in content, (
-        "antigravity-instructions.md still references legacy .spec.config"
+    assert not f.exists(), (
+        "legacy .antigravity template should not be shipped in package data"
     )
-    assert ".sdd/agent-instructions.md" in content
 
 
 # ---------------------------------------------------------------------------
@@ -95,9 +92,11 @@ def test_static_antigravity_instructions_no_spec_config() -> None:
 def test_antigravity_regenerated_by_governance_generate(tmp_path: Path) -> None:
     """sdd governance generate must produce antigravity instructions."""
     generate_agent_instruction_files(tmp_path, _sample_config())
-    antigravity_file = tmp_path / ".antigravity" / "antigravity-instructions.md"
+    antigravity_file = (
+        tmp_path / ".gemini" / "antigravity" / "antigravity-instructions.md"
+    )
     assert antigravity_file.exists(), (
-        ".antigravity/antigravity-instructions.md not generated"
+        ".gemini/antigravity/antigravity-instructions.md not generated"
     )
     content = antigravity_file.read_text(encoding="utf-8")
     assert ".sdd/agent-instructions.md" in content
@@ -106,9 +105,9 @@ def test_antigravity_regenerated_by_governance_generate(tmp_path: Path) -> None:
 
 def test_antigravity_no_inline_mandate_descriptions(tmp_path: Path) -> None:
     generate_agent_instruction_files(tmp_path, _sample_config())
-    content = (tmp_path / ".antigravity" / "antigravity-instructions.md").read_text(
-        encoding="utf-8"
-    )
+    content = (
+        tmp_path / ".gemini" / "antigravity" / "antigravity-instructions.md"
+    ).read_text(encoding="utf-8")
     assert MANDATE_DESC not in content
 
 

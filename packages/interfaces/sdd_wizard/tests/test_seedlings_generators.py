@@ -208,60 +208,6 @@ class TestAISeedsGeneratorGemini:
         assert "GEMINI.md" in seed["required_context"]
 
 
-class TestAISeedsGeneratorCortex:
-    def test_generate_cortex_seed_creates_files(
-        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
-    ) -> None:
-        """Should create .cortex/skills/, .claude/skills/ and cortex.seed.json."""
-        gen = AISeedsGenerator(
-            output_base=tmp_path,
-            seedlings_dir=tmp_seedlings_dir,
-            config=base_config,
-            spec_fingerprint="abc12345",
-            mandate_ids=["M001"],
-            active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z",
-            verbose=False,
-        )
-        success = gen.generate_cortex_seed()
-        assert success is True
-        assert (tmp_path / ".cortex" / "skills" / "sdd-governance.md").exists()
-        assert (tmp_path / ".claude" / "skills" / "sdd-governance.md").exists()
-        assert (tmp_seedlings_dir / "cortex.seed.json").exists()
-
-    def test_generate_cortex_seed_content(
-        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
-    ) -> None:
-        """Generated cortex files should have correct content."""
-        gen = AISeedsGenerator(
-            output_base=tmp_path,
-            seedlings_dir=tmp_seedlings_dir,
-            config=base_config,
-            spec_fingerprint="abc12345",
-            mandate_ids=["M001"],
-            active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z",
-            verbose=False,
-        )
-        gen.generate_cortex_seed()
-        skill = (tmp_path / ".cortex" / "skills" / "sdd-governance.md").read_text(
-            encoding="utf-8"
-        )
-        assert "Cortex Code" in skill
-        assert ".sdd/agent-instructions.md" in skill
-
-        compat = (tmp_path / ".claude" / "skills" / "sdd-governance.md").read_text(
-            encoding="utf-8"
-        )
-        assert compat == skill
-
-        seed = json.loads(
-            (tmp_seedlings_dir / "cortex.seed.json").read_text(encoding="utf-8")
-        )
-        assert seed["agent"] == "cortex"
-        assert ".cortex/skills/sdd-governance.md" in seed["required_context"]
-
-
 class TestAISeedsGeneratorCodex:
     def test_generate_codex_seed_creates_file(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
@@ -1835,17 +1781,6 @@ class TestAISeedsExceptionPaths:
             side_effect=OSError("disk full"),
         ):
             result = gen.generate_copilot_seed()
-        assert result is False
-
-    def test_cortex_exception_returns_false(
-        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
-    ) -> None:
-        gen = _ai_gen(tmp_path, tmp_seedlings_dir, base_config)
-        with patch(
-            "sdd_wizard.orchestration.seedlings.ai_seeds.write_text_utf8",
-            side_effect=OSError("disk full"),
-        ):
-            result = gen.generate_cortex_seed()
         assert result is False
 
     def test_claude_exception_returns_false(

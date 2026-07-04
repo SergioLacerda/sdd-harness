@@ -43,7 +43,6 @@ _TEMP_COMPILED_DIRS = (
     ".cursor",
     ".claude",
     ".gemini",
-    ".antigravity",
     ".ai",
     ".ia",
 )

@@ -17,7 +17,6 @@ SEEDLINGS: list[tuple[str, str, str]] = [
     ("vscode", "AGENT/IDE", "VS Code"),
     ("gemini", "AGENT/IDE", "Gemini"),
     ("codex", "AGENT/IDE", "Codex"),
-    ("cortex", "AGENT/IDE", "Snowflake Cortex Code"),
     ("activation-guide", "UTIL", "ACTIVATION_GUIDE.md"),
     ("verify", "UTIL", "verify.py"),
     ("prompt-commands", "UTIL", "prompt templates"),

@@ -113,51 +113,6 @@ class AISeedsGenerator(BaseSeedlingGenerator):
             logger.warning(f"  ❌ Failed to generate CLAUDE.md: {e}")
             return False
 
-    def generate_cortex_seed(self) -> bool:
-        """Generate Snowflake Cortex Code governance bootstrap."""
-        try:
-            cortex_skills_dir = self.output_base / ".cortex" / "skills"
-            cortex_skills_dir.mkdir(parents=True, exist_ok=True)
-            claude_skills_dir = self.output_base / ".claude" / "skills"
-            claude_skills_dir.mkdir(parents=True, exist_ok=True)
-            skill_content = render_agent_redirector(
-                tool_name="Cortex Code",
-                config_paths=[".cortex/skills/", ".claude/skills/"],
-                fingerprint=self.spec_fingerprint,
-                mandate_ids=self.mandate_ids,
-                generated_at=self.generated_at,
-            )
-            write_text_utf8(cortex_skills_dir / "sdd-governance.md", skill_content)
-            write_text_utf8(claude_skills_dir / "sdd-governance.md", skill_content)
-            seed_data = {
-                "auto_activate": True,
-                "agent": "cortex",
-                "description": "Snowflake Cortex Code governance bootstrap — redirects to compiled SDD source",
-                "load_compiled_from": ".sdd",
-                "instructions_ref": ".cortex/skills/sdd-governance.md",
-                "governance_fingerprint": self.spec_fingerprint,
-                "mandates_count": len(self.mandate_ids),
-                "auto_load": True,
-                "triggers": ["on_project_load"],
-                "required_context": [
-                    ".sdd/metadata.json",
-                    ".cortex/skills/sdd-governance.md",
-                ],
-                "on_load": "prepare_ide_context",
-                "generated_at": self.generated_at,
-            }
-            write_text_utf8(
-                self.seedlings_dir / "cortex.seed.json",
-                json.dumps(seed_data, indent=2) + "\n",
-            )
-            self.log(
-                "✅ Generated Cortex seed (.cortex/skills/, .claude/skills/, cortex.seed.json)"
-            )
-            return True
-        except Exception as e:
-            logger.warning(f"  ❌ Failed to generate Cortex seed: {e}")
-            return False
-
     def generate_codex_seed(self) -> bool:
         """Generate Codex governance bootstrap seed."""
         try:

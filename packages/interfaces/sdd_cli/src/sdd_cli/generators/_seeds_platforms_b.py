@@ -1,4 +1,4 @@
-"""Per-platform agent seed generators — Gemini, Cortex, Antigravity."""
+"""Per-platform agent seed generators — Gemini, Antigravity."""
 
 from typing import Any
 
@@ -28,45 +28,6 @@ def _generate_gemini_seed(
 2. Preserve architectural decisions and mandatory rules
 3. Query compiled artifacts: `sdd ask --full "<question>"`
 4. Validate with `sdd governance validate` before completion
-"""
-
-
-def _generate_cortex_seed(
-    config: dict[str, Any],
-    mandatory_rules: list[dict[str, Any]],
-    customizable_items: list[dict[str, Any]],
-) -> str:
-    """Generate Snowflake Cortex Code agent seed."""
-    core_fp = _fingerprint_prefix(config, "core_fingerprint")
-    return f"""# Cortex Code Agent Configuration
-
-## Governance Context
-- **Core Fingerprint**: {core_fp}
-- **Status**: Production Ready
-- **Total Items**: {len(config.get("items", []))}
-
-## Mandatory Governance Rules
-These rules must be enforced in every implementation:
-
-{_format_rules(mandatory_rules)}
-
-## Governance Checklist
-Before implementing any feature:
-- [ ] Validate against mandatory rules
-- [ ] Check for conflicts with existing items
-- [ ] Ensure customizable items are respected
-- [ ] Verify fingerprints match core specification
-
-## Customizable Items
-Your project can customize {len(customizable_items)} governance items.
-
-See `.sdd/source/` for complete specification.
-
-## Integration Points
-- Bootstrap status: `sdd runtime status`
-- Validate changes: `sdd governance validate`
-- Generate templates: `sdd governance generate`
-- Query context: `sdd ask --full "<question>"`
 """
 
 

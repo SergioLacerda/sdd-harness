@@ -388,7 +388,7 @@ class TestAgentSeedsGenerator:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             results = generate_agent_seeds(Path(tmpdir), mock_config)
-            assert len(results) == 7
+            assert len(results) == 6
             assert all(r[2] == "Generated" for r in results)
             generated_names = {r[0] for r in results}
             assert generated_names == {
@@ -398,7 +398,6 @@ class TestAgentSeedsGenerator:
                 "Claude",
                 "Gemini",
                 "Antigravity",
-                "Cortex Code",
             }
 
     def test_agent_seeds_content_cursor(self) -> None:

@@ -27,7 +27,6 @@ def _write_deployment_manifest(
         ".sdd/seedlings/governance.seed.json": "seed",
         ".sdd/seedlings/vscode.seed.json": "seed",
         ".sdd/seedlings/cursor.seed.json": "seed",
-        ".sdd/seedlings/cortex.seed.json": "seed",
         ".sdd/seedlings/gemini.seed.json": "seed",
         ".sdd/seedlings/codex.seed.json": "seed",
     }

@@ -42,7 +42,6 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                         "copilot",
                         "claude",
                         "gemini",
-                        "cortex",
                     ],
                     "auto_inject_context": True,
                     "adoption_level": adoption_level,
@@ -66,10 +65,6 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                     },
                     "gemini": {
                         "instructions_ref": "GEMINI.md",
-                        "auto_load": True,
-                    },
-                    "cortex": {
-                        "instructions_ref": ".cortex/skills/sdd-governance.md",
                         "auto_load": True,
                     },
                 },

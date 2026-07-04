@@ -62,7 +62,10 @@ class SeedlingInjector:
             self.output_base / ".github" / "copilot-instructions.md",
             self.output_base / ".vscode" / "ai-rules.md",
             self.output_base / ".claude" / "claude-instructions.md",
-            self.output_base / ".antigravity" / "antigravity-instructions.md",
+            self.output_base
+            / ".gemini"
+            / "antigravity"
+            / "antigravity-instructions.md",
             self.output_base / ".ia" / "ia-instructions.md",
             self.output_base / ".ai" / "ai-instructions.md",
         ]
