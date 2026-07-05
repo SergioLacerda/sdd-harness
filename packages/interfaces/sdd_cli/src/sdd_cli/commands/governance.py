@@ -19,6 +19,11 @@ from sdd_cli.services.governance_generate_handlers import (
     resolve_generate_path,  # noqa: F401  backward-compat re-export for unit tests
     run_generate,
 )
+from sdd_cli.services.governance_hook_handlers import (
+    run_governance_hook_disable,
+    run_governance_hook_enable,
+    run_governance_hook_status,
+)
 from sdd_cli.services.governance_security_handlers import run_keygen, run_sign_cmd
 from sdd_cli.utils.command_errors import handle_cli_errors
 from sdd_cli.utils.loader import (
@@ -39,6 +44,9 @@ __all__ = [
 ]
 
 app = typer.Typer(help="Governance management commands")
+hook_app = typer.Typer(
+    help="Manage the prompt-submit governance hook (handshake_mode=hook)"
+)
 console = Console()
 
 
@@ -140,4 +148,23 @@ def sign(
     )
 
 
+@hook_app.command("status")
+def hook_status() -> None:
+    """Report whether the prompt-submit governance hook is enabled."""
+    run_governance_hook_status(console=console)
+
+
+@hook_app.command("disable")
+def hook_disable() -> None:
+    """Disable the prompt-submit governance hook (kill switch)."""
+    run_governance_hook_disable(console=console)
+
+
+@hook_app.command("enable")
+def hook_enable() -> None:
+    """Re-enable the prompt-submit governance hook."""
+    run_governance_hook_enable(console=console)
+
+
+app.add_typer(hook_app, name="hook")
 register_governance_commands(app=app, console=console, ctx_json_fn=_ctx_json)

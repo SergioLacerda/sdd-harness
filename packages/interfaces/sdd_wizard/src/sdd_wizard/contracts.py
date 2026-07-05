@@ -54,3 +54,15 @@ def generate_agent_instructions_from_config(
     )
 
     return _impl(output_base, config)
+
+
+def generate_root_bootstrap_from_config(
+    output_base: Path,
+    config: dict[str, Any],
+) -> bool:
+    """Regenerate root bootstrap files from a governance config dict."""
+    from sdd_wizard.orchestration.seedlings.governance_seeds import (
+        generate_root_bootstrap_from_config as _impl,
+    )
+
+    return _impl(output_base, config)

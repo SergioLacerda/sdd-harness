@@ -13,12 +13,18 @@ from pathlib import Path
 from rich.console import Console
 
 HOOK_SENTINEL_RELATIVE = Path(".sdd") / "runtime" / "hook-disabled"
+CENTRAL_HOOK_RELATIVE = Path(".sdd") / "runtime" / "hooks" / "prompt-submit.py"
 
-_PLATFORM_HOOK_FILES = {
-    "claude": Path(".claude") / "sdd-governance-inject.py",
-    "codex": Path(".codex") / "sdd-governance-inject.py",
-    "gemini": Path(".gemini") / "sdd-governance-inject.py",
+_PLATFORM_ADAPTER_FILES = {
+    "claude": Path(".claude") / "settings.json",
+    "codex": Path(".codex") / "config.toml",
+    "gemini": Path(".gemini") / "settings.json",
 }
+
+_HOOK_REFERENCES = (
+    "sdd-governance-inject.py",
+    ".sdd/runtime/hooks/prompt-submit.py",
+)
 
 
 def _resolve_root() -> Path:
@@ -53,12 +59,22 @@ def run_governance_hook_status(*, console: Console) -> None:
     else:
         console.print("[green]Governance prompt-submit hook: enabled[/green]")
 
-    for platform, relative_path in _PLATFORM_HOOK_FILES.items():
-        try:
-            present = (root / relative_path).exists()
-        except OSError:
-            present = None
-        state = "configured" if present else "not configured"
-        if present is None:
-            state = "unknown"
+    central_hook_present = (root / CENTRAL_HOOK_RELATIVE).exists()
+    for platform, relative_path in _PLATFORM_ADAPTER_FILES.items():
+        state = _platform_hook_state(root, relative_path, central_hook_present)
         console.print(f"  {platform}: {state}")
+
+
+def _platform_hook_state(
+    root: Path, relative_path: Path, central_hook_present: bool
+) -> str:
+    adapter_path = root / relative_path
+    if not central_hook_present or not adapter_path.exists():
+        return "not configured"
+    try:
+        content = adapter_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return "unknown"
+    if any(reference in content for reference in _HOOK_REFERENCES):
+        return "configured"
+    return "not configured"

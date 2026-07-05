@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
 from sdd_runtime._events import RuntimeEvent, _generate_span_id
 from sdd_runtime.otel import (
     OtelExporter,
@@ -670,6 +671,20 @@ class TestOtlpHttpExporterEndpointValidation:
         with patch("urllib.request.urlopen", return_value=MagicMock()):
             # Should not raise
             exporter.export(_event(), attrs)
+
+    def test_remote_http_endpoint_rejected_by_default(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("SDD_OTEL_ALLOW_INSECURE_HTTP", raising=False)
+        with pytest.raises(ValueError, match="plaintext HTTP for non-local host"):
+            OtlpHttpExporter(endpoint="http://otel.example.com/v1/traces")
+
+    def test_remote_http_endpoint_allowed_with_explicit_opt_in(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SDD_OTEL_ALLOW_INSECURE_HTTP", "true")
+        exporter = OtlpHttpExporter(endpoint="http://otel.example.com/v1/traces")
+        assert exporter._endpoint == "http://otel.example.com/v1/traces"
 
     def test_file_scheme_silently_skipped(self) -> None:
         exporter = OtlpHttpExporter(endpoint="file:///etc/passwd")

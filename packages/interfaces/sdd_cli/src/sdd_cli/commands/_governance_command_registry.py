@@ -8,11 +8,6 @@ import typer
 from rich.console import Console
 
 from sdd_cli.services.governance_config_handlers import run_governance_load_cmd
-from sdd_cli.services.governance_hook_handlers import (
-    run_governance_hook_disable,
-    run_governance_hook_enable,
-    run_governance_hook_status,
-)
 from sdd_cli.services.governance_registry_handlers import run_reconcile_registries
 from sdd_cli.services.governance_runtime_handlers import (
     run_governance_audit,
@@ -158,22 +153,3 @@ def register_governance_commands(
             output_json=ctx_json_fn(),
             console=console,
         )
-
-    hook_app = typer.Typer(help="Manage the prompt-submit governance hook (handshake_mode=hook)")
-
-    @hook_app.command("status")
-    def hook_status() -> None:
-        """Report whether the prompt-submit governance hook is enabled."""
-        run_governance_hook_status(console=console)
-
-    @hook_app.command("disable")
-    def hook_disable() -> None:
-        """Disable the prompt-submit governance hook (kill switch)."""
-        run_governance_hook_disable(console=console)
-
-    @hook_app.command("enable")
-    def hook_enable() -> None:
-        """Re-enable the prompt-submit governance hook."""
-        run_governance_hook_enable(console=console)
-
-    app.add_typer(hook_app, name="hook")

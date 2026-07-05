@@ -6,6 +6,11 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from .prompt_submit_hooks import (
+    CENTRAL_PROMPT_SUBMIT_COMMAND,
+    CENTRAL_PROMPT_SUBMIT_HOOK,
+    SUPPORTED_PROMPT_HOOK_AGENTS,
+)
 from .wizard.models import ValidationDetail
 
 
@@ -54,6 +59,20 @@ class OutputValidator:
         """Return whether optional hook artifacts are required."""
         return bool(self.config.get("include_optional_hooks", False))
 
+    def _prompt_submit_hooks_enabled(self) -> bool:
+        """Return whether prompt-submit governance hooks are required."""
+        return self.config.get("handshake_mode") == "hook"
+
+    def _prompt_submit_hook_agents(self) -> set[str]:
+        configured = self.config.get("prompt_submit_hook_agents")
+        if isinstance(configured, list):
+            return {
+                str(agent)
+                for agent in configured
+                if str(agent) in SUPPORTED_PROMPT_HOOK_AGENTS
+            }
+        return set(SUPPORTED_PROMPT_HOOK_AGENTS)
+
     def _validate_optional_hook_files(self, result: ValidationDetail) -> None:
         """Validate optional hook artifacts only when explicitly enabled."""
         if not self._optional_hooks_enabled():
@@ -71,6 +90,42 @@ class OutputValidator:
                 result["valid"] = False
                 result["errors"].append(
                     f"Missing optional-enabled file: {optional_file}"
+                )
+
+    def _validate_prompt_submit_hook_files(self, result: ValidationDetail) -> None:
+        """Validate prompt-submit hook artifacts when handshake_mode=hook."""
+        if not self._prompt_submit_hooks_enabled():
+            return
+        hook_files = [(self.output_base / CENTRAL_PROMPT_SUBMIT_HOOK, "central hook")]
+        agents = self._prompt_submit_hook_agents()
+        if "claude" in agents:
+            hook_files.append(
+                (self.output_base / ".claude" / "settings.json", "Claude adapter")
+            )
+        if "codex" in agents:
+            hook_files.append(
+                (self.output_base / ".codex" / "config.toml", "Codex adapter")
+            )
+        if "gemini" in agents:
+            hook_files.append(
+                (self.output_base / ".gemini" / "settings.json", "Gemini adapter")
+            )
+        for hook_file, desc in hook_files:
+            exists = self._path_exists(hook_file)
+            result["checks"][f"hook: {desc}"] = "OK" if exists else "MISSING"
+            if not exists:
+                result["valid"] = False
+                result["errors"].append(
+                    f"Missing handshake_mode=hook file: {hook_file}"
+                )
+                continue
+            if desc != "central hook" and CENTRAL_PROMPT_SUBMIT_COMMAND not in (
+                hook_file.read_text(encoding="utf-8")
+            ):
+                result["valid"] = False
+                result["checks"][f"hook command: {desc}"] = "MISSING"
+                result["errors"].append(
+                    f"Missing central prompt-submit command in: {hook_file}"
                 )
 
     def validate(self) -> tuple[bool, ValidationDetail]:
@@ -133,6 +188,7 @@ class OutputValidator:
                 )
 
             self._validate_optional_hook_files(result)
+            self._validate_prompt_submit_hook_files(result)
 
             for category in self.guidelines_by_category:
                 guideline_file = self.guidelines_dir / f"{category}.md"

@@ -56,6 +56,44 @@ def test_hook_status_reports_enabled_when_sentinel_absent(tmp_path: Path) -> Non
         assert "enabled" in result.output.lower()
 
 
+def test_hook_status_reports_configured_platforms_for_central_hook(
+    tmp_path: Path,
+) -> None:
+    with runner.isolated_filesystem(temp_dir=str(tmp_path)):
+        root = Path.cwd()
+        central_hook = root / ".sdd" / "runtime" / "hooks" / "prompt-submit.py"
+        central_hook.parent.mkdir(parents=True)
+        central_hook.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+        (root / ".codex").mkdir()
+        (root / ".codex" / "config.toml").write_text(
+            'command = "python3 .sdd/runtime/hooks/prompt-submit.py"',
+            encoding="utf-8",
+        )
+
+        result = runner.invoke(app, ["governance", "hook", "status"])
+
+        assert result.exit_code == 0
+        assert "codex: configured" in result.output.lower()
+        assert "claude: not configured" in result.output.lower()
+
+
+def test_hook_status_does_not_report_empty_adapter_as_configured(
+    tmp_path: Path,
+) -> None:
+    with runner.isolated_filesystem(temp_dir=str(tmp_path)):
+        root = Path.cwd()
+        central_hook = root / ".sdd" / "runtime" / "hooks" / "prompt-submit.py"
+        central_hook.parent.mkdir(parents=True)
+        central_hook.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+        (root / ".codex").mkdir()
+        (root / ".codex" / "config.toml").write_text("", encoding="utf-8")
+
+        result = runner.invoke(app, ["governance", "hook", "status"])
+
+        assert result.exit_code == 0
+        assert "codex: not configured" in result.output.lower()
+
+
 def test_hook_status_reports_disabled_when_sentinel_present(tmp_path: Path) -> None:
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()

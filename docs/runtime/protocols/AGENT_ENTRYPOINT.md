@@ -44,7 +44,6 @@ pytest
 ```
 
 Post auto-fix revalidation is mandatory before delivery.
-Revalidação pós auto-fix é mandatória antes da entrega.
 
 ## Additional navigation
 

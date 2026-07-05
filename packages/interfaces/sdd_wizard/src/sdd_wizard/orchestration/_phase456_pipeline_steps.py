@@ -10,6 +10,7 @@ from sdd_adapters import AdapterGenerator
 
 from .deployer.seedling_injector import SeedlingInjector
 from .deployer.template_deployer import TemplateDeployer
+from .install_snapshot import GovernanceInstallSnapshot
 from .phase5_artifact_compiler import ArtifactCompiler
 from .phase6_output_validator import OutputValidator
 from .wizard.models import Phase456RunResult
@@ -69,14 +70,20 @@ def _deploy_ide_templates(
     if not deployer.create_ide_templates():
         result["errors"].append("Failed to copy configuration templates")
         return False
+    snapshot = GovernanceInstallSnapshot.from_compiler(
+        compiler,
+        workspace_root=str(repo_root),
+        handshake_mode=config.get("handshake_mode", "standard"),
+        hook_agents=config.get("prompt_submit_hook_agents", []),
+    )
     injector.inject_bootstrap_metadata(
-        fingerprint=compiler.governance_fingerprint,
-        generated_at=compiler.generated_at,
-        mandates_count=len(compiler.mandates),
+        fingerprint=snapshot.governance_fingerprint,
+        generated_at=snapshot.generated_at,
+        mandates_count=len(snapshot.mandates),
     )
     injector.populate_ide_rules(
-        mandates=compiler.mandates,
-        fingerprint=compiler.governance_fingerprint,
+        mandates=snapshot.mandates,
+        fingerprint=snapshot.governance_fingerprint,
     )
     return True
 

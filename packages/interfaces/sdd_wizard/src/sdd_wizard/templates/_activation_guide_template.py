@@ -305,7 +305,7 @@ Agent should cite: {mandate_ids_joined}
 ### Problem: prompts hanging or erroring in Claude Code / Codex CLI / Gemini CLI
 **Check:**
 1. Is `handshake_mode: hook` active (every prompt routes through
-   `sdd-governance-inject.py`)?
+   `.sdd/runtime/hooks/prompt-submit.py`)?
 2. Is `sdd` itself broken, slow, or misconfigured?
 
 **Fix:**

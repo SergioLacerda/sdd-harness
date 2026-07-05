@@ -8,10 +8,6 @@ from sdd_core.utils.text_io import write_text_utf8
 from ._ai_seed_templates import (
     CLAUDE_BOOTSTRAP_SCRIPT,
     CLAUDE_SETTINGS,
-    CLAUDE_SETTINGS_HOOK_MODE,
-    CODEX_CONFIG_TOML_HOOK_MODE,
-    GEMINI_SETTINGS_HOOK_MODE_EXTRA,
-    GOVERNANCE_INJECT_SCRIPT,
     build_claude_md,
     build_copilot_instructions,
 )
@@ -43,12 +39,6 @@ class AISeedsGenerator(BaseSeedlingGenerator):
             write_text_utf8(gemini_dir / "gemini-instructions.md", redirector_content)
             write_text_utf8(self.output_base / "GEMINI.md", redirector_content)
             settings = {"contextFileName": "GEMINI.md"}
-            if self.config.get("handshake_mode") == "hook":
-                write_text_utf8(
-                    gemini_dir / "sdd-governance-inject.py", GOVERNANCE_INJECT_SCRIPT
-                )
-                (gemini_dir / "sdd-governance-inject.py").chmod(0o755)
-                settings["hooks"] = GEMINI_SETTINGS_HOOK_MODE_EXTRA
             write_text_utf8(
                 gemini_dir / "settings.json", json.dumps(settings, indent=2) + "\n"
             )
@@ -114,17 +104,10 @@ class AISeedsGenerator(BaseSeedlingGenerator):
             content = build_claude_md(fp_header)
             write_text_utf8(skill_file, content)
             claude_dir.mkdir(parents=True, exist_ok=True)
-            if self.config.get("handshake_mode") == "hook":
-                inject_file = claude_dir / "sdd-governance-inject.py"
-                write_text_utf8(inject_file, GOVERNANCE_INJECT_SCRIPT)
-                inject_file.chmod(0o755)
-                write_text_utf8(settings_file, CLAUDE_SETTINGS_HOOK_MODE)
-                self.log("✅ Generated CLAUDE.md pointer and Claude prompt-submit hook")
-            else:
-                write_text_utf8(hook_file, CLAUDE_BOOTSTRAP_SCRIPT)
-                hook_file.chmod(0o755)
-                write_text_utf8(settings_file, CLAUDE_SETTINGS)
-                self.log("✅ Generated CLAUDE.md pointer and Claude bootstrap hook")
+            write_text_utf8(hook_file, CLAUDE_BOOTSTRAP_SCRIPT)
+            hook_file.chmod(0o755)
+            write_text_utf8(settings_file, CLAUDE_SETTINGS)
+            self.log("✅ Generated CLAUDE.md pointer and Claude bootstrap hook")
             return True
         except Exception as e:
             logger.warning(f"  ❌ Failed to generate CLAUDE.md: {e}")
@@ -153,16 +136,7 @@ class AISeedsGenerator(BaseSeedlingGenerator):
                 self.seedlings_dir / "codex.seed.json",
                 json.dumps(seed_data, indent=2) + "\n",
             )
-            if self.config.get("handshake_mode") == "hook":
-                inject_file = codex_dir / "sdd-governance-inject.py"
-                write_text_utf8(inject_file, GOVERNANCE_INJECT_SCRIPT)
-                inject_file.chmod(0o755)
-                write_text_utf8(codex_dir / "config.toml", CODEX_CONFIG_TOML_HOOK_MODE)
-                self.log(
-                    "✅ Generated Codex seed and prompt-submit hook (.codex/config.toml)"
-                )
-            else:
-                self.log("✅ Generated Codex seed (.sdd/seedlings/codex.seed.json)")
+            self.log("✅ Generated Codex seed (.sdd/seedlings/codex.seed.json)")
             return True
         except Exception as e:
             logger.warning(f"  ❌ Failed to generate Codex seed: {e}")

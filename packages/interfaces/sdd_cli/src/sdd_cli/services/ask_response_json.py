@@ -74,6 +74,7 @@ def emit_ask_json_response(
     degrade_reason = ask_snapshot["degrade_reason"]
     trust_source = ask_snapshot["trust_source"]
     drift_detected = ask_snapshot["drift_detected"]
+    root_seed_drift_detected = ask_snapshot["root_seed_drift_detected"]
     learning_signals = ask_snapshot["learning_signals"]
     dossier_lines = build_json_dossier_lines(
         inputs,
@@ -106,6 +107,7 @@ def emit_ask_json_response(
         degraded=degraded,
         degraded_reason=degrade_reason,
         drift_detected=drift_detected,
+        root_seed_drift_detected=root_seed_drift_detected,
         governance_footer=governance_footer,
         intake_index_mode="multi" if session.organize_used else "none",
         intake_chunks=session.organize_chunks,

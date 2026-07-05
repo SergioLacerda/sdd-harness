@@ -29,6 +29,7 @@ def collect_validation_state(
     check_no_conflicts_fn: Any,
     check_artifact_consistency_fn: Any,
     run_runtime_preflight_fn: Any,
+    check_root_seed_drift_fn: Any = None,
 ) -> dict[str, Any]:
     structure_ok = validate_path_fn(path)
     config = load_config_fn(path) if structure_ok else None
@@ -41,6 +42,12 @@ def collect_validation_state(
         handshake_active = AgentHandshakeProtocol().is_handshake_valid()
 
     preflight = run_runtime_preflight_fn(path)
+
+    root_seed_drift_ok = True
+    root_seed_drift_reason = "root-seed drift check not configured"
+    if check_root_seed_drift_fn is not None:
+        root_seed_drift_ok, root_seed_drift_reason = check_root_seed_drift_fn(path)
+
     checks = [
         ("Structure validation", structure_ok),
         ("Files accessible", check_files_accessible_fn(path)),
@@ -49,6 +56,7 @@ def collect_validation_state(
         ("Artifact consistency", consistency_ok),
         ("Active handshake (M015)", handshake_active),
         ("Runtime preflight", preflight.passed),
+        ("Root-seed drift", root_seed_drift_ok),
     ]
     check_payload = [{"check": name, "passed": bool(passed)} for name, passed in checks]
     return {
@@ -58,6 +66,8 @@ def collect_validation_state(
         "handshake_active": handshake_active,
         "preflight": preflight,
         "preflight_ok": preflight.passed,
+        "root_seed_drift_ok": root_seed_drift_ok,
+        "root_seed_drift_reason": root_seed_drift_reason,
         "check_payload": check_payload,
         "all_passed": all(item["passed"] for item in check_payload),
     }
@@ -110,11 +120,15 @@ def emit_validation_outcome(
     consistency_reason: str,
     preflight_ok: bool,
     preflight_reason: str,
+    root_seed_drift_ok: bool = True,
+    root_seed_drift_reason: str = "root-seed drift check not configured",
 ) -> None:
     if not preflight_ok and preflight_reason:
         console.print(f"[yellow]runtime preflight: {preflight_reason}[/yellow]")
     if not consistency_ok:
         console.print(f"[yellow]artifact consistency: {consistency_reason}[/yellow]")
+    if not root_seed_drift_ok:
+        console.print(f"[yellow]root-seed drift: {root_seed_drift_reason}[/yellow]")
     if all_passed:
         console.print("[green]All validation checks passed[/green]")
         return
@@ -125,6 +139,8 @@ def emit_validation_outcome(
         )
     if not structure_ok or not consistency_ok or not preflight_ok:
         console.print("  Next: run 'sdd governance compile' to rebuild artifacts")
+    if not root_seed_drift_ok:
+        console.print("  Next: run 'sdd governance generate' to resync root seed files")
     raise typer.Exit(1)
 
 

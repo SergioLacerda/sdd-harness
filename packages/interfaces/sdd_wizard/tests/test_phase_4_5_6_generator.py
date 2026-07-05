@@ -65,6 +65,57 @@ class TestGenerateSeedlings:
 
         assert result["errors"] == ["Failed to generate intelligent seedlings"]
 
+    def test_hook_mode_keeps_seedling_selection_unchanged(self, tmp_path: Path) -> None:
+        generator = _make_generator(tmp_path)
+        generator.config = {"language": "Python", "handshake_mode": "hook"}
+        generator.selected_seedlings = {"governance", "verify"}
+        result: dict = {"errors": []}
+        fake_orchestrator = MagicMock()
+        fake_orchestrator.generate.return_value = True
+
+        with patch(
+            "sdd_wizard.orchestration.phase_4_5_6_generator.SeedlingsOrchestrator",
+            return_value=fake_orchestrator,
+        ):
+            assert generator._generate_seedlings([], {}, result) is True
+
+        fake_orchestrator.generate.assert_called_once_with(
+            selected={"governance", "verify"}
+        )
+
+    def test_hook_mode_generates_prompt_submit_hooks_for_selected_agents(
+        self, tmp_path: Path
+    ) -> None:
+        generator = _make_generator(tmp_path)
+        generator.config = {"language": "Python", "handshake_mode": "hook"}
+        generator.selected_seedlings = {"claude", "verify"}
+        result: dict = {"errors": []}
+
+        assert generator._generate_prompt_submit_hooks(result) is True
+
+        assert result["errors"] == []
+        assert generator.config["prompt_submit_hook_agents"] == ["claude"]
+        assert (
+            generator.output_base / ".sdd" / "runtime" / "hooks" / "prompt-submit.py"
+        ).exists()
+        assert (generator.output_base / ".claude" / "settings.json").exists()
+        assert not (generator.output_base / ".codex" / "config.toml").exists()
+
+    def test_hook_mode_without_supported_agent_records_error(
+        self, tmp_path: Path
+    ) -> None:
+        generator = _make_generator(tmp_path)
+        generator.config = {"language": "Python", "handshake_mode": "hook"}
+        generator.selected_seedlings = {"governance", "verify"}
+        result: dict = {"errors": []}
+
+        assert generator._generate_prompt_submit_hooks(result) is False
+
+        assert result["errors"] == [
+            "handshake_mode=hook requires at least one supported hook agent "
+            "(claude, codex, gemini)"
+        ]
+
 
 class TestRunEntryPoints:
     def test_run_delegates_to_pipeline(self, tmp_path: Path) -> None:

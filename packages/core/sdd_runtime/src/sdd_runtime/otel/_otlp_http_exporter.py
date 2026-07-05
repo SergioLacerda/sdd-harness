@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
+from urllib.parse import urlparse
 
 from .._events import OtelAttributes, RuntimeEvent
 from ._payload import _build_otlp_payload
+
+_LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 
 
 class OtlpHttpExporter:
@@ -35,14 +39,33 @@ class OtlpHttpExporter:
         headers: dict[str, str] | None = None,
         timeout: int = 5,
     ) -> None:
+        self._validate_endpoint(endpoint)
         self._endpoint = endpoint
         self._headers = headers or {}
         self._timeout = timeout
 
+    @staticmethod
+    def _validate_endpoint(endpoint: str) -> None:
+        parsed = urlparse(endpoint)
+        if parsed.scheme not in ("http", "https"):
+            return
+        hostname = parsed.hostname or ""
+        is_local = hostname in _LOCAL_HOSTS
+        allow_insecure = os.environ.get("SDD_OTEL_ALLOW_INSECURE_HTTP", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+        if parsed.scheme == "http" and not is_local and not allow_insecure:
+            raise ValueError(
+                f"OTLP endpoint uses plaintext HTTP for non-local host '{hostname}'. "
+                "Use https:// for remote endpoints, or set "
+                "SDD_OTEL_ALLOW_INSECURE_HTTP=true to explicitly opt in."
+            )
+
     def export(self, event: RuntimeEvent, attrs: OtelAttributes) -> None:
         """POST a single OTLP-JSON span to the configured endpoint."""
         import urllib.request
-        from urllib.parse import urlparse
 
         # Validate endpoint scheme (reject file:// and other unsafe schemes)
         parsed = urlparse(self._endpoint)

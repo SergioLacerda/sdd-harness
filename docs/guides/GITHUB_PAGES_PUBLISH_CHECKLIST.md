@@ -8,7 +8,18 @@ Use this checklist when docs workflows are green but the site was not updated.
 2. Pages source is set to **GitHub Actions**.
 3. Repository variable `ENABLE_GITHUB_PAGES` is set to `true`.
 
-## 2) Trigger conditions in `docs.yml`
+## 2) Publication artifact model
+
+The Pages artifact is built as a composed publication surface:
+
+1. Astro owns the root landing surface at `/`.
+2. MkDocs owns canonical technical documentation under `/docs/`.
+3. Selector remains a compiled artifact under `/selector/`.
+
+Use `make docs-build` for local publication verification because it builds the
+composed site: Astro landing, strict MkDocs docs, and compiled Selector assets.
+
+## 3) Trigger conditions in `docs.yml`
 
 Publish only runs when all conditions are true:
 
@@ -18,7 +29,7 @@ Publish only runs when all conditions are true:
 
 Reference: `.github/workflows/docs.yml`.
 
-## 3) Required file-change paths
+## 4) Required file-change paths
 
 The workflow triggers on changes in:
 
@@ -30,15 +41,16 @@ The workflow triggers on changes in:
 
 If your commit does not touch these paths, docs workflow will not run.
 
-## 4) Fast local verification
+## 5) Fast local verification
 
 ```bash
-uv run mkdocs build --strict
+make docs-build
 ```
 
-If this fails locally, fix docs before expecting publish.
+If this fails locally, fix the affected publication surface before expecting
+publish.
 
-## 5) CI verification
+## 6) CI verification
 
 In GitHub Actions:
 

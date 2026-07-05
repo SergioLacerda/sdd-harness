@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from sdd_wizard.orchestration.phase6_output_validator import OutputValidator
+from sdd_wizard.orchestration.prompt_submit_hooks import CENTRAL_PROMPT_SUBMIT_COMMAND
 
 
 def _make_validator(
@@ -49,6 +50,23 @@ def _create_all_required(tmp_path: Path, categories: list[str] | None = None) ->
         )
 
 
+def _create_prompt_submit_hooks(tmp_path: Path) -> None:
+    (tmp_path / ".sdd" / "runtime" / "hooks").mkdir(parents=True)
+    (tmp_path / ".sdd" / "runtime" / "hooks" / "prompt-submit.py").write_text(
+        "#!/usr/bin/env python3\n", encoding="utf-8"
+    )
+    (tmp_path / ".claude" / "settings.json").write_text(
+        CENTRAL_PROMPT_SUBMIT_COMMAND, encoding="utf-8"
+    )
+    (tmp_path / ".codex").mkdir(exist_ok=True)
+    (tmp_path / ".codex" / "config.toml").write_text(
+        CENTRAL_PROMPT_SUBMIT_COMMAND, encoding="utf-8"
+    )
+    (tmp_path / ".gemini" / "settings.json").write_text(
+        CENTRAL_PROMPT_SUBMIT_COMMAND, encoding="utf-8"
+    )
+
+
 class TestOutputValidatorAllPresent:
     def test_valid_when_all_files_exist(self, tmp_path: Path) -> None:
         _create_all_required(tmp_path, categories=["git"])
@@ -81,6 +99,54 @@ class TestOutputValidatorAllPresent:
         is_valid, result = validator.validate()
         assert is_valid is True
         assert result["checks"]["optional: setup-precommit-hook.sh"] == "OK"
+
+    def test_prompt_submit_hooks_required_in_hook_mode(self, tmp_path: Path) -> None:
+        _create_all_required(tmp_path)
+        _create_prompt_submit_hooks(tmp_path)
+        validator = _make_validator(tmp_path, config={"handshake_mode": "hook"})
+        is_valid, result = validator.validate()
+        assert is_valid is True
+        assert result["checks"]["hook: central hook"] == "OK"
+        assert result["checks"]["hook: Codex adapter"] == "OK"
+
+    def test_prompt_submit_hooks_validates_all_three_agents(
+        self, tmp_path: Path
+    ) -> None:
+        """Regression (SQ-001): claude, codex, and gemini adapters are all checked
+        together when handshake_mode=hook with no agent restriction — protects
+        the default all-supported-agents behavior through future refactors."""
+        _create_all_required(tmp_path)
+        _create_prompt_submit_hooks(tmp_path)
+        validator = _make_validator(tmp_path, config={"handshake_mode": "hook"})
+        is_valid, result = validator.validate()
+        assert is_valid is True
+        assert result["checks"]["hook: central hook"] == "OK"
+        assert result["checks"]["hook: Claude adapter"] == "OK"
+        assert result["checks"]["hook: Codex adapter"] == "OK"
+        assert result["checks"]["hook: Gemini adapter"] == "OK"
+
+    def test_prompt_submit_hooks_can_target_selected_agents(
+        self, tmp_path: Path
+    ) -> None:
+        _create_all_required(tmp_path)
+        (tmp_path / ".sdd" / "runtime" / "hooks").mkdir(parents=True)
+        (tmp_path / ".sdd" / "runtime" / "hooks" / "prompt-submit.py").write_text(
+            "#!/usr/bin/env python3\n", encoding="utf-8"
+        )
+        (tmp_path / ".codex").mkdir(exist_ok=True)
+        (tmp_path / ".codex" / "config.toml").write_text(
+            CENTRAL_PROMPT_SUBMIT_COMMAND, encoding="utf-8"
+        )
+        validator = _make_validator(
+            tmp_path,
+            config={
+                "handshake_mode": "hook",
+                "prompt_submit_hook_agents": ["codex"],
+            },
+        )
+        is_valid, result = validator.validate()
+        assert is_valid is True
+        assert "hook: Claude adapter" not in result["checks"]
 
 
 class TestOutputValidatorMissingFiles:
@@ -120,6 +186,15 @@ class TestOutputValidatorMissingFiles:
         is_valid, result = validator.validate()
         assert is_valid is False
         assert any("Missing optional-enabled file" in e for e in result["errors"])
+
+    def test_prompt_submit_hooks_missing_invalid_in_hook_mode(
+        self, tmp_path: Path
+    ) -> None:
+        _create_all_required(tmp_path)
+        validator = _make_validator(tmp_path, config={"handshake_mode": "hook"})
+        is_valid, result = validator.validate()
+        assert is_valid is False
+        assert any("Missing handshake_mode=hook file" in e for e in result["errors"])
 
 
 class TestOutputValidatorVerbose:

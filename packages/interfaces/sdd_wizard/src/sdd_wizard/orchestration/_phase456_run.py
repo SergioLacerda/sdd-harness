@@ -46,6 +46,9 @@ class _Phase456GeneratorProtocol(Protocol):
     ) -> bool:
         pass
 
+    def _generate_prompt_submit_hooks(self, result: Phase456RunResult) -> bool:
+        pass
+
 
 def run_phase456_pipeline(generator: _Phase456GeneratorProtocol) -> Phase456RunResult:
     """Execute Phase 4-6 generation."""
@@ -96,6 +99,9 @@ def run_phase456_pipeline(generator: _Phase456GeneratorProtocol) -> Phase456RunR
         return result
 
     if not generator._generate_seedlings(mandates, guidelines_by_category, result):
+        return result
+
+    if not generator._generate_prompt_submit_hooks(result):
         return result
 
     _generate_adapters(generator.output_base, generator._emit)

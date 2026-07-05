@@ -8,6 +8,10 @@ from sdd_wizard.orchestration.phase4_governance_loader import GovernanceLoader
 from sdd_wizard.orchestration.phase6_seedlings_orchestrator import (
     SeedlingsOrchestrator,
 )
+from sdd_wizard.orchestration.prompt_submit_hooks import (
+    SUPPORTED_PROMPT_HOOK_AGENTS,
+    PromptSubmitHookGenerator,
+)
 from sdd_wizard.orchestration.wizard.messages import phase6_seedlings_success_message
 
 _HOOK_MODE_SEEDLING_KEYS = {
@@ -108,6 +112,12 @@ def run_phase6_seedlings_generation(
     if not orchestrator.generate(selected=selected):
         emitter("  ❌ Failed to generate intelligent seedlings")
         return False
+    if handshake_mode == "hook":
+        agents = set(SUPPORTED_PROMPT_HOOK_AGENTS)
+        config["prompt_submit_hook_agents"] = sorted(agents)
+        if not PromptSubmitHookGenerator(output_base, agents).generate():
+            emitter("  ❌ Failed to generate prompt-submit hooks")
+            return False
 
     emitter(phase6_seedlings_success_message(output_base))
     return True

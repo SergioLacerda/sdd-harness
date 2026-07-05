@@ -118,9 +118,10 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          # GO-2026-4740 (github.com/shamaton/msgpack/v2): no fixed release
-          # exists upstream yet. Mitigated in internal/govcompiler via
-          # validateSerializable (depth/node-count limits before Marshal is
+          # GO-2026-4740 (github.com/shamaton/msgpack/v2): accepted risk
+          # reviewed on 2026-07-04; next review due 2026-08-04 or when
+          # govulncheck stops reporting it. Mitigated in internal/govcompiler
+          # via validateSerializable (depth/node-count limits before Marshal is
           # called) — see gov_compiler.go. Accepted-risk exception: fail the
           # build only if a *different* vulnerability is reported.
           output=$(go run golang.org/x/vuln/cmd/govulncheck@latest ./... 2>&1) || true

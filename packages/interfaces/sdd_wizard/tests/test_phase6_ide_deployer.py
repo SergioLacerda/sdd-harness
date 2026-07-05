@@ -69,6 +69,43 @@ def test_create_ide_templates_copies_optional_hooks_when_enabled(
     assert (output_base / ".pre-commit-config.yaml").exists()
 
 
+def test_create_ide_templates_merges_template_candidates(tmp_path: Path) -> None:
+    output_base = tmp_path / "out"
+    deployer = TemplateDeployer(repo_root=tmp_path, output_base=output_base)
+    primary = tmp_path / "primary" / "templates"
+    fallback = tmp_path / "fallback" / "templates"
+    (primary / ".github" / "workflows").mkdir(parents=True)
+    (primary / ".github" / "workflows" / "sdd-validation.yml").write_text(
+        "workflow", encoding="utf-8"
+    )
+    (primary / ".github" / "copilot-instructions.md").write_text(
+        "copilot", encoding="utf-8"
+    )
+    (fallback / ".vscode").mkdir(parents=True)
+    (fallback / ".vscode" / "ai-rules.md").write_text("vscode", encoding="utf-8")
+    (fallback / ".cursor" / "rules").mkdir(parents=True)
+    (fallback / ".cursor" / "rules" / "spec.mdc").write_text("cursor", encoding="utf-8")
+    (fallback / ".claude").mkdir(parents=True)
+    (fallback / ".claude" / "claude-instructions.md").write_text(
+        "claude", encoding="utf-8"
+    )
+    (fallback / ".gemini").mkdir(parents=True)
+    (fallback / ".gemini" / "gemini-instructions.md").write_text(
+        "gemini", encoding="utf-8"
+    )
+    (fallback / ".sdd" / "templates").mkdir(parents=True)
+    deployer._template_base_candidates = lambda: [primary, fallback]  # type: ignore[method-assign]
+
+    assert deployer.copy_templates() is True
+    assert deployer.create_ide_templates() is True
+
+    assert (output_base / ".github" / "copilot-instructions.md").exists()
+    assert (output_base / ".vscode" / "ai-rules.md").exists()
+    assert (output_base / ".cursor" / "rules" / "spec.mdc").exists()
+    assert (output_base / ".claude" / "claude-instructions.md").exists()
+    assert (output_base / ".gemini" / "gemini-instructions.md").exists()
+
+
 def test_init_reports_isolation_error_when_output_base_equals_repo_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

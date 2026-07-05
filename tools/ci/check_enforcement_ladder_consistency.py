@@ -14,9 +14,9 @@ class Rule:
 
 RULES = [
     Rule(
-        path="Makefile",
-        pattern="tools/ci/check_golden_policy.py --mode warn",
-        description="Local check must run WARN mode",
+        path="tools/maintenance/make_tasks.py",
+        pattern='"tools/ci/check_golden_policy.py", "--mode", "warn"',
+        description="Local `make check` must run WARN mode",
     ),
     Rule(
         path=".github/workflows/reusable-test.yml",

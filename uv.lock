@@ -4972,11 +4972,15 @@ name = "sdd-core"
 version = "1.0.0"
 source = { editable = "packages/core/sdd_core" }
 dependencies = [
+    { name = "msgpack" },
     { name = "structlog" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "structlog", specifier = ">=23.0" }]
+requires-dist = [
+    { name = "msgpack", specifier = ">=1.2.1" },
+    { name = "structlog", specifier = ">=23.0" },
+]
 
 [[package]]
 name = "sdd-harness"

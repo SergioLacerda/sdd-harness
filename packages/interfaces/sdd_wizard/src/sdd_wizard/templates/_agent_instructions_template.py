@@ -122,7 +122,7 @@ These constraints are non-negotiable. Violation requires human escalation, not a
 Before starting any task, verify bootstrap integrity:
 
 1. Read the fingerprint in your bootstrap file header (e.g. `# Governance fingerprint:` in CLAUDE.md)
-2. Compare with `.sdd/metadata.json` → field `governance_fingerprint`
+2. Compare with `.sdd/metadata.json` → field `fingerprints.combined`
 3. If they differ, governance was updated after bootstrap. Run `sdd governance generate` to sync.
 
 If `sdd governance generate` does not update `.sdd/agent-instructions.md`, ask the human to run `sdd wizard` again.

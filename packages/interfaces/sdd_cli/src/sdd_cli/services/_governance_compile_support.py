@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from collections.abc import Callable
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -66,14 +67,95 @@ def maybe_regenerate_wizard_contracts(
     output_base: Path, config: dict[str, Any], *, console: Any
 ) -> None:
     try:
-        from sdd_wizard.contracts import generate_agent_instructions_from_config
+        from sdd_wizard.contracts import (
+            generate_agent_instructions_from_config,
+            generate_root_bootstrap_from_config,
+        )
 
         generate_agent_instructions_from_config(output_base, config)
         console.print("[cyan].sdd/agent-instructions.md regenerated[/cyan]")
+        generate_root_bootstrap_from_config(output_base, config)
+        console.print("[cyan]Root bootstrap files regenerated[/cyan]")
     except ImportError:
         console.print(
             "[yellow]WARN: sdd_wizard not available, skipping agent-instructions.md regeneration[/yellow]"
         )
+
+
+def sync_workspace_metadata_from_config(
+    workspace_root: Path, config: dict[str, Any]
+) -> bool:
+    """Align `.sdd/metadata.json` with the compiled governance snapshot."""
+    import hashlib
+    import json
+
+    items = config.get("items", [])
+    if not isinstance(items, list) or not items:
+        return False
+
+    fingerprint = str(config.get("core_fingerprint") or config.get("fingerprint") or "")
+    if not fingerprint:
+        return False
+
+    metadata_path = workspace_root / ".sdd" / "metadata.json"
+    try:
+        metadata = (
+            json.loads(metadata_path.read_text(encoding="utf-8"))
+            if metadata_path.exists()
+            else {}
+        )
+    except json.JSONDecodeError:
+        metadata = {}
+
+    mandates = [
+        item for item in items if str(item.get("type", "")).strip().upper() == "MANDATE"
+    ]
+    guidelines = [
+        item
+        for item in items
+        if str(item.get("type", "")).strip().upper() in {"GUIDELINE", "RULE"}
+    ]
+    mandate_map = {
+        str(item.get("id")): str(item.get("title") or item.get("name") or "Unknown")
+        for item in mandates
+        if item.get("id")
+    }
+    mandate_fingerprints = {
+        str(item.get("id")): hashlib.sha256(
+            json.dumps(item, sort_keys=True).encode("utf-8")
+        ).hexdigest()[:16]
+        for item in mandates
+        if item.get("id")
+    }
+
+    existing_fingerprints = metadata.get("fingerprints")
+    fingerprints_base: dict[str, Any] = (
+        existing_fingerprints if isinstance(existing_fingerprints, dict) else {}
+    )
+
+    metadata.update(
+        {
+            "version": str(metadata.get("version") or "3.0"),
+            "generated_at": datetime.now(timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z"),
+            "mandates_count": len(mandates),
+            "guidelines_count": len(guidelines),
+            "governance_fingerprint": fingerprint[:16],
+            "fingerprints": {
+                **fingerprints_base,
+                "combined": fingerprint[:16],
+                "mandates": mandate_fingerprints,
+            },
+            "mandates": mandate_map,
+        }
+    )
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
+    metadata_path.write_text(
+        json.dumps(metadata, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return True
 
 
 def normalize_compile_context(
@@ -106,6 +188,8 @@ def regenerate_seeds_flow(
         else {}
     )
     output_base = resolve_output_base_fn(workspace_root)
+    if sync_workspace_metadata_from_config(workspace_root, config):
+        console.print("[cyan].sdd/metadata.json synchronized[/cyan]")
     generate_agent_instruction_files_fn(output_base, config)
     console.print("[cyan]Agent instruction files regenerated[/cyan]")
     maybe_regenerate_wizard_contracts(output_base, config, console=console)

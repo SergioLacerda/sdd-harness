@@ -193,3 +193,65 @@ def generate_agent_instructions_from_config(
             f"Failed to regenerate agent-instructions.md: {e}"
         )
         return False
+
+
+def generate_root_bootstrap_from_config(
+    output_base: "Path",
+    config: "dict[str, Any]",
+) -> bool:
+    """Regenerate root bootstrap files from a compiled governance config dict."""
+    from datetime import datetime, timezone
+    from pathlib import Path
+
+    from sdd_core.utils.text_io import write_text_utf8
+    from sdd_wizard.templates.seedling_templates import build_agents_md
+
+    from ._ai_seed_templates import build_claude_md
+    from ._renderer import build_fingerprint_header, render_agent_redirector
+
+    try:
+        items = config.get("items", [])
+        mandates = [i for i in items if str(i.get("type", "")).upper() == "MANDATE"]
+        fingerprint = str(
+            config.get("core_fingerprint") or config.get("fingerprint") or "unknown"
+        )[:16]
+        generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        mandate_ids = [str(m.get("id", "")) for m in mandates if m.get("id")]
+        ids_preview = ", ".join(mandate_ids[:5])
+        if len(mandate_ids) > 5:
+            ids_preview += ", ..."
+
+        output = Path(output_base)
+        fp_header = "\n".join(
+            build_fingerprint_header(fingerprint, mandate_ids, generated_at)
+        )
+        write_text_utf8(output / "CLAUDE.md", build_claude_md(fp_header))
+        write_text_utf8(
+            output / "GEMINI.md",
+            render_agent_redirector(
+                tool_name="Gemini",
+                config_paths=[
+                    ".gemini/commands.md",
+                    ".gemini/antigravity/skills/",
+                    "GEMINI.md",
+                ],
+                fingerprint=fingerprint,
+                mandate_ids=mandate_ids,
+                generated_at=generated_at,
+            ),
+        )
+        write_text_utf8(
+            output / "AGENTS.md",
+            build_agents_md(
+                spec_fingerprint=fingerprint,
+                generated_at=generated_at,
+                mandate_count=len(mandate_ids),
+                ids_preview=ids_preview,
+            ),
+        )
+        return True
+    except Exception as e:
+        logging.getLogger(__name__).warning(
+            f"Failed to regenerate root bootstrap files: {e}"
+        )
+        return False

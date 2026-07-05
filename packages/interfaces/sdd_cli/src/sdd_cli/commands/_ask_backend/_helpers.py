@@ -15,6 +15,9 @@ from typer.models import OptionInfo
 from sdd_cli.services.ask_context import (
     check_fingerprint_drift as _check_fingerprint_drift,
 )
+from sdd_cli.services.ask_context import (
+    check_root_seed_drift as _check_root_seed_drift,
+)
 from sdd_cli.services.ask_context import get_profile_state as _get_profile_state_impl
 from sdd_cli.services.ask_context import (
     load_compiled_governance as _load_compiled_governance,
@@ -104,6 +107,10 @@ def _runtime_drift_check(workspace_root: Path, loaded_fingerprint: str) -> bool:
     return _check_fingerprint_drift(workspace_root, loaded_fingerprint)
 
 
+def _root_seed_drift_check(workspace_root: Path) -> bool:
+    return _check_root_seed_drift(workspace_root)
+
+
 def _resolve_ask_drift_type(*, drift_detected: bool, authenticated: bool) -> str:
     """Classify ask drift for telemetry consumers."""
     if not drift_detected:
@@ -146,9 +153,13 @@ def _governance_footer_for_state(
     state: str,
     profile: str,
     drift_detected: bool,
+    root_seed_drift_detected: bool | None = None,
 ) -> str:
     return _render_governance_footer_impl(
-        state=state, profile=profile, drift_detected=drift_detected
+        state=state,
+        profile=profile,
+        drift_detected=drift_detected,
+        root_seed_drift_detected=root_seed_drift_detected,
     )
 
 

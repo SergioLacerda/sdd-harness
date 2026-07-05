@@ -28,11 +28,15 @@ from sdd_runtime import (
     TraceabilityValidator,
 )
 from sdd_runtime.drift import (
+    DRIFT_BOOTSTRAP,
     DRIFT_MISMATCH,
+    DRIFT_MISSING,
     DRIFT_NONE,
     DRIFT_POLICY,
     DRIFT_PROFILE,
     DRIFT_SESSION,
+    check_root_seed_drift,
+    extract_seed_fingerprint,
 )
 from sdd_runtime.policy import SEVERITY_HARD, SEVERITY_NONE
 
@@ -179,6 +183,11 @@ class TestSessionManager:
             state_file.write_text("not-json", encoding="utf-8")
             mgr = SessionManager(state_dir=state_dir)
             assert mgr.all_sessions() == []
+
+    def test_state_file_requires_state_dir(self) -> None:
+        mgr = SessionManager()
+        with pytest.raises(RuntimeError, match="state_dir is required"):
+            mgr._state_file()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -405,6 +414,52 @@ class TestDriftDetector:
         assert report.drift_type == DRIFT_POLICY
 
 
+class TestRootSeedDrift:
+    def test_extract_seed_fingerprint_finds_header_comment(self) -> None:
+        content = "# Governance fingerprint: 58a087b3c9fb9ce2\n\nBody text."
+        assert extract_seed_fingerprint(content) == "58a087b3c9fb9ce2"
+
+    def test_extract_seed_fingerprint_none_when_absent(self) -> None:
+        assert extract_seed_fingerprint("# No fingerprint here\n") is None
+
+    def test_no_drift_when_seed_matches_metadata(self) -> None:
+        report = check_root_seed_drift(
+            seed_name="CLAUDE.md",
+            seed_content="# Governance fingerprint: abc123\n",
+            metadata_fingerprint="abc123",
+        )
+        assert report.drift_detected is False
+        assert report.drift_type == DRIFT_NONE
+
+    def test_bootstrap_drift_when_seed_mismatches_metadata(self) -> None:
+        report = check_root_seed_drift(
+            seed_name="CLAUDE.md",
+            seed_content="# Governance fingerprint: abc123\n",
+            metadata_fingerprint="def456",
+        )
+        assert report.drift_detected is True
+        assert report.drift_type == DRIFT_BOOTSTRAP
+        assert report.remediation_command
+
+    def test_missing_when_seed_has_no_fingerprint(self) -> None:
+        report = check_root_seed_drift(
+            seed_name="AGENTS.md",
+            seed_content="No fingerprint comment.",
+            metadata_fingerprint="abc123",
+        )
+        assert report.drift_detected is True
+        assert report.drift_type == DRIFT_MISSING
+
+    def test_missing_when_metadata_fingerprint_absent(self) -> None:
+        report = check_root_seed_drift(
+            seed_name="CLAUDE.md",
+            seed_content="# Governance fingerprint: abc123\n",
+            metadata_fingerprint=None,
+        )
+        assert report.drift_detected is True
+        assert report.drift_type == DRIFT_MISSING
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # injection.py
 # ─────────────────────────────────────────────────────────────────────────────
@@ -585,6 +640,13 @@ class TestTelemetrySink:
             assert (Path(tmp) / "task-42.jsonl").exists()
             assert (Path(tmp) / "task-99.jsonl").exists()
             assert not base.exists()  # base file not used when all events are segmented
+
+    def test_resolve_path_requires_jsonl_path(self) -> None:
+        sink = TelemetrySink()
+        with pytest.raises(RuntimeError, match="jsonl_path is required"):
+            sink._resolve_path(
+                RuntimeEvent(event="x", command="c", status="ok", trace_id="t")
+            )
 
 
 # ─────────────────────────────────────────────────────────────────────────────

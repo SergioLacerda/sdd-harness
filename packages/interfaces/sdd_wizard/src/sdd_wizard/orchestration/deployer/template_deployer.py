@@ -49,6 +49,14 @@ class TemplateDeployer:
                 return candidate
         return self._template_base_candidates()[-1]
 
+    def _resolve_template_path(self, relative_path: Path) -> Path | None:
+        """Return the first template candidate that contains the requested path."""
+        for candidate in self._template_base_candidates():
+            path = candidate / relative_path
+            if path.exists():
+                return path
+        return None
+
     def _template_base_candidates(self) -> list[Path]:
         candidates: list[Path] = []
         with contextlib.suppress(ModuleNotFoundError, TypeError, AttributeError):
@@ -88,18 +96,17 @@ class TemplateDeployer:
         """Copy base templates to .github/workflows."""
         self._log("Copying templates")
         try:
-            src_workflow = (
-                self._template_base / ".github" / "workflows" / "sdd-validation.yml"
-            )
+            workflow_rel = Path(".github") / "workflows" / "sdd-validation.yml"
+            src_workflow = self._resolve_template_path(workflow_rel)
             dst_workflow = (
                 self.output_base / ".github" / "workflows" / "sdd-validation.yml"
             )
             dst_workflow.parent.mkdir(parents=True, exist_ok=True)
-            if src_workflow.exists():
+            if src_workflow is not None:
                 shutil.copy2(src_workflow, dst_workflow)
                 self._log("Copied sdd-validation.yml to .github/workflows/")
             else:
-                self._log(f"Template not found: {src_workflow}")
+                self._log(f"Template not found: {workflow_rel}")
             return True
         except Exception as e:
             print(f"  ❌ Failed to copy templates: {e}")  # noqa: T201
@@ -133,8 +140,9 @@ class TemplateDeployer:
 
             for src, dst in dir_mappings:
                 try:
-                    if src.exists() and src.is_dir():
-                        shutil.copytree(src, dst, dirs_exist_ok=True)
+                    source = self._resolve_template_path(src.relative_to(template_base))
+                    if source is not None and source.is_dir():
+                        shutil.copytree(source, dst, dirs_exist_ok=True)
                         if (
                             dst == self.output_base / ".github"
                             and not self._optional_hooks_enabled()
@@ -142,7 +150,7 @@ class TemplateDeployer:
                             hook = dst / "setup-precommit-hook.sh"
                             if hook.exists():
                                 hook.unlink()
-                        self._log(f"Copied {src.name}/ directory")
+                        self._log(f"Copied {source.name}/ directory")
                         copied_count += 1
                     else:
                         self._log(f"⚠️  Template directory not found: {src.name}/")
@@ -159,10 +167,11 @@ class TemplateDeployer:
                 )
             for src, dst in optional_files:
                 try:
-                    if src.exists():
+                    source = self._resolve_template_path(src.relative_to(template_base))
+                    if source is not None:
                         dst.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copy2(src, dst)
-                        self._log(f"Copied optional file {src.name}")
+                        shutil.copy2(source, dst)
+                        self._log(f"Copied optional file {source.name}")
                 except Exception as e:
                     self._log(f"⚠️  Failed to copy optional file {src.name}: {e}")
 

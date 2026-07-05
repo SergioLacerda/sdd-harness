@@ -32,7 +32,7 @@ def render_agent_redirector(
         f"# Governance fingerprint: {fingerprint[:16]}",
         f"# Active mandates: {len(mandate_ids)}"
         + (f" ({ids_preview})" if ids_preview else ""),
-        "# Drift check: fingerprint must match .sdd/metadata.json → governance_fingerprint",
+        "# Drift check: fingerprint must match .sdd/metadata.json → fingerprints.combined",
     ]
 
     lines: list[str] = list(header_lines) + fp_lines

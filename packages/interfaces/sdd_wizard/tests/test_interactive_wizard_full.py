@@ -127,7 +127,13 @@ class TestAskUserPreferences:
         handshake: str = "1",
     ) -> InteractiveWizard:
         responses = iter(
-            [enforcement, language, interaction_language, local_docs_language, handshake]
+            [
+                enforcement,
+                language,
+                interaction_language,
+                local_docs_language,
+                handshake,
+            ]
         )
         return _make_wizard(tmp_path, prompter=lambda _: next(responses))
 

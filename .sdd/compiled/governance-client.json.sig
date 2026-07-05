@@ -5,6 +5,6 @@
   "artifact_name": "governance-client.json",
   "profile": "client",
   "payload_hash": "d92deb798250d88f628b8b6d1ed43f73aa11e12a1c862be27d1eccc0aac6b80f",
-  "signature": "P4Hmt7G9QrtVSgLJR1THzAZHmvoqk0p/oAWw7Lr4OYHTQtoGiMy8jCkpal38PZ3NZYK6hh76ADIyWUeAiMbeCg==",
-  "signed_at": "2026-06-17T02:22:24.135832Z"
+  "signature": "Q09PjKWUnJfX5NGH9CDZ6ys2TquEnGUC3fhhrIEYdUs5N0FxsEZah5LGB1ZX8PGhRa5XYlz6Rx6rwQnj0YpjBA==",
+  "signed_at": "2026-07-04T22:36:31.166362Z"
 }

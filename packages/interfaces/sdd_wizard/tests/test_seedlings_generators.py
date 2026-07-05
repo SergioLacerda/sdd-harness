@@ -268,27 +268,40 @@ class TestAISeedsGeneratorCodex:
 
 
 class TestAISeedsGeneratorCodexHandshakeMode:
-    def test_generate_codex_seed_hook_mode_writes_config_toml_hook(
+    def test_generate_codex_seed_hook_mode_keeps_hook_generation_separate(
         self, tmp_path: Path, tmp_seedlings_dir: Path
     ) -> None:
-        config = {"project_name": "Test Project", "language": "python", "handshake_mode": "hook"}
+        config = {
+            "project_name": "Test Project",
+            "language": "python",
+            "handshake_mode": "hook",
+        }
         gen = AISeedsGenerator(
-            output_base=tmp_path, seedlings_dir=tmp_seedlings_dir, config=config,
-            spec_fingerprint="abc12345", mandate_ids=["M001"], active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z", verbose=False,
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
         )
         assert gen.generate_codex_seed() is True
-        toml_content = (tmp_path / ".codex" / "config.toml").read_text(encoding="utf-8")
-        assert "[[hooks.UserPromptSubmit]]" in toml_content
-        assert (tmp_path / ".codex" / "sdd-governance-inject.py").exists()
+        assert not (tmp_path / ".codex" / "config.toml").exists()
+        assert not (tmp_path / ".codex" / "sdd-governance-inject.py").exists()
 
     def test_generate_codex_seed_standard_mode_unchanged(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
     ) -> None:
         gen = AISeedsGenerator(
-            output_base=tmp_path, seedlings_dir=tmp_seedlings_dir, config=base_config,
-            spec_fingerprint="abc12345", mandate_ids=["M001"], active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z", verbose=False,
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
         )
         assert gen.generate_codex_seed() is True
         assert not (tmp_path / ".codex" / "config.toml").exists()
@@ -296,30 +309,48 @@ class TestAISeedsGeneratorCodexHandshakeMode:
 
 
 class TestAISeedsGeneratorGeminiHandshakeMode:
-    def test_generate_gemini_seed_hook_mode_writes_before_agent_hook(
+    def test_generate_gemini_seed_hook_mode_keeps_hook_generation_separate(
         self, tmp_path: Path, tmp_seedlings_dir: Path
     ) -> None:
-        config = {"project_name": "Test Project", "language": "python", "handshake_mode": "hook"}
+        config = {
+            "project_name": "Test Project",
+            "language": "python",
+            "handshake_mode": "hook",
+        }
         gen = AISeedsGenerator(
-            output_base=tmp_path, seedlings_dir=tmp_seedlings_dir, config=config,
-            spec_fingerprint="abc12345", mandate_ids=["M001"], active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z", verbose=False,
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
         )
         assert gen.generate_gemini_seed() is True
-        settings = json.loads((tmp_path / ".gemini" / "settings.json").read_text(encoding="utf-8"))
-        assert "BeforeAgent" in settings["hooks"]
-        assert (tmp_path / ".gemini" / "sdd-governance-inject.py").exists()
+        settings = json.loads(
+            (tmp_path / ".gemini" / "settings.json").read_text(encoding="utf-8")
+        )
+        assert settings.get("contextFileName") == "GEMINI.md"
+        assert "hooks" not in settings
 
     def test_generate_gemini_seed_standard_mode_unchanged(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
     ) -> None:
         gen = AISeedsGenerator(
-            output_base=tmp_path, seedlings_dir=tmp_seedlings_dir, config=base_config,
-            spec_fingerprint="abc12345", mandate_ids=["M001"], active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z", verbose=False,
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
         )
         assert gen.generate_gemini_seed() is True
-        settings = json.loads((tmp_path / ".gemini" / "settings.json").read_text(encoding="utf-8"))
+        settings = json.loads(
+            (tmp_path / ".gemini" / "settings.json").read_text(encoding="utf-8")
+        )
         assert settings.get("contextFileName") == "GEMINI.md"
         assert "hooks" not in settings
 
@@ -749,36 +780,51 @@ class TestAISeedsGeneratorClaudeSeed:
 
 
 class TestAISeedsGeneratorClaudeHandshakeMode:
-    def test_generate_claude_seed_hook_mode_writes_user_prompt_submit_hook(
+    def test_generate_claude_seed_hook_mode_keeps_hook_generation_separate(
         self, tmp_path: Path, tmp_seedlings_dir: Path
     ) -> None:
-        """handshake_mode=hook must write a UserPromptSubmit hook, not PreToolUse."""
-        config = {"project_name": "Test Project", "language": "python", "handshake_mode": "hook"}
+        """AI seeds stay independent from prompt-submit hook runtime generation."""
+        config = {
+            "project_name": "Test Project",
+            "language": "python",
+            "handshake_mode": "hook",
+        }
         gen = AISeedsGenerator(
-            output_base=tmp_path, seedlings_dir=tmp_seedlings_dir, config=config,
-            spec_fingerprint="abc12345", mandate_ids=["M001"], active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z", verbose=False,
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
         )
         assert gen.generate_claude_seed() is True
-        settings = json.loads((tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8"))
-        assert "UserPromptSubmit" in settings["hooks"]
-        inject_script = tmp_path / ".claude" / "sdd-governance-inject.py"
-        assert inject_script.exists()
-        script_content = inject_script.read_text(encoding="utf-8")
-        assert ".sdd/metadata.json" in script_content
-        assert ".sdd/runtime/hook-disabled" in script_content
+        settings = json.loads(
+            (tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8")
+        )
+        assert "PreToolUse" in settings["hooks"]
+        assert "UserPromptSubmit" not in settings["hooks"]
+        assert not (tmp_path / ".claude" / "sdd-governance-inject.py").exists()
 
     def test_generate_claude_seed_standard_mode_unchanged(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
     ) -> None:
         """Default config (no handshake_mode) keeps the existing PreToolUse hook."""
         gen = AISeedsGenerator(
-            output_base=tmp_path, seedlings_dir=tmp_seedlings_dir, config=base_config,
-            spec_fingerprint="abc12345", mandate_ids=["M001"], active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z", verbose=False,
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
         )
         assert gen.generate_claude_seed() is True
-        settings = json.loads((tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8"))
+        settings = json.loads(
+            (tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8")
+        )
         assert "PreToolUse" in settings["hooks"]
         assert "UserPromptSubmit" not in settings["hooks"]
         assert not (tmp_path / ".claude" / "sdd-governance-inject.py").exists()
@@ -886,7 +932,11 @@ class TestGovernanceSeedsGeneratorMethods:
         )
         success = gen.generate_agnostic_agent_instructions()
         assert success is True
-        assert (tmp_path / ".sdd" / "agent-instructions.md").exists()
+        instructions_file = tmp_path / ".sdd" / "agent-instructions.md"
+        assert instructions_file.exists()
+        content = instructions_file.read_text(encoding="utf-8")
+        assert "fingerprints.combined" in content
+        assert "governance_fingerprint" not in content
 
     def test_generate_agent_specific_entrypoint_contracts(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]

@@ -13,6 +13,7 @@ from sdd_core.utils.text_io import read_text_utf8
 from sdd_wizard.orchestration.seedlings.governance_seeds import (
     GovernanceSeedsGenerator,
     generate_agent_instructions_from_config,
+    generate_root_bootstrap_from_config,
 )
 from sdd_wizard.templates.seedling_templates import (
     build_activation_guide,
@@ -104,6 +105,24 @@ def test_generate_agent_instructions_still_works(tmp_path: Path) -> None:
     instructions = read_text_utf8(tmp_path / ".sdd" / "agent-instructions.md")
     assert "M001" in instructions
     assert FINGERPRINT in instructions
+    assert "fingerprints.combined" in instructions
+    assert "governance_fingerprint" not in instructions
+
+
+def test_generate_root_bootstrap_from_config_updates_root_files(tmp_path: Path) -> None:
+    config = {
+        "items": [
+            {"type": "MANDATE", "id": "M001", "title": "Clean Architecture"},
+            {"type": "MANDATE", "id": "M002", "title": "Test Coverage"},
+        ],
+        "core_fingerprint": FINGERPRINT,
+    }
+    assert generate_root_bootstrap_from_config(tmp_path, config) is True
+    for filename in ("AGENTS.md", "CLAUDE.md", "GEMINI.md"):
+        content = read_text_utf8(tmp_path / filename)
+        assert FINGERPRINT in content
+        assert "fingerprints.combined" in content
+        assert "governance_fingerprint" not in content
 
 
 def test_governance_seeds_module_size_reduced() -> None:

@@ -12,6 +12,9 @@ from unittest.mock import patch
 import pytest
 from rich.console import Console
 
+from sdd_cli.services._governance_compile_support import (
+    sync_workspace_metadata_from_config,
+)
 from sdd_cli.services.governance_compile_handlers import (
     regenerate_seeds,
     update_profile_hash,
@@ -189,7 +192,16 @@ class TestRegenerateSeeds:
             patch("sdd_cli.utils.loader.validate_governance_path", return_value=True),
             patch(
                 "sdd_cli.utils.loader.load_governance_config",
-                return_value={"items": []},
+                return_value={
+                    "core_fingerprint": "abcdef0123456789",
+                    "items": [
+                        {
+                            "id": "M001",
+                            "type": "MANDATE",
+                            "title": "Clean Architecture",
+                        }
+                    ],
+                },
             ),
             patch(
                 "sdd_cli.generators.agent_seeds.generate_agent_instruction_files"
@@ -198,14 +210,21 @@ class TestRegenerateSeeds:
                 "sdd_wizard.contracts.generate_agent_instructions_from_config",
                 return_value=True,
             ) as mock_gen_wizard,
+            patch(
+                "sdd_wizard.contracts.generate_root_bootstrap_from_config",
+                return_value=True,
+            ) as mock_gen_root,
         ):
             regenerate_seeds(console=console)
 
         mock_gen_instr.assert_called_once()
         mock_gen_wizard.assert_called_once()
+        mock_gen_root.assert_called_once()
         output = console.file.getvalue()
+        assert ".sdd/metadata.json synchronized" in output
         assert "Agent instruction files regenerated" in output
         assert ".sdd/agent-instructions.md regenerated" in output
+        assert "Root bootstrap files regenerated" in output
 
     def test_invalid_governance_path_uses_empty_config(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -225,11 +244,51 @@ class TestRegenerateSeeds:
                 "sdd_wizard.contracts.generate_agent_instructions_from_config",
                 return_value=True,
             ),
+            patch(
+                "sdd_wizard.contracts.generate_root_bootstrap_from_config",
+                return_value=True,
+            ),
         ):
             regenerate_seeds(console=console)
 
         args, _ = mock_gen_instr.call_args
         assert args[1] == {}
+
+    def test_sync_workspace_metadata_from_config_uses_compiled_fingerprint(
+        self, tmp_path: Path
+    ) -> None:
+        metadata_path = tmp_path / ".sdd" / "metadata.json"
+        metadata_path.parent.mkdir(parents=True)
+        metadata_path.write_text(
+            json.dumps(
+                {
+                    "version": "3.0",
+                    "language_context": {"preferred_chat_language": "pt-BR"},
+                    "mandates_count": 1,
+                    "fingerprints": {"combined": "old"},
+                    "mandates": {"M000": "Old"},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        config = {
+            "core_fingerprint": "1234567890abcdef9999",
+            "items": [
+                {"id": "M001", "type": "MANDATE", "title": "Clean Architecture"},
+                {"id": "M002", "type": "MANDATE", "title": "TDD"},
+                {"id": "G001", "type": "GUIDELINE", "title": "Style"},
+            ],
+        }
+
+        assert sync_workspace_metadata_from_config(tmp_path, config) is True
+        synced = json.loads(metadata_path.read_text(encoding="utf-8"))
+        assert synced["governance_fingerprint"] == "1234567890abcdef"
+        assert synced["fingerprints"]["combined"] == "1234567890abcdef"
+        assert synced["mandates_count"] == 2
+        assert synced["guidelines_count"] == 1
+        assert synced["mandates"] == {"M001": "Clean Architecture", "M002": "TDD"}
+        assert synced["language_context"] == {"preferred_chat_language": "pt-BR"}
 
     def test_wizard_import_error_prints_warning(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

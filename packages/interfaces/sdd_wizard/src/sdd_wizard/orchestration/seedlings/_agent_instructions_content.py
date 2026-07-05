@@ -69,7 +69,7 @@ Before planning, coding, or deciding:
 
 Verify bootstrap integrity:
 1. Compare fingerprint in your bootstrap file (CLAUDE.md, GEMINI.md, etc.)
-2. Compare with `.sdd/metadata.json` → field `governance_fingerprint`
+2. Compare with `.sdd/metadata.json` → field `fingerprints.combined`
 3. If they differ → run `sdd governance generate` to sync
 
 ---
