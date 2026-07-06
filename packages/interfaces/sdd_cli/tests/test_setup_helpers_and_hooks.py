@@ -178,6 +178,80 @@ class TestSetupGitHooks:
         assert "Copied pre-commit" in result.output
         assert "Re-run 'sdd setup git-hooks'" in result.output
 
+    def test_install_continues_when_chmod_denied_after_symlink(
+        self, tmp_path: Path
+    ) -> None:
+        from sdd_cli.main import app
+
+        hooks_src = tmp_path / "tools" / "scripts" / "git-hooks"
+        hooks_src.mkdir(parents=True)
+        git_hooks = tmp_path / ".git" / "hooks"
+        git_hooks.mkdir(parents=True)
+        hook_file = hooks_src / "pre-commit"
+        hook_file.write_text("#!/bin/sh\n", encoding="utf-8")
+
+        with (
+            patch.object(setup_mod, "_REPO_ROOT", tmp_path),
+            patch.object(Path, "chmod", side_effect=PermissionError("denied")),
+        ):
+            result = runner.invoke(app, ["setup", "git-hooks"])
+
+        assert result.exit_code == 0
+        assert (git_hooks / "pre-commit").is_symlink()
+        assert "WARN: Could not chmod pre-commit" in result.output
+        assert "Traceback" not in result.output
+
+    def test_install_continues_when_chmod_denied_after_copy(
+        self, tmp_path: Path
+    ) -> None:
+        from sdd_cli.main import app
+
+        hooks_src = tmp_path / "tools" / "scripts" / "git-hooks"
+        hooks_src.mkdir(parents=True)
+        git_hooks = tmp_path / ".git" / "hooks"
+        git_hooks.mkdir(parents=True)
+        hook_file = hooks_src / "pre-commit"
+        hook_file.write_text("#!/bin/sh\n", encoding="utf-8")
+
+        with (
+            patch.object(setup_mod, "_REPO_ROOT", tmp_path),
+            patch("os.symlink", side_effect=OSError("permission denied")),
+            patch.object(Path, "chmod", side_effect=PermissionError("denied")),
+        ):
+            result = runner.invoke(app, ["setup", "git-hooks"])
+
+        assert result.exit_code == 0
+        assert (git_hooks / "pre-commit").exists()
+        assert "WARN: Could not chmod pre-commit" in result.output
+        assert "Traceback" not in result.output
+
+    def test_install_locked_existing_hook_exits_without_traceback(
+        self, tmp_path: Path
+    ) -> None:
+        from sdd_cli.main import app
+
+        hooks_src = tmp_path / "tools" / "scripts" / "git-hooks"
+        hooks_src.mkdir(parents=True)
+        git_hooks = tmp_path / ".git" / "hooks"
+        git_hooks.mkdir(parents=True)
+        hook_file = hooks_src / "pre-commit"
+        hook_file.write_text("#!/bin/sh\n", encoding="utf-8")
+        target = git_hooks / "pre-commit"
+        target.write_text("#!/bin/sh\n", encoding="utf-8")
+
+        with (
+            patch.object(setup_mod, "_REPO_ROOT", tmp_path),
+            patch.object(Path, "unlink", side_effect=PermissionError("locked")),
+        ):
+            result = runner.invoke(app, ["setup", "git-hooks"])
+
+        assert result.exit_code == 1
+        assert "Could not replace an existing Git hook" in result.output
+        assert "Operation: unlink" in result.output
+        assert str(target) in result.output
+        assert "sdd setup git-hooks" in result.output
+        assert "Traceback" not in result.output
+
     def test_uninstall_removes_copied_files(self, tmp_path: Path) -> None:
         from sdd_cli.main import app
 

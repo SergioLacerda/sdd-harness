@@ -31,6 +31,8 @@ class TestInitCommand:
                 name="test-ws",
                 force=False,
                 no_bootstrap=True,
+                default=False,
+                list_commands=False,
             )
         profile_path = tmp_path / ".sdd" / "profile"
         assert profile_path.exists()
@@ -44,7 +46,13 @@ class TestInitCommand:
             patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
         ):
             init(
-                MagicMock(), type="client", name="first", force=False, no_bootstrap=True
+                MagicMock(),
+                type="client",
+                name="first",
+                force=False,
+                no_bootstrap=True,
+                default=False,
+                list_commands=False,
             )
         # Second init without --force must exit 1
         with (
@@ -58,6 +66,8 @@ class TestInitCommand:
                 name="second",
                 force=False,
                 no_bootstrap=True,
+                default=False,
+                list_commands=False,
             )
         assert exc_info.value.exit_code == 1
 
@@ -67,10 +77,22 @@ class TestInitCommand:
             patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
         ):
             init(
-                MagicMock(), type="client", name="first", force=False, no_bootstrap=True
+                MagicMock(),
+                type="client",
+                name="first",
+                force=False,
+                no_bootstrap=True,
+                default=False,
+                list_commands=False,
             )
             init(
-                MagicMock(), type="master", name="second", force=True, no_bootstrap=True
+                MagicMock(),
+                type="master",
+                name="second",
+                force=True,
+                no_bootstrap=True,
+                default=False,
+                list_commands=False,
             )
         content = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
         assert "master" in content
@@ -80,7 +102,15 @@ class TestInitCommand:
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
         ):
-            init(MagicMock(), type="client", name=None, force=False, no_bootstrap=True)
+            init(
+                MagicMock(),
+                type="client",
+                name=None,
+                force=False,
+                no_bootstrap=True,
+                default=False,
+                list_commands=False,
+            )
         content = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
         assert "client" in content
 
@@ -96,5 +126,12 @@ class TestInitCommand:
             ),
         ):
             # Simulate parent workspace detected
-            init(MagicMock(), type="client", name=None, force=False)
+            init(
+                MagicMock(),
+                type="client",
+                name=None,
+                force=False,
+                default=False,
+                list_commands=False,
+            )
         assert exc_info.value.exit_code == 1

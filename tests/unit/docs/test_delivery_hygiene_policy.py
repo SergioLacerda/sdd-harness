@@ -35,6 +35,6 @@ def test_entrypoint_and_dod_include_strict_hygiene_steps() -> None:
     entrypoint = _read("docs/runtime/protocols/AGENT_ENTRYPOINT.md")
     dod = _read("docs/spec/canonical/specifications/definition_of_done.md")
     assert "ruff check --fix ." in entrypoint
-    assert "Revalidação pós auto-fix" in entrypoint
+    assert "Post auto-fix revalidation" in entrypoint
     assert "Strict Auto-Fix Hygiene (Mandatory)" in dod
     assert "delivery is BLOCKED" in dod

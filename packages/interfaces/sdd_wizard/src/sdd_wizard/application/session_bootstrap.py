@@ -18,6 +18,7 @@ class SessionBootstrap:
             non_interactive=invocation.non_interactive,
             output_path=invocation.output_path,
             language=invocation.language,
+            custom_governance_path=invocation.custom_governance_path,
         )
 
     def run(self) -> WizardResult:

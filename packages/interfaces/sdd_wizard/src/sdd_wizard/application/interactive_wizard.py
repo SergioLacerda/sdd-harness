@@ -11,7 +11,6 @@ Interactive mode for SDD Wizard v3 - Phase-based template generation
 
 import json
 from collections.abc import Callable
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -65,7 +64,6 @@ from ._interactive_wizard_constants import (
     _HANDSHAKE_CHOICES,
     _HANDSHAKE_MAP,
     _INTERACTION_LANGUAGE_CHOICES,
-    _LANGUAGE_CHOICES,
     _LOCAL_DOCS_LANGUAGE_CHOICES,
     _LOCALE_BY_LANGUAGE,
     _ONBOARDING_BASELINE_GUIDELINES,
@@ -88,19 +86,14 @@ class InteractiveWizard:
 
     SUPPORTED_PHASE2_PATTERNS: tuple[str, ...] = ("*.md", "*.spec", "*.dsl")
 
-    _PHASE_CHOICES: dict[str, str] = {
-        "1": "Phase 1: Generate governance templates (start here or reset)",
-        "2": "Phase 2: How to customize templates (guidance on editing)",
-        "3": "Phase 3: Compile governance (after editing Phase 1 output)",
-        "4": "Phase 4-6: Generate Project Structure (after Phase 3)",
-    }
-
     def __init__(
         self,
         repo_root: Path,
         emitter: Callable[[str], None] | None = None,
         prompter: Prompter | Callable[[str], str] | None = None,
         output_dir: Path | None = None,
+        non_interactive: bool = False,
+        custom_governance_path: Path | None = None,
     ):
         paths = get_sdd_paths()
         self.repo_root = repo_root or paths["root"]
@@ -108,6 +101,11 @@ class InteractiveWizard:
         self._emit = emitter or print
         self._prompter = _wrap_prompter(prompter)
         self._preferences_flow = PreferencesFlow(self._prompter, self._emit)
+        self.non_interactive = non_interactive
+        self.custom_governance_path = custom_governance_path
+        self._resolved_preferences: dict[str, Any] | None = None
+        self._resolved_agent_selection: set[str] | None = None
+        self._agent_selection_resolved = False
         self.config: dict[str, Any] = {}
         self.client_build_dir = self.paths["client_build"]
         self.client_compiled_dir = self.paths["client_compiled"]
@@ -173,25 +171,36 @@ class InteractiveWizard:
         self._emit(f"\n{icon} {title}")
         self._emit("=" * 70)
 
-    def show_phase_menu(self) -> str:
-        """Show menu to choose which phase to start at."""
-        self.print_header("SDD Wizard v3 - Choose Starting Phase", "🧙")
-        self._emit(f"\nStarted: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        return self._preferences_flow.select_phase(self._PHASE_CHOICES)
-
     def ask_user_preferences(self) -> dict[str, Any]:
-        """Ask user for preferences: enforcement mode and programming language."""
+        """Resolve user preferences: enforcement mode, language, and handshake mode.
+
+        Resolved once and cached — safe to call multiple times (e.g. hoisted
+        at the top of the flow, then again internally by PhaseOneRuntime)
+        without prompting twice. When `non_interactive` is set, resolves
+        without prompting at all (see `PreferencesFlow.resolve_non_interactive_preferences`).
+        """
+        if self._resolved_preferences is not None:
+            return self._resolved_preferences
+
+        if self.non_interactive:
+            self._resolved_preferences = (
+                self._preferences_flow.resolve_non_interactive_preferences(
+                    self.client_build_dir
+                )
+            )
+            return self._resolved_preferences
+
         self.print_header("User Preferences Setup", "⚙️")
-        return self._preferences_flow.collect_preferences(
+        self._resolved_preferences = self._preferences_flow.collect_preferences(
             enforcement_choices=_ENFORCEMENT_CHOICES,
             enforcement_map=_ENFORCEMENT_MAP,
-            language_choices=_LANGUAGE_CHOICES,
             interaction_language_choices=_INTERACTION_LANGUAGE_CHOICES,
             local_docs_language_choices=_LOCAL_DOCS_LANGUAGE_CHOICES,
             locale_by_language=_LOCALE_BY_LANGUAGE,
             handshake_choices=_HANDSHAKE_CHOICES,
             handshake_map=_HANDSHAKE_MAP,
         )
+        return self._resolved_preferences
 
     def save_config(self, config: dict[str, Any]) -> Path:
         """Save configuration to wizard-config.json"""
@@ -241,8 +250,23 @@ class InteractiveWizard:
         return PhaseTwoRuntime(self).execute()
 
     def _ask_seedling_selection(self) -> set[str] | None:
-        """Ask the user which seedlings to include. Returns None for all."""
-        return ask_seedling_selection(self._emit, prompter=self._prompter)
+        """Resolve which seedlings to include. Returns None for all.
+
+        Resolved once and cached — safe to call multiple times without
+        prompting twice. When `non_interactive` is set, resolves to `None`
+        (all seedlings) without prompting.
+        """
+        if self._agent_selection_resolved:
+            return self._resolved_agent_selection
+
+        if self.non_interactive:
+            self._resolved_agent_selection = None
+        else:
+            self._resolved_agent_selection = ask_seedling_selection(
+                self._emit, prompter=self._prompter
+            )
+        self._agent_selection_resolved = True
+        return self._resolved_agent_selection
 
     def phase_4_generate_project(self) -> Phase4GenerateResult:
         """Execute Phase 4-6: Generate project structure from compiled governance"""
@@ -284,6 +308,16 @@ class InteractiveWizard:
         return InteractiveFlowRuntime(self).execute()
 
 
-def run_interactive_wizard(repo_root: Path, output_dir: Path | None = None) -> bool:
+def run_interactive_wizard(
+    repo_root: Path,
+    output_dir: Path | None = None,
+    non_interactive: bool = False,
+    custom_governance_path: Path | None = None,
+) -> bool:
     """Create an InteractiveWizard and run the main interactive flow."""
-    return InteractiveWizard(repo_root=repo_root, output_dir=output_dir).run()
+    return InteractiveWizard(
+        repo_root=repo_root,
+        output_dir=output_dir,
+        non_interactive=non_interactive,
+        custom_governance_path=custom_governance_path,
+    ).run()

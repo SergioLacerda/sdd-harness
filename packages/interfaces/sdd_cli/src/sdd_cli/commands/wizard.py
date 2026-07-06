@@ -5,12 +5,20 @@ from pathlib import Path
 import click
 import typer
 
-app = typer.Typer()
+from sdd_cli.services.command_group_output import show_command_group
+
+app = typer.Typer(invoke_without_command=True)
 
 
-@app.callback()
-def _() -> None:
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List wizard commands."),
+) -> None:
     """Run wizard."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Wizard", ["run"])
+        raise typer.Exit(0)
 
 
 @app.command()
@@ -20,6 +28,17 @@ def run(
         "--output-dir",
         help="Directory for the final generated project template. Defaults to ./generated/client/build/final-template/.",
         show_default=False,
+    ),
+    from_file: Path | None = typer.Option(
+        None,
+        "--from-file",
+        help="Path to a custom mandates/guidelines JSON file (Scenario B) — validated and used instead of generating a fresh governance set.",
+        show_default=False,
+    ),
+    non_interactive: bool = typer.Option(
+        False,
+        "--non-interactive",
+        help="Resolve preferences/agent selection without prompting — reuses an existing wizard-config.json when present, else canonical defaults.",
     ),
 ) -> None:
     """Run SDD wizard"""
@@ -37,12 +56,17 @@ def run(
     resolved_output = (
         output_dir.expanduser().resolve() if output_dir is not None else None
     )  # noqa: E501
+    resolved_custom_governance_path = (
+        from_file.expanduser().resolve() if from_file is not None else None
+    )
 
     try:
         result = run_wizard(
             WizardInvocation(
                 project_root=Path.cwd(),
                 output_path=resolved_output,
+                non_interactive=non_interactive,
+                custom_governance_path=resolved_custom_governance_path,
             )
         )
         if not result.success:

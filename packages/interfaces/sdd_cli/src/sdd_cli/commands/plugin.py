@@ -8,6 +8,7 @@ from typing import Any
 import click
 import typer
 
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.utils.output import emit_json, is_json_mode
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
@@ -16,7 +17,19 @@ def _ctx_json() -> bool:
     return is_json_mode(click.get_current_context(silent=True))
 
 
-app = typer.Typer(help="Plugin registry management")
+app = typer.Typer(help="Plugin registry management", invoke_without_command=True)
+
+
+@app.callback(invoke_without_command=True)
+def plugin_default(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List plugin commands."),
+) -> None:
+    """Plugin registry operations."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Plugin", ["list", "validate"])
+        raise typer.Exit(0)
+
 
 _REQUIRED_FIELDS = [
     "id",

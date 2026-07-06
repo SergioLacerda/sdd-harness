@@ -5,6 +5,7 @@ from pathlib import Path
 import typer
 
 from sdd_cli.commands.doctor_gates import _apply_adherence_gate, _apply_score_gate
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.utils.command_errors import handle_cli_errors
 from sdd_cli.utils.environment import detect_repo_root
 from sdd_cli.utils.sdd_authority import enforce_path_policy, resolve_workspace_root
@@ -30,11 +31,13 @@ def _get_default_spec() -> Path:
 @app.callback()
 def _(
     ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List doctor commands."),
     spec: Path = typer.Option(None, help="Path to integration flow spec"),  # noqa: B008
 ) -> None:
     """Run diagnostics."""
-    if ctx.invoked_subcommand is None:
-        run(spec=spec, mode="isolated", score_threshold=0, adherence_threshold=0)
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Doctor", ["run"])
+        raise typer.Exit(0)
 
 
 @app.command()

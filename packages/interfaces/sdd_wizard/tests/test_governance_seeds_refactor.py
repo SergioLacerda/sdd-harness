@@ -105,8 +105,7 @@ def test_generate_agent_instructions_still_works(tmp_path: Path) -> None:
     instructions = read_text_utf8(tmp_path / ".sdd" / "agent-instructions.md")
     assert "M001" in instructions
     assert FINGERPRINT in instructions
-    assert "fingerprints.combined" in instructions
-    assert "governance_fingerprint" not in instructions
+    assert "governance_fingerprint" in instructions
 
 
 def test_generate_root_bootstrap_from_config_updates_root_files(tmp_path: Path) -> None:

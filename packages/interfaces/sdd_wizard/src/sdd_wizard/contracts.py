@@ -16,6 +16,12 @@ class WizardInvocation:
     non_interactive: bool = False
     output_path: Path | None = None
     language: str = "python"
+    custom_governance_path: Path | None = None
+    """Scenario B trigger: a user-supplied mandates/guidelines JSON file.
+
+    When set, the wizard validates and loads this file instead of generating
+    a fresh governance set from markdown templates (Phase 1-3 is bypassed).
+    """
 
 
 @dataclass(frozen=True)

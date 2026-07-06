@@ -35,6 +35,7 @@ from sdd_cli.services.audit_validators import (
     run_bootstrap_check,
     run_legacy_check,
 )
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.shared.contracts import build_ok_result
 from sdd_cli.utils.output import emit_json
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
@@ -48,6 +49,7 @@ app = typer.Typer(
 @app.callback()
 def audit_run(
     ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List audit commands."),
     events_file: Path = typer.Option(
         None, "--events-file", help="Path to compliance events JSONL."
     ),
@@ -61,6 +63,39 @@ def audit_run(
     """Summarize governance stats, top drifts, and token input/output comparison."""
     if ctx.invoked_subcommand is not None:
         return
+    if list_commands:
+        _show_audit_commands()
+        raise typer.Exit(0)
+    if events_file is None and top == 10 and not include_non_drift:
+        _show_audit_commands()
+        raise typer.Exit(0)
+    _run_audit_summary(
+        events_file=events_file,
+        top=top,
+        include_non_drift=include_non_drift,
+    )
+
+
+def _show_audit_commands() -> None:
+    show_command_group(
+        "Audit",
+        [
+            "summary",
+            "view",
+            "export",
+            "legacy-check",
+            "bootstrap-check",
+            "compliance-pack",
+        ],
+    )
+
+
+def _run_audit_summary(
+    *,
+    events_file: Path | None,
+    top: int,
+    include_non_drift: bool,
+) -> None:
     source = events_file or _default_events_path()
     events = _load_events(source)
     now_utc = datetime.now(timezone.utc)
@@ -73,6 +108,26 @@ def audit_run(
 
     computed = _compute_base_summary(events, top)
     render_audit_text(data, top, computed["rows"], source)
+
+
+@app.command("summary")
+def audit_summary(
+    events_file: Path = typer.Option(
+        None, "--events-file", help="Path to compliance events JSONL."
+    ),
+    top: int = typer.Option(10, "--top", min=1, help="Number of drift rows to show."),
+    include_non_drift: bool = typer.Option(
+        False,
+        "--include-non-drift",
+        help="Include non-drift events in JSON output diagnostics.",
+    ),
+) -> None:
+    """Summarize governance stats, top drifts, and token input/output comparison."""
+    _run_audit_summary(
+        events_file=events_file,
+        top=top,
+        include_non_drift=include_non_drift,
+    )
 
 
 @app.command("view")

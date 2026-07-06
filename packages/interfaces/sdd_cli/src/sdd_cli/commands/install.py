@@ -16,6 +16,7 @@ from pathlib import Path
 import typer
 
 from sdd_cli.commands.wizard import run as run_wizard_command
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_wizard.orchestration.wizard._direct_root_deploy import deploy_to_root
 
 app = typer.Typer()
@@ -51,17 +52,41 @@ def install(
             "into the project root (idempotent; never overwrites unmanaged files)."
         ),
     ),
+    from_file: Path | None = typer.Option(
+        None,
+        "--from-file",
+        help="Path to a custom mandates/guidelines JSON file (Scenario B) — validated and used instead of generating a fresh governance set.",
+        show_default=False,
+    ),
+    non_interactive: bool = typer.Option(
+        False,
+        "--non-interactive",
+        help="Resolve preferences/agent selection without prompting — reuses an existing wizard-config.json when present, else canonical defaults.",
+    ),
+    list_commands: bool = typer.Option(False, "--list", help="List install commands."),
 ) -> None:
     """Install SDD governance (canonical entrypoint)."""
     if ctx.invoked_subcommand is not None:
         return
 
+    if list_commands:
+        show_command_group("Install", ["--wizard"])
+        raise typer.Exit(0)
+
     if not wizard:
+        if from_file is not None or non_interactive:
+            typer.echo("ERROR: --from-file/--non-interactive require --wizard")
+            typer.echo("Run: sdd install --wizard --from-file <path>")
+            raise typer.Exit(1)
         typer.echo("ERROR: no install target specified")
         typer.echo("Run: sdd install --wizard")
         raise typer.Exit(1)
 
-    run_wizard_command(output_dir=output_dir)
+    run_wizard_command(
+        output_dir=output_dir,
+        from_file=from_file,
+        non_interactive=non_interactive,
+    )
 
     if direct_root:
         final_template_dir = _resolve_final_template_dir(output_dir)

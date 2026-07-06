@@ -52,6 +52,33 @@ def test_wizard_run_exits_when_result_is_unsuccessful() -> None:
     assert result.exit_code == 1
 
 
+def test_wizard_run_passes_through_from_file_and_non_interactive(
+    tmp_path,
+) -> None:
+    from sdd_wizard.contracts import WizardInvocation
+
+    custom_file = tmp_path / "custom-governance.json"
+    custom_file.write_text("{}", encoding="utf-8")
+    runner = CliRunner()
+    recorded: list[WizardInvocation] = []
+
+    def _fake_run_wizard(invocation: WizardInvocation):
+        from sdd_wizard.contracts import WizardResult
+
+        recorded.append(invocation)
+        return WizardResult(success=True)
+
+    with patch("sdd_wizard.contracts.run_wizard", side_effect=_fake_run_wizard):
+        result = runner.invoke(
+            app,
+            ["run", "--from-file", str(custom_file), "--non-interactive"],
+        )
+
+    assert result.exit_code == 0, result.output
+    assert recorded[0].custom_governance_path == custom_file.resolve()
+    assert recorded[0].non_interactive is True
+
+
 def test_wizard_run_reports_error_when_sdd_wizard_not_installed() -> None:
     runner = CliRunner()
     real_import = builtins.__import__

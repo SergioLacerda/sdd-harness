@@ -61,6 +61,37 @@ class TestOnboardingOrchestrator:
         orc._run_step("x", ["setup", "git-hooks"])
         assert seen["cmd"] == [resolved, "setup", "git-hooks"]
 
+    def test_run_step_process_permission_error_has_operational_context(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from sdd_cli.services.onboarding import OnboardingOrchestrator
+        from sdd_cli.utils.operational_errors import OperationalCliError
+
+        class _Runner:
+            def run(self, cmd, **_kwargs):  # noqa: ANN001
+                raise PermissionError("denied")
+
+        monkeypatch.setattr(
+            "sdd_cli.services.onboarding.SafeProcessRunner", lambda: _Runner()
+        )
+        monkeypatch.setattr(
+            "sdd_cli.services.onboarding.resolve_sdd_child_cmd", lambda: "sdd"
+        )
+
+        orc = OnboardingOrchestrator(tmp_path)
+
+        with pytest.raises(OperationalCliError) as exc_info:
+            orc._run_step(
+                "governance generate",
+                ["governance", "generate", "--full-bootstrap"],
+            )
+
+        error = exc_info.value
+        assert error.step == "governance generate"
+        assert error.operation == "run child command"
+        assert error.path == tmp_path
+        assert "sdd governance generate --full-bootstrap" in (error.next_hint or "")
+
     def test_step_governance_skipped_when_artifacts_exist_no_force(
         self, tmp_path: Path
     ) -> None:

@@ -5,12 +5,20 @@ import shutil
 import click
 import typer
 
-app = typer.Typer(help="Documentation commands")
+from sdd_cli.services.command_group_output import show_command_group
+
+app = typer.Typer(help="Documentation commands", invoke_without_command=True)
 
 
-@app.callback()
-def _() -> None:
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List docs commands."),
+) -> None:
     """Documentation operations."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Documentation", ["deploy"])
+        raise typer.Exit(0)
 
 
 @app.command("deploy")

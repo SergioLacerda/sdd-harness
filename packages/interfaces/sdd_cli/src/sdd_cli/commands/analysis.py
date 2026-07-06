@@ -16,6 +16,7 @@ from sdd_cli.services.analysis_helpers import (
     _next_action,
     _parse_duration,
 )
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.utils.output import emit_json, is_json_mode
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
@@ -24,14 +25,18 @@ def _ctx_json() -> bool:
     return is_json_mode(click.get_current_context(silent=True))
 
 
-app = typer.Typer(help="Analysis workspace management")
+app = typer.Typer(help="Analysis workspace management", invoke_without_command=True)
 
 
 @app.callback(invoke_without_command=True)
-def analysis_default(ctx: typer.Context) -> None:
+def analysis_default(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List analysis commands."),
+) -> None:
     """List missions when called without a subcommand."""
-    if ctx.invoked_subcommand is None:
-        list_missions()
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Analysis", ["list", "status", "clean"])
+        raise typer.Exit(0)
 
 
 @app.command("list")

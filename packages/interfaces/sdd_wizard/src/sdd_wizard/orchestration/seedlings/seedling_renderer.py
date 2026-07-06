@@ -108,10 +108,15 @@ class SeedlingRenderer:
                     mandates_lines.append(f"- **{m['id']}**: {title} ({desc})")
                 else:
                     mandates_lines.append(f"- **{m['id']}**: {title}")
+            ids_preview = ", ".join(ctx.mandate_ids[:5])
+            if len(ctx.mandate_ids) > 5:
+                ids_preview += ", ..."
             content = build_agent_instructions(
                 spec_fingerprint=ctx.spec_fingerprint,
                 generated_at=ctx.generated_at,
                 mandates_list="\n".join(mandates_lines),
+                mandate_count=len(ctx.mandate_ids),
+                ids_preview=ids_preview,
             )
             instructions_file = instructions_dir / "agent-instructions.md"
             with open(instructions_file, "w", encoding="utf-8") as f:

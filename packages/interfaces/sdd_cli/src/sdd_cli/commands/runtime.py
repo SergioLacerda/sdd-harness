@@ -17,6 +17,7 @@ from sdd_cli.commands._runtime_command_support import (
 from sdd_cli.commands._runtime_command_support import (
     render_status_output as _render_status_output_impl,
 )
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.runtime_handler import (
     _check_cache_staleness,
     _emit_runtime_status,  # noqa: F401  patchable by tests
@@ -35,12 +36,18 @@ from sdd_cli.utils.sdd_authority import (
 
 logger = logging.getLogger(__name__)
 
-app = typer.Typer()
+app = typer.Typer(invoke_without_command=True)
 
 
-@app.callback()
-def _() -> None:
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List runtime commands."),
+) -> None:
     """Workspace runtime operations."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Runtime", ["status"])
+        raise typer.Exit(0)
 
 
 @app.command()

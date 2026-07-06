@@ -8,7 +8,13 @@ from typing import cast
 import typer
 
 from sdd_cli.commands.init_steps import _emit_workspace_init_telemetry
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.onboarding import OnboardingOrchestrator
+from sdd_cli.utils.operational_errors import (
+    OperationalCliError,
+    operational_error_from_exception,
+    render_operational_error,
+)
 from sdd_core.utils.environment import (
     SddProfile,
     find_workspace_root,
@@ -16,6 +22,34 @@ from sdd_core.utils.environment import (
 )
 
 app = typer.Typer()
+
+
+def _raise_init_operational_error(
+    exc: BaseException,
+    *,
+    headline: str,
+    step: str,
+    operation: str,
+    path: Path,
+    next_hint: str = "check folder permissions, then retry: sdd init --force",
+) -> None:
+    operational_error = operational_error_from_exception(
+        exc,
+        headline=headline,
+        command="sdd init",
+        step=step,
+        operation=operation,
+        path=path,
+        next_hint=next_hint,
+    )
+    if operational_error is None:
+        raise exc
+    _exit_init_operational_error(operational_error)
+
+
+def _exit_init_operational_error(error: OperationalCliError) -> None:
+    render_operational_error(error)
+    raise typer.Exit(error.exit_code) from None
 
 
 def _resolve_default_flags(
@@ -35,7 +69,7 @@ def _resolve_default_flags(
 
 
 @app.callback(invoke_without_command=True)
-def init(
+def init(  # noqa: C901
     ctx: typer.Context,
     type: str = typer.Option(  # noqa: A002
         "client",
@@ -65,12 +99,17 @@ def init(
         "--default",
         help="One-command bootstrap: defaults --type to 'client', --name to 'local-dev', and --force, for any of those not explicitly set.",
     ),
+    list_commands: bool = typer.Option(False, "--list", help="List init commands."),
 ) -> None:
     """Initialize an SDD workspace in the current directory.
 
     Creates `.sdd/profile` and refuses nested workspaces.
     """
     cwd = Path.cwd()
+
+    if list_commands:
+        show_command_group("Init", ["--type client", "--type master", "--default"])
+        raise typer.Exit(0)
 
     if default:
         type, name, force = _resolve_default_flags(ctx, type, name, force)  # noqa: A001
@@ -100,10 +139,29 @@ def init(
 
     profile_type = cast(SddProfile, normalized_type)
     effective_name = name or profile_type
-    profile_ctx = write_profile(cwd, profile_type, effective_name)
+    try:
+        profile_ctx = write_profile(cwd, profile_type, effective_name)
+    except OSError as exc:
+        _raise_init_operational_error(
+            exc,
+            headline="Could not write SDD workspace profile.",
+            step="profile",
+            operation="write profile",
+            path=cwd / ".sdd" / "profile",
+        )
+
     runtime_dir = cwd / ".sdd" / "runtime"
-    runtime_dir.mkdir(parents=True, exist_ok=True)
-    (runtime_dir / ".phase-0-complete").touch(exist_ok=True)
+    try:
+        runtime_dir.mkdir(parents=True, exist_ok=True)
+        (runtime_dir / ".phase-0-complete").touch(exist_ok=True)
+    except OSError as exc:
+        _raise_init_operational_error(
+            exc,
+            headline="Could not initialize SDD runtime marker.",
+            step="profile",
+            operation="create runtime marker",
+            path=runtime_dir / ".phase-0-complete",
+        )
 
     _emit_workspace_init_telemetry(
         profile_ctx=profile_ctx,
@@ -123,10 +181,27 @@ def init(
         typer.echo("")
         typer.echo("[1/5] Workspace profile created ✓")
         orc = OnboardingOrchestrator(cwd)
-        bootstrap_result = orc.run(force=bool(force))
+        try:
+            bootstrap_result = orc.run(force=bool(force))
+        except OperationalCliError as exc:
+            _exit_init_operational_error(exc)
+        except OSError as exc:
+            operational_error = operational_error_from_exception(
+                exc,
+                headline="Governance activation failed because file access was denied.",
+                command="sdd init",
+                step="bootstrap",
+                operation="run onboarding",
+                next_hint="close programs that may be locking .sdd, then retry: sdd init --force",
+            )
+            if operational_error is None:
+                raise
+            _exit_init_operational_error(operational_error)
         if bootstrap_result.success:
             typer.echo("\n🟢 Onboarding complete — workspace is HEALTHY")
         else:
+            if bootstrap_result.failed_step:
+                typer.echo(f"  Step: {bootstrap_result.failed_step}", err=True)
             for msg in bootstrap_result.messages:
                 typer.echo(f"  ERROR: {msg}", err=True)
             raise typer.Exit(bootstrap_result.exit_code)

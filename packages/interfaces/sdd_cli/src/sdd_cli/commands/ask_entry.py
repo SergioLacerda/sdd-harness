@@ -5,6 +5,7 @@ from __future__ import annotations
 import click
 import typer
 
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.utils.output import is_json_mode
 
 app = typer.Typer(
@@ -15,9 +16,10 @@ app = typer.Typer(
 
 @app.callback(invoke_without_command=True)
 def ask(
-    query: str = typer.Argument(
-        ..., help="Governance query (text is hashed, never stored)."
+    query: str | None = typer.Argument(
+        None, help="Governance query (text is hashed, never stored)."
     ),
+    list_commands: bool = typer.Option(False, "--list", help="List ask commands."),
     dossier: bool = typer.Option(
         False, "--dossier", help="Build comprehensive task dossier with analysis."
     ),
@@ -48,6 +50,11 @@ def ask(
     ),
 ) -> None:
     """Run governed ask query."""
+    if list_commands:
+        show_command_group("Ask", ["<query> [options]"])
+        raise typer.Exit(0)
+    if query is None:
+        raise click.UsageError("Missing argument 'QUERY'.")
     normalized_query = query.strip()
     if not normalized_query or normalized_query.lower() in {"null", "nula"}:
         return

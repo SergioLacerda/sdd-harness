@@ -193,7 +193,7 @@ def test_otlp_http_exporter_makes_post(monkeypatch):
         return DummyResp()
 
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
-    exporter = OtlpHttpExporter(endpoint="http://fake-endpoint")
+    exporter = OtlpHttpExporter(endpoint="https://fake-endpoint")
 
     class DummyEvent:
         ts = "2024-01-01T00:00:00+00:00"
@@ -226,7 +226,7 @@ def test_otlp_http_exporter_makes_post(monkeypatch):
 
     attrs = OtelAttributes.from_event(DummyEvent())
     exporter.export(DummyEvent(), attrs)
-    assert called["url"] == "http://fake-endpoint"
+    assert called["url"] == "https://fake-endpoint"
     assert b"resourceSpans" in called["data"]
     assert called["headers"]["content-type"] == "application/json"
 

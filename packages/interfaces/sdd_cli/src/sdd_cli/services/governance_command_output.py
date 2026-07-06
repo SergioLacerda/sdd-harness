@@ -7,12 +7,41 @@ from typing import Any
 import typer
 from rich.console import Console
 
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.governance_artifact_handlers import (
     render_governance_compile_table,
 )
 from sdd_cli.shared.contracts import build_error_result
 from sdd_cli.utils.output import emit_json
 from sdd_core.output.canonical_event import CanonicalLogEvent
+
+
+def show_governance_command_list() -> None:
+    """Print the governance command group helper."""
+    show_command_group(
+        "Governance",
+        [
+            "compile",
+            "generate",
+            "keygen",
+            "sign",
+            "load",
+            "validate",
+            "score",
+            "adherence",
+            "audit",
+            "handshake",
+            "reconcile-registries",
+            "hook status",
+            "hook enable",
+            "hook disable",
+        ],
+    )
+
+
+def show_hook_command_list() -> None:
+    """Print the governance hook command group helper."""
+    show_command_group("Governance hook", ["status", "enable", "disable"])
 
 
 def handle_compile_output(

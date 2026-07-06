@@ -10,6 +10,10 @@ from sdd_cli.services.governance_artifact_handlers import (
     _has_malformed_titles,  # noqa: F401  backward-compat re-export for unit tests
     render_governance_compile_table,  # noqa: F401 - backward-compat symbol for tests/patches
 )
+from sdd_cli.services.governance_command_output import (
+    show_governance_command_list,
+    show_hook_command_list,
+)
 from sdd_cli.services.governance_compile_handlers import (
     resolve_output_base,  # noqa: F401  backward-compat re-export for unit tests
     run_compile,
@@ -43,15 +47,39 @@ __all__ = [
     "resolve_generate_path",
 ]
 
-app = typer.Typer(help="Governance management commands")
+app = typer.Typer(help="Governance management commands", invoke_without_command=True)
 hook_app = typer.Typer(
-    help="Manage the prompt-submit governance hook (handshake_mode=hook)"
+    help="Manage the prompt-submit governance hook (handshake_mode=hook)",
+    invoke_without_command=True,
 )
 console = Console()
 
 
 def _ctx_json() -> bool:
     return is_json_mode(click.get_current_context(silent=True))
+
+
+@app.callback()
+def governance_default(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(
+        False,
+        "--list",
+        help="List governance commands and exit.",
+    ),
+) -> None:
+    """Show governance commands when invoked without a subcommand."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_governance_command_list()
+        raise typer.Exit(0)
+
+
+@hook_app.callback()
+def hook_default(ctx: typer.Context) -> None:
+    """Show hook commands when invoked without a subcommand."""
+    if ctx.invoked_subcommand is None:
+        show_hook_command_list()
+        raise typer.Exit(0)
 
 
 @app.command()

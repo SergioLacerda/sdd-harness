@@ -11,6 +11,7 @@ from sdd_cli.commands._test_command_support import (
 from sdd_cli.commands._test_command_support import (
     run_ci_validate as _run_ci_validate,
 )
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.test_handler import (
     _check_import,
     _run_cli,
@@ -21,12 +22,18 @@ from sdd_cli.services.test_handler import (
 from sdd_cli.utils.dev_deps import require_dev_module
 from sdd_cli.utils.environment import detect_repo_root
 
-app = typer.Typer()
+app = typer.Typer(invoke_without_command=True)
 
 
-@app.callback()
-def _() -> None:
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List test commands."),
+) -> None:
     """Run test pipeline."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Test", ["run", "ci-validate", "review-golden"])
+        raise typer.Exit(0)
 
 
 class TestCommand:

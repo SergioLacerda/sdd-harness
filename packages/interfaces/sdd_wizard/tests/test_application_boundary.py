@@ -16,10 +16,17 @@ from sdd_wizard.contracts import WizardInvocation
 
 
 def test_phase_runtime_executes_runner_with_invocation(tmp_path: Path) -> None:
-    recorded: list[tuple[Path, Path | None]] = []
+    recorded: list[tuple[Path, Path | None, bool, Path | None]] = []
 
-    def _runner(project_root: Path, output_dir: Path | None = None) -> bool:
-        recorded.append((project_root, output_dir))
+    def _runner(
+        project_root: Path,
+        output_dir: Path | None = None,
+        non_interactive: bool = False,
+        custom_governance_path: Path | None = None,
+    ) -> bool:
+        recorded.append(
+            (project_root, output_dir, non_interactive, custom_governance_path)
+        )
         return True
 
     runtime = PhaseRuntime(
@@ -28,7 +35,46 @@ def test_phase_runtime_executes_runner_with_invocation(tmp_path: Path) -> None:
     )
 
     assert runtime.execute() is True
-    assert recorded == [(tmp_path, tmp_path / "out")]
+    assert recorded == [(tmp_path, tmp_path / "out", False, None)]
+
+
+def test_phase_runtime_forwards_custom_governance_path(tmp_path: Path) -> None:
+    """Regression: custom_governance_path must survive PhaseRuntime.execute()."""
+    recorded: dict[str, object] = {}
+
+    def _runner(
+        project_root: Path,
+        output_dir: Path | None = None,
+        non_interactive: bool = False,
+        custom_governance_path: Path | None = None,
+    ) -> bool:
+        recorded["custom_governance_path"] = custom_governance_path
+        recorded["non_interactive"] = non_interactive
+        return True
+
+    custom_path = tmp_path / "custom-governance.json"
+    runtime = PhaseRuntime(
+        WizardInvocation(
+            project_root=tmp_path,
+            non_interactive=True,
+            custom_governance_path=custom_path,
+        ),
+        runner=_runner,
+    )
+
+    assert runtime.execute() is True
+    assert recorded["custom_governance_path"] == custom_path
+    assert recorded["non_interactive"] is True
+
+
+def test_session_bootstrap_preserves_custom_governance_path(tmp_path: Path) -> None:
+    """Regression: custom_governance_path was previously dropped in __init__."""
+    custom_path = tmp_path / "custom-governance.json"
+    bootstrap = SessionBootstrap(
+        WizardInvocation(project_root=tmp_path, custom_governance_path=custom_path)
+    )
+
+    assert bootstrap._invocation.custom_governance_path == custom_path
 
 
 def test_session_bootstrap_returns_failure_result(tmp_path: Path) -> None:
@@ -108,16 +154,61 @@ def test_phase_two_runtime_stages_supported_files(tmp_path: Path) -> None:
     assert (context.phase2_input_dir / "test.md").exists()
 
 
-def test_interactive_flow_runtime_routes_to_phase2() -> None:
+def test_interactive_flow_runtime_scenario_a_success(
+    monkeypatch, tmp_path: Path
+) -> None:
+    """Single guided flow: Scenario A (no custom_governance_path) runs
+    Phase 1-3 then Phase 4, with no phase-choice menu."""
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+
     class _Context:
-        def show_phase_menu(self) -> str:
-            return "2"
+        non_interactive = False
+        custom_governance_path = None
+
+        def ask_user_preferences(self) -> dict:
+            return {"language": "all"}
+
+        def _ask_seedling_selection(self):
+            return None
 
         def phase_1_generate_templates(self) -> dict:
-            return {"success": False}
+            return {"success": True}
 
         def phase_2_show_instructions(self) -> dict:
             return {"success": True}
+
+        def phase_3_compile_templates(self) -> dict:
+            return {"success": True}
+
+        def phase_4_generate_project(self) -> dict:
+            return {"success": True}
+
+        def _emit(self, _message: str) -> None:
+            pass
+
+    assert InteractiveFlowRuntime(_Context()).execute() is True
+
+
+def test_interactive_flow_runtime_scenario_a_stops_on_phase2_failure(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+
+    class _Context:
+        non_interactive = False
+        custom_governance_path = None
+
+        def ask_user_preferences(self) -> dict:
+            return {"language": "all"}
+
+        def _ask_seedling_selection(self):
+            return None
+
+        def phase_1_generate_templates(self) -> dict:
+            return {"success": True}
+
+        def phase_2_show_instructions(self) -> dict:
+            return {"success": False}
 
         def phase_3_compile_templates(self) -> dict:
             return {"success": False}
@@ -128,7 +219,7 @@ def test_interactive_flow_runtime_routes_to_phase2() -> None:
         def _emit(self, _message: str) -> None:
             pass
 
-    assert InteractiveFlowRuntime(_Context()).execute() is True
+    assert InteractiveFlowRuntime(_Context()).execute() is False
 
 
 class _PhaseOneContext:

@@ -5,19 +5,31 @@ from pathlib import Path
 
 import typer
 
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.utils.environment import (
     detect_repo_root,
     resolve_venv_python,
     resolve_venv_sdd,
 )
+from sdd_cli.utils.operational_errors import (
+    OperationalCliError,
+    operational_error_from_exception,
+    render_operational_error,
+)
 
-app = typer.Typer()
+app = typer.Typer(invoke_without_command=True)
 _REPO_ROOT = detect_repo_root()
 
 
-@app.callback()
-def _() -> None:
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List setup commands."),
+) -> None:
     """Setup environment."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Setup", ["git-hooks", "run"])
+        raise typer.Exit(0)
 
 
 def _run(cmd: list[str]) -> None:
@@ -52,7 +64,21 @@ def _uninstall_git_hooks(hooks_src: Path, git_hooks_dest: Path) -> None:
             continue
         target = git_hooks_dest / hook_file.name
         if target.is_symlink() or target.exists():
-            target.unlink()
+            try:
+                target.unlink()
+            except OSError as exc:
+                operational_error = operational_error_from_exception(
+                    exc,
+                    headline="Could not remove an installed Git hook.",
+                    command="sdd setup git-hooks",
+                    step="hooks",
+                    operation="unlink",
+                    path=target,
+                    next_hint="close programs using the hook file, then retry: sdd setup git-hooks --uninstall",
+                )
+                if operational_error is None:
+                    raise
+                raise operational_error from exc
             typer.echo(f"  Removed: {hook_file.name}")
 
 
@@ -63,15 +89,53 @@ def _install_git_hook(hook_file: Path, git_hooks_dest: Path) -> bool:
 
     target = git_hooks_dest / hook_file.name
     if target.exists() or target.is_symlink():
-        target.unlink()
+        try:
+            target.unlink()
+        except OSError as exc:
+            operational_error = operational_error_from_exception(
+                exc,
+                headline="Could not replace an existing Git hook.",
+                command="sdd setup git-hooks",
+                step="hooks",
+                operation="unlink",
+                path=target,
+                next_hint="close programs using the hook file, then retry: sdd setup git-hooks",
+            )
+            if operational_error is None:
+                raise
+            raise operational_error from exc
     try:
         os.symlink(hook_file.absolute(), target)
-        hook_file.chmod(0o755)
+        try:
+            hook_file.chmod(0o755)
+        except OSError as exc:
+            typer.echo(
+                f"  WARN: Could not chmod {hook_file.name}; continuing because the hook was linked ({exc})"
+            )
         typer.echo(f"  OK: Linked {hook_file.name}")
         return False
     except OSError:
-        shutil.copy2(hook_file, target)
-        target.chmod(0o755)
+        try:
+            shutil.copy2(hook_file, target)
+        except OSError as exc:
+            operational_error = operational_error_from_exception(
+                exc,
+                headline="Could not copy Git hook after symlink fallback.",
+                command="sdd setup git-hooks",
+                step="hooks",
+                operation="copy",
+                path=target,
+                next_hint="check .git/hooks permissions, then retry: sdd setup git-hooks",
+            )
+            if operational_error is None:
+                raise
+            raise operational_error from exc
+        try:
+            target.chmod(0o755)
+        except OSError as exc:
+            typer.echo(
+                f"  WARN: Could not chmod {hook_file.name}; continuing because the hook was copied ({exc})"
+            )
         typer.echo(
             f"  OK: Copied {hook_file.name} (symlink unavailable on this platform)"
         )
@@ -91,16 +155,24 @@ def setup_git_hooks(
         raise typer.Exit(1)
 
     if uninstall:
-        _uninstall_git_hooks(hooks_src, git_hooks_dest)
+        try:
+            _uninstall_git_hooks(hooks_src, git_hooks_dest)
+        except OperationalCliError as exc:
+            render_operational_error(exc)
+            raise typer.Exit(exc.exit_code) from None
         return
 
     typer.echo(f"Installing SDD World-Class Hooks from {hooks_src}...")
     any_copied = False
-    for hook_file in hooks_src.iterdir():
-        if hook_file.is_dir() or hook_file.name.startswith("."):
-            continue
-        if _install_git_hook(hook_file, git_hooks_dest):
-            any_copied = True
+    try:
+        for hook_file in hooks_src.iterdir():
+            if hook_file.is_dir() or hook_file.name.startswith("."):
+                continue
+            if _install_git_hook(hook_file, git_hooks_dest):
+                any_copied = True
+    except OperationalCliError as exc:
+        render_operational_error(exc)
+        raise typer.Exit(exc.exit_code) from None
     if any_copied:
         typer.echo(
             "\nNote: hooks were copied (not linked) because symlinks are unavailable on this platform. Re-run 'sdd setup git-hooks' after pulling changes to tools/scripts/git-hooks/."

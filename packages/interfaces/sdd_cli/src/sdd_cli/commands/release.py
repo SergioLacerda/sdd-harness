@@ -5,12 +5,20 @@ import sys
 import click
 import typer
 
-app = typer.Typer(help="Release commands")
+from sdd_cli.services.command_group_output import show_command_group
+
+app = typer.Typer(help="Release commands", invoke_without_command=True)
 
 
-@app.callback()
-def _() -> None:
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List release commands."),
+) -> None:
     """Release operations."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Release", ["build"])
+        raise typer.Exit(0)
 
 
 @app.command("build")

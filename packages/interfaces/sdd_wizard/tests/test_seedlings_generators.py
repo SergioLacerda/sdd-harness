@@ -935,8 +935,7 @@ class TestGovernanceSeedsGeneratorMethods:
         instructions_file = tmp_path / ".sdd" / "agent-instructions.md"
         assert instructions_file.exists()
         content = instructions_file.read_text(encoding="utf-8")
-        assert "fingerprints.combined" in content
-        assert "governance_fingerprint" not in content
+        assert "governance_fingerprint" in content
 
     def test_generate_agent_specific_entrypoint_contracts(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]

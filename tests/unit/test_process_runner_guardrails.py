@@ -18,10 +18,10 @@ ALLOWED_PACKAGES = {
     "packages/core/sdd_core/src/sdd_core/utils/_process_runner.py",
     "packages/core/sdd_core/src/sdd_core/utils/_process_runner_support.py",
     "packages/core/sdd_core/src/sdd_core/utils/_process_types.py",
-    # GOVERNANCE_INJECT_SCRIPT is a template string written out as a standalone
-    # script for external CLIs (Claude/Codex/Gemini hooks) — the subprocess call
-    # runs in that generated script's own process, not in sdd_wizard's.
-    "packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/seedlings/_ai_seed_templates.py",
+    # PROMPT_SUBMIT_HOOK_SCRIPT is a template string written out as a standalone
+    # hook script for external CLIs (Claude/Codex/Gemini hooks) — the subprocess
+    # call runs in that generated script's own process, not in sdd_wizard's.
+    "packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/prompt_submit_hooks.py",
 }
 
 ALLOWED_TOOLS = {

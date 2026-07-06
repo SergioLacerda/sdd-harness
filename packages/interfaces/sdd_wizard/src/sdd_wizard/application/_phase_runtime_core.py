@@ -27,6 +27,8 @@ class PhaseRuntime:
             runner(
                 self._invocation.project_root,
                 output_dir=self._invocation.output_path,
+                non_interactive=self._invocation.non_interactive,
+                custom_governance_path=self._invocation.custom_governance_path,
             )
         )
 

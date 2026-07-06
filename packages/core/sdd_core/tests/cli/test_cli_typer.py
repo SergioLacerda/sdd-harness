@@ -138,7 +138,7 @@ class TestCLILazyLoading:
 
         monkeypatch.setattr(builtins, "__import__", fake_import)
 
-        result = runner.invoke(app, ["doctor"])
+        result = runner.invoke(app, ["doctor", "run"])
         assert result.exit_code == 1
         assert "unavailable" in result.output.lower()
         assert "sdd setup run" in result.output
@@ -155,6 +155,30 @@ class TestGovernanceCommands:
         assert "validate" in result.stdout
         assert "generate" in result.stdout
 
+    def test_governance_base_lists_commands(self) -> None:
+        """Bare governance command should show helper output without traceback."""
+        result = runner.invoke(app, ["governance"])
+        assert result.exit_code == 0
+        assert "Governance commands:" in result.stdout
+        assert "validate" in result.stdout
+        assert "Traceback" not in result.output
+
+    def test_governance_list_option_lists_commands(self) -> None:
+        """Governance --list should show the same helper command list."""
+        result = runner.invoke(app, ["governance", "--list"])
+        assert result.exit_code == 0
+        assert "Governance commands:" in result.stdout
+        assert "hook status" in result.stdout
+        assert "Traceback" not in result.output
+
+    def test_governance_hook_base_lists_hook_commands(self) -> None:
+        """Bare governance hook group should show helper output without traceback."""
+        result = runner.invoke(app, ["governance", "hook"])
+        assert result.exit_code == 0
+        assert "Governance hook commands:" in result.stdout
+        assert "status" in result.stdout
+        assert "Traceback" not in result.output
+
     def test_load_help(self) -> None:
         """Test load command help."""
         result = runner.invoke(app, ["governance", "load", "--help"])
@@ -170,6 +194,88 @@ class TestGovernanceCommands:
         """Test generate command help."""
         result = runner.invoke(app, ["governance", "generate", "--help"])
         assert result.exit_code == 0
+
+
+class TestCommandBaseHelpers:
+    """Regression coverage for command groups invoked without subcommands."""
+
+    @pytest.mark.parametrize(
+        ("command", "title", "expected_child"),
+        [
+            ("bootstrap", "Bootstrap commands:", "run"),
+            ("docs", "Documentation commands:", "deploy"),
+            ("lint", "Lint commands:", "spec"),
+            ("metrics", "Metrics commands:", "summary"),
+            ("plugin", "Plugin commands:", "validate"),
+            ("release", "Release commands:", "build"),
+            ("runtime", "Runtime commands:", "status"),
+            ("scaffold", "Scaffold commands:", "skill"),
+            ("setup", "Setup commands:", "git-hooks"),
+            ("skills", "Skills commands:", "describe"),
+            ("test", "Test commands:", "ci-validate"),
+            ("tools", "Tools commands:", "run"),
+            ("wizard", "Wizard commands:", "run"),
+            ("doctor", "Doctor commands:", "run"),
+            ("audit", "Audit commands:", "summary"),
+            ("telemetry", "Telemetry commands:", "status"),
+            ("analysis", "Analysis commands:", "list"),
+        ],
+    )
+    def test_base_command_lists_children(
+        self, command: str, title: str, expected_child: str
+    ) -> None:
+        """Bare command groups should show helper output without traceback."""
+        result = runner.invoke(app, [command])
+        assert result.exit_code == 0, result.output
+        assert title in result.stdout
+        assert expected_child in result.stdout
+        assert "Traceback" not in result.output
+
+    @pytest.mark.parametrize(
+        ("command", "title", "expected_child"),
+        [
+            ("bootstrap", "Bootstrap commands:", "run"),
+            ("docs", "Documentation commands:", "deploy"),
+            ("lint", "Lint commands:", "run"),
+            ("metrics", "Metrics commands:", "serve"),
+            ("plugin", "Plugin commands:", "list"),
+            ("release", "Release commands:", "build"),
+            ("runtime", "Runtime commands:", "status"),
+            ("scaffold", "Scaffold commands:", "command"),
+            ("setup", "Setup commands:", "run"),
+            ("skills", "Skills commands:", "export"),
+            ("test", "Test commands:", "review-golden"),
+            ("tools", "Tools commands:", "list"),
+            ("wizard", "Wizard commands:", "run"),
+            ("doctor", "Doctor commands:", "run"),
+            ("audit", "Audit commands:", "compliance-pack"),
+            ("telemetry", "Telemetry commands:", "query"),
+            ("analysis", "Analysis commands:", "clean"),
+            ("init", "Init commands:", "--default"),
+            ("install", "Install commands:", "--wizard"),
+            ("version", "Version commands:", "show"),
+            ("ask", "Ask commands:", "<query>"),
+            ("organize", "Organize commands:", "<query>"),
+        ],
+    )
+    def test_list_option_lists_children(
+        self, command: str, title: str, expected_child: str
+    ) -> None:
+        """--list should expose the same helper contract for protected groups."""
+        result = runner.invoke(app, [command, "--list"])
+        assert result.exit_code == 0, result.output
+        assert title in result.stdout
+        assert expected_child in result.stdout
+        assert "Traceback" not in result.output
+
+    @pytest.mark.parametrize("command", ["ask", "organize"])
+    def test_argument_required_commands_fail_without_traceback(
+        self, command: str
+    ) -> None:
+        """Argument-required commands should fail as usage errors, not tracebacks."""
+        result = runner.invoke(app, [command])
+        assert result.exit_code != 0
+        assert "Traceback" not in result.output
 
 
 class TestLoadCommand:

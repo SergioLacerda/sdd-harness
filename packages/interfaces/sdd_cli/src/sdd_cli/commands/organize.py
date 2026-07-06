@@ -9,6 +9,7 @@ import typer
 
 from sdd_cli.commands._ask_backend import _resolve_workspace_root
 from sdd_cli.services.ask_organize import run_sdd_organize, should_use_organize
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.shared.contracts import build_ok_result
 from sdd_cli.utils.output import emit_json, is_json_mode
 
@@ -68,7 +69,8 @@ def organize_cmd(
 
 @app.callback(invoke_without_command=True)
 def organize(
-    query: str = typer.Argument(..., help="Input text to organize and index."),
+    query: str | None = typer.Argument(None, help="Input text to organize and index."),
+    list_commands: bool = typer.Option(False, "--list", help="List organize commands."),
     input_file: Path | None = typer.Option(
         None, "--input-file", help="Optional file source for large logs/context."
     ),
@@ -77,4 +79,9 @@ def organize(
     ),
 ) -> None:
     """Run indexed context preparation and persist runtime artifact."""
+    if list_commands:
+        show_command_group("Organize", ["<query> [--input-file PATH]"])
+        raise typer.Exit(0)
+    if query is None:
+        raise click.UsageError("Missing argument 'QUERY'.")
     organize_cmd(query=query, input_file=input_file, output_json=output_json)

@@ -4,6 +4,7 @@ import sys
 
 import typer
 
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.lint_handler import (
     _check_legacy_patterns,
     _check_project_leaks,
@@ -28,12 +29,18 @@ __all__ = [
     "_validate_link_fragment_style",
 ]
 
-app = typer.Typer()
+app = typer.Typer(invoke_without_command=True)
 
 
-@app.callback()
-def _() -> None:
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List lint commands."),
+) -> None:
     """Run lint checks."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Lint", ["spec", "run"])
+        raise typer.Exit(0)
 
 
 def _run_step(label: str, cmd: list[str], *, fix: bool) -> int:
