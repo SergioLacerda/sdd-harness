@@ -79,7 +79,8 @@ def update_profile_hash(
             compiled_active_dir_fn=compiled_active_dir,
         )
 
-        profile_path = ws_root / ".sdd" / "profile"
+        output_base = resolve_output_base(ws_root)
+        profile_path = output_base / ".sdd" / "profile"
         if profile_path.exists():
             parser = configparser.ConfigParser()
             parser.read(profile_path)

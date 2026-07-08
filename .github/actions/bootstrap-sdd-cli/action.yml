@@ -19,6 +19,15 @@ runs:
       shell: bash
       run: uv run python -m sdd_cli --help > /dev/null
 
+    - name: Configure isolated SDD output
+      shell: bash
+      run: |
+        if [ -n "${GITHUB_ENV:-}" ] && [ -z "${SDD_TEST_OUTPUT_DIR:-}" ]; then
+          output_dir="${RUNNER_TEMP:-/tmp}/sdd-test-output"
+          mkdir -p "$output_dir"
+          echo "SDD_TEST_OUTPUT_DIR=$output_dir" >> "$GITHUB_ENV"
+        fi
+
     - name: Initialize SDD Workspace
       shell: bash
       run: uv run python -m sdd_cli init --type master --force

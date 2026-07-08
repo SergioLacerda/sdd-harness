@@ -188,7 +188,7 @@ def regenerate_seeds_flow(
         else {}
     )
     output_base = resolve_output_base_fn(workspace_root)
-    if sync_workspace_metadata_from_config(workspace_root, config):
+    if sync_workspace_metadata_from_config(output_base, config):
         console.print("[cyan].sdd/metadata.json synchronized[/cyan]")
     generate_agent_instruction_files_fn(output_base, config)
     console.print("[cyan]Agent instruction files regenerated[/cyan]")
