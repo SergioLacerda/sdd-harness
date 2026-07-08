@@ -16,6 +16,7 @@ class SeedlingBridge:
         output_base: Path,
         emitter: Any,
         runner: Callable[..., bool] | None = None,
+        debug: bool = False,
     ) -> bool:
         """Delegate to the current runtime only when requested."""
         try:
@@ -26,6 +27,7 @@ class SeedlingBridge:
                     wizard_config_path=wizard_config_path,
                     output_base=output_base,
                     emitter=emitter,
+                    debug=debug,
                 )
             )
         except Exception as exc:

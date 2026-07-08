@@ -38,7 +38,7 @@
 | **Core** | 4 immutable governance rules | Cannot be changed; provides foundation |
 | **Client** | 151 customizable guidelines | Teams select which to implement |
 | **SALT** | Fingerprint embedded in metadata | Prevents tampering; enables validation |
-| **Wizard** | 7-phase setup orchestrator | Creates new projects with governance |
+| **Wizard** | Single guided-flow orchestrator (`sdd install --wizard`) | Creates new projects with governance |
 | **CLI** | Governance management tool | Loads, validates, generates agent seeds |
 
 ### Architecture Layers

@@ -151,4 +151,32 @@ Before starting any task, verify bootstrap integrity:
 If `sdd governance generate` does not update `.sdd/agent-instructions.md`, ask the human to run `sdd wizard` again.
 
 **Golden rule:** Fingerprint in bootstrap file = fingerprint in metadata.json. Divergence = drift.
+
+---
+
+## 8. M015 Handshake — Required Before First Action
+
+Before taking any governed action in this workspace, complete the
+bidirectional agent handshake yourself (this is a genuine attestation, not a
+formality — do not skip it or mechanically copy-paste without reading the
+files above first):
+
+1. `sdd governance handshake --init`
+   Generates a challenge JSON (session_id, active_mandates, available_skills).
+
+2. `sdd governance handshake --response '<json>'`
+   Submit a response after actually reading this file and `.sdd/metadata.json`:
+   ```json
+   {{
+     "agent_id": "<your agent identity>",
+     "understood_mandates": [<active mandate IDs from step 1>],
+     "skills_to_use": [<skills you intend to invoke>],
+     "acknowledged_signature": true,
+     "compliance_declaration": true
+   }}
+   ```
+
+Without this, `sdd governance validate` reports `Active handshake (M015):
+FAIL`. The response has no expiry once submitted — do it once per new agent
+session, not on every command.
 """

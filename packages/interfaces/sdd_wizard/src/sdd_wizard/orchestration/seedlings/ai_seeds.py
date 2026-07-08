@@ -69,6 +69,54 @@ class AISeedsGenerator(BaseSeedlingGenerator):
             logger.warning(f"  ❌ Failed to generate Gemini seed: {e}")
             return False
 
+    def generate_antigravity_seed(self) -> bool:
+        """Generate Antigravity IDE governance bootstrap, separate from Gemini CLI."""
+        try:
+            antigravity_dir = self.output_base / ".gemini" / "antigravity"
+            antigravity_dir.mkdir(parents=True, exist_ok=True)
+            redirector_content = render_agent_redirector(
+                tool_name="Antigravity",
+                config_paths=[
+                    ".gemini/antigravity/skills/",
+                    ".gemini/antigravity/antigravity-instructions.md",
+                ],
+                fingerprint=self.spec_fingerprint,
+                mandate_ids=self.mandate_ids,
+                generated_at=self.generated_at,
+            )
+            write_text_utf8(
+                antigravity_dir / "antigravity-instructions.md", redirector_content
+            )
+            seed_data = {
+                "auto_activate": True,
+                "agent": "antigravity",
+                "description": "Antigravity IDE governance bootstrap — redirects to compiled SDD source",
+                "load_compiled_from": ".sdd",
+                "instructions_ref": ".gemini/antigravity/antigravity-instructions.md",
+                "governance_fingerprint": self.spec_fingerprint,
+                "mandates_count": len(self.mandate_ids),
+                "auto_load": True,
+                "triggers": ["on_project_load", "on_editor_focus"],
+                "required_context": [
+                    ".sdd/metadata.json",
+                    ".gemini/antigravity/antigravity-instructions.md",
+                ],
+                "on_load": "prepare_ide_context",
+                "generated_at": self.generated_at,
+            }
+            write_text_utf8(
+                self.seedlings_dir / "antigravity.seed.json",
+                json.dumps(seed_data, indent=2) + "\n",
+            )
+            self.log(
+                "✅ Generated Antigravity seed "
+                "(.gemini/antigravity/antigravity-instructions.md, antigravity.seed.json)"
+            )
+            return True
+        except Exception as e:
+            logger.warning(f"  ❌ Failed to generate Antigravity seed: {e}")
+            return False
+
     def generate_copilot_seed(self) -> bool:
         """Generate GitHub Copilot bootstrap instructions."""
         try:

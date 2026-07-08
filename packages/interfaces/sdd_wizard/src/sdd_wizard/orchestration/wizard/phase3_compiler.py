@@ -150,10 +150,7 @@ class Phase3Compiler:
 
     def run(self) -> Phase3RunResult:
         """Execute all Phase 3 steps and return a result dict."""
-        self._emit("\n⚙️  PHASE 3: Compile Governance from Staged Templates")
-        self._emit("=" * 70)
-        self._emit(f"  📂 Input (phase-2-input): {self.markdown_input_path}")
-        self._emit(f"  📂 Output (client-compiled): {self.output_path}")
+        self._emit("phase3...OK")
 
         if not self.has_staged_input_files():
             return {
@@ -170,14 +167,14 @@ class Phase3Compiler:
             return {"success": False, "error": "Failed to create .sdd structure"}
 
         items = self.parse_markdown_items()
-        self._emit(
-            f"  ✅ Parsed {len(items['mandates'])} mandates, {len(items['guidelines'])} guidelines"
-        )
+        self._emit(f"parse...OK ({len(items['mandates'])} mandates)")
+        self._emit(f"guidelines...OK ({len(items['guidelines'])})")
 
         if not self.compile_with_pipeline_builder(items):
             return {"success": False, "error": "Failed to compile"}
 
-        _generate_spec_file(self.repo_root, self.output_path, self._emit)
+        spec_emitter = self._emit if self.verbose else (lambda _message: None)
+        _generate_spec_file(self.repo_root, self.output_path, spec_emitter)
 
         if not self.copy_seedlings():
             return {"success": False, "error": "Failed to copy seedlings"}
@@ -190,8 +187,8 @@ class Phase3Compiler:
             if err:
                 return {"success": False, "error": err}
 
-        self._emit("  ✅ Compiled governance artifacts")
-        self._emit(f"  📂 Output: {self.output_path}")
+        self._emit("compile...OK")
+        self._emit(f"output...OK {self.output_path}")
 
         return {
             "success": True,

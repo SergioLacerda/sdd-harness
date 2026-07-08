@@ -106,6 +106,8 @@ def test_generate_agent_instructions_still_works(tmp_path: Path) -> None:
     assert "M001" in instructions
     assert FINGERPRINT in instructions
     assert "governance_fingerprint" in instructions
+    assert "sdd governance handshake --init" in instructions
+    assert "sdd governance handshake --response" in instructions
 
 
 def test_generate_root_bootstrap_from_config_updates_root_files(tmp_path: Path) -> None:

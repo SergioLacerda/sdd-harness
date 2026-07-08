@@ -149,10 +149,34 @@ class TestRunEntryPoints:
                 return_value=sentinel,
             ) as fake_run,
         ):
-            result = run_phase_4_5_6_generator(tmp_path, tmp_path / "out", _CONFIG)
+            result = run_phase_4_5_6_generator(
+                tmp_path, tmp_path / "out", _CONFIG, debug=True
+            )
 
         assert result is sentinel
         fake_run.assert_called_once()
         called_generator = fake_run.call_args[0][0]
         assert isinstance(called_generator, Phase456Generator)
         assert called_generator.verbose is True
+
+    def test_run_phase_4_5_6_generator_defaults_to_quiet(self, tmp_path: Path) -> None:
+        fake_paths = {
+            "root": tmp_path,
+            "client_compiled": tmp_path / "build",
+        }
+        sentinel = {"success": True}
+
+        with (
+            patch(
+                "sdd_wizard.orchestration.phase_4_5_6_generator.get_sdd_paths",
+                return_value=fake_paths,
+            ),
+            patch(
+                "sdd_wizard.orchestration.phase_4_5_6_generator.run_phase456_pipeline",
+                return_value=sentinel,
+            ) as fake_run,
+        ):
+            run_phase_4_5_6_generator(tmp_path, tmp_path / "out", _CONFIG)
+
+        called_generator = fake_run.call_args[0][0]
+        assert called_generator.verbose is False

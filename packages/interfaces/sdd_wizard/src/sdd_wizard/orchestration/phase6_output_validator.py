@@ -12,6 +12,7 @@ from .prompt_submit_hooks import (
     SUPPORTED_PROMPT_HOOK_AGENTS,
 )
 from .wizard.models import ValidationDetail
+from .wizard.seedling_catalog import resolve_selection
 
 
 class OutputValidator:
@@ -29,6 +30,7 @@ class OutputValidator:
         config: dict[str, Any] | None = None,
         verbose: bool = False,
         emitter: Callable[[str], None] | None = None,
+        selected_seedlings: set[str] | None = None,
     ) -> None:
         self.output_base = output_base
         self.sdd_dir = sdd_dir
@@ -40,6 +42,7 @@ class OutputValidator:
         self.config = config or {}
         self.verbose = verbose
         self._emit = emitter or print
+        self.selection = resolve_selection(selected_seedlings)
 
     def _log(self, message: str) -> None:
         if self.verbose:
@@ -57,7 +60,14 @@ class OutputValidator:
 
     def _optional_hooks_enabled(self) -> bool:
         """Return whether optional hook artifacts are required."""
-        return bool(self.config.get("include_optional_hooks", False))
+        return bool(
+            self.config.get("include_optional_hooks", False)
+            or "pre-commit" in self.selection
+        )
+
+    def _ci_enabled(self) -> bool:
+        """Return whether the CI/CD workflow artifact is required."""
+        return "ci" in self.selection
 
     def _prompt_submit_hooks_enabled(self) -> bool:
         """Return whether prompt-submit governance hooks are required."""
@@ -128,78 +138,117 @@ class OutputValidator:
                     f"Missing central prompt-submit command in: {hook_file}"
                 )
 
+    def _required_dirs(self) -> list[Path]:
+        """Return the directories required for the current selection."""
+        required_dirs = [self.mandates_dir, self.guidelines_dir, self.runtime_dir]
+        if self._ci_enabled():
+            required_dirs.append(self.output_base / ".github" / "workflows")
+        return required_dirs
+
+    def _selected_required_files(self) -> list[tuple[Path, str]]:
+        """Return the (path, description) pairs required for the current selection."""
+        required_files = [
+            (self.mandates_dir / "mandates.md", "Mandates"),
+            (self.runtime_dir / "README.md", "Runtime README"),
+            (self.source_dir / "README.md", "Source README"),
+            (self.sdd_dir / "metadata.json", "Metadata"),
+        ]
+        by_selection: list[tuple[str, Path, str]] = [
+            (
+                "copilot",
+                self.output_base / ".github" / "copilot-instructions.md",
+                "Copilot Instructions",
+            ),
+            (
+                "vscode",
+                self.output_base / ".vscode" / "ai-rules.md",
+                "VS Code AI Rules",
+            ),
+            (
+                "claude",
+                self.output_base / ".claude" / "claude-instructions.md",
+                "Claude Instructions",
+            ),
+            (
+                "gemini",
+                self.output_base / ".gemini" / "gemini-instructions.md",
+                "Gemini Instructions",
+            ),
+            (
+                "antigravity",
+                self.output_base
+                / ".gemini"
+                / "antigravity"
+                / "antigravity-instructions.md",
+                "Antigravity Instructions",
+            ),
+        ]
+        required_files.extend(
+            (path, desc) for key, path, desc in by_selection if key in self.selection
+        )
+        return required_files
+
+    def _validate_paths(
+        self,
+        result: ValidationDetail,
+        paths: list[Path],
+        label: str,
+    ) -> None:
+        """Check a batch of required directories, recording checks/errors."""
+        for req_dir in paths:
+            exists = req_dir.exists()
+            result["checks"][str(req_dir.relative_to(self.output_base))] = (
+                "OK" if exists else "MISSING"
+            )
+            if not exists:
+                result["valid"] = False
+                result["errors"].append(f"Missing {label}: {req_dir}")
+
+    def _validate_files(self, result: ValidationDetail) -> None:
+        """Check required files for the current selection, recording checks/errors."""
+        for req_file, desc in self._selected_required_files():
+            exists = self._path_exists(req_file)
+            result["checks"][f"file: {desc}"] = "OK" if exists else "MISSING"
+            if not exists:
+                result["valid"] = False
+                result["errors"].append(f"Missing file: {req_file}")
+
+    def _validate_cursor_rules(self, result: ValidationDetail) -> None:
+        """Check Cursor rule files only when `cursor` is selected."""
+        if "cursor" not in self.selection:
+            return
+        cursor_rules_ok = self._cursor_rules_exist()
+        result["checks"]["file: Cursor Rules"] = "OK" if cursor_rules_ok else "MISSING"
+        if not cursor_rules_ok:
+            result["valid"] = False
+            result["errors"].append(
+                "Missing file: expected one of "
+                f"{self.output_base / '.cursor' / 'rules' / 'spec.mdc'} or "
+                f"{self.output_base / '.cursor' / 'rules' / 'sdd-governance.mdc'}"
+            )
+
+    def _validate_guidelines(self, result: ValidationDetail) -> None:
+        """Check that every active guideline category has a compiled file."""
+        for category in self.guidelines_by_category:
+            guideline_file = self.guidelines_dir / f"{category}.md"
+            exists = guideline_file.exists()
+            result["checks"][f"guideline: {category}"] = "OK" if exists else "MISSING"
+            if not exists:
+                result["valid"] = False
+                result["errors"].append(f"Missing guideline: {guideline_file}")
+
     def validate(self) -> tuple[bool, ValidationDetail]:
         """Return (is_valid, detail_dict) after checking all required paths."""
         self._log("Validating output structure")
         result: ValidationDetail = {"valid": True, "checks": {}, "errors": []}
 
         try:
-            required_dirs = [
-                self.mandates_dir,
-                self.guidelines_dir,
-                self.runtime_dir,
-                self.output_base / ".github" / "workflows",
-            ]
-            for req_dir in required_dirs:
-                exists = req_dir.exists()
-                result["checks"][str(req_dir.relative_to(self.output_base))] = (
-                    "OK" if exists else "MISSING"
-                )
-                if not exists:
-                    result["valid"] = False
-                    result["errors"].append(f"Missing directory: {req_dir}")
-
-            required_files = [
-                (self.mandates_dir / "mandates.md", "Mandates"),
-                (self.runtime_dir / "README.md", "Runtime README"),
-                (self.source_dir / "README.md", "Source README"),
-                (self.sdd_dir / "metadata.json", "Metadata"),
-                (
-                    self.output_base / ".github" / "copilot-instructions.md",
-                    "Copilot Instructions",
-                ),
-                (self.output_base / ".vscode" / "ai-rules.md", "VS Code AI Rules"),
-                (
-                    self.output_base / ".claude" / "claude-instructions.md",
-                    "Claude Instructions",
-                ),
-                (
-                    self.output_base / ".gemini" / "gemini-instructions.md",
-                    "Gemini Instructions",
-                ),
-            ]
-            for req_file, desc in required_files:
-                exists = self._path_exists(req_file)
-                result["checks"][f"file: {desc}"] = "OK" if exists else "MISSING"
-                if not exists:
-                    result["valid"] = False
-                    result["errors"].append(f"Missing file: {req_file}")
-
-            cursor_rules_ok = self._cursor_rules_exist()
-            result["checks"]["file: Cursor Rules"] = (
-                "OK" if cursor_rules_ok else "MISSING"
-            )
-            if not cursor_rules_ok:
-                result["valid"] = False
-                result["errors"].append(
-                    "Missing file: expected one of "
-                    f"{self.output_base / '.cursor' / 'rules' / 'spec.mdc'} or "
-                    f"{self.output_base / '.cursor' / 'rules' / 'sdd-governance.mdc'}"
-                )
-
+            self._validate_paths(result, self._required_dirs(), "directory")
+            self._validate_files(result)
+            self._validate_cursor_rules(result)
             self._validate_optional_hook_files(result)
             self._validate_prompt_submit_hook_files(result)
-
-            for category in self.guidelines_by_category:
-                guideline_file = self.guidelines_dir / f"{category}.md"
-                exists = guideline_file.exists()
-                result["checks"][f"guideline: {category}"] = (
-                    "OK" if exists else "MISSING"
-                )
-                if not exists:
-                    result["valid"] = False
-                    result["errors"].append(f"Missing guideline: {guideline_file}")
-
+            self._validate_guidelines(result)
             return result["valid"], result
         except Exception as e:
             self._emit(f"  ❌ Validation failed: {e}")

@@ -19,9 +19,30 @@ lightweight governance check, and emits the shared additionalContext output
 shape understood by supported platforms. Never blocks (always exits 0).
 """
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
+
+def _extract_context_field(context: str, field: str, default: str) -> str:
+    pattern = rf"\\b{re.escape(field)}\\s*[:=]\\s*([A-Za-z0-9_.-]+)"
+    match = re.search(pattern, context)
+    return match.group(1) if match else default
+
+def _render_activation_header(context: str) -> str:
+    fingerprint = _extract_context_field(context, "fingerprint", "unknown")[:8]
+    execution_gate = _extract_context_field(context, "execution_gate", "unknown")
+    return "\\n".join(
+        [
+            "SDD GOVERNANCE ACTIVE | "
+            "source=prompt-submit-hook | "
+            "governance_mode=hard | "
+            f"execution_gate={execution_gate} | "
+            f"fingerprint={fingerprint}",
+            "Instruction: start your response with one short SDD governance "
+            "status line when this context is present.",
+        ]
+    )
 
 def main() -> int:
     if Path(".sdd/runtime/hook-disabled").exists():
@@ -43,6 +64,7 @@ def main() -> int:
     except Exception:
         return 0
     if context:
+        context = _render_activation_header(context) + "\\n\\n" + context
         print(json.dumps({"hookSpecificOutput": {"additionalContext": context}}))
     return 0
 

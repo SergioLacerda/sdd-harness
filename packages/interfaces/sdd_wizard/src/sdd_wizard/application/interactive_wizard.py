@@ -94,15 +94,19 @@ class InteractiveWizard:
         output_dir: Path | None = None,
         non_interactive: bool = False,
         custom_governance_path: Path | None = None,
+        debug: bool = False,
     ):
         paths = get_sdd_paths()
         self.repo_root = repo_root or paths["root"]
         self.paths = paths
         self._emit = emitter or print
         self._prompter = _wrap_prompter(prompter)
-        self._preferences_flow = PreferencesFlow(self._prompter, self._emit)
         self.non_interactive = non_interactive
         self.custom_governance_path = custom_governance_path
+        self.debug = debug
+        self._preferences_flow = PreferencesFlow(
+            self._prompter, self._emit if self.debug else (lambda _message: None)
+        )
         self._resolved_preferences: dict[str, Any] | None = None
         self._resolved_agent_selection: set[str] | None = None
         self._agent_selection_resolved = False
@@ -140,6 +144,8 @@ class InteractiveWizard:
 
     def _emit_selector_phase1_hint(self, selector_selection: dict[str, Any]) -> None:
         """Emit an optional selector hint without changing phase semantics."""
+        if not self.debug:
+            return
         emit_selector_phase1_hint(
             self._emit,
             selector_output_path=self.selector_output_path,
@@ -162,7 +168,7 @@ class InteractiveWizard:
         return _do_consolidate_final_template(
             self.client_compiled_dir,
             self.final_template_dir,
-            self._emit,
+            self._emit if self.debug else (lambda _message: None),
             consolidate_final_template,
         )
 
@@ -190,7 +196,8 @@ class InteractiveWizard:
             )
             return self._resolved_preferences
 
-        self.print_header("User Preferences Setup", "⚙️")
+        if self.debug:
+            self.print_header("User Preferences Setup", "⚙️")
         self._resolved_preferences = self._preferences_flow.collect_preferences(
             enforcement_choices=_ENFORCEMENT_CHOICES,
             enforcement_map=_ENFORCEMENT_MAP,
@@ -220,6 +227,7 @@ class InteractiveWizard:
             phase2_input_dir=self.phase2_input_dir,
             baseline_mandate=_ONBOARDING_BASELINE_MANDATE,
             baseline_guidelines=_ONBOARDING_BASELINE_GUIDELINES,
+            emit=self._emit,
         )
 
     def _ensure_docs_meta_ready(self) -> tuple[bool, str]:
@@ -236,7 +244,6 @@ class InteractiveWizard:
 
     def phase_1_generate_templates(self) -> Phase1GenerateResult:
         """Execute Phase 1: Generate templates with user preferences"""
-        self.print_header("PHASE 1: Generate Governance Templates", "📝")
         result = PhaseOneRuntime(self).execute()
         if result["success"]:
             self.config = json.loads(
@@ -246,7 +253,6 @@ class InteractiveWizard:
 
     def phase_2_show_instructions(self) -> Phase2StageResult:
         """Show Phase 2 instructions and stage markdown files into phase-2-input."""
-        self.print_header("PHASE 2: Review & Customize Governance", "📋")
         return PhaseTwoRuntime(self).execute()
 
     def _ask_seedling_selection(self) -> set[str] | None:
@@ -262,15 +268,15 @@ class InteractiveWizard:
         if self.non_interactive:
             self._resolved_agent_selection = None
         else:
+            emitter = self._emit if self.debug else (lambda _message: None)
             self._resolved_agent_selection = ask_seedling_selection(
-                self._emit, prompter=self._prompter
+                emitter, prompter=self._prompter
             )
         self._agent_selection_resolved = True
         return self._resolved_agent_selection
 
     def phase_4_generate_project(self) -> Phase4GenerateResult:
         """Execute Phase 4-6: Generate project structure from compiled governance"""
-        self.print_header("PHASE 4-6: Generate Project Structure", "🏗️")
         return PhaseFourRuntime(self).execute()
 
     def _cleanup_post_generation_artifacts(self) -> list[str]:
@@ -287,7 +293,6 @@ class InteractiveWizard:
 
     def phase_3_compile_templates(self) -> Phase3CompileResult:
         """Execute Phase 3: Compile edited templates to governance JSON"""
-        self.print_header("PHASE 3: Compile Governance from Staged Templates", "⚙️")
         return PhaseThreeRuntime(self).execute()
 
     def phase_6_generate_seedlings(self, output_base: Path) -> bool:
@@ -297,6 +302,7 @@ class InteractiveWizard:
             output_base=output_base,
             emitter=self._emit,
             runner=run_phase6_seedlings_generation,
+            debug=self.debug,
         )
 
     def _get_enforcement_label(self) -> str:
@@ -313,6 +319,7 @@ def run_interactive_wizard(
     output_dir: Path | None = None,
     non_interactive: bool = False,
     custom_governance_path: Path | None = None,
+    debug: bool = False,
 ) -> bool:
     """Create an InteractiveWizard and run the main interactive flow."""
     return InteractiveWizard(
@@ -320,4 +327,5 @@ def run_interactive_wizard(
         output_dir=output_dir,
         non_interactive=non_interactive,
         custom_governance_path=custom_governance_path,
+        debug=debug,
     ).run()

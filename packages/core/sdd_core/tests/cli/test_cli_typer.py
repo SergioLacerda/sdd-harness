@@ -214,7 +214,6 @@ class TestCommandBaseHelpers:
             ("skills", "Skills commands:", "describe"),
             ("test", "Test commands:", "ci-validate"),
             ("tools", "Tools commands:", "run"),
-            ("wizard", "Wizard commands:", "run"),
             ("doctor", "Doctor commands:", "run"),
             ("audit", "Audit commands:", "summary"),
             ("telemetry", "Telemetry commands:", "status"),
@@ -246,7 +245,6 @@ class TestCommandBaseHelpers:
             ("skills", "Skills commands:", "export"),
             ("test", "Test commands:", "review-golden"),
             ("tools", "Tools commands:", "list"),
-            ("wizard", "Wizard commands:", "run"),
             ("doctor", "Doctor commands:", "run"),
             ("audit", "Audit commands:", "compliance-pack"),
             ("telemetry", "Telemetry commands:", "query"),
@@ -274,6 +272,24 @@ class TestCommandBaseHelpers:
     ) -> None:
         """Argument-required commands should fail as usage errors, not tracebacks."""
         result = runner.invoke(app, [command])
+        assert result.exit_code != 0
+        assert "Traceback" not in result.output
+
+    def test_wizard_list_shows_usage(self) -> None:
+        """`wizard --list` uses the standalone usage helper, not the group listing."""
+        result = runner.invoke(app, ["wizard", "--list"])
+        assert result.exit_code == 0, result.output
+        assert "Wizard usage:" in result.stdout
+        assert "--from-file" in result.stdout
+        assert "Traceback" not in result.output
+
+    def test_wizard_bare_invocation_runs_installer(self) -> None:
+        """`wizard` with no args installs directly instead of listing children.
+
+        Without an interactive terminal or `--from-file`, the run aborts with a
+        clear error rather than a traceback — the new single-command contract.
+        """
+        result = runner.invoke(app, ["wizard"])
         assert result.exit_code != 0
         assert "Traceback" not in result.output
 

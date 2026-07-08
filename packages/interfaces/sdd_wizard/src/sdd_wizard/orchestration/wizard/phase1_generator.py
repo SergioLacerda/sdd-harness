@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.resources
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +19,16 @@ from ._phase1_helpers import (
 )
 from .models import Guideline, Mandate, Phase1RunResult
 from .spec_parser import GuidelinesDslParser, MandateSpecParser
+
+
+def _bundled_spec_dir() -> Path | None:
+    """Resolve the directory containing sdd_core's packaged canonical mandate.spec/guidelines.dsl."""
+    try:
+        pkg_dir = importlib.resources.files("sdd_core")
+    except (ImportError, ModuleNotFoundError):
+        return None
+    candidate = Path(str(pkg_dir))
+    return candidate if candidate.is_dir() else None
 
 
 @dataclass
@@ -52,17 +63,23 @@ class Phase1Generator:
         self._init_source_dirs()
 
     def _init_source_dirs(self) -> None:
+        candidates: list[Path] = []
+        bundled = _bundled_spec_dir()
+        if bundled is not None:
+            candidates.append(bundled)
         try:
             paths = get_sdd_paths()
             docs_meta_dir = paths.get("docs_meta", self.local_source_dir / "docs-meta")
             source_spec_dir = paths.get("source_spec", docs_meta_dir)
-            candidates = [
-                self.local_source_dir / "docs-meta",
-                docs_meta_dir,
-                source_spec_dir,
-            ]
+            candidates.extend(
+                [
+                    source_spec_dir,
+                    self.local_source_dir / "docs-meta",
+                    docs_meta_dir,
+                ]
+            )
         except RuntimeError:
-            candidates = [self.local_source_dir / "docs-meta"]
+            candidates.append(self.local_source_dir / "docs-meta")
         self.source_spec_dirs = list(dict.fromkeys(candidates))
 
     def log(self, message: str) -> None:
@@ -136,8 +153,7 @@ class Phase1Generator:
 
     def run(self) -> Phase1RunResult:
         """Execute all Phase 1 steps and return a result dict."""
-        self._emit("\n📝 PHASE 1: Generate Governance Templates")
-        self._emit("=" * 70)
+        self._emit("phase1...OK")
 
         mandate_file = self._resolve_source_file("mandate.spec")
         if mandate_file is None:
@@ -178,9 +194,8 @@ class Phase1Generator:
             parents=True, exist_ok=True
         )
 
-        self._emit(f"  ✅ Generated {len(self.mandates)} mandates")
-        self._emit(f"  ✅ Generated {len(self.guidelines)} guidelines")
-        self._emit(f"  📂 Templates: {self.output_path}")
+        self._emit(f"mandates...OK ({len(self.mandates)})")
+        self._emit(f"guidelines...OK ({len(self.guidelines)})")
 
         return {
             "success": True,

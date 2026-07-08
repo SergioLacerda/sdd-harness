@@ -41,6 +41,28 @@ def render_context_header(
     return gov.simple_input()
 
 
+def render_governance_activation_header(
+    *,
+    source: str,
+    fingerprint: str = "",
+    execution_gate: str = "allowed",
+    governance_mode: str = "hard",
+) -> str:
+    """Return the compact SDD-active header for prompt hook context."""
+    fp = (fingerprint or "unknown")[:8]
+    return "\n".join(
+        [
+            "SDD GOVERNANCE ACTIVE | "
+            f"source={source or 'unknown'} | "
+            f"governance_mode={governance_mode or 'hard'} | "
+            f"execution_gate={execution_gate or 'unknown'} | "
+            f"fingerprint={fp}",
+            "Instruction: start your response with one short SDD governance "
+            "status line when this context is present.",
+        ]
+    )
+
+
 def render_governance_footer(
     *,
     state: str,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from sdd_wizard.application.finalization import build_wizard_result
@@ -23,6 +24,7 @@ def test_phase_runtime_executes_runner_with_invocation(tmp_path: Path) -> None:
         output_dir: Path | None = None,
         non_interactive: bool = False,
         custom_governance_path: Path | None = None,
+        debug: bool = False,
     ) -> bool:
         recorded.append(
             (project_root, output_dir, non_interactive, custom_governance_path)
@@ -47,6 +49,7 @@ def test_phase_runtime_forwards_custom_governance_path(tmp_path: Path) -> None:
         output_dir: Path | None = None,
         non_interactive: bool = False,
         custom_governance_path: Path | None = None,
+        debug: bool = False,
     ) -> bool:
         recorded["custom_governance_path"] = custom_governance_path
         recorded["non_interactive"] = non_interactive
@@ -96,6 +99,50 @@ def test_session_bootstrap_returns_failure_result(tmp_path: Path) -> None:
 
     assert result.success is False
     assert result.errors
+
+
+def test_session_bootstrap_elevates_logger_when_debug(tmp_path: Path) -> None:
+    class _FalseRuntime:
+        def __init__(self, _invocation) -> None:
+            pass
+
+        def execute(self) -> bool:
+            return True
+
+    from sdd_wizard.application import session_bootstrap
+
+    logger = logging.getLogger("sdd_wizard")
+    original_level = logger.level
+    original_runtime = session_bootstrap.PhaseRuntime
+    session_bootstrap.PhaseRuntime = _FalseRuntime
+    try:
+        SessionBootstrap(WizardInvocation(project_root=tmp_path, debug=True)).run()
+        assert logger.level == logging.DEBUG
+    finally:
+        session_bootstrap.PhaseRuntime = original_runtime
+        logger.setLevel(original_level)
+
+
+def test_session_bootstrap_leaves_logger_level_when_not_debug(tmp_path: Path) -> None:
+    class _FalseRuntime:
+        def __init__(self, _invocation) -> None:
+            pass
+
+        def execute(self) -> bool:
+            return True
+
+    from sdd_wizard.application import session_bootstrap
+
+    logger = logging.getLogger("sdd_wizard")
+    logger.setLevel(logging.WARNING)
+    original_runtime = session_bootstrap.PhaseRuntime
+    session_bootstrap.PhaseRuntime = _FalseRuntime
+    try:
+        SessionBootstrap(WizardInvocation(project_root=tmp_path, debug=False)).run()
+        assert logger.level == logging.WARNING
+    finally:
+        session_bootstrap.PhaseRuntime = original_runtime
+        logger.setLevel(logging.NOTSET)
 
 
 def test_build_wizard_result_success() -> None:
@@ -237,6 +284,7 @@ class _PhaseOneContext:
         self.repo_root = tmp_path
         self.phase1_choices_dir = tmp_path / "phase-1"
         self.wizard_config_path = tmp_path / "wizard-config.json"
+        self.debug = False
         self.saved: dict | None = None
         self.messages: list[str] = []
         self.ready = ready

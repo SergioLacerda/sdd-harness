@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 from sdd_wizard.orchestration.prompt_submit_hooks import (
@@ -32,7 +35,10 @@ def test_prompt_submit_hook_generator_writes_central_hook_and_selected_adapter(
 
     central_hook = tmp_path / CENTRAL_PROMPT_SUBMIT_HOOK
     assert central_hook.exists()
-    assert ".sdd/runtime/hook-disabled" in central_hook.read_text(encoding="utf-8")
+    central_hook_text = central_hook.read_text(encoding="utf-8")
+    assert ".sdd/runtime/hook-disabled" in central_hook_text
+    assert "SDD GOVERNANCE ACTIVE" in central_hook_text
+    assert "prompt-submit-hook" in central_hook_text
     codex_config = tmp_path / ".codex" / "config.toml"
     assert CENTRAL_PROMPT_SUBMIT_COMMAND in codex_config.read_text(encoding="utf-8")
     assert not (tmp_path / ".claude" / "settings.json").exists()
@@ -107,3 +113,50 @@ def test_phase6_output_validator_imports_stay_in_sync_with_prompt_submit_hooks()
         validator_mod.SUPPORTED_PROMPT_HOOK_AGENTS
         is hooks_mod.SUPPORTED_PROMPT_HOOK_AGENTS
     )
+
+
+def test_prompt_submit_hook_injects_governance_activation_header(
+    tmp_path: Path,
+) -> None:
+    generator = PromptSubmitHookGenerator(tmp_path, {"codex"})
+    generator.generate()
+    (tmp_path / ".sdd" / "metadata.json").write_text("{}", encoding="utf-8")
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    fake_sdd = bin_dir / "sdd"
+    fake_sdd.write_text(
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
+                "print('intake_mode=none governance_mode=hard execution_gate=allowed')",
+                "print('SDD GOVERNANCE: drift=none | governance=ok | profile=default')",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    fake_sdd.chmod(0o755)
+
+    env = dict(os.environ)
+    env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"
+    result = subprocess.run(
+        [sys.executable, str(tmp_path / CENTRAL_PROMPT_SUBMIT_HOOK)],
+        input=json.dumps({"prompt": "implement C"}),
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    context = payload["hookSpecificOutput"]["additionalContext"]
+    assert context.startswith("SDD GOVERNANCE ACTIVE")
+    assert "source=prompt-submit-hook" in context
+    assert "execution_gate=allowed" in context
+    assert "fingerprint=58a087b3" in context
+    assert "start your response with one short SDD governance status line" in context
+    assert "SDD GOVERNANCE: drift=none" in context

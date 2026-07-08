@@ -1,7 +1,7 @@
 {
   "version": "3.0",
-  "generated_at": "2026-07-05T20:15:02.322537Z",
-  "language": "Python",
+  "generated_at": "2026-07-07T15:46:45.690687Z",
+  "language": "all",
   "language_context": {
     "preferred_human_language": "Português (Brasil)",
     "preferred_chat_language": "Português (Brasil)",
@@ -36,6 +36,7 @@
   "categories": [
     "other"
   ],
+  "governance_fingerprint": "58a087b3c9fb9ce2",
   "fingerprints": {
     "combined": "58a087b3c9fb9ce2",
     "mandates": {
@@ -79,6 +80,5 @@
     "source": "Governance source of truth for agent queries",
     "runtime": "Pre-cache instructions for agents",
     "seedlings": ".vscode, .cursor directories with references to .sdd/source"
-  },
-  "governance_fingerprint": "58a087b3c9fb9ce2"
+  }
 }

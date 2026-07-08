@@ -88,7 +88,10 @@ class InteractiveFlowRuntime:
             elif not self._run_scenario_a():
                 return False
 
-            return bool(ctx.phase_4_generate_project()["success"])
+            success = bool(ctx.phase_4_generate_project()["success"])
+            if success:
+                ctx._emit("--- WIZARD OK ---")
+            return success
         except KeyboardInterrupt:
             ctx._emit("\n\n❌ Wizard cancelled by user")
             return False

@@ -154,7 +154,7 @@ Quarterly: System update + disaster recovery drill
 | **Governance Client** | Mutable | 🟠 Important | 151 guidelines, teams select which to use |
 | **Compiled Artifacts** | Runtime | 🔴 Critical | msgpack binaries, must exist and be valid |
 | **CLI Tool** | Interface | 🟠 Important | Provides access to governance system |
-| **Wizard Pipeline** | Process | 🟡 Standard | 7-phase project initialization |
+| **Wizard Pipeline** | Process | 🟡 Standard | Single guided-flow project initialization |
 
 ### Critical Files
 

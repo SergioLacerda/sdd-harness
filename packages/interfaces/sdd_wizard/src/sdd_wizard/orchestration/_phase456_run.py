@@ -23,6 +23,7 @@ class _Phase456GeneratorProtocol(Protocol):
     output_base: Path
     config: dict[str, Any]
     verbose: bool
+    selected_seedlings: set[str] | None
     dir: Path
     runtime_dir: Path
     governance_core_path: Path
@@ -52,8 +53,7 @@ class _Phase456GeneratorProtocol(Protocol):
 
 def run_phase456_pipeline(generator: _Phase456GeneratorProtocol) -> Phase456RunResult:
     """Execute Phase 4-6 generation."""
-    generator._emit("\n🏗️  PHASE 4-6: Generate Project Structure")
-    generator._emit("=" * 70)
+    generator._emit("phase4...OK")
 
     mandates, guidelines, guidelines_by_category, result = _load_governance(
         generator.governance_core_path,
@@ -95,6 +95,7 @@ def run_phase456_pipeline(generator: _Phase456GeneratorProtocol) -> Phase456RunR
         generator.verbose,
         compiler,
         result,
+        generator.selected_seedlings,
     ):
         return result
 
@@ -104,7 +105,7 @@ def run_phase456_pipeline(generator: _Phase456GeneratorProtocol) -> Phase456RunR
     if not generator._generate_prompt_submit_hooks(result):
         return result
 
-    _generate_adapters(generator.output_base, generator._emit)
+    _generate_adapters(generator.output_base, generator._emit, generator.verbose)
 
     if not _validate_output(
         generator.output_base,
@@ -113,25 +114,15 @@ def run_phase456_pipeline(generator: _Phase456GeneratorProtocol) -> Phase456RunR
         generator.verbose,
         generator._emit,
         result,
+        generator.selected_seedlings,
     ):
         return result
 
     result["success"] = True
 
-    generator._emit("\n✅ Phase 4-6 Complete!")
-    generator._emit("\n📊 Structure Generated:")
-    generator._emit(f"   Mandates: {result['mandates']}")
-    generator._emit(f"   Guidelines: {result['guidelines']}")
-    generator._emit(f"   Categories: {', '.join(result['categories'])}")
-    generator._emit(f"\n📂 Location: {result['output_path']}")
-    generator._emit("\n🎯 Next Steps:")
-    generator._emit("   1. Review .sdd/source/ for governance organization")
-    generator._emit(
-        "   2. Review .sdd/runtime/README.md for agent pre-cache instructions"
-    )
-    generator._emit(
-        "   3. Copy IDE templates from packages/features/sdd_integration/src/sdd_integration/templates/"
-    )
-    generator._emit("   4. Commit to version control")
+    generator._emit(f"mandates...OK ({result['mandates']})")
+    generator._emit(f"guidelines...OK ({result['guidelines']})")
+    generator._emit(f"categories...OK ({', '.join(result['categories'])})")
+    generator._emit(f"location...OK {result['output_path']}")
 
     return result

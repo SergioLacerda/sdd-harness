@@ -137,6 +137,7 @@ class Phase456Generator:
                 "(claude, codex, gemini)"
             )
             return False
+        self._emit("hook...OK")
         return True
 
     def run(self) -> Phase456RunResult:
@@ -149,13 +150,14 @@ def run_phase_4_5_6_generator(
     output_base: Path,
     config: dict[str, Any],
     selected_seedlings: set[str] | None = None,
+    debug: bool = False,
 ) -> Phase456RunResult:
     """Entry point for Phase 4-6 generator."""
     generator = Phase456Generator(
         repo_root,
         output_base,
         config,
-        verbose=True,
+        verbose=debug,
         selected_seedlings=selected_seedlings,
     )
     return generator.run()

@@ -17,6 +17,7 @@ def _make_generator(tmp_path: Path) -> tuple[SimpleNamespace, list[str]]:
         runtime_dir=tmp_path / ".sdd" / "runtime",
         output_base=tmp_path,
         config={"language": "Python"},
+        selected_seedlings=None,
         _emit=messages.append,
         _write_sources=lambda *args: True,
         _generate_seedlings=lambda *args: True,
@@ -188,4 +189,5 @@ def test_run_phase456_pipeline_success_path_emits_summary(
     result = run_phase456_pipeline(generator)
 
     assert result["success"] is True
-    assert any("Phase 4-6 Complete" in message for message in messages)
+    assert any("phase4...OK" in message for message in messages)
+    assert any("location...OK" in message for message in messages)

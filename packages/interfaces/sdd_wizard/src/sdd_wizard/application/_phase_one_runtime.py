@@ -17,6 +17,7 @@ class PhaseOneContext(Protocol):
     phase1_choices_dir: Path
     wizard_config_path: Path
     SUPPORTED_PHASE2_PATTERNS: tuple[str, ...]
+    debug: bool
 
     def ask_user_preferences(self) -> dict[str, Any]:
         """Return the Phase 1 preference payload."""
@@ -131,7 +132,7 @@ class PhaseOneRuntime:
         generator = generator_type(
             self._context.repo_root / "packages",
             output_path,
-            verbose=True,
+            verbose=self._context.debug,
             config=config,
         )
         result = generator.run()
@@ -140,28 +141,14 @@ class PhaseOneRuntime:
             config["phase1_status"] = self._context._build_phase1_status(
                 status="completed", artifacts=generated_files
             )
-            self._context._emit(
-                f"""
-✅ Phase 1 Complete!
-
-📝 Templates generated: {output_path}
-   Language: {config.get("language")}
-   Adoption: {config.get("adoption_level")}
-
-Next steps:
-1. Review markdown files in phase-1-choices/
-2. Edit status fields (required/optional/custom)
-3. Run Phase 2 for step-by-step instructions
-4. Run Phase 3 to compile
-"""
-            )
+            self._context._emit(f"templates...OK {output_path}")
         else:
             config["phase1_status"] = self._context._build_phase1_status(
                 status="failed",
                 reason=str(result.get("error") or "phase1_generation_failed"),
             )
         config_path = self._context.save_config(config)
-        self._context._emit(f"\n✅ Configuration saved to: {config_path}")
+        self._context._emit(f"config...OK {config_path}")
         return self._build_result(
             success=bool(result["success"]),
             config_path=str(config_path),

@@ -282,7 +282,22 @@ def test_generate_adapters_emits_warning_when_adapter_fails(
 
     _generate_adapters(tmp_path, messages.append)
 
+    assert messages == ["adapters...WARN (claude)"]
+
+
+def test_generate_adapters_emits_detailed_warning_when_debug(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration._phase456_pipeline_steps.AdapterGenerator",
+        lambda: _FakeAdapterGenerator({"claude": _FakeAdapterResult(success=False)}),
+    )
+    messages: list[str] = []
+
+    _generate_adapters(tmp_path, messages.append, verbose=True)
+
     assert any("had errors" in message for message in messages)
+    assert any("adapters...WARN (claude)" in message for message in messages)
 
 
 def test_generate_adapters_emits_warning_on_exception(
@@ -298,4 +313,21 @@ def test_generate_adapters_emits_warning_on_exception(
 
     _generate_adapters(tmp_path, messages.append)
 
+    assert messages == ["adapters...WARN"]
+
+
+def test_generate_adapters_emits_detailed_exception_when_debug(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    def boom() -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration._phase456_pipeline_steps.AdapterGenerator", boom
+    )
+    messages: list[str] = []
+
+    _generate_adapters(tmp_path, messages.append, verbose=True)
+
     assert any("non-critical" in message for message in messages)
+    assert any("adapters...WARN" in message for message in messages)

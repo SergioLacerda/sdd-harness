@@ -11,6 +11,8 @@ from typing import Any
 
 from sdd_core.utils.log import get_logger
 
+from ..wizard.seedling_catalog import resolve_selection
+
 logger = get_logger(__name__)
 
 
@@ -23,11 +25,13 @@ class TemplateDeployer:
         output_base: Path,
         config: dict[str, Any] | None = None,
         verbose: bool = False,
+        selected_seedlings: set[str] | None = None,
     ) -> None:
         self.repo_root = repo_root
         self.output_base = output_base
         self.config = config or {}
         self.verbose = verbose
+        self.selection = resolve_selection(selected_seedlings)
 
         if os.environ.get("SDD_TEST_OUTPUT_DIR"):
             with contextlib.suppress(OSError, ValueError):
@@ -79,7 +83,13 @@ class TemplateDeployer:
         return candidates
 
     def _optional_hooks_enabled(self) -> bool:
-        return bool(self.config.get("include_optional_hooks", False))
+        return bool(
+            self.config.get("include_optional_hooks", False)
+            or "pre-commit" in self.selection
+        )
+
+    def _ci_enabled(self) -> bool:
+        return "ci" in self.selection
 
     def _ensure_cursor_rule_aliases(self) -> None:
         cursor_rules_dir = self.output_base / ".cursor" / "rules"
@@ -92,10 +102,28 @@ class TemplateDeployer:
             shutil.copy2(governance_file, spec_file)
             self._log("Created Cursor spec alias from sdd-governance.mdc")
 
+    def _prune_github_dir(self, github_dir: Path) -> None:
+        """Remove `.github` artifacts belonging to options that were not selected."""
+        if "copilot" not in self.selection:
+            copilot_file = github_dir / "copilot-instructions.md"
+            if copilot_file.exists():
+                copilot_file.unlink()
+        if not self._ci_enabled():
+            workflow_file = github_dir / "workflows" / "sdd-validation.yml"
+            if workflow_file.exists():
+                workflow_file.unlink()
+        if not self._optional_hooks_enabled():
+            hook = github_dir / "setup-precommit-hook.sh"
+            if hook.exists():
+                hook.unlink()
+
     def copy_templates(self) -> bool:
-        """Copy base templates to .github/workflows."""
+        """Copy base templates to .github/workflows (only when `ci` is selected)."""
         self._log("Copying templates")
         try:
+            if not self._ci_enabled():
+                self._log("Skipping sdd-validation.yml: `ci` not selected")
+                return True
             workflow_rel = Path(".github") / "workflows" / "sdd-validation.yml"
             src_workflow = self._resolve_template_path(workflow_rel)
             dst_workflow = (
@@ -126,30 +154,54 @@ class TemplateDeployer:
                 return False
 
             copied_count = 0
-            dir_mappings: list[tuple[Path, Path]] = [
-                (template_base / ".github", self.output_base / ".github"),
-                (template_base / ".vscode", self.output_base / ".vscode"),
-                (template_base / ".cursor", self.output_base / ".cursor"),
-                (template_base / ".claude", self.output_base / ".claude"),
-                (template_base / ".gemini", self.output_base / ".gemini"),
+            github_needed = (
+                "copilot" in self.selection
+                or self._ci_enabled()
+                or self._optional_hooks_enabled()
+            )
+            dir_mappings: list[tuple[Path, Path, bool]] = [
+                (
+                    template_base / ".github",
+                    self.output_base / ".github",
+                    github_needed,
+                ),
+                (
+                    template_base / ".vscode",
+                    self.output_base / ".vscode",
+                    "vscode" in self.selection,
+                ),
+                (
+                    template_base / ".cursor",
+                    self.output_base / ".cursor",
+                    "cursor" in self.selection,
+                ),
+                (
+                    template_base / ".claude",
+                    self.output_base / ".claude",
+                    "claude" in self.selection,
+                ),
+                (
+                    template_base / ".gemini",
+                    self.output_base / ".gemini",
+                    "gemini" in self.selection or "antigravity" in self.selection,
+                ),
                 (
                     template_base / ".sdd" / "templates",
                     self.output_base / ".sdd" / "templates",
+                    True,
                 ),
             ]
 
-            for src, dst in dir_mappings:
+            for src, dst, needed in dir_mappings:
+                if not needed:
+                    self._log(f"Skipping {src.name}/: not selected")
+                    continue
                 try:
                     source = self._resolve_template_path(src.relative_to(template_base))
                     if source is not None and source.is_dir():
                         shutil.copytree(source, dst, dirs_exist_ok=True)
-                        if (
-                            dst == self.output_base / ".github"
-                            and not self._optional_hooks_enabled()
-                        ):
-                            hook = dst / "setup-precommit-hook.sh"
-                            if hook.exists():
-                                hook.unlink()
+                        if dst == self.output_base / ".github":
+                            self._prune_github_dir(dst)
                         self._log(f"Copied {source.name}/ directory")
                         copied_count += 1
                     else:

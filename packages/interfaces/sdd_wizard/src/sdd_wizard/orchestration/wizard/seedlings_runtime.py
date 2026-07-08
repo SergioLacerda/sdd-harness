@@ -16,9 +16,7 @@ from sdd_wizard.orchestration.wizard.messages import phase6_seedlings_success_me
 
 _HOOK_MODE_SEEDLING_KEYS = {
     "governance",
-    "agent-prep",
     "personal-overlay",
-    "compliance",
     "activation-guide",
     "verify",
     "claude",
@@ -60,6 +58,7 @@ def run_phase6_seedlings_generation(
     wizard_config_path: Path,
     output_base: Path,
     emitter: Callable[[str], None],
+    debug: bool = False,
 ) -> bool:
     """Run Phase 6 governance loading + seedlings generation."""
     from sdd_core.utils.environment import get_sdd_paths
@@ -85,7 +84,7 @@ def run_phase6_seedlings_generation(
     )
 
     loader = GovernanceLoader(
-        governance_core_path, governance_client_path, verbose=True
+        governance_core_path, governance_client_path, verbose=debug
     )
     if not loader.load():
         emitter("  ❌ Failed to load governance")
@@ -98,17 +97,12 @@ def run_phase6_seedlings_generation(
         config=config,
         governance_core_path=governance_core_path,
         paths=paths,
-        verbose=True,
+        verbose=debug,
     )
     handshake_mode = config.get("handshake_mode", "standard")
     selected = _HOOK_MODE_SEEDLING_KEYS if handshake_mode == "hook" else None
     if handshake_mode == "hook":
-        emitter(
-            "  ℹ️  handshake_mode=hook: generating prompt-submit hooks for Claude/Codex/"
-            "Gemini only. Copilot/Cursor/VS Code seeds are skipped — those platforms "
-            "have no confirmed prompt hook, so they would not be governed by this mode "
-            "anyway. Run in standard mode separately if you also use those tools."
-        )
+        emitter("hook-mode...OK")
     if not orchestrator.generate(selected=selected):
         emitter("  ❌ Failed to generate intelligent seedlings")
         return False
@@ -118,6 +112,7 @@ def run_phase6_seedlings_generation(
         if not PromptSubmitHookGenerator(output_base, agents).generate():
             emitter("  ❌ Failed to generate prompt-submit hooks")
             return False
+        emitter("hook...OK")
 
     emitter(phase6_seedlings_success_message(output_base))
     return True

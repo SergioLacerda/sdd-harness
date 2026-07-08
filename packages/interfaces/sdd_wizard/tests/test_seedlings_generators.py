@@ -1874,6 +1874,17 @@ class TestWizardMessagesConsistency:
         assert "STEP 6: PASTE THIS IN YOUR AGENT PROMPT" in content
         assert "Read `AGENTS.md`, `.sdd/agent-instructions.md`" in content
 
+    def test_phase3_message_instructs_agent_to_complete_handshake(self) -> None:
+        """Regression: the wizard's paste-into-agent prompt must instruct the
+        agent to complete the M015 handshake itself (see
+        wizard-handshake-init-eval-20260706 — wizard-side auto-completion was
+        evaluated and rejected; agents must be instructed instead)."""
+        content = phase3_completed_message()
+        assert "sdd governance handshake --init" in content
+        assert "sdd governance handshake --response" in content
+        assert "understood_mandates" in content
+        assert "acknowledged_signature" in content
+
 
 class TestRootReadmeOnboarding:
     def test_readme_contains_agent_onboarding_commands(self) -> None:

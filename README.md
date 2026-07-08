@@ -88,15 +88,48 @@ For deeper architecture material, see `docs/architecture/README.md` and
 
 ### Client / Adopter Flow
 
-Use this path when you want to apply SDD governance to another project:
+The official, CI-proven install channel is the GitHub Release wheelhouse: download
+the `dist/` assets from a tagged [GitHub Release](https://github.com/SergioLacerda/sdd-harness/releases)
+and install `sdd-cli` from those local files, e.g.:
+
+```bash
+python -m venv .sdd-cli
+# Windows: .sdd-cli\Scripts\python.exe ; Linux/macOS: .sdd-cli/bin/python
+.sdd-cli/bin/python -m pip install --no-index --find-links <path-to-downloaded-dist> sdd-cli
+```
+
+`.github/workflows/release.yml` installs from these exact release artifacts on
+both `windows-latest` and `ubuntu-latest` before a release is published, so this
+path is proven cross-platform.
+
+The Git-subdirectory install below is a source/development install path — it
+installs the latest `develop`/`main` branch code rather than a released version:
 
 ```bash
 uv tool install "git+https://github.com/SergioLacerda/sdd-harness#subdirectory=packages/interfaces/sdd_cli"
 cd your-project
-sdd wizard run
+sdd install --wizard
 sdd init --default
 sdd governance validate
 ```
+
+`sdd install --wizard` runs a single guided flow (language, hook mode, agent
+selection, then generate) — no phase menu to navigate. Useful flags:
+
+- `--only-template` — generate the final template bundle without deploying it
+  into your project root
+- `--from-file <path>` — bring your own hand-edited mandates/guidelines JSON
+  instead of generating a fresh one
+- `--non-interactive` — skip prompts, reusing a prior `wizard-config.json` or
+  sane defaults
+- `--output-dir <path>` — change where the generated template lands
+
+`sdd wizard run` still works as a legacy alias and deploys the generated files
+into the project root by default.
+
+The wizard's final output tells you the exact next command to run to
+complete the M015 governance handshake — run it before your agent's first
+governed action.
 
 This path is cross-platform and does not require cloning this repository first.
 

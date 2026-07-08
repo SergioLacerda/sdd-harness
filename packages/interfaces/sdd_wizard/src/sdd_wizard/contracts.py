@@ -22,6 +22,8 @@ class WizardInvocation:
     When set, the wizard validates and loads this file instead of generating
     a fresh governance set from markdown templates (Phase 1-3 is bypassed).
     """
+    debug: bool = False
+    """Show full verbose wizard output instead of the quiet macro summary."""
 
 
 @dataclass(frozen=True)

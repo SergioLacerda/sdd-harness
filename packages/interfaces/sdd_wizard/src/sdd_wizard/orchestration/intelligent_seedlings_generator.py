@@ -136,6 +136,7 @@ class IntelligentSeedlingsGenerator:
                 "verify": self.gov_gen.generate_verification_script,
                 "agnostic-instructions": self.gov_gen.generate_agnostic_agent_instructions,
                 "gemini": self.ai_gen.generate_gemini_seed,
+                "antigravity": self.ai_gen.generate_antigravity_seed,
                 "copilot": self.ai_gen.generate_copilot_seed,
                 "vscode": self.ide_gen.generate_vscode_seed,
                 "cursor": self.ide_gen.generate_cursor_seed,
@@ -146,9 +147,14 @@ class IntelligentSeedlingsGenerator:
                 "sovereign-factory": self.sovereign_gen.generate_sovereign_factory_seed,
             }
 
-            to_run = {
-                k: v for k, v in generators.items() if selected is None or k in selected
-            }
+            # `None` preserves the historical full-generation contract used by
+            # direct orchestrator/e2e paths. The interactive wizard should pass
+            # an explicit selection when it wants the recommended subset.
+            resolved = set(generators) if selected is None else set(selected)
+            # `agnostic-instructions` and `sovereign-factory` are internal,
+            # always-on helper artifacts not exposed in the selection catalog.
+            resolved |= {"agnostic-instructions", "sovereign-factory"}
+            to_run = {k: v for k, v in generators.items() if k in resolved}
             results = [fn() for fn in to_run.values()]
             success = all(results)
             self._awareness_pack = self._validate_awareness_pack()

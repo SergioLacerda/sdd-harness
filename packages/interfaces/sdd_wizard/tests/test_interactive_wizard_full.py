@@ -11,6 +11,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from sdd_wizard.application import workspace_runtime
 from sdd_wizard.application.interactive_wizard import (
     InteractiveWizard,
     run_interactive_wizard,
@@ -68,6 +69,7 @@ def _make_wizard(
     tmp_path: Path,
     prompter: Any = None,
     emitter: Any = None,
+    debug: bool = False,
 ) -> InteractiveWizard:
     paths = {
         **_BASE_PATHS,
@@ -81,6 +83,7 @@ def _make_wizard(
             repo_root=tmp_path,
             emitter=emitter or (lambda _: None),
             prompter=prompter or (lambda _: ""),
+            debug=debug,
         )
 
 
@@ -269,8 +272,10 @@ class TestEnsureDocsMeta:
         assert reason == ""
 
     def test_bootstraps_and_returns_true_when_docs_meta_missing(
-        self, tmp_path: Path
+        self, tmp_path: Path, monkeypatch
     ) -> None:
+        """When no bundled canonical spec is available, fall back to the placeholder stub."""
+        monkeypatch.setattr(workspace_runtime, "_bundled_spec_dir", lambda: None)
         wizard = _make_wizard(tmp_path)
         ok, reason = wizard._ensure_docs_meta_ready()
         assert ok is True
@@ -280,6 +285,27 @@ class TestEnsureDocsMeta:
         assert (tmp_path / "build" / "phase-2-input").exists()
         assert (tmp_path / "build" / "docs-meta" / "mandate.md").exists()
         assert (tmp_path / "build" / "docs-meta" / "guidelines.dsl").exists()
+
+    def test_bootstraps_prefers_bundled_canonical_spec_when_available(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        bundled_dir = tmp_path / "bundled"
+        bundled_dir.mkdir()
+        (bundled_dir / "mandate.spec").write_text(
+            'mandate M001 {\n  title: "Real Mandate"\n}\n', encoding="utf-8"
+        )
+        (bundled_dir / "guidelines.dsl").write_text(
+            'guideline G01 {\n  title: "Real Guideline"\n}\n', encoding="utf-8"
+        )
+        monkeypatch.setattr(workspace_runtime, "_bundled_spec_dir", lambda: bundled_dir)
+        wizard = _make_wizard(tmp_path)
+        ok, reason = wizard._ensure_docs_meta_ready()
+        assert ok is True
+        assert reason == ""
+        docs_meta = tmp_path / "build" / "docs-meta"
+        assert (docs_meta / "mandate.spec").exists()
+        assert (docs_meta / "guidelines.dsl").exists()
+        assert not (docs_meta / "mandate.md").exists()
 
 
 class TestPostGenerationCleanup:
@@ -391,7 +417,10 @@ class TestPhase1Generate:
         responses = iter(["2", "1", "1", "3", "1"])
         logs: list[str] = []
         wizard = _make_wizard(
-            tmp_path, prompter=lambda _: next(responses), emitter=logs.append
+            tmp_path,
+            prompter=lambda _: next(responses),
+            emitter=logs.append,
+            debug=True,
         )
         wizard.selector_site_path.parent.mkdir(parents=True, exist_ok=True)
         wizard.selector_site_path.write_text("<html></html>", encoding="utf-8")
@@ -418,7 +447,10 @@ class TestPhase1Generate:
         responses = iter(["2", "1", "1", "3", "1"])
         logs: list[str] = []
         wizard = _make_wizard(
-            tmp_path, prompter=lambda _: next(responses), emitter=logs.append
+            tmp_path,
+            prompter=lambda _: next(responses),
+            emitter=logs.append,
+            debug=True,
         )
         wizard.selector_output_path.write_text(
             json.dumps(
@@ -699,7 +731,7 @@ class TestEnforcementLabel:
 class TestConsolidateFinalTemplate:
     def test_emits_on_success(self, tmp_path: Path) -> None:
         logs: list[str] = []
-        wizard = _make_wizard(tmp_path, emitter=logs.append)
+        wizard = _make_wizard(tmp_path, emitter=logs.append, debug=True)
         with patch(
             "sdd_wizard.application.interactive_wizard.consolidate_final_template",
             return_value={"success": True, "moved_items": 3},

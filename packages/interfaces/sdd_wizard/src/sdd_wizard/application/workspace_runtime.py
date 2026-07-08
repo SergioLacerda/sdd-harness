@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import shutil
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from sdd_wizard.orchestration.wizard.phase1_generator import _bundled_spec_dir
 from sdd_wizard.orchestration.wizard.selector_bridge import load_selector_selection
 
 
@@ -103,21 +105,47 @@ def ensure_onboarding_scaffold(
     phase2_input_dir: Path,
     baseline_mandate: str,
     baseline_guidelines: str,
+    emit: Callable[[str], None] | None = None,
 ) -> tuple[bool, str]:
-    """Create the minimal scaffold required for first-run onboarding."""
+    """Create the minimal scaffold required for first-run onboarding.
+
+    Prefers copying the bundled canonical mandate.spec/guidelines.dsl (shipped as
+    sdd_core package data) into docs-meta over the single-mandate placeholder
+    stub; the stub is a genuine last resort and is logged visibly when used.
+    """
+    emit = emit or print
     try:
         client_build_dir.mkdir(parents=True, exist_ok=True)
         phase1_choices_dir.mkdir(parents=True, exist_ok=True)
         phase2_input_dir.mkdir(parents=True, exist_ok=True)
         docs_meta = client_build_dir / "docs-meta"
         docs_meta.mkdir(parents=True, exist_ok=True)
-        if not any(
+        bundled = _bundled_spec_dir()
+
+        mandate_missing = not any(
             (docs_meta / name).exists() for name in ("mandate.spec", "mandate.md")
-        ):
+        )
+        if mandate_missing and bundled and (bundled / "mandate.spec").exists():
+            shutil.copyfile(bundled / "mandate.spec", docs_meta / "mandate.spec")
+            mandate_missing = False
+        if mandate_missing:
+            emit(
+                "WARN: canonical governance spec not found; generating minimal "
+                "placeholder mandate.md — customize before production use"
+            )
             (docs_meta / "mandate.md").write_text(baseline_mandate, encoding="utf-8")
-        if not any(
+
+        guidelines_missing = not any(
             (docs_meta / name).exists() for name in ("guidelines.dsl", "guidelines.md")
-        ):
+        )
+        if guidelines_missing and bundled and (bundled / "guidelines.dsl").exists():
+            shutil.copyfile(bundled / "guidelines.dsl", docs_meta / "guidelines.dsl")
+            guidelines_missing = False
+        if guidelines_missing:
+            emit(
+                "WARN: canonical governance spec not found; generating minimal "
+                "placeholder guidelines.dsl — customize before production use"
+            )
             (docs_meta / "guidelines.dsl").write_text(
                 baseline_guidelines,
                 encoding="utf-8",

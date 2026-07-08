@@ -144,3 +144,58 @@ jobs:
         with:
           name: release-dry-run-dist
           path: dist/
+
+  release-install-smoke:
+    name: Release Install Smoke (${{ matrix.os }})
+    needs: dry-run
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.12"]
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Download dry-run artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: release-dry-run-dist
+          path: dist/
+
+      - name: Create install smoke venv
+        shell: bash
+        run: python -m venv .release-smoke
+
+      - name: Install sdd-cli from dist only (no PyPI fallback)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            PY=".release-smoke/Scripts/python.exe"
+          else
+            PY=".release-smoke/bin/python"
+          fi
+          "$PY" -m pip install --upgrade pip
+          "$PY" -m pip install --no-index --find-links dist sdd-cli
+
+      - name: Run CLI smoke commands
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            SDD_BIN=".release-smoke/Scripts/sdd.exe"
+          else
+            SDD_BIN=".release-smoke/bin/sdd"
+          fi
+          "$SDD_BIN" --help
+          "$SDD_BIN" install --help
+          "$SDD_BIN" wizard --list

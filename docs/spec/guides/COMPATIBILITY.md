@@ -48,8 +48,18 @@ sdd-telemetry
 
 **Installation:**
 
-- **End-users:** `pip install sdd-harness` (installs sdd-cli + all dependencies)
-- **Developers:** `uv sync` in monorepo root (all 7 packages in editable mode)
+- **End-users (official channel):** download the `dist/` wheelhouse from a
+  tagged [GitHub Release](https://github.com/SergioLacerda/sdd-harness/releases)
+  and install with `pip install --no-index --find-links <dist-dir> sdd-cli`.
+  This exact flow is verified on `windows-latest` and `ubuntu-latest` by
+  `.github/workflows/release.yml` before a release is published.
+- **End-users (source/development install):** `uv tool install
+  "git+https://github.com/SergioLacerda/sdd-harness#subdirectory=packages/interfaces/sdd_cli"`
+  tracks branch code rather than a released version.
+- **Developers:** `uv sync` in monorepo root (all packages in editable mode)
+
+There is no published `sdd-harness` package on PyPI; do not reference `pip
+install sdd-harness` until PyPI publishing is implemented and proven in CI.
 
 ---
 

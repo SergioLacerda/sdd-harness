@@ -13,24 +13,39 @@ Get your SDD workspace running with governed bootstrap and agent command packs.
 > Prerequisite: install the SDD CLI first — see [Step 1](#step-by-step-setup-client-project)
 > below if you haven't already.
 
-After `sdd wizard run` has generated your project template, `sdd init --default`
-runs the full client bootstrap chain in one step: workspace profile, governance
-generate (`--full-bootstrap`), skills bootstrap (`--full-bootstrap
---regenerate-seeds`), runtime validation, and git hooks install. It is
-equivalent to `sdd init --type client --name local-dev --force`, with any of
-`--type`/`--name`/`--force` you pass explicitly taking precedence.
+After `sdd install --wizard` has generated and deployed your project template,
+`sdd init --default` runs the full client bootstrap chain in one step: workspace
+profile, governance generate (`--full-bootstrap`), skills bootstrap
+(`--full-bootstrap --regenerate-seeds`), runtime validation, and git hooks
+install. It is equivalent to `sdd init --type client --name local-dev --force`,
+with any of `--type`/`--name`/`--force` you pass explicitly taking precedence.
 
 ```bash
 cd <your-project>
-sdd wizard run
+sdd install --wizard
 sdd init --default
 sdd governance validate
 ```
+
+`sdd install --wizard` deploys generated files into the project root by default.
+Use `--only-template` to stop after producing `generated/client/build/final-template/`.
+It also supports `--from-file <path>` (bring your own governance JSON) and
+`--non-interactive` (skip prompts) — see `docs/spec/reference/commands/cli.md`
+for the full flag reference.
 
 Each step is skipped automatically if it already ran (idempotent re-run); use
 `--force` (or `--default`, which implies it) to re-run all steps.
 
 ## Step-by-step Setup (Client Project)
+
+> The official, CI-proven install channel is the GitHub Release wheelhouse
+> (`dist/` assets attached to a tagged
+> [GitHub Release](https://github.com/SergioLacerda/sdd-harness/releases),
+> installed with `pip install --no-index --find-links <dist-dir> sdd-cli`).
+> `.github/workflows/release.yml` verifies this exact install on
+> `windows-latest` and `ubuntu-latest` before publishing. The
+> `uv tool install` command below is a source/development install path that
+> tracks branch code rather than a released version.
 
 ```bash
 # 1. Install SDD CLI (cross-platform: Linux/macOS/Windows, no clone required)
@@ -38,7 +53,7 @@ uv tool install "git+https://github.com/SergioLacerda/sdd-harness#subdirectory=p
 
 # 2. Enter your project and run the wizard
 cd <your-project>
-sdd wizard run
+sdd install --wizard
 
 # 3. Activate runtime/governance in the generated template
 #    (this single command also runs steps 4-6 below automatically)
@@ -58,14 +73,37 @@ sdd governance validate
 
 ### Zero-state onboarding behavior
 
-`sdd wizard run` supports first-run onboarding in an empty workspace.
+`sdd install --wizard` runs a single guided flow in an empty workspace — no
+phase menu, no manual staging required:
 
-- If `.sdd/` and `generated/` are absent, the wizard bootstraps Phase 1/2 inputs automatically.
-- Minimal folders are created under `generated/client/build/`:
-  - `docs-meta/`
-  - `phase-1-choices/`
-  - `phase-2-input/`
-- Runtime activation is intentionally deferred to step 3 (`sdd init` + bootstrap commands).
+1. Language, hook-mode, and agent-selection prompts (skippable via
+   `--non-interactive`)
+2. Governance generation (or `--from-file <path>` to supply your own)
+3. Compilation and seed generation into `generated/client/build/`
+4. Deployment of the final template into the project root
+
+Runtime activation is intentionally deferred to step 3 (`sdd init` + bootstrap commands).
+
+### Seedling Selection
+
+The interactive seedling selector groups options into four sections:
+
+- **CORE** — `governance`, `agents-md`, `prompt-commands`, `activation-guide`,
+  `verify`. Always part of the recommended default.
+- **IDEs** — `vscode`, `cursor`, `antigravity`.
+- **AGENTS** — `claude`, `codex`, `gemini`, `copilot`.
+- **OPTIONAL** — `ci`, `pre-commit`, `compliance`, `personal-overlay`. Off by
+  default; select explicitly to generate `.github/workflows/sdd-validation.yml`,
+  pre-commit hooks, or `compliance.seed.json`.
+
+Leaving the selection empty applies the **recommended default** (CORE + all
+IDEs + all AGENTS) — it is not "generate everything," and it never includes
+CI/CD or pre-commit artifacts unless you opt in.
+
+Only the artifacts belonging to your selection are generated, deployed, and
+validated. Files from a previous wizard run that belong to options you no
+longer select are **not** deleted automatically — a future `--prune-unselected`
+mode may add that, but the current behavior never removes files on its own.
 
 ## Agent Custom Commands (Slash/Prompt Packs)
 

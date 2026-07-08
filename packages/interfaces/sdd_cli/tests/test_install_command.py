@@ -49,7 +49,7 @@ def test_install_wizard_delegates_to_run_wizard_command() -> None:
 
     assert result.exit_code == 0
     mock_run.assert_called_once_with(
-        output_dir=None, from_file=None, non_interactive=False
+        output_dir=None, from_file=None, non_interactive=False, only_template=False
     )
 
 
@@ -78,38 +78,26 @@ def test_install_wizard_reports_actionable_error_when_project_root_not_found() -
     assert "No SDD project context found" in result.output
 
 
-def test_install_without_direct_root_does_not_deploy(tmp_path: Path) -> None:
+def test_install_wizard_only_template_preserves_template_only_flow(
+    tmp_path: Path,
+) -> None:
     runner = CliRunner()
-    with (
-        patch("sdd_cli.commands.install.run_wizard_command"),
-        patch("sdd_cli.commands.install.deploy_to_root") as mock_deploy,
-    ):
-        result = runner.invoke(app, ["--wizard"])
+    with patch("sdd_cli.commands.install.run_wizard_command") as mock_run:
+        result = runner.invoke(app, ["--wizard", "--only-template"])
 
     assert result.exit_code == 0
-    mock_deploy.assert_not_called()
+    mock_run.assert_called_once()
+    _, kwargs = mock_run.call_args
+    assert kwargs["only_template"] is True
 
 
-def test_install_direct_root_deploys_from_resolved_output_dir(tmp_path: Path) -> None:
-    from sdd_wizard.orchestration.wizard._direct_root_deploy import DeployToRootResult
-
+def test_install_direct_root_is_not_a_public_option() -> None:
     runner = CliRunner()
-    with (
-        patch("sdd_cli.commands.install.run_wizard_command"),
-        patch(
-            "sdd_cli.commands.install.deploy_to_root",
-            return_value=DeployToRootResult(created=["AGENTS.md"]),
-        ) as mock_deploy,
-    ):
-        result = runner.invoke(
-            app, ["--wizard", "--output-dir", str(tmp_path), "--direct-root"]
-        )
 
-    assert result.exit_code == 0, result.output
-    mock_deploy.assert_called_once()
-    _, kwargs = mock_deploy.call_args
-    assert kwargs["final_template_dir"] == tmp_path.resolve()
-    assert "created=1" in result.output
+    result = runner.invoke(app, ["--wizard", "--direct-root"])
+
+    assert result.exit_code != 0
+    assert "No such option" in result.output
 
 
 def test_install_wizard_passes_through_from_file(tmp_path: Path) -> None:
@@ -134,20 +122,3 @@ def test_install_wizard_passes_through_non_interactive() -> None:
     mock_run.assert_called_once()
     _, kwargs = mock_run.call_args
     assert kwargs["non_interactive"] is True
-
-
-def test_install_direct_root_reports_skipped_unmanaged_files() -> None:
-    from sdd_wizard.orchestration.wizard._direct_root_deploy import DeployToRootResult
-
-    runner = CliRunner()
-    with (
-        patch("sdd_cli.commands.install.run_wizard_command"),
-        patch(
-            "sdd_cli.commands.install.deploy_to_root",
-            return_value=DeployToRootResult(skipped=["AGENTS.md"]),
-        ),
-    ):
-        result = runner.invoke(app, ["--wizard", "--direct-root"])
-
-    assert result.exit_code == 0, result.output
-    assert "Skipped (unmanaged, not overwritten): AGENTS.md" in result.output

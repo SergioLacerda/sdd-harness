@@ -45,16 +45,20 @@ class MandatesCompiler:
             ]
 
             for mandate in mandates:
+                description = (
+                    mandate.get("description")
+                    or mandate.get("content")
+                    or mandate.get("summary_runtime")
+                    or mandate.get("summary_minimal")
+                    or "No description available"
+                )
                 lines += [
                     f"## {mandate['id']}: {mandate['title']}",
                     "",
                     f"**Criticality**: {mandate.get('criticality', 'MANDATORY')}",
                     "**Customizable**: No",
                     "",
-                    mandate.get(
-                        "description",
-                        mandate.get("content", "No description available"),
-                    ),
+                    description,
                     "",
                 ]
 
