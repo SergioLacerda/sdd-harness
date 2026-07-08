@@ -208,60 +208,6 @@ class TestAISeedsGeneratorGemini:
         assert "GEMINI.md" in seed["required_context"]
 
 
-class TestAISeedsGeneratorCortex:
-    def test_generate_cortex_seed_creates_files(
-        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
-    ) -> None:
-        """Should create .cortex/skills/, .claude/skills/ and cortex.seed.json."""
-        gen = AISeedsGenerator(
-            output_base=tmp_path,
-            seedlings_dir=tmp_seedlings_dir,
-            config=base_config,
-            spec_fingerprint="abc12345",
-            mandate_ids=["M001"],
-            active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z",
-            verbose=False,
-        )
-        success = gen.generate_cortex_seed()
-        assert success is True
-        assert (tmp_path / ".cortex" / "skills" / "sdd-governance.md").exists()
-        assert (tmp_path / ".claude" / "skills" / "sdd-governance.md").exists()
-        assert (tmp_seedlings_dir / "cortex.seed.json").exists()
-
-    def test_generate_cortex_seed_content(
-        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
-    ) -> None:
-        """Generated cortex files should have correct content."""
-        gen = AISeedsGenerator(
-            output_base=tmp_path,
-            seedlings_dir=tmp_seedlings_dir,
-            config=base_config,
-            spec_fingerprint="abc12345",
-            mandate_ids=["M001"],
-            active_categories=["testing"],
-            generated_at="2026-05-12T00:00:00Z",
-            verbose=False,
-        )
-        gen.generate_cortex_seed()
-        skill = (tmp_path / ".cortex" / "skills" / "sdd-governance.md").read_text(
-            encoding="utf-8"
-        )
-        assert "Cortex Code" in skill
-        assert ".sdd/agent-instructions.md" in skill
-
-        compat = (tmp_path / ".claude" / "skills" / "sdd-governance.md").read_text(
-            encoding="utf-8"
-        )
-        assert compat == skill
-
-        seed = json.loads(
-            (tmp_seedlings_dir / "cortex.seed.json").read_text(encoding="utf-8")
-        )
-        assert seed["agent"] == "cortex"
-        assert ".cortex/skills/sdd-governance.md" in seed["required_context"]
-
-
 class TestAISeedsGeneratorCodex:
     def test_generate_codex_seed_creates_file(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
@@ -319,6 +265,94 @@ class TestAISeedsGeneratorCodex:
             side_effect=OSError("disk full"),
         ):
             assert gen.generate_codex_seed() is False
+
+
+class TestAISeedsGeneratorCodexHandshakeMode:
+    def test_generate_codex_seed_hook_mode_keeps_hook_generation_separate(
+        self, tmp_path: Path, tmp_seedlings_dir: Path
+    ) -> None:
+        config = {
+            "project_name": "Test Project",
+            "language": "python",
+            "handshake_mode": "hook",
+        }
+        gen = AISeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        assert gen.generate_codex_seed() is True
+        assert not (tmp_path / ".codex" / "config.toml").exists()
+        assert not (tmp_path / ".codex" / "sdd-governance-inject.py").exists()
+
+    def test_generate_codex_seed_standard_mode_unchanged(
+        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
+    ) -> None:
+        gen = AISeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        assert gen.generate_codex_seed() is True
+        assert not (tmp_path / ".codex" / "config.toml").exists()
+        assert not (tmp_path / ".codex" / "sdd-governance-inject.py").exists()
+
+
+class TestAISeedsGeneratorGeminiHandshakeMode:
+    def test_generate_gemini_seed_hook_mode_keeps_hook_generation_separate(
+        self, tmp_path: Path, tmp_seedlings_dir: Path
+    ) -> None:
+        config = {
+            "project_name": "Test Project",
+            "language": "python",
+            "handshake_mode": "hook",
+        }
+        gen = AISeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        assert gen.generate_gemini_seed() is True
+        settings = json.loads(
+            (tmp_path / ".gemini" / "settings.json").read_text(encoding="utf-8")
+        )
+        assert settings.get("contextFileName") == "GEMINI.md"
+        assert "hooks" not in settings
+
+    def test_generate_gemini_seed_standard_mode_unchanged(
+        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
+    ) -> None:
+        gen = AISeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        assert gen.generate_gemini_seed() is True
+        settings = json.loads(
+            (tmp_path / ".gemini" / "settings.json").read_text(encoding="utf-8")
+        )
+        assert settings.get("contextFileName") == "GEMINI.md"
+        assert "hooks" not in settings
 
 
 class TestAISeedsGeneratorCopilot:
@@ -745,6 +779,57 @@ class TestAISeedsGeneratorClaudeSeed:
         assert (tmp_path / ".claude" / "settings.json").exists()
 
 
+class TestAISeedsGeneratorClaudeHandshakeMode:
+    def test_generate_claude_seed_hook_mode_keeps_hook_generation_separate(
+        self, tmp_path: Path, tmp_seedlings_dir: Path
+    ) -> None:
+        """AI seeds stay independent from prompt-submit hook runtime generation."""
+        config = {
+            "project_name": "Test Project",
+            "language": "python",
+            "handshake_mode": "hook",
+        }
+        gen = AISeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        assert gen.generate_claude_seed() is True
+        settings = json.loads(
+            (tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8")
+        )
+        assert "PreToolUse" in settings["hooks"]
+        assert "UserPromptSubmit" not in settings["hooks"]
+        assert not (tmp_path / ".claude" / "sdd-governance-inject.py").exists()
+
+    def test_generate_claude_seed_standard_mode_unchanged(
+        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
+    ) -> None:
+        """Default config (no handshake_mode) keeps the existing PreToolUse hook."""
+        gen = AISeedsGenerator(
+            output_base=tmp_path,
+            seedlings_dir=tmp_seedlings_dir,
+            config=base_config,
+            spec_fingerprint="abc12345",
+            mandate_ids=["M001"],
+            active_categories=["testing"],
+            generated_at="2026-05-12T00:00:00Z",
+            verbose=False,
+        )
+        assert gen.generate_claude_seed() is True
+        settings = json.loads(
+            (tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8")
+        )
+        assert "PreToolUse" in settings["hooks"]
+        assert "UserPromptSubmit" not in settings["hooks"]
+        assert not (tmp_path / ".claude" / "sdd-governance-inject.py").exists()
+
+
 class TestGovernanceSeedsGeneratorMethods:
     def test_generate_activation_guide(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
@@ -791,6 +876,7 @@ class TestGovernanceSeedsGeneratorMethods:
         assert "sdd ask --full" in content
         assert "Copy-Item -Path .sdd\\seedlings -Destination . -Recurse" in content
         assert "Activation Checklist" in content
+        assert "sdd governance hook disable" in content
 
     def test_generate_verification_script(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
@@ -846,7 +932,10 @@ class TestGovernanceSeedsGeneratorMethods:
         )
         success = gen.generate_agnostic_agent_instructions()
         assert success is True
-        assert (tmp_path / ".sdd" / "agent-instructions.md").exists()
+        instructions_file = tmp_path / ".sdd" / "agent-instructions.md"
+        assert instructions_file.exists()
+        content = instructions_file.read_text(encoding="utf-8")
+        assert "governance_fingerprint" in content
 
     def test_generate_agent_specific_entrypoint_contracts(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
@@ -1785,6 +1874,17 @@ class TestWizardMessagesConsistency:
         assert "STEP 6: PASTE THIS IN YOUR AGENT PROMPT" in content
         assert "Read `AGENTS.md`, `.sdd/agent-instructions.md`" in content
 
+    def test_phase3_message_instructs_agent_to_complete_handshake(self) -> None:
+        """Regression: the wizard's paste-into-agent prompt must instruct the
+        agent to complete the M015 handshake itself (see
+        wizard-handshake-init-eval-20260706 — wizard-side auto-completion was
+        evaluated and rejected; agents must be instructed instead)."""
+        content = phase3_completed_message()
+        assert "sdd governance handshake --init" in content
+        assert "sdd governance handshake --response" in content
+        assert "understood_mandates" in content
+        assert "acknowledged_signature" in content
+
 
 class TestRootReadmeOnboarding:
     def test_readme_contains_agent_onboarding_commands(self) -> None:
@@ -1835,17 +1935,6 @@ class TestAISeedsExceptionPaths:
             side_effect=OSError("disk full"),
         ):
             result = gen.generate_copilot_seed()
-        assert result is False
-
-    def test_cortex_exception_returns_false(
-        self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
-    ) -> None:
-        gen = _ai_gen(tmp_path, tmp_seedlings_dir, base_config)
-        with patch(
-            "sdd_wizard.orchestration.seedlings.ai_seeds.write_text_utf8",
-            side_effect=OSError("disk full"),
-        ):
-            result = gen.generate_cortex_seed()
         assert result is False
 
     def test_claude_exception_returns_false(

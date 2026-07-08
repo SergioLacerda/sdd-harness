@@ -4,8 +4,7 @@
 - **Status**: Architecture-level governance rules
 - **Optimization**: Optimized for AI agent parsing
 - **Version**: 3.0
-- **Language**: Python
-- **Generated**: 2026-06-14T09:05:01.575589
+- **Generated**: 2026-07-07T18:25:22.212593
 
 ## Core Mandates
 
@@ -13,112 +12,124 @@ Mandatory rules that CANNOT be customized or skipped.
 
 ## M001: Clean Architecture
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-Domain and application layers must be strictly separated from infrastructure adapters and external frameworks. Dependencies always point inward; nothing in the domain layer imports from adapters or infrastructure.
+Ensure maintainability and testability by separating concerns into distinct, independent layers using the 8-layer Clean Architecture pattern: Domain, Use Cases, Ports, Adapters, Infrastructure, External Services, UI/CLI, Composition Root.
 
 ## M002: Test-Driven Development (TDD)
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-All production code must be preceded or accompanied by failing tests. Coverage thresholds are enforced in CI; merges are blocked when coverage drops below the declared minimum for the target language profile.
+Ensure 100% functional coverage and design clarity by writing tests before implementation code, following the Red-Green-Refactor cycle.
 
 ## M003: Context Awareness & Task Caching
 
-**Criticality**: medium
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-Agents must leverage cached workspace context to avoid redundant reads and re-derivation. Context state is invalidated when underlying files or governance artifacts change; agents must not assume stale context is valid.
+Ensure absolute continuity of state and logic across parallel agents, long-running tasks, and multi-repository environments by maintaining a persistent, project-isolated Context Cache.
 
 ## M005: Token Economy Enforcement
 
-**Criticality**: medium
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-AI agent interactions must minimize token consumption. Prompts must be concise, reusable results must be cached, and agents must not re-derive information already present in the active context window.
+Ensure every agent respects token budget zones and circuit-breaker thresholds to prevent context overflow, degraded output, and undetected budget breaches.
 
-## M006: RFC Process Mandate
+## M006: RFC Process for Breaking Changes
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-Any change that could require users to update their code, configuration, or governance artifacts must follow a documented RFC process. Breaking changes shipped without an approved RFC are a governance violation.
+Breaking changes to the SDD framework (CLI commands, governance schema, artifact formats, or runtime contracts) must go through a formal Request for Comments process before shipping.
 
 ## M007: Telemetry Enforcement
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-All components must emit structured telemetry events for key operations. Telemetry pipelines must be queryable, reliable, and must not silently drop events under load or during shutdown.
+Ensure 100% traceability of agentic decisions and governance compliance via structured telemetry and OpenTelemetry integration.
 
 ## M008: Audit Integrity
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-All governance decisions, agent actions, and enforcement events must be recorded immutably. Audit logs cannot be truncated, filtered, or overwritten without an approved and explicitly recorded policy exception.
+Preserve and protect the integrity of the audit trail (.sdd/audit-trail/compliance-events.jsonl) to ensure forensic capability, regulatory compliance, and accountability for all governance-aware operations.
 
 ## M009: OpenTelemetry Compliance
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-All services must instrument with OpenTelemetry spans, metrics, and logs following the declared schema. Proprietary telemetry SDKs may not replace OpenTelemetry without an approved architectural decision record.
+Maintain distributed trace continuity across the agentic ecosystem by enforcing valid OpenTelemetry (OTEL) context propagation on all governance-aware operations.
 
 ## M010: Delivery Hygiene Enforcement
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-Workspaces are treated as potentially shared between parallel agents and developers. Destructive git operations require explicit authorization; agents may not commit, push, reset, or stash without confirmed user approval.
+Guarantee that every implementation is delivered with updated tests and strict quality hygiene, including mandatory auto-fix and revalidation before handoff.
 
 ## M011: English Language Standard
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-All governance artifacts, technical documentation, code comments, and CI outputs must be authored in English. Non-English content is permitted only on contextual surfaces explicitly declared as non-canonical by the workspace language policy.
+Enforce a single language standard for engineering artifacts to prevent ambiguity, mixed-language drift, and communication inconsistency across humans and agents.
+
+
+**Mandatory surfaces**: code, technical_docs, governance, cli_help
+
+**Contextual surfaces**: chat, ui, workspace_local_docs, analysis_docs
+
+**Context source**: wizard `language_context` preferences guide contextual surfaces only and never override M011.
+
+**Workspace-local docs paths**: .analysis/
+
+**Guideline anchors**: G021, G022
 
 ## M015: Bidirectional Agent Handshake
 
-**Criticality**: medium
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-Before any mutating operation, the agent must announce its governance state and obtain user confirmation. Agents that bypass the handshake protocol or proceed without confirmation are non-compliant with this mandate.
+Ensure every agentic interaction is governed by a formal trust boundary via a bidirectional challenge/response protocol before any skill or tool execution begins.
 
 ## M016: Guardrail Non-Regression
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-Governance guardrails may not be removed, weakened, or bypassed. Any reduction in enforcement coverage requires an approved architectural decision record; unilateral guardrail removals are treated as compliance failures.
+Ensure that guardrails evolve in a net-positive direction. Increments and optimizations are allowed and encouraged. Regression -- any change that removes coverage, weakens enforcement, or introduces hazards -- is not.
 
 ## M017: Analysis Plugin Compliance
 
-**Criticality**: medium
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-Analysis plugins must implement the declared plugin interface contract. Plugins that deviate from the contract schema or bypass declared hooks are blocked from the analysis pipeline without exception.
+Ensure that analysis plugins respect SDD-injected base_path, execution_provider, and approval_gate.
 
 ## M018: Code Quality Baseline
 
-**Criticality**: high
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-All code must pass the declared quality gates for the target language: static analysis, type checking, and linting. Quality thresholds are defined per language profile and enforced without exception in CI; no merge is allowed with failing quality gates.
+Enforce a universal code quality baseline across all language implementations to ensure consistency, maintainability, and correctness of engineering artifacts. Language-specific enforcement is delegated to guideline entries (G-series) that reference this mandate.
 
 ## M019: Governance Federation
 
-**Criticality**: medium
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-Multiple governance domains may federate under a unified root authority. Federated domains must declare their scope explicitly; federated mandates may not override core mandates without a federation-level approval record.
+Define how any plugin or skill declares identity, negotiates capabilities, and adheres to host governance before execution inside an SDD-governed environment.
 
 ## M020: Governed Compact Logging
 
-**Criticality**: medium
+**Criticality**: OBRIGATÓRIO
 **Customizable**: No
 
-All log output must follow the compact logging format: structured JSON, bounded payload size, no PII, no secrets in log values. Verbose or free-form logging is permitted only in explicitly scoped debug builds.
+All agent interfaces -- both input to the LLM and output to the user -- must follow the Simple Governed IO pattern: a canonical event or context produces a simple base form, with an optional profile-gated verbose expansion.
+

@@ -8,8 +8,9 @@ from pathlib import Path
 
 import typer
 
+from sdd_cli.utils.operational_errors import operational_error_from_exception
 from sdd_core.utils.environment import resolve_sdd_child_cmd
-from sdd_core.utils.process import SafeProcessRunner
+from sdd_core.utils.process import ProcessRunnerError, SafeProcessRunner
 
 
 @dataclass
@@ -33,12 +34,27 @@ class OnboardingOrchestrator:
         env = os.environ.copy()
         env.setdefault("PYTHONUTF8", "1")
         runner = SafeProcessRunner()
-        result = runner.run(
-            [sdd_cmd] + args,
-            cwd=self.cwd,
-            env=env,
-            capture_output=False,
-        )
+        command = [sdd_cmd] + args
+        try:
+            result = runner.run(
+                command,
+                cwd=self.cwd,
+                env=env,
+                capture_output=False,
+            )
+        except (OSError, ProcessRunnerError) as exc:
+            operational_error = operational_error_from_exception(
+                exc,
+                headline=f"Bootstrap step failed while running '{_label}'.",
+                command="sdd init",
+                step=_label,
+                operation="run child command",
+                path=self.cwd,
+                next_hint=f"retry: {' '.join(command)}",
+            )
+            if operational_error is None:
+                raise
+            raise operational_error from exc
         return result.success
 
     def step_governance(self, *, force: bool) -> bool:

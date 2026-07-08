@@ -161,7 +161,8 @@ class TelemetrySink:
 
     def _resolve_path(self, event: RuntimeEvent) -> Path:
         """Return the actual JSONL file path, respecting work_item segmentation."""
-        assert self._jsonl_path is not None
+        if self._jsonl_path is None:
+            raise RuntimeError("TelemetrySink jsonl_path is required for persistence")
         if not self._segment_by_work_item or not event.details.get("work_item_id"):
             return self._jsonl_path
         work_item_id = str(event.details["work_item_id"])

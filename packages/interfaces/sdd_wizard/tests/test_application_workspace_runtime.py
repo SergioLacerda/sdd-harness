@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from sdd_wizard.application import workspace_runtime
 from sdd_wizard.application.workspace_runtime import (
     build_selector_discovery_config,
     cleanup_post_generation_artifacts,
@@ -24,7 +25,11 @@ def test_build_selector_discovery_config_reports_published_site(tmp_path: Path) 
     assert result["resolved_count"] == 1
 
 
-def test_ensure_docs_meta_ready_bootstraps_missing_files(tmp_path: Path) -> None:
+def test_ensure_docs_meta_ready_bootstraps_missing_files(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """When no bundled canonical spec is available, fall back to the placeholder stub."""
+    monkeypatch.setattr(workspace_runtime, "_bundled_spec_dir", lambda: None)
     ok, reason = ensure_docs_meta_ready(
         paths={},
         client_build_dir=tmp_path / "build",
@@ -36,6 +41,37 @@ def test_ensure_docs_meta_ready_bootstraps_missing_files(tmp_path: Path) -> None
     assert ok is True
     assert reason == ""
     assert (tmp_path / "build" / "docs-meta" / "mandate.md").exists()
+    assert (tmp_path / "build" / "docs-meta" / "guidelines.dsl").exists()
+
+
+def test_ensure_docs_meta_ready_prefers_bundled_canonical_spec(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """The bundled canonical spec is copied over the placeholder stub when available."""
+    bundled_dir = tmp_path / "bundled"
+    bundled_dir.mkdir()
+    (bundled_dir / "mandate.spec").write_text(
+        'mandate M001 {\n  title: "Real Mandate"\n}\n', encoding="utf-8"
+    )
+    (bundled_dir / "guidelines.dsl").write_text(
+        'guideline G01 {\n  title: "Real Guideline"\n}\n', encoding="utf-8"
+    )
+    monkeypatch.setattr(workspace_runtime, "_bundled_spec_dir", lambda: bundled_dir)
+    ok, reason = ensure_docs_meta_ready(
+        paths={},
+        client_build_dir=tmp_path / "build",
+        phase1_choices_dir=tmp_path / "build" / "phase-1-choices",
+        phase2_input_dir=tmp_path / "build" / "phase-2-input",
+        baseline_mandate="# baseline",
+        baseline_guidelines="guideline G001 {}",
+    )
+    assert ok is True
+    assert reason == ""
+    docs_meta = tmp_path / "build" / "docs-meta"
+    assert (docs_meta / "mandate.spec").exists()
+    assert (docs_meta / "guidelines.dsl").exists()
+    assert not (docs_meta / "mandate.md").exists()
+    assert "Real Mandate" in (docs_meta / "mandate.spec").read_text(encoding="utf-8")
 
 
 def test_cleanup_post_generation_artifacts_keeps_final_template(tmp_path: Path) -> None:

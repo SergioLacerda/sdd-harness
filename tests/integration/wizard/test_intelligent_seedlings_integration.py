@@ -169,7 +169,6 @@ def test_intelligent_seedlings_generator() -> None:  # noqa: C901
             (".gemini/gemini-instructions.md", "Gemini Instructions"),
             ("GEMINI.md", "Gemini Root Pointer"),
             ("CLAUDE.md", "Claude Instructions"),
-            (".cortex/skills/sdd-governance.md", "Cortex Skill"),
         ]
         for rel_path, desc in native_files:
             hook_file = project_root / rel_path
@@ -238,7 +237,7 @@ def test_intelligent_seedlings_generator() -> None:  # noqa: C901
             f"     Supported agents: {agent_seed['agent_configuration']['supported_agents']}"
         )
         ide_hooks = agent_seed["ide_hooks"]
-        for hook_name in ["claude", "gemini", "cortex"]:
+        for hook_name in ["claude", "gemini"]:
             if hook_name not in ide_hooks:
                 print(f"  ❌ Missing ide hook: {hook_name}")
                 raise AssertionError("Test failed")

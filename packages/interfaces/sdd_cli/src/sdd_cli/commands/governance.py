@@ -10,6 +10,10 @@ from sdd_cli.services.governance_artifact_handlers import (
     _has_malformed_titles,  # noqa: F401  backward-compat re-export for unit tests
     render_governance_compile_table,  # noqa: F401 - backward-compat symbol for tests/patches
 )
+from sdd_cli.services.governance_command_output import (
+    show_governance_command_list,
+    show_hook_command_list,
+)
 from sdd_cli.services.governance_compile_handlers import (
     resolve_output_base,  # noqa: F401  backward-compat re-export for unit tests
     run_compile,
@@ -18,6 +22,11 @@ from sdd_cli.services.governance_generate_handlers import (
     generate_seeds,  # noqa: F401  backward-compat re-export for unit tests
     resolve_generate_path,  # noqa: F401  backward-compat re-export for unit tests
     run_generate,
+)
+from sdd_cli.services.governance_hook_handlers import (
+    run_governance_hook_disable,
+    run_governance_hook_enable,
+    run_governance_hook_status,
 )
 from sdd_cli.services.governance_security_handlers import run_keygen, run_sign_cmd
 from sdd_cli.utils.command_errors import handle_cli_errors
@@ -38,12 +47,39 @@ __all__ = [
     "resolve_generate_path",
 ]
 
-app = typer.Typer(help="Governance management commands")
+app = typer.Typer(help="Governance management commands", invoke_without_command=True)
+hook_app = typer.Typer(
+    help="Manage the prompt-submit governance hook (handshake_mode=hook)",
+    invoke_without_command=True,
+)
 console = Console()
 
 
 def _ctx_json() -> bool:
     return is_json_mode(click.get_current_context(silent=True))
+
+
+@app.callback()
+def governance_default(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(
+        False,
+        "--list",
+        help="List governance commands and exit.",
+    ),
+) -> None:
+    """Show governance commands when invoked without a subcommand."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_governance_command_list()
+        raise typer.Exit(0)
+
+
+@hook_app.callback()
+def hook_default(ctx: typer.Context) -> None:
+    """Show hook commands when invoked without a subcommand."""
+    if ctx.invoked_subcommand is None:
+        show_hook_command_list()
+        raise typer.Exit(0)
 
 
 @app.command()
@@ -140,4 +176,23 @@ def sign(
     )
 
 
+@hook_app.command("status")
+def hook_status() -> None:
+    """Report whether the prompt-submit governance hook is enabled."""
+    run_governance_hook_status(console=console)
+
+
+@hook_app.command("disable")
+def hook_disable() -> None:
+    """Disable the prompt-submit governance hook (kill switch)."""
+    run_governance_hook_disable(console=console)
+
+
+@hook_app.command("enable")
+def hook_enable() -> None:
+    """Re-enable the prompt-submit governance hook."""
+    run_governance_hook_enable(console=console)
+
+
+app.add_typer(hook_app, name="hook")
 register_governance_commands(app=app, console=console, ctx_json_fn=_ctx_json)

@@ -245,7 +245,7 @@ def test_full_pipeline() -> None:  # noqa: C901
 
         agents = agent_seed["agent_configuration"]["supported_agents"]
         print(f"   Agent Support: {', '.join(agents)}")
-        for hook_name in ["claude", "gemini", "cortex"]:
+        for hook_name in ["claude", "gemini"]:
             if hook_name not in agent_seed["ide_hooks"]:
                 print(f"   ❌ Missing ide hook: {hook_name}")
                 raise AssertionError("Test failed")

@@ -53,8 +53,12 @@ class LazyCommandGroup(click.Group):
         try:
             module = importlib.import_module(spec.module_path)
             module_app = module.app
+            if isinstance(module_app, click.Command):
+                return module_app
             if not isinstance(module_app, typer.Typer):
-                raise TypeError(f"{spec.module_path}.app is not a typer.Typer instance")
+                raise TypeError(
+                    f"{spec.module_path}.app is not a typer.Typer or click.Command instance"
+                )
             return cast(click.Command, typer_get_command(module_app))
         except (
             Exception

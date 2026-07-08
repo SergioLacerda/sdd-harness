@@ -1,6 +1,8 @@
 # Development artifacts (not needed in Docker build context)
+# NOTE: .github/ is intentionally NOT excluded — tests/unit/ci/test_release_workflow_policy.py
+# reads .github/workflows/*.yml from the repo root, and `make check` runs inside this
+# container's shadow-repo copy of /app, so those workflow files must be present in the image.
 .git/
-.github/
 .vscode/
 .idea/
 .venv/

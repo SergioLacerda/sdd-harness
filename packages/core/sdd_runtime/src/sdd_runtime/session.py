@@ -137,11 +137,14 @@ class SessionManager:
         return (state.workspace_id, state.agent_id, state.work_item_id)
 
     def _state_file(self) -> Path:
-        assert self._state_dir is not None
+        if self._state_dir is None:
+            raise RuntimeError("SessionManager state_dir is required for persistence")
         return self._state_dir / self._STATE_FILENAME
 
     def _save_to_disk(self) -> None:
-        self._state_dir.mkdir(parents=True, exist_ok=True)  # type: ignore[union-attr]
+        if self._state_dir is None:
+            raise RuntimeError("SessionManager state_dir is required for persistence")
+        self._state_dir.mkdir(parents=True, exist_ok=True)
         data = [s.to_dict() for s in self._sessions.values()]
         self._state_file().write_text(
             json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"

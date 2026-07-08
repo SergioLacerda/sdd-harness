@@ -12,6 +12,7 @@ import sys
 import click
 import typer
 from dotenv import load_dotenv
+from typer._click import exceptions as typer_click_exceptions
 
 from sdd_cli._command_group import (
     _WORKSPACE_REQUIRED_COMMANDS,
@@ -27,6 +28,12 @@ from sdd_cli.utils.cli_callbacks import (
     profile_option_callback,
     verbose_option_callback,
 )
+from sdd_cli.utils.operational_errors import (
+    OperationalCliError,
+    operational_error_from_exception,
+    render_operational_error,
+)
+from sdd_core.utils.process import ProcessRunnerError
 
 __all__ = [
     "COMMAND_SPECS",
@@ -103,9 +110,29 @@ def main() -> int:
             "sdd_core.log_config not available; using stdlib logging defaults."
         )
     try:
-        app(standalone_mode=False)
+        result = app(standalone_mode=False)
+        if isinstance(result, int):
+            return result
     except (click.exceptions.Exit, typer.Exit) as exc:
         return int(exc.exit_code)
+    except (click.ClickException, typer_click_exceptions.ClickException) as exc:
+        exc.show(file=sys.stderr)
+        return int(exc.exit_code)
+    except OperationalCliError as exc:
+        render_operational_error(exc)
+        return int(exc.exit_code)
+    except ProcessRunnerError as exc:
+        operational_error = operational_error_from_exception(exc)
+        if operational_error is None:
+            raise
+        render_operational_error(operational_error)
+        return int(operational_error.exit_code)
+    except OSError as exc:
+        operational_error = operational_error_from_exception(exc)
+        if operational_error is None:
+            raise
+        render_operational_error(operational_error)
+        return int(operational_error.exit_code)
     return 0
 
 

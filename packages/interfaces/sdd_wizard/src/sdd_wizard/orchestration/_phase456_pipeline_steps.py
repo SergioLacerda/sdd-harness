@@ -10,6 +10,7 @@ from sdd_adapters import AdapterGenerator
 
 from .deployer.seedling_injector import SeedlingInjector
 from .deployer.template_deployer import TemplateDeployer
+from .install_snapshot import GovernanceInstallSnapshot
 from .phase5_artifact_compiler import ArtifactCompiler
 from .phase6_output_validator import OutputValidator
 from .wizard.models import Phase456RunResult
@@ -52,6 +53,7 @@ def _deploy_ide_templates(
     verbose: bool,
     compiler: Any,
     result: Phase456RunResult,
+    selected_seedlings: set[str] | None = None,
 ) -> bool:
     """Deploy IDE templates and inject bootstrap metadata (Phase 6)."""
     deployer = TemplateDeployer(
@@ -59,6 +61,7 @@ def _deploy_ide_templates(
         output_base=output_base,
         config=config,
         verbose=verbose,
+        selected_seedlings=selected_seedlings,
     )
     injector = SeedlingInjector(
         repo_root=repo_root, output_base=output_base, verbose=verbose
@@ -69,14 +72,20 @@ def _deploy_ide_templates(
     if not deployer.create_ide_templates():
         result["errors"].append("Failed to copy configuration templates")
         return False
+    snapshot = GovernanceInstallSnapshot.from_compiler(
+        compiler,
+        workspace_root=str(repo_root),
+        handshake_mode=config.get("handshake_mode", "standard"),
+        hook_agents=config.get("prompt_submit_hook_agents", []),
+    )
     injector.inject_bootstrap_metadata(
-        fingerprint=compiler.governance_fingerprint,
-        generated_at=compiler.generated_at,
-        mandates_count=len(compiler.mandates),
+        fingerprint=snapshot.governance_fingerprint,
+        generated_at=snapshot.generated_at,
+        mandates_count=len(snapshot.mandates),
     )
     injector.populate_ide_rules(
-        mandates=compiler.mandates,
-        fingerprint=compiler.governance_fingerprint,
+        mandates=snapshot.mandates,
+        fingerprint=snapshot.governance_fingerprint,
     )
     return True
 
@@ -88,6 +97,7 @@ def _validate_output(
     verbose: bool,
     emit: Callable[[str], None],
     result: Phase456RunResult,
+    selected_seedlings: set[str] | None = None,
 ) -> bool:
     """Validate generated output structure (Phase 6)."""
     sdd_dir = output_base / ".sdd"
@@ -103,6 +113,7 @@ def _validate_output(
         config=config,
         verbose=verbose,
         emitter=emit,
+        selected_seedlings=selected_seedlings,
     )
     valid, validation_result = validator.validate()
     if not valid:
@@ -152,19 +163,33 @@ def _generate_plugin_workspace_dirs(
         return False
 
 
-def _generate_adapters(output_base: Path, emit: Callable[[str], None]) -> None:
+def _generate_adapters(
+    output_base: Path, emit: Callable[[str], None], verbose: bool = False
+) -> None:
     """Generate Level 2 adapters (skills/commands per agent)."""
     try:
         adapter_gen = AdapterGenerator()
         adapter_results = adapter_gen.generate(output_dir=output_base)
+        successes = 0
+        failures: list[str] = []
         for target, adapter_result in adapter_results.items():
             if adapter_result.success:
-                emit(
-                    f"✅ Generated {len(adapter_result.files_written)} adapter files for {target}"
-                )
+                successes += 1
+                if verbose:
+                    emit(
+                        f"✅ Generated {len(adapter_result.files_written)} adapter files for {target}"
+                    )
             else:
-                emit(
-                    f"⚠️  Adapter generation for {target} had errors: {adapter_result.errors}"
-                )
+                failures.append(target)
+                if verbose:
+                    emit(
+                        f"⚠️  Adapter generation for {target} had errors: {adapter_result.errors}"
+                    )
+        if failures:
+            emit(f"adapters...WARN ({', '.join(failures)})")
+        else:
+            emit(f"adapters...OK ({successes})")
     except Exception as e:
-        emit(f"⚠️  Adapter generation failed (non-critical): {e}")
+        if verbose:
+            emit(f"⚠️  Adapter generation failed (non-critical): {e}")
+        emit("adapters...WARN")

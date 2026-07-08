@@ -9,6 +9,7 @@ from sdd_cli.services.ask_renderer import (
     build_ask_json_payload,
     render_ask_text_output,
     render_context_header,
+    render_governance_activation_header,
     render_governance_footer,
 )
 
@@ -65,6 +66,27 @@ class TestRenderContextHeader:
             degrade_reason="artifact_unverified",
         )
         assert len(output.splitlines()) == 2
+
+
+class TestRenderGovernanceActivationHeader:
+    def test_header_is_compact_and_contains_status_fields(self) -> None:
+        output = render_governance_activation_header(
+            source="prompt-submit-hook",
+            fingerprint="58a087b3c9fb9ce2",
+            execution_gate="allowed",
+        )
+
+        assert output.startswith("SDD GOVERNANCE ACTIVE")
+        assert "source=prompt-submit-hook" in output
+        assert "governance_mode=hard" in output
+        assert "execution_gate=allowed" in output
+        assert "fingerprint=58a087b3" in output
+
+    def test_header_instructs_visible_response_status(self) -> None:
+        output = render_governance_activation_header(source="sdd-ask")
+
+        assert "start your response" in output
+        assert "SDD governance status" in output
 
 
 class TestRenderGovernanceFooter:

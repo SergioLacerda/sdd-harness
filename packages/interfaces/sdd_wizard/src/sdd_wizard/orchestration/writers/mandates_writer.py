@@ -81,7 +81,7 @@ Mandatory rules that CANNOT be customized or skipped.
                     or mandate.get("summary_minimal")
                     or "No description available"
                 )
-                content += f"""### {mandate_id}: {mandate_title}
+                content += f"""## {mandate_id}: {mandate_title}
 
 **Criticality**: {mandate.get("criticality", "OBRIGATÓRIO")}
 **Customizable**: No

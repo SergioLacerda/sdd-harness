@@ -99,9 +99,41 @@ def test_remote_without_token_warns(
 
     monkeypatch.setenv("SDD_INTELLIGENCE_URL", "https://intel.example.com")
     monkeypatch.delenv("SDD_INTELLIGENCE_TOKEN", raising=False)
+    monkeypatch.delenv("SDD_ENV", raising=False)
+    monkeypatch.delenv("SDD_GOVERNANCE_MODE", raising=False)
     with caplog.at_level(logging.WARNING, logger="sdd_runtime.providers.http_provider"):
         HttpProvider()
     assert any("without SDD_INTELLIGENCE_TOKEN" in r.message for r in caplog.records)
+
+
+def test_remote_without_token_rejected_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "https://intel.example.com")
+    monkeypatch.delenv("SDD_INTELLIGENCE_TOKEN", raising=False)
+    monkeypatch.setenv("SDD_ENV", "production")
+    with pytest.raises(ValueError, match="requires authenticated remote"):
+        HttpProvider()
+
+
+def test_remote_without_token_rejected_in_hard_governance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "https://intel.example.com")
+    monkeypatch.delenv("SDD_INTELLIGENCE_TOKEN", raising=False)
+    monkeypatch.setenv("SDD_GOVERNANCE_MODE", "hard")
+    with pytest.raises(ValueError, match="requires authenticated remote"):
+        HttpProvider()
+
+
+def test_local_without_token_accepted_in_hard_governance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "http://localhost:8080")
+    monkeypatch.delenv("SDD_INTELLIGENCE_TOKEN", raising=False)
+    monkeypatch.setenv("SDD_GOVERNANCE_MODE", "hard")
+    provider = HttpProvider()
+    assert provider._url == "http://localhost:8080"
 
 
 def test_auth_headers_include_bearer_token_when_set(

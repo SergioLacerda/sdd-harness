@@ -16,6 +16,14 @@ class WizardInvocation:
     non_interactive: bool = False
     output_path: Path | None = None
     language: str = "python"
+    custom_governance_path: Path | None = None
+    """Scenario B trigger: a user-supplied mandates/guidelines JSON file.
+
+    When set, the wizard validates and loads this file instead of generating
+    a fresh governance set from markdown templates (Phase 1-3 is bypassed).
+    """
+    debug: bool = False
+    """Show full verbose wizard output instead of the quiet macro summary."""
 
 
 @dataclass(frozen=True)
@@ -51,6 +59,18 @@ def generate_agent_instructions_from_config(
     """Regenerate .sdd/agent-instructions.md from a governance config dict."""
     from sdd_wizard.orchestration.seedlings.governance_seeds import (
         generate_agent_instructions_from_config as _impl,
+    )
+
+    return _impl(output_base, config)
+
+
+def generate_root_bootstrap_from_config(
+    output_base: Path,
+    config: dict[str, Any],
+) -> bool:
+    """Regenerate root bootstrap files from a governance config dict."""
+    from sdd_wizard.orchestration.seedlings.governance_seeds import (
+        generate_root_bootstrap_from_config as _impl,
     )
 
     return _impl(output_base, config)

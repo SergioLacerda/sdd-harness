@@ -250,9 +250,21 @@ Templates live in `.sdd/templates/` (deployed by wizard from `sdd_integration`).
 
 ### Wizard
 
-- `sdd wizard run` — Runs interactive setup wizard phases (7-phase pipeline). _(client primary; warns in master)_
+- `sdd install --wizard` — canonical entrypoint. Runs a single guided flow
+  (language/hook-mode/agent-selection prompts, then generate-or-load-custom,
+  compile, seeds, deploy to project root) — no user-facing phase choice.
+  _(client primary; warns in master)_
+- `sdd wizard run` — legacy alias for the same command; deploys to project
+  root by default.
 
-The wizard now deploys `.sdd/templates/` to the target project, enabling `sdd scaffold skill` in generated workspaces.
+| Flag | Effect |
+|------|--------|
+| `--output-dir <path>` | Change where the generated template lands (default: `generated/client/build/final-template/`) |
+| `--only-template` | Stop after generating the final template bundle; do not deploy it into the project root |
+| `--from-file <path>` | Supply a custom mandates/guidelines JSON instead of generating one (validated before use) |
+| `--non-interactive` | Resolve preferences/agent selection without prompting (reuses an existing `wizard-config.json` or falls back to defaults) |
+
+The wizard deploys `.sdd/templates/` to the target project, enabling `sdd scaffold skill` in generated workspaces.
 
 ### Documentation Artifacts
 

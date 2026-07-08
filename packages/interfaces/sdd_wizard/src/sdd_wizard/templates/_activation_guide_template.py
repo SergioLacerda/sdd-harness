@@ -302,6 +302,19 @@ Agent should cite: {mandate_ids_joined}
 - Regenerate seedlings if governance changed
 - Update expected fingerprint in compliance.seed.json
 
+### Problem: prompts hanging or erroring in Claude Code / Codex CLI / Gemini CLI
+**Check:**
+1. Is `handshake_mode: hook` active (every prompt routes through
+   `.sdd/runtime/hooks/prompt-submit.py`)?
+2. Is `sdd` itself broken, slow, or misconfigured?
+
+**Fix:**
+- Run `sdd governance hook disable` to immediately stop the prompt-submit
+  hook from firing (safe: it does not touch `.claude/settings.json`,
+  `.codex/config.toml`, or `.gemini/settings.json`)
+- Run `sdd governance hook status` to check current state
+- Run `sdd governance hook enable` once the underlying issue is fixed
+
 ### Problem: Pre-commit hooks not working
 **Check:**
 1. Are git hooks installed?

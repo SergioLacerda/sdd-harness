@@ -7,7 +7,7 @@ UV := $(shell command -v uv 2>/dev/null)
 
 ifeq ($(strip $(VENV_PYTHON)),)
   ifeq ($(strip $(UV)),)
-    PYTHON := python3
+    PYTHON := $(shell echo 'ERROR: no .venv found and uv is not installed. Run `make install` first.' >&2; echo false)
   else
     PYTHON := uv run python
   endif
@@ -38,7 +38,7 @@ help:
 	@echo "generate-schemas        - Regenerate JSON Schema files from Pydantic models"
 	@echo "hooks-install  - Install local git hooks (SDD shell hooks + pre-commit)"
 	@echo "governance-bootstrap - Generate full governance artifacts for local workspace"
-	@echo "docs-build      - Build MkDocs site (strict mode)"
+	@echo "docs-build      - Build composed site (Astro + MkDocs + Selector)"
 	@echo "docs-serve      - Build full site (docs + selector) and serve on http://localhost:8000/sdd-harness/"
 	@echo "docs-link-check - Check internal relative links in docs"
 	@echo "docs-link-fix   - Apply deterministic internal-link rewrites"
@@ -86,49 +86,40 @@ install-docs:
 	uv sync --group docs
 
 check: golden-status
-	$(PYTHON) tools/ci/check_golden_policy.py --mode warn
-	$(PYTHON) -m pytest tests packages \
-		-m "not perf" \
-		--cov=packages \
-		--cov-report=term-missing:skip-covered
+	$(PYTHON) tools/maintenance/make_tasks.py check
 
 ci-pr:
-	$(PYTHON) -m pytest -q \
-		tests/contract/test_governance_schema.py::TestGovernanceCoreGoldenFile::test_structure_matches_golden
-	$(PYTHON) tools/ci/check_golden_policy.py --mode block
-	$(PYTHON) tools/ci/check_core_compiler_runtime_contract.py --mode enforce
+	$(PYTHON) tools/maintenance/make_tasks.py ci-pr
 
 ci-pr-full: ci-pr
 	$(MAKE) coverage-strict
 
 golden-policy-check:
-	$(PYTHON) tools/ci/check_golden_policy.py --mode block
+	$(PYTHON) tools/maintenance/make_tasks.py golden-policy-check
 
 golden-policy-check-strict:
-	$(PYTHON) tools/ci/check_golden_policy.py --mode strict
+	$(PYTHON) tools/maintenance/make_tasks.py golden-policy-check-strict
 
 enforcement-ladder-consistency:
-	$(PYTHON) tools/ci/check_enforcement_ladder_consistency.py
+	$(PYTHON) tools/maintenance/make_tasks.py enforcement-ladder-consistency
 
 enforcement-ladder-digest:
-	$(PYTHON) tools/ci/enforcement_ladder_digest.py \
-		--json-out .artifacts/enforcement_ladder_digest.json \
-		--md-out .artifacts/enforcement_ladder_digest.md
+	$(PYTHON) tools/maintenance/make_tasks.py enforcement-ladder-digest
 
 enforcement-threshold-signoff:
-	$(PYTHON) tools/ci/check_enforcement_threshold_signoff.py
+	$(PYTHON) tools/maintenance/make_tasks.py enforcement-threshold-signoff
 
 core-compiler-runtime-contract:
-	$(PYTHON) tools/ci/check_core_compiler_runtime_contract.py --mode enforce
+	$(PYTHON) tools/maintenance/make_tasks.py core-compiler-runtime-contract
 
 observability-contract-check:
-	$(PYTHON) tools/ci/check_observability_contract.py
+	$(PYTHON) tools/maintenance/make_tasks.py observability-contract-check
 
 release-readiness-v1-check:
-	$(PYTHON) tools/ci/check_release_readiness_v1.py
+	$(PYTHON) tools/maintenance/make_tasks.py release-readiness-v1-check
 
 runbook-hardening-check:
-	$(PYTHON) tools/ci/check_runbook_hardening_protocol.py
+	$(PYTHON) tools/maintenance/make_tasks.py runbook-hardening-check
 
 golden-status:
 	@echo "🔍 Checking golden file status..."
@@ -146,35 +137,28 @@ test:
 	$(PYTHON) tools/maintenance/make_tasks.py test $(ARGS)
 
 test-fast:
-	$(PYTHON) -m pytest -x --ff packages/ tests/
+	$(PYTHON) tools/maintenance/make_tasks.py test-fast
 
 test-perf:
-	$(PYTHON) -m pytest -m perf -q packages tests
-	$(PYTHON) tests/perf/benchmark_wizard_pipeline.py
+	$(PYTHON) tools/maintenance/make_tasks.py test-perf
 
 coverage:
-	$(PYTHON) -m pytest tests packages --cov=packages --cov-report=html --cov-report=term-missing:skip-covered
-	@echo "HTML report: build/coverage/html/index.html"
+	$(PYTHON) tools/maintenance/make_tasks.py coverage
 
 coverage-strict:
-	@echo "=== core packages (threshold: 90%) ==="
-	$(PYTHON) -m pytest packages/core --cov=packages/core --cov-fail-under=90 -q --tb=short
-	@echo "=== feature packages (threshold: 70%) ==="
-	$(PYTHON) -m pytest packages/features --cov=packages/features --cov-fail-under=70 -q --tb=short
-	@echo "=== interface packages (threshold: 70%) ==="
-	$(PYTHON) -m pytest packages/interfaces --cov=packages/interfaces --cov-fail-under=70 -q --tb=short
+	$(PYTHON) tools/maintenance/make_tasks.py coverage-strict
 
 update-golden-snapshots:
-	$(PYTHON) tools/testing/update-golden-snapshots.py
+	$(PYTHON) tools/maintenance/make_tasks.py update-golden-snapshots
 
 generate-schemas:
-	$(PYTHON) tools/testing/generate-schemas.py
+	$(PYTHON) tools/maintenance/make_tasks.py generate-schemas
 
 hooks-install:
 	bash .github/setup-precommit-hook.sh
 
 governance-bootstrap:
-	$(PYTHON) -m sdd_cli governance generate --full-bootstrap
+	$(PYTHON) tools/maintenance/make_tasks.py governance-bootstrap
 
 lint:
 	$(PYTHON) tools/maintenance/make_tasks.py lint
@@ -192,7 +176,7 @@ lock:
 
 docs-build: build-web
 	$(PYTHON) -m mkdocs build --strict
-	UV_CACHE_DIR=/tmp/uv-cache uv run python -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
+	$(PYTHON) -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
 
 docs-serve: docs-build
 	@# The Astro landing app is built with base: '/sdd-harness/' (astro.config.mjs)
@@ -206,10 +190,10 @@ docs-serve: docs-build
 	$(PYTHON) -m http.server 8000 --directory build/serve-root
 
 docs-link-check:
-	$(PYTHON) tools/docs/check_links.py --mode ci
+	$(PYTHON) tools/maintenance/make_tasks.py docs-link-check
 
 docs-link-fix:
-	$(PYTHON) tools/docs/check_links.py --mode fix
+	$(PYTHON) tools/maintenance/make_tasks.py docs-link-fix
 
 docker-build:
 	cp infrastructure/docker/.dockerignore .dockerignore

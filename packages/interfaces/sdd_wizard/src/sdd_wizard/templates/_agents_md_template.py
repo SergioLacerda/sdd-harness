@@ -15,7 +15,7 @@ def build_agents_md(
 <!-- Governance fingerprint: {spec_fingerprint} -->
 <!-- Active mandates: {mandate_count}{preview_str} -->
 <!-- Generated: {generated_at} -->
-<!-- Drift check: fingerprint must match .sdd/metadata.json → governance_fingerprint -->
+<!-- Drift check: fingerprint must match .sdd/metadata.json → fingerprints.combined -->
 
 Objective: standardize where each agent must load local instructions, commands, and skills in this project.
 

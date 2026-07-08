@@ -12,6 +12,9 @@ from unittest.mock import patch
 import pytest
 from rich.console import Console
 
+from sdd_cli.services._governance_compile_support import (
+    sync_workspace_metadata_from_config,
+)
 from sdd_cli.services.governance_compile_handlers import (
     regenerate_seeds,
     update_profile_hash,
@@ -37,7 +40,10 @@ class TestUpdateProfileHash:
     def test_default_console_with_empty_fingerprint(self) -> None:
         update_profile_hash("")
 
-    def test_updates_profile_with_given_fingerprint(self, tmp_path: Path) -> None:
+    def test_updates_profile_with_given_fingerprint(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("SDD_TEST_OUTPUT_DIR", raising=False)
         profile_path = tmp_path / ".sdd" / "profile"
         _write_profile(profile_path)
         compiled_dir = tmp_path / "compiled"
@@ -61,7 +67,10 @@ class TestUpdateProfileHash:
         assert parser["sdd"]["core_hash"] == "abcdef0123456789"[:16]
         assert "core_hash updated" in console.file.getvalue()
 
-    def test_artifact_fingerprint_overrides_given_value(self, tmp_path: Path) -> None:
+    def test_artifact_fingerprint_overrides_given_value(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("SDD_TEST_OUTPUT_DIR", raising=False)
         profile_path = tmp_path / ".sdd" / "profile"
         _write_profile(profile_path)
         compiled_dir = tmp_path / "compiled"
@@ -87,7 +96,10 @@ class TestUpdateProfileHash:
         parser.read(profile_path)
         assert parser["sdd"]["core_hash"] == artifact_fp[:16]
 
-    def test_invalid_artifact_json_is_tolerated(self, tmp_path: Path) -> None:
+    def test_invalid_artifact_json_is_tolerated(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("SDD_TEST_OUTPUT_DIR", raising=False)
         profile_path = tmp_path / ".sdd" / "profile"
         _write_profile(profile_path)
         compiled_dir = tmp_path / "compiled"
@@ -127,6 +139,33 @@ class TestUpdateProfileHash:
             ),
         ):
             update_profile_hash("0123456789abcdef0123", console=_console())
+
+    def test_test_output_dir_does_not_mutate_workspace_profile(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        workspace = tmp_path / "workspace"
+        redirected = tmp_path / "isolated"
+        profile_path = workspace / ".sdd" / "profile"
+        _write_profile(profile_path)
+        compiled_dir = workspace / "compiled"
+        compiled_dir.mkdir(parents=True)
+        monkeypatch.setenv("SDD_TEST_OUTPUT_DIR", str(redirected))
+
+        with (
+            patch(
+                "sdd_cli.services.governance_compile_handlers.resolve_workspace_root",
+                return_value=workspace,
+            ),
+            patch(
+                "sdd_cli.services.governance_compile_handlers.compiled_active_dir",
+                return_value=compiled_dir,
+            ),
+        ):
+            update_profile_hash("0123456789abcdef0123", console=_console())
+
+        parser = configparser.ConfigParser()
+        parser.read(profile_path)
+        assert "core_hash" not in parser["sdd"]
 
     def test_profile_without_sdd_section_does_nothing(self, tmp_path: Path) -> None:
         profile_path = tmp_path / ".sdd" / "profile"
@@ -189,7 +228,16 @@ class TestRegenerateSeeds:
             patch("sdd_cli.utils.loader.validate_governance_path", return_value=True),
             patch(
                 "sdd_cli.utils.loader.load_governance_config",
-                return_value={"items": []},
+                return_value={
+                    "core_fingerprint": "abcdef0123456789",
+                    "items": [
+                        {
+                            "id": "M001",
+                            "type": "MANDATE",
+                            "title": "Clean Architecture",
+                        }
+                    ],
+                },
             ),
             patch(
                 "sdd_cli.generators.agent_seeds.generate_agent_instruction_files"
@@ -198,14 +246,71 @@ class TestRegenerateSeeds:
                 "sdd_wizard.contracts.generate_agent_instructions_from_config",
                 return_value=True,
             ) as mock_gen_wizard,
+            patch(
+                "sdd_wizard.contracts.generate_root_bootstrap_from_config",
+                return_value=True,
+            ) as mock_gen_root,
         ):
             regenerate_seeds(console=console)
 
         mock_gen_instr.assert_called_once()
         mock_gen_wizard.assert_called_once()
+        mock_gen_root.assert_called_once()
         output = console.file.getvalue()
+        assert ".sdd/metadata.json synchronized" in output
         assert "Agent instruction files regenerated" in output
         assert ".sdd/agent-instructions.md regenerated" in output
+        assert "Root bootstrap files regenerated" in output
+
+    def test_test_output_dir_redirects_metadata_sync(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        workspace = tmp_path / "workspace"
+        redirected = tmp_path / "isolated"
+        monkeypatch.delenv("SDD_SKIP_SEED_REGEN", raising=False)
+        monkeypatch.setenv("SDD_TEST_OUTPUT_DIR", str(redirected))
+        console = _console()
+
+        with (
+            patch(
+                "sdd_cli.services.governance_compile_telemetry.resolve_workspace_root",
+                return_value=workspace,
+            ),
+            patch("sdd_cli.utils.loader.validate_governance_path", return_value=True),
+            patch(
+                "sdd_cli.utils.loader.load_governance_config",
+                return_value={
+                    "core_fingerprint": "abcdef0123456789",
+                    "items": [
+                        {
+                            "id": "M001",
+                            "type": "MANDATE",
+                            "title": "Clean Architecture",
+                        }
+                    ],
+                },
+            ),
+            patch(
+                "sdd_cli.generators.agent_seeds.generate_agent_instruction_files"
+            ) as mock_gen_instr,
+            patch(
+                "sdd_wizard.contracts.generate_agent_instructions_from_config",
+                return_value=True,
+            ),
+            patch(
+                "sdd_wizard.contracts.generate_root_bootstrap_from_config",
+                return_value=True,
+            ),
+        ):
+            regenerate_seeds(console=console)
+
+        assert not (workspace / ".sdd" / "metadata.json").exists()
+        redirected_metadata = redirected / ".sdd" / "metadata.json"
+        assert redirected_metadata.exists()
+        synced = json.loads(redirected_metadata.read_text(encoding="utf-8"))
+        assert synced["governance_fingerprint"] == "abcdef0123456789"
+        args, _ = mock_gen_instr.call_args
+        assert args[0] == redirected.resolve()
 
     def test_invalid_governance_path_uses_empty_config(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -225,11 +330,51 @@ class TestRegenerateSeeds:
                 "sdd_wizard.contracts.generate_agent_instructions_from_config",
                 return_value=True,
             ),
+            patch(
+                "sdd_wizard.contracts.generate_root_bootstrap_from_config",
+                return_value=True,
+            ),
         ):
             regenerate_seeds(console=console)
 
         args, _ = mock_gen_instr.call_args
         assert args[1] == {}
+
+    def test_sync_workspace_metadata_from_config_uses_compiled_fingerprint(
+        self, tmp_path: Path
+    ) -> None:
+        metadata_path = tmp_path / ".sdd" / "metadata.json"
+        metadata_path.parent.mkdir(parents=True)
+        metadata_path.write_text(
+            json.dumps(
+                {
+                    "version": "3.0",
+                    "language_context": {"preferred_chat_language": "pt-BR"},
+                    "mandates_count": 1,
+                    "fingerprints": {"combined": "old"},
+                    "mandates": {"M000": "Old"},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        config = {
+            "core_fingerprint": "1234567890abcdef9999",
+            "items": [
+                {"id": "M001", "type": "MANDATE", "title": "Clean Architecture"},
+                {"id": "M002", "type": "MANDATE", "title": "TDD"},
+                {"id": "G001", "type": "GUIDELINE", "title": "Style"},
+            ],
+        }
+
+        assert sync_workspace_metadata_from_config(tmp_path, config) is True
+        synced = json.loads(metadata_path.read_text(encoding="utf-8"))
+        assert synced["governance_fingerprint"] == "1234567890abcdef"
+        assert synced["fingerprints"]["combined"] == "1234567890abcdef"
+        assert synced["mandates_count"] == 2
+        assert synced["guidelines_count"] == 1
+        assert synced["mandates"] == {"M001": "Clean Architecture", "M002": "TDD"}
+        assert synced["language_context"] == {"preferred_chat_language": "pt-BR"}
 
     def test_wizard_import_error_prints_warning(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

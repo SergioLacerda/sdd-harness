@@ -27,6 +27,7 @@ from sdd_cli.commands._metrics_command_support import (
     load_snapshot,
     run_server_loop,
 )
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.metrics_handler import (
     _CollectorRef,
     _resolve_jsonl_path,
@@ -37,15 +38,24 @@ from sdd_cli.services.metrics_handler import (
 )
 from sdd_cli.utils.output import emit_json, is_json_mode
 
-app = typer.Typer(help="Token economy metrics commands")
+app = typer.Typer(
+    help="Token economy metrics commands",
+    invoke_without_command=True,
+)
 console = Console()
 
 _DEFAULT_METRICS_PORT = 9090
 
 
-@app.callback()
-def _() -> None:
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List metrics commands."),
+) -> None:
     """Token economy metrics and Prometheus exposition."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Metrics", ["summary", "serve"])
+        raise typer.Exit(0)
 
 
 def _is_json_mode(ctx: typer.Context) -> bool:

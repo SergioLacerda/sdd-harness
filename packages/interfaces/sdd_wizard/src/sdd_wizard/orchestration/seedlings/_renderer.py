@@ -21,7 +21,7 @@ def build_fingerprint_header(
         f"# Active mandates: {len(mandate_ids)}"
         + (f" ({ids_preview})" if ids_preview else ""),
         f"# Generated: {generated_at}",
-        "# Drift check: fingerprint must match .sdd/metadata.json → governance_fingerprint",
+        "# Drift check: fingerprint must match .sdd/metadata.json → fingerprints.combined",
     ]
 
 

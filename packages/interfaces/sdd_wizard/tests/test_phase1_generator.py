@@ -2,7 +2,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+from sdd_wizard.orchestration.wizard import phase1_generator
 from sdd_wizard.orchestration.wizard.phase1_generator import Phase1Generator
+
+
+@pytest.fixture(autouse=True)
+def _no_bundled_spec(monkeypatch):
+    """These tests exercise the docs-meta/source_spec fallback tiers, not the
+    bundled canonical spec (which now ships real content and would otherwise
+    take precedence over the fixtures written by these tests)."""
+    monkeypatch.setattr(phase1_generator, "_bundled_spec_dir", lambda: None)
 
 
 def _write_docs_meta(build_dir: Path) -> None:

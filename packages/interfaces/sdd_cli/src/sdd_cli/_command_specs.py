@@ -26,6 +26,9 @@ class CommandSpec:
 
 COMMAND_SPECS: dict[str, CommandSpec] = {
     "init": CommandSpec("sdd_cli.commands.init", "Initialize an SDD workspace"),
+    "install": CommandSpec(
+        "sdd_cli.commands.install", "Install SDD governance (canonical entrypoint)"
+    ),
     "bootstrap": CommandSpec("sdd_cli.commands.bootstrap", "Bootstrap runtime state"),
     "runtime": CommandSpec("sdd_cli.commands.runtime", "Workspace runtime state"),
     "setup": CommandSpec("sdd_cli.commands.setup", "Setup environment"),
@@ -70,7 +73,7 @@ COMMAND_SPECS: dict[str, CommandSpec] = {
 }
 
 _WORKSPACE_REQUIRED_COMMANDS = frozenset(
-    {"ask", "organize", "runtime", "wizard", "release"}
+    {"ask", "organize", "runtime", "wizard", "release", "install"}
 )
 
 

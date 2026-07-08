@@ -58,3 +58,187 @@ def test_release_dry_run_runs_tests_wrapper() -> None:
         runner_run.return_value.stderr = ""
         assert make_tasks.run_release_dry_run() == 0
         run_test.assert_called_once_with(["--no-coverage"])
+
+
+def test_version_tuple_parses_numeric_prefixes() -> None:
+    make_tasks = _make_tasks_module()
+    assert make_tasks._version_tuple("0.26.8") == (0, 26, 8)
+    assert make_tasks._version_tuple("1.2") == (1, 2)
+    assert make_tasks._version_tuple("0.12.1rc1") == (0, 12, 1)
+
+
+def test_min_typer_version_reads_pin_from_pyproject(tmp_path: Path) -> None:
+    make_tasks = _make_tasks_module()
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\ndependencies = ["typer>=1.2.3", "rich>=1.0.0"]\n',
+        encoding="utf-8",
+    )
+    with patch.object(make_tasks, "REPO_ROOT", tmp_path):
+        assert make_tasks._min_typer_version() == (1, 2, 3)
+
+
+def test_min_typer_version_falls_back_when_pin_missing(tmp_path: Path) -> None:
+    make_tasks = _make_tasks_module()
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\ndependencies = ["rich>=1.0.0"]\n', encoding="utf-8"
+    )
+    with patch.object(make_tasks, "REPO_ROOT", tmp_path):
+        assert make_tasks._min_typer_version() == make_tasks._FALLBACK_MIN_TYPER_VERSION
+
+
+def test_check_venv_fails_when_venv_missing(tmp_path: Path) -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "REPO_ROOT", tmp_path),
+        pytest.raises(SystemExit) as excinfo,
+    ):
+        make_tasks._check_venv()
+    assert excinfo.value.code == 1
+
+
+def test_check_venv_fails_when_typer_outdated(tmp_path: Path) -> None:
+    make_tasks = _make_tasks_module()
+    venv_python = tmp_path / ".venv" / "bin" / "python"
+    venv_python.parent.mkdir(parents=True)
+    venv_python.write_text("", encoding="utf-8")
+    venv_python.chmod(0o755)
+
+    with (
+        patch.object(make_tasks, "REPO_ROOT", tmp_path),
+        patch.object(make_tasks, "_min_typer_version", return_value=(0, 26, 8)),
+        patch("sdd_core.utils.process.SafeProcessRunner.run") as runner_run,
+    ):
+        runner_run.return_value.returncode = 0
+        runner_run.return_value.stdout = "0.12.1\n"
+        with pytest.raises(SystemExit) as excinfo:
+            make_tasks._check_venv()
+    assert excinfo.value.code == 1
+
+
+def test_check_venv_succeeds_when_typer_meets_minimum(tmp_path: Path) -> None:
+    make_tasks = _make_tasks_module()
+    venv_python = tmp_path / ".venv" / "bin" / "python"
+    venv_python.parent.mkdir(parents=True)
+    venv_python.write_text("", encoding="utf-8")
+    venv_python.chmod(0o755)
+
+    with (
+        patch.object(make_tasks, "REPO_ROOT", tmp_path),
+        patch.object(make_tasks, "_min_typer_version", return_value=(0, 26, 8)),
+        patch("sdd_core.utils.process.SafeProcessRunner.run") as runner_run,
+    ):
+        runner_run.return_value.returncode = 0
+        runner_run.return_value.stdout = "0.26.8\n"
+        assert make_tasks._check_venv() == venv_python
+
+
+def test_run_test_fast_invokes_pytest_with_expected_args() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_python_cmd", return_value=["PYTHON"]),
+        patch.object(make_tasks, "_run", return_value=0) as run,
+    ):
+        assert make_tasks.run_test_fast() == 0
+        run.assert_called_once_with(
+            ["PYTHON", "-m", "pytest", "-x", "--ff", "packages/", "tests/"]
+        )
+
+
+def test_run_test_perf_stops_on_first_failure() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_python_cmd", return_value=["PYTHON"]),
+        patch.object(make_tasks, "_run", return_value=1) as run,
+    ):
+        assert make_tasks.run_test_perf() == 1
+        run.assert_called_once()
+
+
+def test_run_coverage_strict_stops_on_first_failing_layer() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_python_cmd", return_value=["PYTHON"]),
+        patch.object(make_tasks, "_run", side_effect=[0, 1]) as run,
+    ):
+        assert make_tasks.run_coverage_strict() == 1
+        assert run.call_count == 2
+
+
+def test_run_check_venv_prints_resolved_path(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    make_tasks = _make_tasks_module()
+    with patch.object(
+        make_tasks, "_check_venv", return_value=Path("/repo/.venv/bin/python")
+    ):
+        assert make_tasks.run_check_venv() == 0
+    assert capsys.readouterr().out.strip() == "/repo/.venv/bin/python"
+
+
+def test_run_ci_pr_stops_on_first_failure() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_python_cmd", return_value=["PYTHON"]),
+        patch.object(make_tasks, "_run", side_effect=[1]) as run,
+    ):
+        assert make_tasks.run_ci_pr() == 1
+        run.assert_called_once()
+
+
+def test_run_golden_policy_check_modes() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_python_cmd", return_value=["PYTHON"]),
+        patch.object(make_tasks, "_run", return_value=0) as run,
+    ):
+        make_tasks.run_golden_policy_check(strict=False)
+        run.assert_called_with(
+            ["PYTHON", "tools/ci/check_golden_policy.py", "--mode", "block"]
+        )
+        make_tasks.run_golden_policy_check(strict=True)
+        run.assert_called_with(
+            ["PYTHON", "tools/ci/check_golden_policy.py", "--mode", "strict"]
+        )
+
+
+def test_run_governance_bootstrap_invokes_sdd_cli_module() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_python_cmd", return_value=["PYTHON"]),
+        patch.object(make_tasks, "_run", return_value=0) as run,
+    ):
+        assert make_tasks.run_governance_bootstrap() == 0
+        run.assert_called_once_with(
+            ["PYTHON", "-m", "sdd_cli", "governance", "generate", "--full-bootstrap"]
+        )
+
+
+@pytest.mark.parametrize(
+    "runner_name",
+    [
+        "run_enforcement_ladder_consistency",
+        "run_enforcement_ladder_digest",
+        "run_enforcement_threshold_signoff",
+        "run_core_compiler_runtime_contract",
+        "run_observability_contract_check",
+        "run_release_readiness_v1_check",
+        "run_runbook_hardening_check",
+        "run_update_golden_snapshots",
+        "run_generate_schemas",
+        "run_docs_link_check",
+        "run_docs_link_fix",
+    ],
+)
+def test_simple_wrappers_delegate_to_run_with_guarded_python(runner_name: str) -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_python_cmd", return_value=["PYTHON"]) as python_cmd,
+        patch.object(make_tasks, "_run", return_value=0) as run,
+    ):
+        runner = getattr(make_tasks, runner_name)
+        assert runner() == 0
+        python_cmd.assert_called()
+        run.assert_called_once()
+        assert run.call_args[0][0][0] == "PYTHON"

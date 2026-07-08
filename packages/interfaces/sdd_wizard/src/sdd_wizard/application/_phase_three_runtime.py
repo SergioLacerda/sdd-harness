@@ -18,6 +18,7 @@ class PhaseThreeContext(Protocol):
     phase2_input_dir: Path
     client_compiled_dir: Path
     paths: dict[str, Any]
+    debug: bool
 
     def _emit(self, message: str) -> None:
         """Send an operator-facing message."""
@@ -61,6 +62,8 @@ class PhaseThreeRuntime:
             )
 
     def _emit_paths(self, markdown_path: Path, output_path: Path) -> None:
+        if not self._context.debug:
+            return
         self._context._emit(f"  📂 Input (phase-2-input): {markdown_path}")
         self._context._emit(f"  📂 Output (client-compiled): {output_path}")
 
@@ -82,7 +85,10 @@ class PhaseThreeRuntime:
         from sdd_wizard.orchestration.wizard.phase3_compiler import Phase3Compiler
 
         return Phase3Compiler(
-            markdown_path, output_path, self._context.paths["root"], verbose=True
+            markdown_path,
+            output_path,
+            self._context.paths["root"],
+            verbose=self._context.debug,
         )
 
     def _handle_compiler_result(
@@ -116,6 +122,8 @@ class PhaseThreeRuntime:
         )
 
     def _emit_compile_success(self, result: dict[str, Any]) -> None:
+        if not self._context.debug:
+            return
         self._context._emit(
             f"""
 ✅ PHASE 3 COMPLETE!
@@ -130,11 +138,15 @@ class PhaseThreeRuntime:
         )
 
     def _emit_seedling_header(self) -> None:
+        if not self._context.debug:
+            return
         self._context._emit("\n" + "=" * 70)
         self._context.print_header("PHASE 6: Generate Intelligent Seedlings", "🌱")
         self._context._emit("=" * 70)
 
     def _emit_seedling_success(self) -> None:
+        if not self._context.debug:
+            return
         self._context._emit(phase3_completed_message())
         self._context._emit(
             f"""

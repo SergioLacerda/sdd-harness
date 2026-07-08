@@ -4,7 +4,25 @@ import json
 from collections.abc import Callable
 from pathlib import Path
 
+from sdd_wizard.orchestration.phase4_governance_loader import GovernanceLoader
+from sdd_wizard.orchestration.phase6_seedlings_orchestrator import (
+    SeedlingsOrchestrator,
+)
+from sdd_wizard.orchestration.prompt_submit_hooks import (
+    SUPPORTED_PROMPT_HOOK_AGENTS,
+    PromptSubmitHookGenerator,
+)
 from sdd_wizard.orchestration.wizard.messages import phase6_seedlings_success_message
+
+_HOOK_MODE_SEEDLING_KEYS = {
+    "governance",
+    "personal-overlay",
+    "activation-guide",
+    "verify",
+    "claude",
+    "codex",
+    "gemini",
+}
 
 
 def _resolve_governance_paths(
@@ -40,13 +58,10 @@ def run_phase6_seedlings_generation(
     wizard_config_path: Path,
     output_base: Path,
     emitter: Callable[[str], None],
+    debug: bool = False,
 ) -> bool:
     """Run Phase 6 governance loading + seedlings generation."""
     from sdd_core.utils.environment import get_sdd_paths
-    from sdd_wizard.orchestration.phase4_governance_loader import GovernanceLoader
-    from sdd_wizard.orchestration.phase6_seedlings_orchestrator import (
-        SeedlingsOrchestrator,
-    )
 
     if wizard_config_path.exists():
         with open(wizard_config_path, encoding="utf-8") as f:
@@ -69,7 +84,7 @@ def run_phase6_seedlings_generation(
     )
 
     loader = GovernanceLoader(
-        governance_core_path, governance_client_path, verbose=True
+        governance_core_path, governance_client_path, verbose=debug
     )
     if not loader.load():
         emitter("  ❌ Failed to load governance")
@@ -82,11 +97,22 @@ def run_phase6_seedlings_generation(
         config=config,
         governance_core_path=governance_core_path,
         paths=paths,
-        verbose=True,
+        verbose=debug,
     )
-    if not orchestrator.generate():
+    handshake_mode = config.get("handshake_mode", "standard")
+    selected = _HOOK_MODE_SEEDLING_KEYS if handshake_mode == "hook" else None
+    if handshake_mode == "hook":
+        emitter("hook-mode...OK")
+    if not orchestrator.generate(selected=selected):
         emitter("  ❌ Failed to generate intelligent seedlings")
         return False
+    if handshake_mode == "hook":
+        agents = set(SUPPORTED_PROMPT_HOOK_AGENTS)
+        config["prompt_submit_hook_agents"] = sorted(agents)
+        if not PromptSubmitHookGenerator(output_base, agents).generate():
+            emitter("  ❌ Failed to generate prompt-submit hooks")
+            return False
+        emitter("hook...OK")
 
     emitter(phase6_seedlings_success_message(output_base))
     return True

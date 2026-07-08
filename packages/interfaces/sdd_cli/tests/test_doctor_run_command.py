@@ -54,13 +54,11 @@ def _install_fake_integration_engine(
 
 
 class TestDoctorRun:
-    def test_callback_invokes_run_without_subcommand(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
-        monkeypatch.setattr(doctor_mod, "run", lambda **kwargs: None)
-        monkeypatch.setattr(doctor_mod, "resolve_workspace_root", lambda: tmp_path)
+    def test_callback_lists_commands_without_subcommand(self) -> None:
         result = runner.invoke(doctor_app, [])
         assert result.exit_code == 0
+        assert "Doctor commands:" in result.output
+        assert "run" in result.output
 
     def test_run_import_error_branch(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path

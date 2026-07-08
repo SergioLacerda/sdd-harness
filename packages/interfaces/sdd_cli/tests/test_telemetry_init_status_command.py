@@ -233,10 +233,11 @@ def test_parse_ts_empty_string_returns_none() -> None:
     assert _parse_ts("") is None
 
 
-def test_telemetry_default_callback_invokes_status(monkeypatch, tmp_path: Path) -> None:
-    """sdd telemetry (no subcommand) calls _print_status."""
+def test_telemetry_default_callback_lists_commands(monkeypatch, tmp_path: Path) -> None:
+    """sdd telemetry (no subcommand) lists telemetry commands."""
     _patch_root(monkeypatch, tmp_path)
     _make_sink(tmp_path, [{"event": "governance.ask", "status": "ok"}])
     result = runner.invoke(app, ["telemetry"])
     assert result.exit_code == 0
-    assert "governance.ask" in result.output or "Total" in result.output
+    assert "Telemetry commands:" in result.output
+    assert "status" in result.output

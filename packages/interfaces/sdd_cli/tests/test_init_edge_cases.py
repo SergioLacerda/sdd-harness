@@ -171,6 +171,92 @@ class TestInitEdgeCases:
         assert result.exit_code == 0
         assert "Workspace initialized" in result.output
 
+    def test_profile_permission_error_exits_without_traceback(
+        self, tmp_path: Path
+    ) -> None:
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+
+        runner = CliRunner()
+
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch(
+                "sdd_cli.commands.init.write_profile",
+                side_effect=PermissionError("denied"),
+            ),
+        ):
+            result = runner.invoke(app, ["--type", "client"])
+
+        assert result.exit_code == 1
+        assert "Could not write SDD workspace profile" in result.output
+        assert "Step: profile" in result.output
+        assert str(tmp_path / ".sdd" / "profile") in result.output
+        assert "sdd init --force" in result.output
+        assert "Traceback" not in result.output
+
+    def test_runtime_marker_permission_error_exits_without_traceback(
+        self, tmp_path: Path
+    ) -> None:
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+
+        runner = CliRunner()
+        mock_ctx = MagicMock(type="client", name="client", workspace_id="ws-test")
+
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
+            patch(
+                "pathlib.Path.touch",
+                side_effect=PermissionError("denied"),
+            ),
+        ):
+            result = runner.invoke(app, ["--type", "client"])
+
+        assert result.exit_code == 1
+        assert "Could not initialize SDD runtime marker" in result.output
+        assert "Operation: create runtime marker" in result.output
+        assert "Traceback" not in result.output
+
+    def test_onboarding_operational_error_exits_without_traceback(
+        self, tmp_path: Path
+    ) -> None:
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+        from sdd_cli.utils.operational_errors import OperationalCliError
+
+        runner = CliRunner()
+        mock_ctx = MagicMock(type="client", name="client", workspace_id="ws-test")
+
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
+            patch("sdd_cli.commands.init.OnboardingOrchestrator") as MockOrch,
+        ):
+            MockOrch.return_value.run.side_effect = OperationalCliError(
+                "Bootstrap step failed while running 'governance generate'.",
+                cause=PermissionError("denied"),
+                command="sdd init",
+                step="governance generate",
+                operation="run child command",
+                path=tmp_path,
+                next_hint="retry: sdd governance generate --full-bootstrap",
+            )
+            result = runner.invoke(app, ["--type", "client"])
+
+        assert result.exit_code == 1
+        assert "Bootstrap step failed" in result.output
+        assert "Step: governance generate" in result.output
+        assert "retry: sdd governance generate" in result.output
+        assert "Traceback" not in result.output
+
 
 class TestShowExistingProfile:
     def test_prints_profile_fields(self, tmp_path: Path, capsys) -> None:

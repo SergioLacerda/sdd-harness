@@ -39,6 +39,7 @@ def run_governance_validate(  # noqa: C901
     check_no_conflicts: Any,
     check_artifact_consistency: Any,
     run_runtime_preflight_fn: Any,
+    check_root_seed_drift: Any = None,
 ) -> None:
     """Execute governance validate flow with JSON/text output modes."""
     state = collect_validation_state(
@@ -51,6 +52,7 @@ def run_governance_validate(  # noqa: C901
         check_no_conflicts_fn=check_no_conflicts,
         check_artifact_consistency_fn=check_artifact_consistency,
         run_runtime_preflight_fn=run_runtime_preflight_fn,
+        check_root_seed_drift_fn=check_root_seed_drift,
     )
     advisory_payload = _build_language_governance_advisories(
         path=path, config=state["config"]
@@ -67,6 +69,7 @@ def run_governance_validate(  # noqa: C901
                 "details": state["preflight"].details,
             },
             consistency_reason=state["consistency_reason"],
+            root_seed_drift_reason=state["root_seed_drift_reason"],
             exit_code=0 if state["all_passed"] else 1,
         )
         if state["all_passed"]:
@@ -99,6 +102,8 @@ def run_governance_validate(  # noqa: C901
         consistency_reason=state["consistency_reason"],
         preflight_ok=state["preflight_ok"],
         preflight_reason=state["preflight"].reason,
+        root_seed_drift_ok=state["root_seed_drift_ok"],
+        root_seed_drift_reason=state["root_seed_drift_reason"],
     )
 
 
@@ -118,6 +123,7 @@ def run_governance_validate_cmd(
         check_files_accessible,
         check_fingerprints_valid,
         check_no_conflicts,
+        check_root_seed_drift,
     )
     from sdd_cli.services.runtime_preflight import run_runtime_preflight
     from sdd_cli.utils.loader import load_governance_config, validate_governance_path
@@ -142,4 +148,5 @@ def run_governance_validate_cmd(
         check_no_conflicts=check_no_conflicts,
         check_artifact_consistency=check_artifact_consistency,
         run_runtime_preflight_fn=run_runtime_preflight,
+        check_root_seed_drift=check_root_seed_drift,
     )

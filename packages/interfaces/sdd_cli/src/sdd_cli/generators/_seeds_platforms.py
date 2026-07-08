@@ -4,7 +4,6 @@ from typing import Any
 
 from ._seeds_platforms_b import (
     _generate_antigravity_seed,
-    _generate_cortex_seed,
     _generate_gemini_seed,
 )
 from ._shared import _fingerprint_prefix, _format_rules, _render_instruction_document
@@ -13,7 +12,6 @@ __all__ = [
     "_generate_antigravity_seed",
     "_generate_claude_seed",
     "_generate_copilot_seed",
-    "_generate_cortex_seed",
     "_generate_cursor_seed",
     "_generate_gemini_seed",
     "_generate_generic_seed",

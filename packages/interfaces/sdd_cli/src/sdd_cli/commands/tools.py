@@ -5,7 +5,20 @@ from pathlib import Path
 import click
 import typer
 
-app = typer.Typer()
+from sdd_cli.services.command_group_output import show_command_group
+
+app = typer.Typer(invoke_without_command=True)
+
+
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List tool commands."),
+) -> None:
+    """Developer and maintenance tools."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Tools", ["list", "run"])
+        raise typer.Exit(0)
 
 
 def _find_repo_root() -> Path:

@@ -18,6 +18,7 @@ from sdd_cli.commands._skills_command_support import (
     emit_skills_list,
 )
 from sdd_cli.commands.skills_learning import app as _learning_app
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.skills_bootstrap import (
     handle_adapter_error,
     run_reconcile,
@@ -85,6 +86,7 @@ def _run_full_bootstrap(
 @app.callback(invoke_without_command=True)
 def _(
     ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List skill commands."),
     full_bootstrap: bool = typer.Option(
         False,
         "--full-bootstrap",
@@ -108,11 +110,18 @@ def _(
     ),
 ) -> None:
     """Skill operations."""
+    if list_commands and ctx.invoked_subcommand is None:
+        show_command_group("Skills", ["list", "describe", "run", "export"])
+        raise click.exceptions.Exit(0)
+
     if dry_run and not regenerate_seeds:
         typer.echo("ERROR: --dry-run requires --regenerate-seeds", err=True)
         raise click.exceptions.Exit(2)
 
     if not full_bootstrap and not regenerate_seeds:
+        if ctx.invoked_subcommand is None:
+            show_command_group("Skills", ["list", "describe", "run", "export"])
+            raise click.exceptions.Exit(0)
         return
     if ctx.invoked_subcommand is not None:
         return

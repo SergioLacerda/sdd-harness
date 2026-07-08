@@ -56,6 +56,7 @@ def _sync_ask_runtime(
     degrade_reason = ask_snapshot["degrade_reason"]
     trust_source = ask_snapshot["trust_source"]
     drift_detected = ask_snapshot["drift_detected"]
+    root_seed_drift_detected = ask_snapshot["root_seed_drift_detected"]
     learning_signals = ask_snapshot["learning_signals"]
     end_ts = _now()
     duration_ms = int((time.monotonic() - session.start_mono) * 1000)
@@ -130,6 +131,7 @@ def _sync_ask_runtime(
         state=session.state,
         profile=session.profile,
         drift_detected=drift_detected,
+        root_seed_drift_detected=root_seed_drift_detected,
     )
 
 

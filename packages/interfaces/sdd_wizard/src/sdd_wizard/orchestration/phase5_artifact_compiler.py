@@ -36,7 +36,8 @@ class ArtifactCompiler:
         self.verbose = verbose
         self._emit = emitter or print
 
-        # Set by generate_metadata(); consumed by IdeTemplateDeployer.inject_bootstrap_metadata()
+        # Set by generate_metadata(); wrapped by GovernanceInstallSnapshot.from_compiler()
+        # and consumed by SeedlingInjector.inject_bootstrap_metadata()
         self.governance_fingerprint: str = "unknown"
         self.generated_at: str = "unknown"
 
@@ -128,6 +129,7 @@ class ArtifactCompiler:
                 "mandates_count": len(self.mandates),
                 "guidelines_count": len(self.guidelines),
                 "categories": list(self.guidelines_by_category.keys()),
+                "governance_fingerprint": combined_fingerprint,
                 "fingerprints": {
                     "combined": combined_fingerprint,
                     "mandates": mandate_fingerprints,

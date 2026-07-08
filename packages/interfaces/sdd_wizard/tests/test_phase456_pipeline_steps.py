@@ -95,6 +95,29 @@ class _FakeSeedlingInjector:
         pass
 
 
+class _FakeArtifactCompiler:
+    """Stand-in for ArtifactCompiler exposing only what GovernanceInstallSnapshot reads."""
+
+    def __init__(self) -> None:
+        self.mandates = [{"id": "M001", "title": "Clean Architecture"}]
+        self.guidelines: dict[str, Any] = {}
+        self.guidelines_by_category: dict[str, Any] = {}
+        self.governance_fingerprint = "abc12345"
+        self.generated_at = "2026-07-04T00:00:00Z"
+
+
+class _RecordingSeedlingInjector:
+    def __init__(self, **_: Any) -> None:
+        self.bootstrap_calls: list[dict[str, Any]] = []
+        self.ide_rules_calls: list[dict[str, Any]] = []
+
+    def inject_bootstrap_metadata(self, **kwargs: Any) -> None:
+        self.bootstrap_calls.append(kwargs)
+
+    def populate_ide_rules(self, **kwargs: Any) -> None:
+        self.ide_rules_calls.append(kwargs)
+
+
 def test_deploy_ide_templates_returns_false_when_copy_templates_fails(
     monkeypatch: Any, tmp_path: Path
 ) -> None:
@@ -145,6 +168,51 @@ def test_deploy_ide_templates_returns_false_when_create_ide_templates_fails(
 
     assert success is False
     assert result["errors"] == ["Failed to copy configuration templates"]
+
+
+def test_deploy_ide_templates_sources_injector_args_from_snapshot(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    """Behavior-preserving check: snapshot-sourced args match the compiler's raw attributes."""
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration._phase456_pipeline_steps.TemplateDeployer",
+        lambda **kwargs: _FakeTemplateDeployer(copy_ok=True, ide_ok=True, **kwargs),
+    )
+    injectors: list[_RecordingSeedlingInjector] = []
+
+    def _make_injector(**kwargs: Any) -> _RecordingSeedlingInjector:
+        injector = _RecordingSeedlingInjector(**kwargs)
+        injectors.append(injector)
+        return injector
+
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration._phase456_pipeline_steps.SeedlingInjector",
+        _make_injector,
+    )
+    compiler = _FakeArtifactCompiler()
+    result: dict[str, Any] = {"errors": []}
+
+    success = _deploy_ide_templates(
+        repo_root=tmp_path,
+        output_base=tmp_path,
+        config={},
+        verbose=False,
+        compiler=compiler,
+        result=result,  # type: ignore[arg-type]
+    )
+
+    assert success is True
+    injector = injectors[0]
+    assert injector.bootstrap_calls == [
+        {
+            "fingerprint": compiler.governance_fingerprint,
+            "generated_at": compiler.generated_at,
+            "mandates_count": len(compiler.mandates),
+        }
+    ]
+    assert injector.ide_rules_calls == [
+        {"mandates": compiler.mandates, "fingerprint": compiler.governance_fingerprint}
+    ]
 
 
 class _FakeValidator:
@@ -214,7 +282,22 @@ def test_generate_adapters_emits_warning_when_adapter_fails(
 
     _generate_adapters(tmp_path, messages.append)
 
+    assert messages == ["adapters...WARN (claude)"]
+
+
+def test_generate_adapters_emits_detailed_warning_when_debug(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration._phase456_pipeline_steps.AdapterGenerator",
+        lambda: _FakeAdapterGenerator({"claude": _FakeAdapterResult(success=False)}),
+    )
+    messages: list[str] = []
+
+    _generate_adapters(tmp_path, messages.append, verbose=True)
+
     assert any("had errors" in message for message in messages)
+    assert any("adapters...WARN (claude)" in message for message in messages)
 
 
 def test_generate_adapters_emits_warning_on_exception(
@@ -230,4 +313,21 @@ def test_generate_adapters_emits_warning_on_exception(
 
     _generate_adapters(tmp_path, messages.append)
 
+    assert messages == ["adapters...WARN"]
+
+
+def test_generate_adapters_emits_detailed_exception_when_debug(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    def boom() -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration._phase456_pipeline_steps.AdapterGenerator", boom
+    )
+    messages: list[str] = []
+
+    _generate_adapters(tmp_path, messages.append, verbose=True)
+
     assert any("non-critical" in message for message in messages)
+    assert any("adapters...WARN" in message for message in messages)

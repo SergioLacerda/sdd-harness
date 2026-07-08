@@ -14,9 +14,25 @@ from jinja2 import (
     select_autoescape,
 )
 
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_core.utils.environment import find_workspace_root
 
-app = typer.Typer(help="Scaffold new SDD skills and commands from canonical templates.")
+app = typer.Typer(
+    help="Scaffold new SDD skills and commands from canonical templates.",
+    invoke_without_command=True,
+)
+
+
+@app.callback(invoke_without_command=True)
+def scaffold_default(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(False, "--list", help="List scaffold commands."),
+) -> None:
+    """Scaffold new SDD skills and commands."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Scaffold", ["skill", "command"])
+        raise typer.Exit(0)
+
 
 _RISK_SCORES = ["low", "medium", "high", "critical", "controlled"]
 _TOKEN_BUDGETS = {

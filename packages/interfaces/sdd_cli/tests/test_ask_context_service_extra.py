@@ -84,3 +84,39 @@ def test_load_ask_context_builds_dataclass(
     assert result.ahp_state == "HEALTHY"
     assert result.context_source == "compiled"
     assert result.drift_detected is True
+
+
+def test_check_root_seed_drift_detects_stale_root_seed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A stale seed file's fingerprint header must be caught, independent of check_fingerprint_drift."""
+    (tmp_path / ".sdd").mkdir(parents=True)
+    (tmp_path / ".sdd" / "metadata.json").write_text(
+        '{"governance_fingerprint": "abc123"}', encoding="utf-8"
+    )
+    (tmp_path / "CLAUDE.md").write_text(
+        "# Governance fingerprint: deadbeef99\n", encoding="utf-8"
+    )
+
+    assert ask_context_mod.check_root_seed_drift(tmp_path) is True
+
+
+def test_check_root_seed_drift_and_check_fingerprint_drift_are_independent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Root-seed drift and in-session fingerprint drift must never be merged into one signal.
+
+    A stale root seed file (root-seed drift) should not affect
+    check_fingerprint_drift's cached-runtime-state comparison, and vice versa.
+    """
+    (tmp_path / ".sdd").mkdir(parents=True)
+    (tmp_path / ".sdd" / "metadata.json").write_text(
+        '{"governance_fingerprint": "abc123"}', encoding="utf-8"
+    )
+    (tmp_path / "CLAUDE.md").write_text(
+        "# Governance fingerprint: deadbeef99\n", encoding="utf-8"
+    )
+    # No .sdd/runtime/governance-state.json — check_fingerprint_drift must stay
+    # False (its own no-cached-state default), unaffected by the root-seed drift above.
+    assert ask_context_mod.check_root_seed_drift(tmp_path) is True
+    assert ask_context_mod.check_fingerprint_drift(tmp_path, "abc123") is False

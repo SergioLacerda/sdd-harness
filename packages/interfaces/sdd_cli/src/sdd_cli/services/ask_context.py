@@ -44,6 +44,7 @@ class AskContext:
     degrade_reason: str
     trust_source: str
     drift_detected: bool
+    root_seed_drift_detected: bool
 
 
 class WorkspaceNotFoundError(Exception):
@@ -113,6 +114,23 @@ def load_compiled_governance(workspace_root: Path) -> GovResult:
     return result
 
 
+def check_root_seed_drift(workspace_root: Path) -> bool:
+    """Return True if any root seed file's fingerprint header disagrees with metadata.json.
+
+    Structurally distinct from `check_fingerprint_drift` below: this compares
+    installed root files (AGENTS.md, CLAUDE.md, GEMINI.md) against source
+    metadata, not cached runtime state against the currently loaded fingerprint.
+    Intentionally not merged with `check_fingerprint_drift` — see
+    `governance_config_reader.check_root_seed_drift` for the underlying check.
+    """
+    from sdd_cli.services.governance_config_reader import (
+        check_root_seed_drift as _check_root_seed_drift_impl,
+    )
+
+    ok, _reason = _check_root_seed_drift_impl(str(workspace_root / ".sdd"))
+    return not ok
+
+
 def check_fingerprint_drift(workspace_root: Path, loaded_fingerprint: str) -> bool:
     """Return True if the loaded governance fingerprint differs from the cached state."""
     if not loaded_fingerprint:
@@ -180,6 +198,7 @@ def load_ask_context(
     ) = load_compiled_governance(root)
 
     drift_detected = check_fingerprint_drift(root, fingerprint)
+    root_seed_drift_detected = check_root_seed_drift(root)
 
     return AskContext(
         workspace_root=root,
@@ -193,4 +212,5 @@ def load_ask_context(
         degrade_reason=degrade_reason,
         trust_source=trust_source,
         drift_detected=drift_detected,
+        root_seed_drift_detected=root_seed_drift_detected,
     )

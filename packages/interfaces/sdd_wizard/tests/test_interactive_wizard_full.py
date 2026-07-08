@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import json
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from sdd_wizard.application import workspace_runtime
 from sdd_wizard.application.interactive_wizard import (
     InteractiveWizard,
     run_interactive_wizard,
@@ -44,6 +46,15 @@ def _mock_large_phase_modules():
             sys.modules.pop(mod, None)
 
 
+@pytest.fixture(autouse=True)
+def _assume_interactive_tty(monkeypatch: pytest.MonkeyPatch):
+    """Tests use fake/callable prompters and expect interactive-capable
+    behavior — simulate a real TTY so InteractiveFlowRuntime's upfront
+    non-interactive-without-a-path check doesn't short-circuit them. Tests
+    exercising that check specifically override this locally."""
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+
+
 _BASE_PATHS = {
     "root": Path("/fake/root"),
     "client_build": None,
@@ -58,6 +69,7 @@ def _make_wizard(
     tmp_path: Path,
     prompter: Any = None,
     emitter: Any = None,
+    debug: bool = False,
 ) -> InteractiveWizard:
     paths = {
         **_BASE_PATHS,
@@ -71,6 +83,7 @@ def _make_wizard(
             repo_root=tmp_path,
             emitter=emitter or (lambda _: None),
             prompter=prompter or (lambda _: ""),
+            debug=debug,
         )
 
 
@@ -102,62 +115,53 @@ class TestPrintHeader:
         assert any("=" in m for m in logs)
 
 
-class TestShowPhaseMenu:
-    def test_returns_user_choice(self, tmp_path: Path) -> None:
-        wizard = _make_wizard(tmp_path, prompter=lambda _: "2")
-        assert wizard.show_phase_menu() == "2"
-
-    def test_menu_phase_choices_include_all_phases(self, tmp_path: Path) -> None:
-        # Phase options are delivered via prompter.select() choices, not _emit
-        from sdd_wizard.application.interactive_wizard import InteractiveWizard
-
-        choices = list(InteractiveWizard._PHASE_CHOICES.values())
-        assert any("Phase 1" in c for c in choices)
-        assert any("Phase 3" in c for c in choices)
-
-
 class TestAskUserPreferences:
     def _wizard_with_choices(
         self,
         tmp_path: Path,
         enforcement: str,
-        language: str,
         interaction_language: str = "1",
         local_docs_language: str = "3",
+        handshake: str = "1",
     ) -> InteractiveWizard:
         responses = iter(
-            [enforcement, language, interaction_language, local_docs_language]
+            [
+                enforcement,
+                interaction_language,
+                local_docs_language,
+                handshake,
+            ]
         )
         return _make_wizard(tmp_path, prompter=lambda _: next(responses))
 
-    def test_silent_mode_python(self, tmp_path: Path) -> None:
-        config = self._wizard_with_choices(tmp_path, "1", "1").ask_user_preferences()
+    def test_silent_mode(self, tmp_path: Path) -> None:
+        config = self._wizard_with_choices(tmp_path, "1").ask_user_preferences()
         assert config["enforcement_mode"] == "silent_mode"
-        assert config["language"] == "Python"
+        assert config["language"] == "all"
 
-    def test_warn_mode_java(self, tmp_path: Path) -> None:
-        config = self._wizard_with_choices(tmp_path, "2", "2").ask_user_preferences()
+    def test_warn_mode(self, tmp_path: Path) -> None:
+        config = self._wizard_with_choices(tmp_path, "2").ask_user_preferences()
         assert config["enforcement_mode"] == "warn_mode"
-        assert config["language"] == "Java"
+        assert config["language"] == "all"
 
-    def test_strict_mode_typescript(self, tmp_path: Path) -> None:
-        config = self._wizard_with_choices(tmp_path, "3", "3").ask_user_preferences()
+    def test_strict_mode(self, tmp_path: Path) -> None:
+        config = self._wizard_with_choices(tmp_path, "3").ask_user_preferences()
         assert config["enforcement_mode"] == "strict_mode"
-        assert config["language"] == "TypeScript"
+        assert config["language"] == "all"
 
     def test_unknown_choices_default(self, tmp_path: Path) -> None:
         # Out-of-bounds index → _CallablePrompter falls back to first choice
-        config = self._wizard_with_choices(tmp_path, "9", "9").ask_user_preferences()
+        config = self._wizard_with_choices(tmp_path, "9").ask_user_preferences()
         assert config["enforcement_mode"] == "silent_mode"
-        assert config["language"] == "Python"
+        assert config["language"] == "all"
 
     def test_config_has_generated_at(self, tmp_path: Path) -> None:
-        config = self._wizard_with_choices(tmp_path, "1", "1").ask_user_preferences()
+        config = self._wizard_with_choices(tmp_path, "1").ask_user_preferences()
         assert "generated_at" in config
 
     def test_config_has_language_context(self, tmp_path: Path) -> None:
         config = self._wizard_with_choices(
-            tmp_path, "2", "4", interaction_language="2", local_docs_language="3"
+            tmp_path, "2", interaction_language="2", local_docs_language="3"
         ).ask_user_preferences()
         assert (
             config["language_context"]["preferred_human_language"]
@@ -176,18 +180,49 @@ class TestAskUserPreferences:
         )
 
     def test_config_has_default_locale_metadata(self, tmp_path: Path) -> None:
-        config = self._wizard_with_choices(tmp_path, "1", "1").ask_user_preferences()
+        config = self._wizard_with_choices(tmp_path, "1").ask_user_preferences()
         assert config["locale"] == "en"
         assert config["docs_language"] == "English"
         assert config["docs_locale"] == "en"
 
     def test_config_has_pt_br_locale_metadata(self, tmp_path: Path) -> None:
         config = self._wizard_with_choices(
-            tmp_path, "2", "4", interaction_language="2", local_docs_language="2"
+            tmp_path, "2", interaction_language="2", local_docs_language="2"
         ).ask_user_preferences()
         assert config["locale"] == "pt-BR"
         assert config["docs_language"] == "Português (Brasil)"
         assert config["docs_locale"] == "pt-BR"
+
+    def test_non_interactive_reuses_real_wizard_config_end_to_end(
+        self, tmp_path: Path
+    ) -> None:
+        """End-to-end: non_interactive=True + a real on-disk wizard-config.json
+        are wired together through ask_user_preferences() itself — not just
+        the resolver in isolation, and not with ask_user_preferences mocked."""
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
+        wizard.non_interactive = True
+        existing = {
+            "docs_language": "English",
+            "docs_locale": "en",
+            "enforcement_mode": "warn_mode",
+            "handshake_mode": "standard",
+            "locale": "en",
+            "language_context": {
+                "preferred_human_language": "English",
+                "preferred_chat_language": "English",
+                "preferred_ui_language": "English",
+                "preferred_local_docs_language": "English",
+            },
+        }
+        wizard.wizard_config_path.parent.mkdir(parents=True, exist_ok=True)
+        wizard.wizard_config_path.write_text(json.dumps(existing), encoding="utf-8")
+
+        config = wizard.ask_user_preferences()
+
+        assert config["enforcement_mode"] == "warn_mode"
+        assert config["handshake_mode"] == "standard"
+        assert config["locale"] == "en"
+        assert config["language"] == "all"
 
 
 class TestSaveConfig:
@@ -237,8 +272,10 @@ class TestEnsureDocsMeta:
         assert reason == ""
 
     def test_bootstraps_and_returns_true_when_docs_meta_missing(
-        self, tmp_path: Path
+        self, tmp_path: Path, monkeypatch
     ) -> None:
+        """When no bundled canonical spec is available, fall back to the placeholder stub."""
+        monkeypatch.setattr(workspace_runtime, "_bundled_spec_dir", lambda: None)
         wizard = _make_wizard(tmp_path)
         ok, reason = wizard._ensure_docs_meta_ready()
         assert ok is True
@@ -248,6 +285,27 @@ class TestEnsureDocsMeta:
         assert (tmp_path / "build" / "phase-2-input").exists()
         assert (tmp_path / "build" / "docs-meta" / "mandate.md").exists()
         assert (tmp_path / "build" / "docs-meta" / "guidelines.dsl").exists()
+
+    def test_bootstraps_prefers_bundled_canonical_spec_when_available(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        bundled_dir = tmp_path / "bundled"
+        bundled_dir.mkdir()
+        (bundled_dir / "mandate.spec").write_text(
+            'mandate M001 {\n  title: "Real Mandate"\n}\n', encoding="utf-8"
+        )
+        (bundled_dir / "guidelines.dsl").write_text(
+            'guideline G01 {\n  title: "Real Guideline"\n}\n', encoding="utf-8"
+        )
+        monkeypatch.setattr(workspace_runtime, "_bundled_spec_dir", lambda: bundled_dir)
+        wizard = _make_wizard(tmp_path)
+        ok, reason = wizard._ensure_docs_meta_ready()
+        assert ok is True
+        assert reason == ""
+        docs_meta = tmp_path / "build" / "docs-meta"
+        assert (docs_meta / "mandate.spec").exists()
+        assert (docs_meta / "guidelines.dsl").exists()
+        assert not (docs_meta / "mandate.md").exists()
 
 
 class TestPostGenerationCleanup:
@@ -285,7 +343,7 @@ class TestPhase1Generate:
 
     def test_success(self, tmp_path: Path) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": True}
@@ -297,7 +355,7 @@ class TestPhase1Generate:
         assert result["success"] is True
 
     def test_success_in_zero_state_without_docs_meta(self, tmp_path: Path) -> None:
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": True}
@@ -309,7 +367,7 @@ class TestPhase1Generate:
 
     def test_exception_returns_failure(self, tmp_path: Path) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         sys.modules[
             "sdd_wizard.orchestration.wizard.phase1_generator"
@@ -325,7 +383,7 @@ class TestPhase1Generate:
         self, tmp_path: Path
     ) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         wizard.selector_output_path.write_text(
             json.dumps(
@@ -356,10 +414,13 @@ class TestPhase1Generate:
 
     def test_emits_selector_site_hint_when_site_exists(self, tmp_path: Path) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         logs: list[str] = []
         wizard = _make_wizard(
-            tmp_path, prompter=lambda _: next(responses), emitter=logs.append
+            tmp_path,
+            prompter=lambda _: next(responses),
+            emitter=logs.append,
+            debug=True,
         )
         wizard.selector_site_path.parent.mkdir(parents=True, exist_ok=True)
         wizard.selector_site_path.write_text("<html></html>", encoding="utf-8")
@@ -383,10 +444,13 @@ class TestPhase1Generate:
         self, tmp_path: Path
     ) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         logs: list[str] = []
         wizard = _make_wizard(
-            tmp_path, prompter=lambda _: next(responses), emitter=logs.append
+            tmp_path,
+            prompter=lambda _: next(responses),
+            emitter=logs.append,
+            debug=True,
         )
         wizard.selector_output_path.write_text(
             json.dumps(
@@ -422,7 +486,7 @@ class TestPhase1Generate:
         self, tmp_path: Path
     ) -> None:
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         logs: list[str] = []
         wizard = _make_wizard(
             tmp_path, prompter=lambda _: next(responses), emitter=logs.append
@@ -667,7 +731,7 @@ class TestEnforcementLabel:
 class TestConsolidateFinalTemplate:
     def test_emits_on_success(self, tmp_path: Path) -> None:
         logs: list[str] = []
-        wizard = _make_wizard(tmp_path, emitter=logs.append)
+        wizard = _make_wizard(tmp_path, emitter=logs.append, debug=True)
         with patch(
             "sdd_wizard.application.interactive_wizard.consolidate_final_template",
             return_value={"success": True, "moved_items": 3},
@@ -700,25 +764,6 @@ def _make_wizard_with_source_spec(tmp_path: Path, **extra_paths) -> InteractiveW
             emitter=lambda _: None,
             prompter=lambda _: "",
         )
-
-
-class TestShowPhaseMenuFallback:
-    def test_returns_1_when_selection_matches_no_choice(self, tmp_path: Path) -> None:
-        """Covers line 141: fallback return '1' when selected value isn't in _PHASE_CHOICES."""
-
-        class _UnknownPrompter:
-            def select(self, q: str, choices: list) -> str:
-                return "totally unknown value"
-
-            def checkbox(self, q: str, choices: list) -> list:
-                return []
-
-            def confirm(self, q: str, default: bool = True) -> bool:
-                return default
-
-        wizard = _make_wizard(tmp_path, prompter=_UnknownPrompter())
-        result = wizard.show_phase_menu()
-        assert result == "1"
 
 
 class TestSourceSpecReady:
@@ -793,7 +838,7 @@ class TestPhase1GenerateTemplatesFailurePaths:
 
     def test_fails_when_docs_meta_not_ready(self, tmp_path: Path) -> None:
         """Covers lines 291-296: _ensure_docs_meta_ready returns False."""
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         with patch.object(
             wizard, "_ensure_docs_meta_ready", return_value=(False, "no artifacts")
@@ -805,7 +850,7 @@ class TestPhase1GenerateTemplatesFailurePaths:
     def test_generator_failure_records_status(self, tmp_path: Path) -> None:
         """Covers line 338: generator returns success=False."""
         self._ready_docs_meta(tmp_path)
-        responses = iter(["2", "1", "1", "3"])
+        responses = iter(["2", "1", "1", "3", "1"])
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": False, "error": "gen failed"}
@@ -858,38 +903,130 @@ class TestAskSeedlingSelection:
 
 
 class TestRun:
-    def test_routes_to_phase1(self, tmp_path: Path) -> None:
+    """Tests for the single guided flow (Scenario A/B), replacing the old
+    phase-choice menu dispatch."""
+
+    @contextmanager
+    def _patch_scenario_a_phases(
+        self,
+        wizard: InteractiveWizard,
+        *,
+        phase1: bool = True,
+        phase2: bool = True,
+        phase3: bool = True,
+        phase4: bool = True,
+    ):
+        with (
+            patch.object(
+                wizard,
+                "ask_user_preferences",
+                return_value={"language": "all"},
+            ),
+            patch.object(wizard, "_ask_seedling_selection", return_value=None),
+            patch.object(
+                wizard,
+                "phase_1_generate_templates",
+                return_value={"success": phase1},
+            ),
+            patch.object(
+                wizard,
+                "phase_2_show_instructions",
+                return_value={"success": phase2},
+            ),
+            patch.object(
+                wizard,
+                "phase_3_compile_templates",
+                return_value={"success": phase3},
+            ),
+            patch.object(
+                wizard,
+                "phase_4_generate_project",
+                return_value={"success": phase4},
+            ),
+        ):
+            yield
+
+    def test_scenario_a_success_runs_all_phases_in_order(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
-        with patch.object(
-            wizard, "phase_1_generate_templates", return_value={"success": True}
+        with self._patch_scenario_a_phases(wizard):
+            assert wizard.run() is True
+
+    def test_scenario_a_stops_when_phase1_fails(self, tmp_path: Path) -> None:
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
+        with self._patch_scenario_a_phases(wizard, phase1=False):
+            assert wizard.run() is False
+
+    def test_scenario_a_stops_when_phase2_fails(self, tmp_path: Path) -> None:
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
+        with self._patch_scenario_a_phases(wizard, phase2=False):
+            assert wizard.run() is False
+
+    def test_scenario_a_stops_when_phase3_fails(self, tmp_path: Path) -> None:
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
+        with self._patch_scenario_a_phases(wizard, phase3=False):
+            assert wizard.run() is False
+
+    def test_scenario_a_stops_when_phase4_fails(self, tmp_path: Path) -> None:
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
+        with self._patch_scenario_a_phases(wizard, phase4=False):
+            assert wizard.run() is False
+
+    def test_scenario_b_used_when_custom_governance_path_set(
+        self, tmp_path: Path
+    ) -> None:
+        custom_file = tmp_path / "custom-governance.json"
+        custom_file.write_text(
+            json.dumps(
+                {"items": [{"id": "M001", "type": "MANDATE", "title": "Clean Code"}]}
+            ),
+            encoding="utf-8",
+        )
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
+        wizard.custom_governance_path = custom_file
+        with (
+            patch.object(
+                wizard, "ask_user_preferences", return_value={"language": "all"}
+            ),
+            patch.object(wizard, "_ask_seedling_selection", return_value=None),
+            patch.object(
+                wizard, "phase_4_generate_project", return_value={"success": True}
+            ),
         ):
             assert wizard.run() is True
 
-    def test_routes_to_phase2(self, tmp_path: Path) -> None:
-        wizard = _make_wizard(tmp_path, prompter=lambda _: "2")
-        with patch.object(
-            wizard, "phase_2_show_instructions", return_value={"success": True}
-        ):
-            assert wizard.run() is True
+        config = json.loads(wizard.wizard_config_path.read_text(encoding="utf-8"))
+        assert config["phase1_status"]["status"] == "skipped"
+        assert config["phase1_status"]["reason"] == "custom_governance_file"
 
-    def test_routes_to_phase3(self, tmp_path: Path) -> None:
-        wizard = _make_wizard(tmp_path, prompter=lambda _: "3")
-        with patch.object(
-            wizard, "phase_3_compile_templates", return_value={"success": False}
+    def test_scenario_b_stops_on_invalid_custom_file(self, tmp_path: Path) -> None:
+        custom_file = tmp_path / "custom-governance.json"
+        custom_file.write_text(json.dumps({"items": []}), encoding="utf-8")
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
+        wizard.custom_governance_path = custom_file
+        with (
+            patch.object(
+                wizard, "ask_user_preferences", return_value={"language": "all"}
+            ),
+            patch.object(wizard, "_ask_seedling_selection", return_value=None),
         ):
             assert wizard.run() is False
 
-    def test_routes_to_phase4(self, tmp_path: Path) -> None:
-        wizard = _make_wizard(tmp_path, prompter=lambda _: "4")
-        with patch.object(
-            wizard, "phase_4_generate_project", return_value={"success": True}
-        ):
-            assert wizard.run() is True
+    def test_non_interactive_without_tty_and_no_custom_path_fails_fast(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr("sys.stdin.isatty", lambda: False)
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
+        assert wizard.non_interactive is False
+        assert wizard.run() is False
 
-    def test_invalid_choice_returns_false(self, tmp_path: Path) -> None:
-        wizard = _make_wizard(tmp_path)
-        with patch.object(wizard, "show_phase_menu", return_value="x"):
-            assert wizard.run() is False
+    def test_non_interactive_flag_skips_tty_check(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr("sys.stdin.isatty", lambda: False)
+        wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
+        wizard.non_interactive = True
+        with self._patch_scenario_a_phases(wizard):
+            assert wizard.run() is True
 
     def test_keyboard_interrupt_returns_false(self, tmp_path: Path) -> None:
         def _raise(_: str) -> str:

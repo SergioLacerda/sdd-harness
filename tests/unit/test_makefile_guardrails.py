@@ -28,7 +28,7 @@ def test_docs_build_publishes_selector_artifacts() -> None:
     # docs-build must inline the selector compiler targeting the mkdocs output dir
     # (not docs/ — docs/ must not receive runtime-generated files)
     assert (
-        "uv run python -m sdd_wizard.orchestration.wizard.selector_compiler "
+        "$(PYTHON) -m sdd_wizard.orchestration.wizard.selector_compiler "
         "--output-dir build/site/selector"
     ) in content
 

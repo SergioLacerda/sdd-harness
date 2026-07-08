@@ -9,14 +9,14 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: write
-  id-token: write  # required for SBOM attestation
+permissions: {}
 
 jobs:
   validate:
     name: Validate Release Tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       SDD_ENFORCE_PIPELINE_CORRECT: "1"
     timeout-minutes: 10
@@ -94,6 +94,8 @@ jobs:
     name: Build Distribution
     needs: validate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       SDD_ENFORCE_PIPELINE_CORRECT: "1"
     timeout-minutes: 10
@@ -173,7 +175,7 @@ jobs:
             && uv pip install -e packages/interfaces/sdd_cli
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: "1.26"
           cache-dependency-path: tools/sdd-compile/go.sum
@@ -198,10 +200,67 @@ jobs:
           name: dist
           path: dist/
 
+  release-install-smoke:
+    name: Release Install Smoke (${{ matrix.os }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.12"]
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create install smoke venv
+        shell: bash
+        run: python -m venv .release-smoke
+
+      - name: Install sdd-cli from dist only (no PyPI fallback)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            PY=".release-smoke/Scripts/python.exe"
+          else
+            PY=".release-smoke/bin/python"
+          fi
+          "$PY" -m pip install --upgrade pip
+          "$PY" -m pip install --no-index --find-links dist sdd-cli
+
+      - name: Run CLI smoke commands
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            SDD_BIN=".release-smoke/Scripts/sdd.exe"
+          else
+            SDD_BIN=".release-smoke/bin/sdd"
+          fi
+          "$SDD_BIN" --help
+          "$SDD_BIN" install --help
+          "$SDD_BIN" wizard --list
+
   release:
     name: Create GitHub Release
-    needs: build
+    needs: release-install-smoke
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       SDD_ENFORCE_PIPELINE_CORRECT: "1"
     timeout-minutes: 10
@@ -245,7 +304,6 @@ jobs:
           artifact-path: dist/
           token: ${{ secrets.GITHUB_TOKEN }}
           release-signing-secret: ${{ secrets.SIGSTORE_SIGNING_SECRET }}
-        continue-on-error: true
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
@@ -261,6 +319,10 @@ jobs:
     name: Generate SLSA Provenance
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     env:
       SDD_ENFORCE_PIPELINE_CORRECT: "1"
     steps:

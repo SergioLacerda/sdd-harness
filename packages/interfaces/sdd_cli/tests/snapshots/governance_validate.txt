@@ -13,5 +13,6 @@
 │ Artifact consistency    │ PASS   │
 │ Active handshake (M015) │ PASS   │
 │ Runtime preflight       │ PASS   │
+│ Root-seed drift         │ PASS   │
 └─────────────────────────┴────────┘
 All validation checks passed

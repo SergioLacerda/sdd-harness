@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from sdd_wizard.application.finalization import build_wizard_result
@@ -18,9 +19,13 @@ class SessionBootstrap:
             non_interactive=invocation.non_interactive,
             output_path=invocation.output_path,
             language=invocation.language,
+            custom_governance_path=invocation.custom_governance_path,
+            debug=invocation.debug,
         )
 
     def run(self) -> WizardResult:
         """Execute the runtime and translate the result into the public contract."""
+        if self._invocation.debug:
+            logging.getLogger("sdd_wizard").setLevel(logging.DEBUG)
         success = PhaseRuntime(self._invocation).execute()
         return build_wizard_result(success)

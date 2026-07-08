@@ -349,4 +349,4 @@ def test_run_success_returns_summary(
     assert result["success"] is True
     assert result["mandates"] == 1
     assert result["guidelines"] == 1
-    assert any("Compiled governance artifacts" in message for message in messages)
+    assert any("compile...OK" in message for message in messages)

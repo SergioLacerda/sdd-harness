@@ -18,7 +18,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.perf]
 _PROBE_SCRIPT = """
 import sys
 
-from typer.testing import CliRunner
+from click.testing import CliRunner
 
 from sdd_cli.commands.wizard import app
 

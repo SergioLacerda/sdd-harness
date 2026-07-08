@@ -23,6 +23,8 @@ def _make_wizard(tmp_path: Path) -> InteractiveWizard:
 
 
 def test_phase1_bootstraps_scaffold_on_zero_state(tmp_path: Path) -> None:
+    """With no bundled canonical spec available, the wizard falls back to the
+    placeholder stub for a genuine zero-state (nothing on disk, nothing packaged)."""
     wizard = _make_wizard(tmp_path)
     mock_generator = MagicMock()
     mock_generator.run.return_value = {"success": True}
@@ -32,6 +34,10 @@ def test_phase1_bootstraps_scaffold_on_zero_state(tmp_path: Path) -> None:
         patch(
             "sdd_wizard.orchestration.wizard.phase1_generator.Phase1Generator",
             return_value=mock_generator,
+        ),
+        patch(
+            "sdd_wizard.application.workspace_runtime._bundled_spec_dir",
+            return_value=None,
         ),
     ):
         result = wizard.phase_1_generate_templates()

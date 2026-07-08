@@ -22,6 +22,15 @@ _GATE_EXEMPT_COMMANDS = frozenset(
 
 def _extract_invocation(ctx: click.Context) -> tuple[str, str]:
     """Best-effort extraction of command and subcommand names."""
+    tokens = _raw_invocation_tokens(ctx)
+    non_flag_tokens = [t for t in tokens if t and not t.startswith("-")]
+    cmd = non_flag_tokens[0] if non_flag_tokens else ""
+    subcmd = non_flag_tokens[1] if len(non_flag_tokens) > 1 else ""
+    return cmd, subcmd
+
+
+def _raw_invocation_tokens(ctx: click.Context) -> list[str]:
+    """Best-effort extraction of all raw tokens (including flags) for this invocation."""
     import warnings
 
     raw_tokens: list[str] = []
@@ -31,10 +40,23 @@ def _extract_invocation(ctx: click.Context) -> tuple[str, str]:
     raw_tokens.extend(str(t) for t in protected_args)
     if isinstance(ctx.args, list):
         raw_tokens.extend(str(t) for t in ctx.args)
-    tokens = [t for t in raw_tokens if t and not t.startswith("-")]
-    cmd = tokens[0] if tokens else ""
-    subcmd = tokens[1] if len(tokens) > 1 else ""
-    return cmd, subcmd
+    return raw_tokens
+
+
+def _is_informational_invocation(ctx: click.Context, invoked: str) -> bool:
+    """True when the invocation is a pure listing/no-op that bypasses the gate.
+
+    Covers `<cmd> --list` (informational, never touches governance) and a bare
+    `<cmd>` with no arguments at all for sensitive commands like `ask`, which
+    will fail its own required-argument validation (usage error) regardless of
+    governance state — the gate must not preempt that with an unrelated
+    governance message.
+    """
+    tokens = _raw_invocation_tokens(ctx)
+    args_after_cmd = tokens[1:] if tokens and tokens[0] == invoked else tokens
+    if "--list" in args_after_cmd:
+        return True
+    return invoked == "ask" and not args_after_cmd
 
 
 def _is_sensitive_command(cmd: str, subcmd: str) -> bool:
@@ -57,6 +79,8 @@ def governance_gate(ctx: click.Context) -> None:
     """
     invoked, subcommand = _extract_invocation(ctx)
     if invoked in _GATE_EXEMPT_COMMANDS:
+        return
+    if _is_informational_invocation(ctx, invoked):
         return
 
     try:

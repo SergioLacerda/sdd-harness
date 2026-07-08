@@ -8,12 +8,22 @@ from pathlib import Path
 
 import typer
 
-app = typer.Typer()
+from sdd_cli.services.command_group_output import show_command_group
+
+app = typer.Typer(invoke_without_command=True)
 
 
-@app.callback()
-def _() -> None:
+@app.callback(invoke_without_command=True)
+def _(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(
+        False, "--list", help="List bootstrap commands."
+    ),
+) -> None:
     """Bootstrap workspace runtime state."""
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Bootstrap", ["run"])
+        raise typer.Exit(0)
 
 
 def _read_json(path: Path) -> dict[str, object]:

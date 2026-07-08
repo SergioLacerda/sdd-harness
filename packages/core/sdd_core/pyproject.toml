@@ -13,6 +13,7 @@ authors = [
 ]
 
 dependencies = [
+    "msgpack>=1.2.1",
     "structlog>=23.0",
 ]
 
@@ -23,7 +24,7 @@ Repository = "https://github.com/SergioLacerda/sdd-harness"
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
-sdd_core = ["py.typed"]
+sdd_core = ["py.typed", "mandate.spec", "guidelines.dsl"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -144,15 +144,6 @@ def test_copilot_seed_has_fingerprint(tmp_path: Path) -> None:
     assert FINGERPRINT in content
 
 
-def test_cortex_seed_has_fingerprint(tmp_path: Path) -> None:
-    gen = _make_ai_gen(tmp_path)
-    assert gen.generate_cortex_seed()
-    content = (tmp_path / ".cortex" / "skills" / "sdd-governance.md").read_text(
-        encoding="utf-8"
-    )
-    assert FINGERPRINT in content
-
-
 def test_codex_seed_has_fingerprint(tmp_path: Path) -> None:
     gen = _make_ai_gen(tmp_path)
     assert gen.generate_codex_seed()
@@ -173,14 +164,12 @@ def test_all_bootstrap_files_reference_agent_instructions(tmp_path: Path) -> Non
     gen.generate_gemini_seed()
     gen.generate_copilot_seed()
     gen.generate_codex_seed()
-    gen.generate_cortex_seed()
 
     files = [
         tmp_path / "CLAUDE.md",
         tmp_path / "GEMINI.md",
         tmp_path / ".gemini" / "gemini-instructions.md",
         tmp_path / ".github" / "copilot-instructions.md",
-        tmp_path / ".cortex" / "skills" / "sdd-governance.md",
     ]
     for f in files:
         content = f.read_text(encoding="utf-8")
@@ -199,18 +188,6 @@ def test_gemini_seed_has_no_inline_mandate_descriptions(tmp_path: Path) -> None:
         content = (tmp_path / path).read_text(encoding="utf-8")
         for desc in MANDATE_DESCRIPTIONS:
             assert desc not in content, f"inline mandate description found in {path}"
-
-
-def test_cortex_seed_has_no_inline_mandate_descriptions(tmp_path: Path) -> None:
-    gen = _make_ai_gen(tmp_path)
-    gen.generate_cortex_seed()
-    content = (tmp_path / ".cortex" / "skills" / "sdd-governance.md").read_text(
-        encoding="utf-8"
-    )
-    for desc in MANDATE_DESCRIPTIONS:
-        assert desc not in content, (
-            "inline mandate description found in cortex bootstrap"
-        )
 
 
 def test_claude_seed_has_no_inline_mandate_descriptions(tmp_path: Path) -> None:
@@ -330,7 +307,12 @@ def test_sovereign_factory_plants_antigravity_skill(tmp_path: Path) -> None:
 def test_sovereign_factory_antigravity_contains_skill_md(tmp_path: Path) -> None:
     gen = _make_sovereign_gen(tmp_path)
     gen.generate_sovereign_factory_seed()
-    antigravity_dir = tmp_path / ".antigravity"
+    antigravity_dir = tmp_path / ".gemini" / "antigravity"
     if antigravity_dir.exists():
         skill_files = list(antigravity_dir.rglob("SKILL.md"))
-        assert len(skill_files) > 0, "Expected at least one SKILL.md in .antigravity/"
+        assert len(skill_files) > 0, (
+            "Expected at least one SKILL.md in .gemini/antigravity/"
+        )
+    assert not (tmp_path / ".antigravity").exists(), (
+        "legacy .antigravity/ output must not be created"
+    )

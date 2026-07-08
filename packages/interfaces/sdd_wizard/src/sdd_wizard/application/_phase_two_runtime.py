@@ -50,9 +50,6 @@ class PhaseTwoRuntime:
         self._context._emit(
             phase2_instructions_message(phase1_path, output_path, copied_files)
         )
-        self._context._prompter.confirm(
-            "Have you completed Phase 2 edits?", default=True
-        )
         return self._build_success(phase1_path, output_path, copied_files)
 
     def _load_failed_phase1_status(self) -> str | None:

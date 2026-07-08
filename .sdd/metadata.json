@@ -1,7 +1,7 @@
 {
   "version": "3.0",
-  "generated_at": "2026-06-14T09:05:22.915745",
-  "language": "Python",
+  "generated_at": "2026-07-08T11:44:46.405457Z",
+  "language": "all",
   "language_context": {
     "preferred_human_language": "Português (Brasil)",
     "preferred_chat_language": "Português (Brasil)",
@@ -34,19 +34,28 @@
   "mandates_count": 16,
   "guidelines_count": 23,
   "categories": [
-    "architecture",
-    "code_quality",
-    "communication",
-    "documentation",
-    "governance",
-    "observability",
-    "performance",
-    "testing"
+    "other"
   ],
+  "governance_fingerprint": "58a087b3c9fb9ce2",
   "fingerprints": {
-    "combined": "f95a3c901a84b222",
+    "combined": "58a087b3c9fb9ce2",
     "mandates": {
-      "M001": "a9c036fcb20a016c"
+      "M001": "11693e056d10209b",
+      "M002": "5d180205045faa4c",
+      "M003": "e93bb7c07815c755",
+      "M005": "9e219fea698a72a0",
+      "M006": "36e3b9b83928e5ff",
+      "M007": "007905849f5013cf",
+      "M008": "3be9740ac7d9e7fd",
+      "M009": "0863c1f6e35ef0ce",
+      "M010": "d18218e48ba3f8dd",
+      "M011": "406b1c5fcb312aef",
+      "M015": "06c412f44fd86591",
+      "M016": "727a88b4c07484a5",
+      "M017": "bf9c093cbcde8b80",
+      "M018": "fc05fe534eb354fd",
+      "M019": "54e69ba7bf2272f5",
+      "M020": "41a6fa80d7a95d43"
     }
   },
   "mandates": {
@@ -54,7 +63,7 @@
     "M002": "Test-Driven Development (TDD)",
     "M003": "Context Awareness & Task Caching",
     "M005": "Token Economy Enforcement",
-    "M006": "RFC Process Mandate",
+    "M006": "Any change that could require users to update their code or governance artifacts must follow this RFC process.",
     "M007": "Telemetry Enforcement",
     "M008": "Audit Integrity",
     "M009": "OpenTelemetry Compliance",

@@ -17,9 +17,11 @@ def _make_generator(tmp_path: Path) -> tuple[SimpleNamespace, list[str]]:
         runtime_dir=tmp_path / ".sdd" / "runtime",
         output_base=tmp_path,
         config={"language": "Python"},
+        selected_seedlings=None,
         _emit=messages.append,
         _write_sources=lambda *args: True,
         _generate_seedlings=lambda *args: True,
+        _generate_prompt_submit_hooks=lambda *args: True,
     )
     return generator, messages
 
@@ -126,6 +128,29 @@ def test_run_phase456_pipeline_returns_when_seedling_generation_fails(
     assert result.get("success", False) is False
 
 
+def test_run_phase456_pipeline_returns_when_prompt_hook_generation_fails(
+    tmp_path: Path, monkeypatch
+) -> None:
+    generator, _ = _make_generator(tmp_path)
+    generator._generate_prompt_submit_hooks = lambda *args: False
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration._phase456_run._load_governance",
+        lambda *args: ([{"id": "M001"}], {"G001": {}}, {"core": [{}]}, {"errors": []}),
+    )
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration._phase456_run._compile_artifacts",
+        lambda *args: (True, object()),
+    )
+    monkeypatch.setattr(
+        "sdd_wizard.orchestration._phase456_run._deploy_ide_templates",
+        lambda *args: True,
+    )
+
+    result = run_phase456_pipeline(generator)
+
+    assert result.get("success", False) is False
+
+
 def test_run_phase456_pipeline_success_path_emits_summary(
     tmp_path: Path, monkeypatch
 ) -> None:
@@ -164,4 +189,5 @@ def test_run_phase456_pipeline_success_path_emits_summary(
     result = run_phase456_pipeline(generator)
 
     assert result["success"] is True
-    assert any("Phase 4-6 Complete" in message for message in messages)
+    assert any("phase4...OK" in message for message in messages)
+    assert any("location...OK" in message for message in messages)

@@ -52,6 +52,7 @@ def build_governed_ask_snapshot(
     if _signature_mode() == "strict" and not authenticated:
         raise PermissionError(degrade_reason)
     drift_detected = _backend._runtime_drift_check(root, fingerprint)
+    root_seed_drift_detected = _backend._root_seed_drift_check(root)
     learning_signals = _collect_learning_signals(workspace_root=root)
     return {
         "workspace_root": root,
@@ -63,6 +64,7 @@ def build_governed_ask_snapshot(
         "degrade_reason": degrade_reason,
         "trust_source": trust_source,
         "drift_detected": drift_detected,
+        "root_seed_drift_detected": root_seed_drift_detected,
         "learning_signals": learning_signals,
     }
 

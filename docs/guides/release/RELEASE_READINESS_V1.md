@@ -13,15 +13,22 @@ Target-Version: v1.0.0
 - [x] Strict golden policy gate runs in release workflows
 - [x] Version/tag consistency check is enforced
 - [x] Build + artifact upload stage is defined
+- [x] Windows and Linux install smoke test runs against `dist/` artifacts
+      before publish (`release-install-smoke` job)
 - [x] SBOM generation is defined
-- [x] Artifact signing step is defined
+- [x] Artifact signing step is defined and blocking (release fails if
+      signing fails)
 - [x] Provenance/attestation step is defined
 
 ## Gate Points
 
-1. `release-dry-run.yml` validates release candidate before publish
-2. `release.yml` blocks release on validate/build failures
+1. `release-dry-run.yml` validates release candidate before publish,
+   including the Windows/Linux install smoke lane
+2. `release.yml` blocks release on validate/build/install-smoke failures
 3. strict golden policy is required in both release paths
+4. `release.yml` install smoke installs `sdd-cli` from `dist/` only
+   (`--no-index --find-links dist`) and runs `sdd --help`,
+   `sdd install --help`, and `sdd wizard --list`
 
 ## Rollback Contract
 

@@ -12,8 +12,9 @@ __all__ = [
     "_FINAL_TEMPLATE_CONTEXT_CACHE_FILE",
     "_FINAL_TEMPLATE_DIRNAME",
     "_FINAL_TEMPLATE_MANIFEST_FILE",
+    "_HANDSHAKE_CHOICES",
+    "_HANDSHAKE_MAP",
     "_INTERACTION_LANGUAGE_CHOICES",
-    "_LANGUAGE_CHOICES",
     "_LOCAL_DOCS_LANGUAGE_CHOICES",
     "_LOCALE_BY_LANGUAGE",
     "_ONBOARDING_BASELINE_GUIDELINES",
@@ -43,7 +44,6 @@ _TEMP_COMPILED_DIRS = (
     ".cursor",
     ".claude",
     ".gemini",
-    ".antigravity",
     ".ai",
     ".ia",
 )
@@ -65,7 +65,6 @@ _ENFORCEMENT_MAP = {
     "Alertas": "warn_mode",
     "Bloquear": "strict_mode",
 }
-_LANGUAGE_CHOICES = ["Python", "Java", "TypeScript", "Go"]
 _INTERACTION_LANGUAGE_CHOICES = ["English", "Português (Brasil)"]
 _LOCAL_DOCS_LANGUAGE_CHOICES = [
     "English",
@@ -75,4 +74,12 @@ _LOCAL_DOCS_LANGUAGE_CHOICES = [
 _LOCALE_BY_LANGUAGE = {
     "English": "en",
     "Português (Brasil)": "pt-BR",
+}
+_HANDSHAKE_CHOICES = [
+    "Todo prompt filtrado pela governança (hook)",
+    "Governança seletiva (slash commands, CLI)",
+]
+_HANDSHAKE_MAP = {
+    "Todo prompt filtrado pela governança (hook)": "hook",
+    "Governança seletiva (slash commands, CLI)": "standard",
 }

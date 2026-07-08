@@ -41,21 +41,56 @@ def render_context_header(
     return gov.simple_input()
 
 
+def render_governance_activation_header(
+    *,
+    source: str,
+    fingerprint: str = "",
+    execution_gate: str = "allowed",
+    governance_mode: str = "hard",
+) -> str:
+    """Return the compact SDD-active header for prompt hook context."""
+    fp = (fingerprint or "unknown")[:8]
+    return "\n".join(
+        [
+            "SDD GOVERNANCE ACTIVE | "
+            f"source={source or 'unknown'} | "
+            f"governance_mode={governance_mode or 'hard'} | "
+            f"execution_gate={execution_gate or 'unknown'} | "
+            f"fingerprint={fp}",
+            "Instruction: start your response with one short SDD governance "
+            "status line when this context is present.",
+        ]
+    )
+
+
 def render_governance_footer(
     *,
     state: str,
     profile: str,
     drift_detected: bool,
+    root_seed_drift_detected: bool | None = None,
 ) -> str:
-    """Return the governance footer line (no I/O)."""
+    """Return the governance footer line (no I/O).
+
+    `root_seed_drift_detected` is reported as a separate field from
+    `drift_detected` — the two are structurally different checks (in-session
+    cached state vs. installed root files against source metadata) and must
+    not be merged into one shared boolean.
+    """
     from sdd_runtime import format_governance_footer
 
     governance = "ok" if state in {"HEALTHY", "PARTIAL"} else "warn"
     drift = "detected" if drift_detected else "none"
+    root_seed_drift = (
+        None
+        if root_seed_drift_detected is None
+        else ("detected" if root_seed_drift_detected else "none")
+    )
     return format_governance_footer(
         drift=drift,
         governance=governance,
         profile=profile or "default",
+        root_seed_drift=root_seed_drift,
     )
 
 
@@ -100,6 +135,7 @@ def build_ask_json_payload(
     degrade_reason: str,
     drift_detected: bool,
     governance_footer: str,
+    root_seed_drift_detected: bool | None = None,
     organize_used: bool,
     organize_reason: str = "light_input",
     organize_chunks: int,
@@ -131,6 +167,7 @@ def build_ask_json_payload(
         degraded=degraded,
         degraded_reason=degrade_reason,
         drift_detected=drift_detected,
+        root_seed_drift_detected=root_seed_drift_detected,
         governance_footer=governance_footer,
         intake_index_mode="multi" if organize_used else "none",
         intake_chunks=organize_chunks,

@@ -18,7 +18,6 @@ from ._seeds_platforms import (
     _generate_antigravity_seed,
     _generate_claude_seed,
     _generate_copilot_seed,
-    _generate_cortex_seed,
     _generate_cursor_seed,
     _generate_gemini_seed,
     _generate_generic_seed,
@@ -37,7 +36,6 @@ __all__ = [
     "_generate_claude_seed",
     "_generate_gemini_seed",
     "_generate_antigravity_seed",
-    "_generate_cortex_seed",
     # Internal helpers
     "_fingerprint_prefix",
     "_render_instruction_document",

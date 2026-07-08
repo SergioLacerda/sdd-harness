@@ -61,6 +61,8 @@ def test_cli_claude_instructions_has_fingerprint(tmp_path: Path) -> None:
         encoding="utf-8"
     )
     assert FINGERPRINT in content
+    assert "fingerprints.combined" in content
+    assert "governance_fingerprint" not in content
 
 
 def test_cli_gemini_instructions_has_fingerprint(tmp_path: Path) -> None:
@@ -176,6 +178,7 @@ def test_standalone_agent_instructions_regeneration(tmp_path: Path) -> None:
     content = (tmp_path / ".sdd" / "agent-instructions.md").read_text(encoding="utf-8")
     assert FINGERPRINT in content
     assert "M001" in content
+    assert "governance_fingerprint" in content
 
 
 def test_standalone_agent_instructions_contains_fingerprint_section(

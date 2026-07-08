@@ -69,6 +69,43 @@ def test_create_ide_templates_copies_optional_hooks_when_enabled(
     assert (output_base / ".pre-commit-config.yaml").exists()
 
 
+def test_create_ide_templates_merges_template_candidates(tmp_path: Path) -> None:
+    output_base = tmp_path / "out"
+    deployer = TemplateDeployer(repo_root=tmp_path, output_base=output_base)
+    primary = tmp_path / "primary" / "templates"
+    fallback = tmp_path / "fallback" / "templates"
+    (primary / ".github" / "workflows").mkdir(parents=True)
+    (primary / ".github" / "workflows" / "sdd-validation.yml").write_text(
+        "workflow", encoding="utf-8"
+    )
+    (primary / ".github" / "copilot-instructions.md").write_text(
+        "copilot", encoding="utf-8"
+    )
+    (fallback / ".vscode").mkdir(parents=True)
+    (fallback / ".vscode" / "ai-rules.md").write_text("vscode", encoding="utf-8")
+    (fallback / ".cursor" / "rules").mkdir(parents=True)
+    (fallback / ".cursor" / "rules" / "spec.mdc").write_text("cursor", encoding="utf-8")
+    (fallback / ".claude").mkdir(parents=True)
+    (fallback / ".claude" / "claude-instructions.md").write_text(
+        "claude", encoding="utf-8"
+    )
+    (fallback / ".gemini").mkdir(parents=True)
+    (fallback / ".gemini" / "gemini-instructions.md").write_text(
+        "gemini", encoding="utf-8"
+    )
+    (fallback / ".sdd" / "templates").mkdir(parents=True)
+    deployer._template_base_candidates = lambda: [primary, fallback]  # type: ignore[method-assign]
+
+    assert deployer.copy_templates() is True
+    assert deployer.create_ide_templates() is True
+
+    assert (output_base / ".github" / "copilot-instructions.md").exists()
+    assert (output_base / ".vscode" / "ai-rules.md").exists()
+    assert (output_base / ".cursor" / "rules" / "spec.mdc").exists()
+    assert (output_base / ".claude" / "claude-instructions.md").exists()
+    assert (output_base / ".gemini" / "gemini-instructions.md").exists()
+
+
 def test_init_reports_isolation_error_when_output_base_equals_repo_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -127,7 +164,9 @@ def test_copy_templates_returns_false_on_exception(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     output_base = tmp_path / "out"
-    deployer = TemplateDeployer(repo_root=tmp_path, output_base=output_base)
+    deployer = TemplateDeployer(
+        repo_root=tmp_path, output_base=output_base, selected_seedlings={"ci"}
+    )
     template_base = tmp_path / "templates"
     workflow_dir = template_base / ".github" / "workflows"
     workflow_dir.mkdir(parents=True)
@@ -220,3 +259,145 @@ def test_create_ide_templates_returns_false_on_outer_exception(
     deployer._ensure_cursor_rule_aliases = boom  # type: ignore[method-assign]
 
     assert deployer.create_ide_templates() is False
+
+
+def _write_full_template_tree(template_base: Path) -> None:
+    (template_base / ".github" / "workflows").mkdir(parents=True)
+    (template_base / ".github" / "workflows" / "sdd-validation.yml").write_text(
+        "workflow", encoding="utf-8"
+    )
+    (template_base / ".github" / "copilot-instructions.md").write_text(
+        "copilot", encoding="utf-8"
+    )
+    (template_base / ".github" / "setup-precommit-hook.sh").write_text(
+        "#!/bin/sh\n", encoding="utf-8"
+    )
+    (template_base / ".pre-commit-config.yaml").write_text(
+        "repos: []\n", encoding="utf-8"
+    )
+    (template_base / ".vscode").mkdir(parents=True)
+    (template_base / ".vscode" / "ai-rules.md").write_text("vscode", encoding="utf-8")
+    (template_base / ".cursor" / "rules").mkdir(parents=True)
+    (template_base / ".cursor" / "rules" / "spec.mdc").write_text(
+        "cursor", encoding="utf-8"
+    )
+    (template_base / ".claude").mkdir(parents=True)
+    (template_base / ".claude" / "claude-instructions.md").write_text(
+        "claude", encoding="utf-8"
+    )
+    (template_base / ".gemini").mkdir(parents=True)
+    (template_base / ".gemini" / "gemini-instructions.md").write_text(
+        "gemini", encoding="utf-8"
+    )
+    (template_base / ".sdd" / "templates").mkdir(parents=True)
+
+
+def test_vscode_only_selection_copies_vscode_and_nothing_else(
+    tmp_path: Path,
+) -> None:
+    output_base = tmp_path / "out"
+    template_base = tmp_path / "templates"
+    _write_full_template_tree(template_base)
+    deployer = TemplateDeployer(
+        repo_root=tmp_path, output_base=output_base, selected_seedlings={"vscode"}
+    )
+    deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
+
+    assert deployer.copy_templates() is True
+    assert deployer.create_ide_templates() is True
+
+    assert (output_base / ".vscode" / "ai-rules.md").exists()
+    assert not (output_base / ".cursor").exists()
+    assert not (output_base / ".claude").exists()
+    assert not (output_base / ".gemini").exists()
+    assert not (output_base / ".github" / "workflows" / "sdd-validation.yml").exists()
+    assert not (output_base / ".github" / "copilot-instructions.md").exists()
+    assert not (output_base / ".pre-commit-config.yaml").exists()
+
+
+def test_cursor_only_selection_copies_cursor_and_nothing_else(
+    tmp_path: Path,
+) -> None:
+    output_base = tmp_path / "out"
+    template_base = tmp_path / "templates"
+    _write_full_template_tree(template_base)
+    deployer = TemplateDeployer(
+        repo_root=tmp_path, output_base=output_base, selected_seedlings={"cursor"}
+    )
+    deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
+
+    assert deployer.copy_templates() is True
+    assert deployer.create_ide_templates() is True
+
+    assert (output_base / ".cursor" / "rules" / "spec.mdc").exists()
+    assert not (output_base / ".vscode").exists()
+    assert not (output_base / ".claude").exists()
+    assert not (output_base / ".gemini").exists()
+
+
+def test_antigravity_only_selection_copies_gemini_dir_without_gemini_agent(
+    tmp_path: Path,
+) -> None:
+    output_base = tmp_path / "out"
+    template_base = tmp_path / "templates"
+    _write_full_template_tree(template_base)
+    deployer = TemplateDeployer(
+        repo_root=tmp_path,
+        output_base=output_base,
+        selected_seedlings={"antigravity"},
+    )
+    deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
+
+    assert deployer.copy_templates() is True
+    assert deployer.create_ide_templates() is True
+
+    assert (output_base / ".gemini" / "gemini-instructions.md").exists()
+    assert not (output_base / ".vscode").exists()
+    assert not (output_base / ".cursor").exists()
+    assert not (output_base / ".claude").exists()
+
+
+def test_ci_not_selected_does_not_copy_workflow(tmp_path: Path) -> None:
+    output_base = tmp_path / "out"
+    template_base = tmp_path / "templates"
+    _write_full_template_tree(template_base)
+    deployer = TemplateDeployer(
+        repo_root=tmp_path, output_base=output_base, selected_seedlings={"vscode"}
+    )
+    deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
+
+    assert deployer.copy_templates() is True
+    assert deployer.create_ide_templates() is True
+
+    assert not (output_base / ".github" / "workflows" / "sdd-validation.yml").exists()
+
+
+def test_ci_selected_copies_workflow(tmp_path: Path) -> None:
+    output_base = tmp_path / "out"
+    template_base = tmp_path / "templates"
+    _write_full_template_tree(template_base)
+    deployer = TemplateDeployer(
+        repo_root=tmp_path, output_base=output_base, selected_seedlings={"ci"}
+    )
+    deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
+
+    assert deployer.copy_templates() is True
+    assert deployer.create_ide_templates() is True
+
+    assert (output_base / ".github" / "workflows" / "sdd-validation.yml").exists()
+
+
+def test_pre_commit_selected_copies_pre_commit_artifacts(tmp_path: Path) -> None:
+    output_base = tmp_path / "out"
+    template_base = tmp_path / "templates"
+    _write_full_template_tree(template_base)
+    deployer = TemplateDeployer(
+        repo_root=tmp_path, output_base=output_base, selected_seedlings={"pre-commit"}
+    )
+    deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
+
+    assert deployer.copy_templates() is True
+    assert deployer.create_ide_templates() is True
+
+    assert (output_base / ".pre-commit-config.yaml").exists()
+    assert (output_base / ".github" / "setup-precommit-hook.sh").exists()

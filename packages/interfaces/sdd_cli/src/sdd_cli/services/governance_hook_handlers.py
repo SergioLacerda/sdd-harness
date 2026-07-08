@@ -1,0 +1,80 @@
+"""Handlers for `sdd governance hook status|disable|enable`.
+
+Deliberately dependency-light: only stdlib + `sdd_core.utils.environment`.
+This command must keep working to disable the prompt-submit governance hook
+even when the rest of the `sdd` CLI (governance loading, msgpack compilation)
+is what's broken — that's the exact scenario it exists to rescue.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from rich.console import Console
+
+HOOK_SENTINEL_RELATIVE = Path(".sdd") / "runtime" / "hook-disabled"
+CENTRAL_HOOK_RELATIVE = Path(".sdd") / "runtime" / "hooks" / "prompt-submit.py"
+
+_PLATFORM_ADAPTER_FILES = {
+    "claude": Path(".claude") / "settings.json",
+    "codex": Path(".codex") / "config.toml",
+    "gemini": Path(".gemini") / "settings.json",
+}
+
+_HOOK_REFERENCES = (
+    "sdd-governance-inject.py",
+    ".sdd/runtime/hooks/prompt-submit.py",
+)
+
+
+def _resolve_root() -> Path:
+    from sdd_core.utils.environment import find_workspace_root
+
+    return find_workspace_root() or Path.cwd()
+
+
+def run_governance_hook_disable(*, console: Console) -> None:
+    """Create the hook-disabled sentinel, stopping the prompt-submit hook."""
+    sentinel = _resolve_root() / HOOK_SENTINEL_RELATIVE
+    sentinel.parent.mkdir(parents=True, exist_ok=True)
+    sentinel.write_text("", encoding="utf-8")
+    console.print("[yellow]Governance prompt-submit hook disabled.[/yellow]")
+    console.print(f"  sentinel: {sentinel}")
+    console.print("  run 'sdd governance hook enable' to restore it")
+
+
+def run_governance_hook_enable(*, console: Console) -> None:
+    """Remove the hook-disabled sentinel, restoring the prompt-submit hook."""
+    sentinel = _resolve_root() / HOOK_SENTINEL_RELATIVE
+    sentinel.unlink(missing_ok=True)
+    console.print("[green]Governance prompt-submit hook enabled.[/green]")
+
+
+def run_governance_hook_status(*, console: Console) -> None:
+    """Report sentinel state and, best-effort, per-platform hook file presence."""
+    root = _resolve_root()
+    sentinel = root / HOOK_SENTINEL_RELATIVE
+    if sentinel.exists():
+        console.print("[yellow]Governance prompt-submit hook: disabled[/yellow]")
+    else:
+        console.print("[green]Governance prompt-submit hook: enabled[/green]")
+
+    central_hook_present = (root / CENTRAL_HOOK_RELATIVE).exists()
+    for platform, relative_path in _PLATFORM_ADAPTER_FILES.items():
+        state = _platform_hook_state(root, relative_path, central_hook_present)
+        console.print(f"  {platform}: {state}")
+
+
+def _platform_hook_state(
+    root: Path, relative_path: Path, central_hook_present: bool
+) -> str:
+    adapter_path = root / relative_path
+    if not central_hook_present or not adapter_path.exists():
+        return "not configured"
+    try:
+        content = adapter_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return "unknown"
+    if any(reference in content for reference in _HOOK_REFERENCES):
+        return "configured"
+    return "not configured"

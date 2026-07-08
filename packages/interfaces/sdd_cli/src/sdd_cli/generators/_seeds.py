@@ -7,7 +7,6 @@ from ._seeds_platforms import (
     _generate_antigravity_seed,
     _generate_claude_seed,
     _generate_copilot_seed,
-    _generate_cortex_seed,
     _generate_cursor_seed,
     _generate_gemini_seed,
     _generate_generic_seed,
@@ -44,7 +43,6 @@ def generate_agent_seeds(
         ("Claude", "claude-agent.md", _generate_claude_seed),
         ("Gemini", "gemini-agent.md", _generate_gemini_seed),
         ("Antigravity", "antigravity-agent.md", _generate_antigravity_seed),
-        ("Cortex Code", "cortex-agent.md", _generate_cortex_seed),
     ]
 
     results: list[tuple[str, Path, str]] = []

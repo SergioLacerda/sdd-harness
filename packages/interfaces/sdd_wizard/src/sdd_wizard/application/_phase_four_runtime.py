@@ -29,6 +29,7 @@ class PhaseFourContext(Protocol):
     client_compiled_dir: Path
     final_template_dir: Path
     paths: dict[str, Any]
+    debug: bool
 
     def _emit(self, message: str) -> None:
         """Send an operator-facing message."""
@@ -92,6 +93,7 @@ class PhaseFourRuntime:
             self._context.client_compiled_dir,
             config,
             self._context._ask_seedling_selection(),
+            debug=self._context.debug,
         )
         if not result["success"]:
             return self._build_failure(result)
@@ -145,6 +147,9 @@ class PhaseFourRuntime:
     def _emit_cleanup(self) -> None:
         cleaned = self._context._cleanup_post_generation_artifacts()
         if not cleaned:
+            return
+        if not self._context.debug:
+            self._context._emit(f"cleanup...OK ({len(cleaned)})")
             return
         self._context._emit("  🧹 Cleaned temporary onboarding artifacts:")
         for relative_path in cleaned:

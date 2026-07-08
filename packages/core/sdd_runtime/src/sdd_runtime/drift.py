@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -17,6 +18,7 @@ DRIFT_SESSION = "session_drift"  # cached session bound to a stale artifact fing
 DRIFT_POLICY = "policy_drift"  # policy-set version mismatch
 DRIFT_MISSING = "missing_fingerprint"
 DRIFT_MISMATCH = "fingerprint_mismatch"
+DRIFT_BOOTSTRAP = "bootstrap_drift"  # root seed fingerprint ≠ metadata.json
 
 # Deterministic remediation commands per drift type.
 _REMEDIATION: dict[str, str] = {
@@ -27,7 +29,58 @@ _REMEDIATION: dict[str, str] = {
     DRIFT_POLICY: "sdd governance compile --force",
     DRIFT_MISSING: "sdd governance compile",
     DRIFT_MISMATCH: "sdd governance compile",
+    DRIFT_BOOTSTRAP: "sdd install --wizard",
 }
+
+# Matches the generated header comment root seeds carry, e.g.:
+# "# Governance fingerprint: 58a087b3c9fb9ce2"
+_SEED_FINGERPRINT_RE = re.compile(
+    r"Governance fingerprint:\s*([0-9a-fA-F]+)", re.IGNORECASE
+)
+
+
+def extract_seed_fingerprint(seed_content: str) -> str | None:
+    """Extract the `Governance fingerprint: <hash>` comment from a root seed file.
+
+    Returns None when the seed has no such header — callers treat that as "cannot
+    verify" rather than "drifted", since not every seed surface embeds a fingerprint.
+    """
+    match = _SEED_FINGERPRINT_RE.search(seed_content)
+    return match.group(1) if match else None
+
+
+def check_root_seed_drift(
+    *, seed_name: str, seed_content: str, metadata_fingerprint: str | None
+) -> DriftReport:
+    """Compare a root seed's embedded fingerprint against metadata.json's canonical one.
+
+    `metadata_fingerprint` is the workspace's `.sdd/metadata.json` → `governance_fingerprint`
+    top-level field (see the Metadata Contract this check enforces). A seed with no
+    embedded fingerprint comment, or a workspace with no canonical fingerprint yet, is
+    reported as `DRIFT_MISSING` (cannot verify) rather than silently treated as clean.
+    """
+    seed_fingerprint = extract_seed_fingerprint(seed_content)
+    if not seed_fingerprint or not metadata_fingerprint:
+        return DriftReport(
+            drift_detected=True,
+            drift_type=DRIFT_MISSING,
+            remediation_command=_REMEDIATION[DRIFT_MISSING],
+            details=(
+                f"Could not verify {seed_name}: seed_fingerprint="
+                f"{seed_fingerprint!r} metadata_fingerprint={metadata_fingerprint!r}."
+            ),
+        )
+    if seed_fingerprint != metadata_fingerprint:
+        return DriftReport(
+            drift_detected=True,
+            drift_type=DRIFT_BOOTSTRAP,
+            remediation_command=_REMEDIATION[DRIFT_BOOTSTRAP],
+            details=(
+                f"{seed_name} fingerprint '{seed_fingerprint}' does not match "
+                f".sdd/metadata.json governance_fingerprint '{metadata_fingerprint}'."
+            ),
+        )
+    return DriftReport(drift_detected=False, drift_type=DRIFT_NONE)
 
 
 @dataclass

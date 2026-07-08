@@ -6,21 +6,10 @@ from collections.abc import Callable
 from typing import Any
 
 from sdd_wizard.application.prompter import Prompter, _wrap_prompter
+from sdd_wizard.orchestration.wizard.seedling_catalog import CATALOG
 
 SEEDLINGS: list[tuple[str, str, str]] = [
-    ("governance", "CORE", "GAP v1.0 auto-activation"),
-    ("agent-prep", "CORE", "IDE integration hooks"),
-    ("compliance", "CORE", "CI/CD + pre-commit"),
-    ("claude", "AGENT/IDE", "Claude / Claude Code"),
-    ("copilot", "AGENT/IDE", "GitHub Copilot"),
-    ("cursor", "AGENT/IDE", "Cursor IDE"),
-    ("vscode", "AGENT/IDE", "VS Code"),
-    ("gemini", "AGENT/IDE", "Gemini"),
-    ("codex", "AGENT/IDE", "Codex"),
-    ("cortex", "AGENT/IDE", "Snowflake Cortex Code"),
-    ("activation-guide", "UTIL", "ACTIVATION_GUIDE.md"),
-    ("verify", "UTIL", "verify.py"),
-    ("prompt-commands", "UTIL", "prompt templates"),
+    (option.key, option.group, option.description) for option in CATALOG
 ]
 
 
@@ -56,7 +45,10 @@ def ask_seedling_selection(
     emitter("-" * 50)
 
     choices = _build_choices()
-    selected_values = _p.checkbox("Select seedlings (empty = all):", choices)
+    selected_values = _p.checkbox(
+        "Select seedlings (empty = recommended default: CORE + IDEs + AGENTS):",
+        choices,
+    )
 
     # Backward-compatible textual fallback (tests and non-questionary flows)
     # may return raw comma-separated input instead of list[str].
@@ -78,7 +70,7 @@ def ask_seedling_selection(
             selected_values = parsed
 
     if not selected_values:
-        emitter("  → Generating all seedlings")
+        emitter("  → Generating recommended default (CORE + IDEs + AGENTS)")
         return None
 
     known = {s[0] for s in SEEDLINGS}
@@ -91,7 +83,10 @@ def ask_seedling_selection(
     valid = {v for v in normalized if v in known}
 
     if not valid:
-        emitter("  ⚠️  No valid selection — generating all seedlings")
+        emitter(
+            "  ⚠️  No valid selection — generating recommended default "
+            "(CORE + IDEs + AGENTS)"
+        )
         return None
 
     emitter(f"  → Generating: {', '.join(sorted(valid))}")

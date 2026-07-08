@@ -9,7 +9,7 @@
     "execution_gate": "blocked",
     "fingerprint": "fp-1",
     "gate_reason": "intake_index_mode=none: governance context not indexed; agent must not proceed",
-    "governance_footer": "SDD GOVERNANCE: drift=none | governance=ok | profile=master",
+    "governance_footer": "SDD GOVERNANCE: drift=none | governance=ok | profile=master | root_seed_drift=none",
     "governance_mode": "hard",
     "intake_artifact": "n/a",
     "intake_chunks": 0,
@@ -26,6 +26,7 @@
     "mandates_loaded": 1,
     "profile": "master",
     "query_hash": "88d34acb",
+    "root_seed_drift_detected": false,
     "trust_source": "verified"
   },
   "error": null,

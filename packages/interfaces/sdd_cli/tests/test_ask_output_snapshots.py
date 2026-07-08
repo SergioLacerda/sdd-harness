@@ -56,6 +56,7 @@ def test_ask_run_json_snapshot(tmp_path) -> None:
                 "degrade_reason": "",
                 "trust_source": "verified",
                 "drift_detected": False,
+                "root_seed_drift_detected": False,
                 "learning_signals": {
                     "diagnosis_inconclusive": 0,
                     "evidence_insufficient": 0,
@@ -102,6 +103,7 @@ def test_ask_run_json_with_learning_snapshot(tmp_path) -> None:
                 "degrade_reason": "",
                 "trust_source": "verified",
                 "drift_detected": False,
+                "root_seed_drift_detected": False,
                 "learning_signals": {
                     "diagnosis_inconclusive": 2,
                     "evidence_insufficient": 1,

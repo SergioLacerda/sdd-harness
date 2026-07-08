@@ -27,15 +27,13 @@ if [ "${SDD_AGENT_MODE:-}" = "true" ]; then
     exit 1
 fi
 
-# ── Resolve Python interpreter ───────────────────────────────────────────────
-PYTHON_BIN=""
-if [ -x "$PROJECT_ROOT/.venv/bin/python" ]; then
-    PYTHON_BIN="$PROJECT_ROOT/.venv/bin/python"
-elif command -v python3 >/dev/null 2>&1; then
-    PYTHON_BIN="python3"
-else
-    echo -e "${RED}ERROR: Python interpreter not found.${NC}"
-    echo "Install Python 3.10+ or run ./setup.sh first."
+# ── Resolve Python interpreter (shared guard with Makefile) ─────────────────
+if ! command -v python3 >/dev/null 2>&1; then
+    echo -e "${RED}ERROR: python3 not found on PATH — needed to run the venv guard.${NC}"
+    exit 1
+fi
+if ! PYTHON_BIN="$(python3 "$PROJECT_ROOT/tools/maintenance/make_tasks.py" check-venv)"; then
+    echo -e "${RED}ERROR: venv guard failed — see error above. Run 'make install'.${NC}"
     exit 1
 fi
 

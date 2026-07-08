@@ -90,10 +90,23 @@ class HttpProvider:
             )
 
         if not is_local and not os.environ.get("SDD_INTELLIGENCE_TOKEN"):
+            if cls._requires_remote_token():
+                raise ValueError(
+                    "SDD_INTELLIGENCE_URL points to a remote host without "
+                    "SDD_INTELLIGENCE_TOKEN configured; hard/production mode "
+                    "requires authenticated remote intelligence requests."
+                )
             logger.warning(
                 "SDD_INTELLIGENCE_URL points to a remote host without "
                 "SDD_INTELLIGENCE_TOKEN configured; requests will be unauthenticated."
             )
+
+    @staticmethod
+    def _requires_remote_token() -> bool:
+        return (
+            os.environ.get("SDD_ENV", "").strip().lower() == "production"
+            or os.environ.get("SDD_GOVERNANCE_MODE", "").strip().lower() == "hard"
+        )
 
     def _auth_headers(self) -> dict[str, str]:
         if self._token:

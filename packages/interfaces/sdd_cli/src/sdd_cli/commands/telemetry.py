@@ -17,6 +17,7 @@ from sdd_cli.commands._telemetry_command_support import (
     emit_query,
     emit_status,
 )
+from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.telemetry_handler import (
     _event_ts,  # noqa: F401  backward-compat re-export for unit tests
     _parse_ts,  # noqa: F401  backward-compat re-export for unit tests
@@ -60,11 +61,18 @@ def _ctx_json() -> bool:
 
 
 @app.callback()
-def telemetry_default(ctx: typer.Context) -> None:
+def telemetry_default(
+    ctx: typer.Context,
+    list_commands: bool = typer.Option(
+        False, "--list", help="List telemetry commands."
+    ),
+) -> None:
     """Show telemetry status summary (default when no subcommand given)."""
     if ctx.invoked_subcommand is not None:
         return
-    _print_status()
+    if list_commands or ctx.invoked_subcommand is None:
+        show_command_group("Telemetry", ["status", "dump", "query", "init"])
+        raise typer.Exit(0)
 
 
 def _print_status() -> None:

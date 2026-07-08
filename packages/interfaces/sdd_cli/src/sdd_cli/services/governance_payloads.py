@@ -91,6 +91,7 @@ def build_governance_validate_data(
     preflight: dict[str, Any],
     consistency_reason: str,
     exit_code: int,
+    root_seed_drift_reason: str = "root-seed drift check not configured",
 ) -> dict[str, Any]:
     """Build canonical data payload for `governance validate`."""
     return {
@@ -99,6 +100,7 @@ def build_governance_validate_data(
         "advisories": advisories,
         "preflight": preflight,
         "consistency_reason": consistency_reason,
+        "root_seed_drift_reason": root_seed_drift_reason,
         "exit_code": exit_code,
     }
 
