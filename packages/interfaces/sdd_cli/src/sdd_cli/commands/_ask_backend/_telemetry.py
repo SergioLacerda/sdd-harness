@@ -8,6 +8,7 @@ from typing import Any
 
 import typer
 from sdd_runtime import OtelBridge as OtelBridge
+from sdd_runtime import RuntimeEvent as RuntimeEvent
 from sdd_runtime import TelemetrySink as TelemetrySink
 from sdd_runtime.otel import OtlpHttpExporter as OtlpHttpExporter
 
@@ -69,10 +70,11 @@ def _emit_ask_telemetry(
     retry_count: int | None = None,
     compression_ratio: float | None = None,
     extra_details: dict[str, Any] | None = None,
-) -> None:
+    parent_event_id: str = "",
+) -> RuntimeEvent | None:
     from sdd_cli.commands import _ask_backend as _backend
 
-    _emit_ask_telemetry_impl(
+    return _emit_ask_telemetry_impl(
         event_name,
         command=command,
         workspace_root=workspace_root,
@@ -95,6 +97,7 @@ def _emit_ask_telemetry(
         retry_count=retry_count,
         compression_ratio=compression_ratio,
         extra_details=extra_details,
+        parent_event_id=parent_event_id,
         logger=logger,
         telemetry_sink_cls=_backend.TelemetrySink,
         otel_bridge_cls=_backend.OtelBridge,

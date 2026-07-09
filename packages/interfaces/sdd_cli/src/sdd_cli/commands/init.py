@@ -58,7 +58,7 @@ def _write_profile_or_exit(
 ) -> ProfileContext:
     try:
         return write_profile(cwd, profile_type, effective_name)
-    except OSError as exc:
+    except OSError as exc:  # pylint: disable=inconsistent-return-statements
         _raise_init_operational_error(
             exc,
             headline="Could not write SDD workspace profile.",

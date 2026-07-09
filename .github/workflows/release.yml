@@ -284,6 +284,22 @@ jobs:
           "$SDD_BIN" install --help
           "$SDD_BIN" wizard --list
 
+      - name: Run standalone install smoke with packaged compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            SDD_BIN=".release-smoke/Scripts/sdd.exe"
+            export SDD_COMPILE_BIN="$PWD/dist/sdd-compile-windows-amd64.exe"
+          else
+            SDD_BIN=".release-smoke/bin/sdd"
+            export SDD_COMPILE_BIN="$PWD/dist/sdd-compile-linux-amd64"
+            chmod +x "$SDD_COMPILE_BIN"
+          fi
+          mkdir -p .release-smoke/project
+          cd .release-smoke/project
+          "$OLDPWD/$SDD_BIN" install --wizard --non-interactive --only-template
+
   release:
     name: Create GitHub Release
     needs: release-install-smoke

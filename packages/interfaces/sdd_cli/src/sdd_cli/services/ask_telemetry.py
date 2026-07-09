@@ -84,12 +84,18 @@ def emit_ask_telemetry(
     retry_count: int | None = None,
     compression_ratio: float | None = None,
     extra_details: dict[str, Any] | None = None,
+    parent_event_id: str = "",
     logger: Any | None = None,
     telemetry_sink_cls: type[TelemetrySink] = TelemetrySink,
     otel_bridge_cls: type[OtelBridge] = OtelBridge,
     otlp_exporter_cls: type[OtlpHttpExporter] = OtlpHttpExporter,
-) -> None:
-    """Emit a typed RuntimeEvent to canonical JSONL sink. Best-effort."""
+) -> RuntimeEvent | None:
+    """Emit a typed RuntimeEvent to canonical JSONL sink. Best-effort.
+
+    Returns the constructed `RuntimeEvent` (with its auto-generated
+    `span_id`) so callers can link child events via `parent_event_id`.
+    Returns `None` if emission failed (best-effort, never raises).
+    """
     try:
         events_path = resolve_compliance_events_path(workspace_root=workspace_root)
         workspace_id = resolve_workspace_id(
@@ -113,32 +119,34 @@ def emit_ask_telemetry(
             otel_bridge_cls=otel_bridge_cls,
             otlp_exporter_cls=otlp_exporter_cls,
         )
-        sink.emit(
-            RuntimeEvent(
-                event=event_name,
-                command=command,
-                status=status,
-                trace_id=trace_id,
-                workspace_id=workspace_id,
-                agent_id=agent_id,
-                artifact_fingerprint=fingerprint,
-                decision_source_refs=["sdd-governance-context"],
-                path_id=path_id,
-                start_ts=start_ts,
-                end_ts=end_ts,
-                duration_ms=duration_ms,
-                context_bytes_loaded=context_bytes_loaded,
-                tokens_input=tokens_input,
-                tokens_output=tokens_output,
-                retry_count=retry_count,
-                compression_ratio=compression_ratio,
-                details=details,
-            )
+        event = RuntimeEvent(
+            event=event_name,
+            command=command,
+            status=status,
+            trace_id=trace_id,
+            workspace_id=workspace_id,
+            agent_id=agent_id,
+            artifact_fingerprint=fingerprint,
+            decision_source_refs=["sdd-governance-context"],
+            path_id=path_id,
+            start_ts=start_ts,
+            end_ts=end_ts,
+            duration_ms=duration_ms,
+            context_bytes_loaded=context_bytes_loaded,
+            tokens_input=tokens_input,
+            tokens_output=tokens_output,
+            retry_count=retry_count,
+            compression_ratio=compression_ratio,
+            parent_event_id=parent_event_id,
+            details=details,
         )
+        sink.emit(event)
         enqueue_flush(sink)
+        return event
     except Exception as exc:
         if logger is not None:
             logger.debug("Failed to emit ask telemetry: %s", exc)
+        return None
 
 
 def upsert_ask_session(

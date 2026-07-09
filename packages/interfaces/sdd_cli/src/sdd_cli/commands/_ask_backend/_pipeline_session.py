@@ -13,6 +13,7 @@ import typer
 from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
 
 from ._helpers import _json_mode, _now
+from ._phase_timer import PhaseTimer
 
 logger = logging.getLogger(__name__)
 
@@ -73,17 +74,29 @@ def _start_ask_session(query: str) -> _AskSessionContext:
 
     start_mono = time.monotonic()
     start_ts = _now()
-    _backend._guard_budget_breach()
-    workspace_root = _backend._resolve_workspace_root()
-    (
-        organize_used,
-        organize_reason,
-        organize_artifact_path,
-        organize_chunks,
-        organize_retrieval,
-    ) = _backend._run_organize_intake(workspace_root, query)
-    _backend._guard_handshake(workspace_root)
-    profile, state = _backend._get_profile_state()
+    timer = PhaseTimer()
+
+    with timer.phase("ask.budget.guard", latency_domain="governance"):
+        _backend._guard_budget_breach()
+
+    with timer.phase("ask.workspace.resolve", latency_domain="local_fs"):
+        workspace_root = _backend._resolve_workspace_root()
+
+    with timer.phase("ask.organize.intake", latency_domain="local_cli"):
+        (
+            organize_used,
+            organize_reason,
+            organize_artifact_path,
+            organize_chunks,
+            organize_retrieval,
+        ) = _backend._run_organize_intake(workspace_root, query)
+
+    with timer.phase("ask.handshake.guard", latency_domain="governance"):
+        _backend._guard_handshake(workspace_root)
+
+    with timer.phase("ask.profile.resolve", latency_domain="governance"):
+        profile, state = _backend._get_profile_state()
+
     _backend._emit_state_warnings(state)
     return _AskSessionContext(
         workspace_root=workspace_root,
@@ -98,6 +111,7 @@ def _start_ask_session(query: str) -> _AskSessionContext:
         trace_id=str(uuid.uuid4()),
         start_mono=start_mono,
         start_ts=start_ts,
+        phase_timer=timer,
     )
 
 
@@ -107,13 +121,16 @@ def _load_ask_snapshot(
     from sdd_cli.commands import _ask_backend as _backend
 
     try:
-        return _backend.build_governed_ask_snapshot(
-            query=inputs.query,
-            skill=inputs.skill,
-            organize_used=session.organize_used,
-            workspace_root=session.workspace_root,
-            require_handshake=True,
-        )
+        with session.phase_timer.phase(
+            "ask.governance.snapshot", latency_domain="governance"
+        ):
+            return _backend.build_governed_ask_snapshot(
+                query=inputs.query,
+                skill=inputs.skill,
+                organize_used=session.organize_used,
+                workspace_root=session.workspace_root,
+                require_handshake=True,
+            )
     except PermissionError as exc:
         typer.echo(f"BLOCK [ask]: {exc}", err=True)
         raise typer.Exit(3) from None

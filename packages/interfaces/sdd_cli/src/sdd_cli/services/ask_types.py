@@ -7,8 +7,22 @@ creating a module-level cyclic import with `_ask_backend.py`.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sdd_cli.commands._ask_backend._phase_timer import PhaseTimer
+
+
+def _default_phase_timer() -> PhaseTimer:
+    # Deferred import: avoids a module-load-time cycle with
+    # `commands._ask_backend` (which imports from `services`). Safe here
+    # because this only runs at dataclass-instantiation time, well after
+    # both modules have finished importing.
+    from sdd_cli.commands._ask_backend._phase_timer import PhaseTimer
+
+    return PhaseTimer()
 
 
 @dataclass(frozen=True)
@@ -38,3 +52,4 @@ class _AskSessionContext:
     trace_id: str
     start_mono: float
     start_ts: str
+    phase_timer: PhaseTimer = field(default_factory=_default_phase_timer)
