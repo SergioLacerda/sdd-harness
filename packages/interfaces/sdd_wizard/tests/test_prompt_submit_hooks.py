@@ -160,3 +160,7 @@ def test_prompt_submit_hook_injects_governance_activation_header(
     assert "fingerprint=58a087b3" in context
     assert "start your response with one short SDD governance status line" in context
     assert "SDD GOVERNANCE: drift=none" in context
+    assert (
+        "end your response with this compact footer: "
+        "SDD GOVERNANCE: drift=none | governance=ok | profile=default"
+    ) in context

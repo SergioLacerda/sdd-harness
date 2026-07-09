@@ -7,9 +7,16 @@ with subprocess calls to the Go binary, parsing its JSON stdout output.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import platform
 import shutil
+import stat
+import urllib.error
+import urllib.request
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
@@ -23,6 +30,9 @@ __all__ = [
     "ValidationCheck",
     "ValidationResult",
 ]
+
+_RELEASE_REPO = "SergioLacerda/sdd-harness"
+_DOWNLOAD_TIMEOUT_SECONDS = 30
 
 
 class CompilerRunnerError(RuntimeError):
@@ -64,6 +74,129 @@ class ValidationResult(TypedDict):
     checks: list[ValidationCheck]
 
 
+def _cache_dir() -> Path:
+    return Path.home() / ".sdd" / "bin"
+
+
+def _asset_platform() -> tuple[str, str, str]:
+    """Return (goos, goarch, ext) for the current platform, matching release asset names."""
+    system = platform.system().lower()
+    goos = {"linux": "linux", "darwin": "darwin", "windows": "windows"}.get(system)
+    if goos is None:
+        raise CompilerRunnerError(
+            f"Unsupported platform for sdd-compile download: {system}"
+        )
+
+    machine = platform.machine().lower()
+    goarch = {
+        "x86_64": "amd64",
+        "amd64": "amd64",
+        "aarch64": "arm64",
+        "arm64": "arm64",
+    }.get(machine)
+    if goarch is None:
+        raise CompilerRunnerError(
+            f"Unsupported architecture for sdd-compile download: {machine}"
+        )
+
+    ext = ".exe" if goos == "windows" else ""
+    return goos, goarch, ext
+
+
+def _installed_cli_version() -> str:
+    try:
+        return _pkg_version("sdd-cli")
+    except PackageNotFoundError as exc:
+        raise CompilerRunnerError(
+            "Cannot determine sdd-cli version to download a matching sdd-compile binary. "
+            "Install sdd-cli via pip/uv or set SDD_COMPILE_BIN to a local binary."
+        ) from exc
+
+
+def _download(url: str) -> bytes | None:
+    if not url.startswith("https://github.com/"):
+        raise CompilerRunnerError(
+            f"Refusing to fetch sdd-compile from non-GitHub URL: {url}"
+        )
+    try:
+        with urllib.request.urlopen(  # nosec B310 -- scheme/host pinned to https://github.com/ above.
+            url, timeout=_DOWNLOAD_TIMEOUT_SECONDS
+        ) as response:
+            return cast(bytes, response.read())
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            return None
+        raise CompilerRunnerError(
+            f"Failed to download sdd-compile from {url}: {exc}"
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise CompilerRunnerError(
+            f"Failed to download sdd-compile from {url}: {exc}"
+        ) from exc
+
+
+def _fetch_release_binary(version: str, asset_name: str) -> tuple[bytes, str]:
+    """Fetch the asset bytes and its expected sha256 for a given release version.
+
+    Tries both the lowercase-v and uppercase-V tag conventions used by this
+    project's release workflow.
+    """
+    for tag in (f"v{version}", f"V{version}"):
+        base = f"https://github.com/{_RELEASE_REPO}/releases/download/{tag}"
+        payload = _download(f"{base}/{asset_name}")
+        if payload is None:
+            continue
+        checksums = _download(f"{base}/SHA256SUMS")
+        if checksums is None:
+            raise CompilerRunnerError(
+                f"sdd-compile release asset found for tag {tag} but SHA256SUMS is missing; "
+                "refusing to use an unverified binary."
+            )
+        expected = None
+        for line in checksums.decode("utf-8", errors="replace").splitlines():
+            parts = line.split()
+            if len(parts) == 2 and parts[1] == asset_name:
+                expected = parts[0]
+                break
+        if expected is None:
+            raise CompilerRunnerError(
+                f"SHA256SUMS for tag {tag} does not list {asset_name}; "
+                "refusing to use an unverified binary."
+            )
+        return payload, expected
+
+    raise CompilerRunnerError(
+        f"No sdd-compile release binary found for version {version} "
+        f"(tried tags v{version} and V{version})."
+    )
+
+
+def _download_and_cache_binary(version: str) -> Path:
+    goos, goarch, ext = _asset_platform()
+    asset_name = f"sdd-compile-{goos}-{goarch}{ext}"
+    cached_path = _cache_dir() / version / asset_name
+    if cached_path.exists():
+        return cached_path
+
+    payload, expected_sha256 = _fetch_release_binary(version, asset_name)
+    actual_sha256 = hashlib.sha256(payload).hexdigest()
+    if actual_sha256 != expected_sha256:
+        raise CompilerRunnerError(
+            f"sdd-compile download checksum mismatch for {asset_name} "
+            f"(expected {expected_sha256}, got {actual_sha256})"
+        )
+
+    cached_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = cached_path.with_suffix(cached_path.suffix + ".tmp")
+    tmp_path.write_bytes(payload)
+    if goos != "windows":
+        tmp_path.chmod(
+            tmp_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+        )
+    tmp_path.replace(cached_path)
+    return cached_path
+
+
 def _locate_binary(repo_root: Path | None = None) -> Path:
     """Locate the sdd-compile binary.
 
@@ -71,6 +204,8 @@ def _locate_binary(repo_root: Path | None = None) -> Path:
     1. SDD_COMPILE_BIN environment variable
     2. <repo_root>/tools/sdd-compile/bin/sdd-compile (built by `make build-compiler`)
     3. `sdd-compile` on PATH
+    4. Cached/downloaded release binary matching the installed sdd-cli version
+       (skipped when SDD_COMPILE_NO_DOWNLOAD is set)
     """
     env_override = os.environ.get("SDD_COMPILE_BIN", "").strip()
     if env_override:
@@ -81,19 +216,32 @@ def _locate_binary(repo_root: Path | None = None) -> Path:
             f"SDD_COMPILE_BIN is set but does not exist: {env_override}"
         )
 
-    root = repo_root or detect_repo_root()
-    built_path = root / "tools" / "sdd-compile" / "bin" / "sdd-compile"
-    if built_path.exists():
-        return built_path
+    root = repo_root or _try_detect_repo_root()
+    if root is not None:
+        built_path = root / "tools" / "sdd-compile" / "bin" / "sdd-compile"
+        if built_path.exists():
+            return built_path
 
     on_path = shutil.which("sdd-compile")
     if on_path:
         return Path(on_path)
 
+    if not os.environ.get("SDD_COMPILE_NO_DOWNLOAD", "").strip():
+        version = _installed_cli_version()
+        return _download_and_cache_binary(version)
+
     raise CompilerRunnerError(
-        "sdd-compile binary not found. Build it with 'make build-compiler' "
-        "or set SDD_COMPILE_BIN to its path."
+        "sdd-compile binary not found. Build it with 'make build-compiler', "
+        "set SDD_COMPILE_BIN to its path, or unset SDD_COMPILE_NO_DOWNLOAD to "
+        "allow fetching the matching release binary."
     )
+
+
+def _try_detect_repo_root() -> Path | None:
+    try:
+        return detect_repo_root()
+    except RuntimeError:
+        return None
 
 
 class CompilerRunner:
