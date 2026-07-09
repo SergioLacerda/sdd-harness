@@ -185,7 +185,8 @@ class TestGenerateRuntimeHandbookRequired:
             generate_runtime_handbook_required(tmp_path / "out", console=console)
 
         args, kwargs = mock_generate.call_args
-        assert args[0].name == "sdd-harness"
+        assert args[0] != tmp_path / "workspace"
+        assert (args[0] / "docs/spec/canonical/governance-sources.yaml").exists()
         assert kwargs == {"runtime_root": tmp_path / "out"}
 
     def test_quiet_suppresses_success_output(self, tmp_path: Path) -> None:

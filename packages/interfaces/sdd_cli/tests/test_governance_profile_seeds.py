@@ -222,6 +222,7 @@ class TestRegenerateSeeds:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.delenv("SDD_SKIP_SEED_REGEN", raising=False)
+        monkeypatch.delenv("SDD_TEST_OUTPUT_DIR", raising=False)
         console = _console()
         with (
             patch(
