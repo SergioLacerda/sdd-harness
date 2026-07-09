@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 
 import pytest
+
 from sdd_cli.commands._ask_backend._phase_timer import PhaseRecord, PhaseTimer
 
 
@@ -39,9 +40,11 @@ def test_phase_timer_records_multiple_phases_in_order():
 
 def test_phase_timer_marks_failed_phase_and_reraises():
     timer = PhaseTimer()
-    with pytest.raises(ValueError):
-        with timer.phase("ask.governance.snapshot", latency_domain="governance"):
-            raise ValueError("boom")
+    with (
+        pytest.raises(ValueError, match="boom"),
+        timer.phase("ask.governance.snapshot", latency_domain="governance"),
+    ):
+        raise ValueError("boom")
 
     records = timer.records()
     assert len(records) == 1

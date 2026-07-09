@@ -79,7 +79,7 @@ def _sync_ask_runtime(
     effective_degraded_reason = _resolve_ask_degraded_reason(
         degraded=degraded, degrade_reason=degrade_reason, authenticated=authenticated
     )
-    _backend._emit_ask_telemetry(
+    parent_event = _backend._emit_ask_telemetry(
         "governance.ask",
         command="ask",
         workspace_root=session.workspace_root,
@@ -114,6 +114,33 @@ def _sync_ask_runtime(
             else None,
         ),
     )
+    parent_span_id = getattr(parent_event, "span_id", "") or ""
+    for record in session.phase_timer.records():
+        _backend._emit_ask_telemetry(
+            "governance.ask.phase",
+            command="ask",
+            workspace_root=session.workspace_root,
+            trace_id=session.trace_id,
+            agent_id=session.agent_id,
+            fingerprint=fingerprint,
+            context_source=context_source,
+            mandates_count=mandates_count,
+            profile=session.profile,
+            state=session.state,
+            drift_detected=drift_detected,
+            path_id=path_id,
+            start_ts=record.start_ts,
+            end_ts=record.end_ts,
+            duration_ms=record.duration_ms,
+            parent_event_id=parent_span_id,
+            extra_details={
+                "phase_id": record.phase_id,
+                "latency_domain": record.latency_domain,
+                "measurement_quality": record.measurement_quality,
+                "observed_by": record.observed_by,
+                "failed": record.failed,
+            },
+        )
     _backend._write_runtime_cache(
         session.workspace_root,
         {
