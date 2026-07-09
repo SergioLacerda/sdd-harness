@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import cast
+from typing import NoReturn, cast
 
 import typer
 
@@ -32,7 +32,7 @@ def _raise_init_operational_error(
     operation: str,
     path: Path,
     next_hint: str = "check folder permissions, then retry: sdd init --force",
-) -> None:
+) -> NoReturn:
     operational_error = operational_error_from_exception(
         exc,
         headline=headline,
@@ -47,7 +47,7 @@ def _raise_init_operational_error(
     _exit_init_operational_error(operational_error)
 
 
-def _exit_init_operational_error(error: OperationalCliError) -> None:
+def _exit_init_operational_error(error: OperationalCliError) -> NoReturn:
     render_operational_error(error)
     raise typer.Exit(error.exit_code) from None
 

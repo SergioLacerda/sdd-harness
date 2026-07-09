@@ -62,6 +62,18 @@ class TestProcessAuthorizerAuthorize:
         binary = auth.resolve_binary_name("python3.11")
         assert binary == "python3"
 
+    def test_windows_exe_suffix_resolved(self) -> None:
+        """sdd.exe resolves to sdd so Windows installs are authorized."""
+        auth = ProcessAuthorizer()
+        assert auth.resolve_binary_name("sdd.exe") == "sdd"
+        auth.authorize(["sdd.exe", "governance", "generate"])
+
+    def test_windows_bat_cmd_suffix_resolved(self) -> None:
+        """uv.bat / uv.cmd resolve to uv for authorization."""
+        auth = ProcessAuthorizer()
+        assert auth.resolve_binary_name("uv.bat") == "uv"
+        assert auth.resolve_binary_name("uv.cmd") == "uv"
+
 
 class TestValidatePythonArgsCoverage:
     """Extended coverage for Python argument validation."""

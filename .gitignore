@@ -36,21 +36,21 @@ env/
 .env.*.secret
 
 # IDEs
-.vscode/
+/.vscode/
 .idea/
 *.swp
 *.swo
 *~
-.claude
-.cursor
-.gemini
-.antigravity
-.openai
-.codex
-.openia
-.google
-.ia
-.ai
+/.claude
+/.cursor
+/.gemini
+/.antigravity
+/.openai
+/.codex
+/.openia
+/.google
+/.ia
+/.ai
 .github/prompts/
 .github/copilot-instructions.md
 CLAUDE.md
@@ -99,9 +99,6 @@ packages/core/sdd_core/src/sdd_core/runtime/compiled/
 # OS
 .DS_Store
 Thumbs.db
-
-# SDD Agent Context — estado de runtime (gerado dinamicamente, nao versionar)
-.ai/
 
 # SDD Profiles — gerado via CLI, ignorar conteúdo mas manter arquivos de trust
 # Git não suporta exceções dentro de diretórios ignorados via dir/,

@@ -192,6 +192,7 @@ class TemplateDeployer:
                 ),
             ]
 
+            missing_needed: list[str] = []
             for src, dst, needed in dir_mappings:
                 if not needed:
                     self._log(f"Skipping {src.name}/: not selected")
@@ -205,9 +206,16 @@ class TemplateDeployer:
                         self._log(f"Copied {source.name}/ directory")
                         copied_count += 1
                     else:
-                        self._log(f"⚠️  Template directory not found: {src.name}/")
+                        missing_needed.append(src.name)
+                        print(  # noqa: T201
+                            f"  ❌ Required template directory not found: {src.name}/"
+                        )
                 except Exception as e:
-                    self._log(f"⚠️  Failed to copy {src.name}/: {e}")
+                    missing_needed.append(src.name)
+                    print(f"  ❌ Failed to copy {src.name}/: {e}")  # noqa: T201
+
+            if missing_needed:
+                return False
 
             optional_files: list[tuple[Path, Path]] = []
             if self._optional_hooks_enabled():
