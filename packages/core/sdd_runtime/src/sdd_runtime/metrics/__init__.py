@@ -23,6 +23,11 @@ Usage::
 
 from __future__ import annotations
 
+from ._ask_latency_collector import (
+    AskLatencyCollector,
+    AskLatencySnapshot,
+    LatencyGroup,
+)
 from ._collector import TokenEconomyCollector
 from ._config import _load_token_budget_config
 from ._economy_snapshot import EconomySnapshot
@@ -30,7 +35,10 @@ from ._model_metrics import ModelMetrics
 from ._renderer import PrometheusTextRenderer
 
 __all__ = [
+    "AskLatencyCollector",
+    "AskLatencySnapshot",
     "EconomySnapshot",
+    "LatencyGroup",
     "ModelMetrics",
     "PrometheusTextRenderer",
     "TokenEconomyCollector",

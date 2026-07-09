@@ -48,6 +48,9 @@ def filter_events(
     level: str | None = None,
     trace_id: str | None = None,
     work_item: str | None = None,
+    phase_id: str | None = None,
+    latency_domain: str | None = None,
+    path_id: str | None = None,
 ) -> list[dict[str, Any]]:
     """Apply field-equality filters to an events list (all filters are AND)."""
     if event_type:
@@ -70,6 +73,20 @@ def filter_events(
             for e in events
             if str(e.get("work_item_id", "")).lower() == work_item.lower()
         ]
+    if phase_id:
+        events = [
+            e
+            for e in events
+            if str(e.get("details", {}).get("phase_id", "")) == phase_id
+        ]
+    if latency_domain:
+        events = [
+            e
+            for e in events
+            if str(e.get("details", {}).get("latency_domain", "")) == latency_domain
+        ]
+    if path_id:
+        events = [e for e in events if str(e.get("path_id", "")) == path_id]
     return events
 
 

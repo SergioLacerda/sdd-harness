@@ -153,6 +153,33 @@ def test_phase_events_cover_expected_phase_ids(
     }
 
 
+def test_llm_exchange_phase_absent_when_not_observable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("SDD_ADAPTER_LLM_EXCHANGE_MS", raising=False)
+    captured = _run_ask_capture_events(tmp_path, monkeypatch)
+    phases = [e for e in captured if e.event == "governance.ask.phase"]
+    llm_phases = [
+        p for p in phases if p.details.get("phase_id") == "ask.external.llm_exchange"
+    ]
+    assert llm_phases == []
+
+
+def test_llm_exchange_phase_present_when_adapter_reports_timing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("SDD_ADAPTER_LLM_EXCHANGE_MS", "42")
+    captured = _run_ask_capture_events(tmp_path, monkeypatch)
+    phases = [e for e in captured if e.event == "governance.ask.phase"]
+    llm_phases = [
+        p for p in phases if p.details.get("phase_id") == "ask.external.llm_exchange"
+    ]
+    assert len(llm_phases) == 1
+    llm_phase = llm_phases[0]
+    assert llm_phase.duration_ms == 42
+    assert llm_phase.details["measurement_quality"] == "adapter_reported"
+
+
 def test_parent_governance_ask_still_emits_current_payload(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

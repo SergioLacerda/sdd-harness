@@ -30,6 +30,7 @@ from ._helpers import (
     _resolve_ask_degraded_reason,
     _resolve_ask_drift_type,
 )
+from ._phase_timer import PhaseTimer
 from ._pipeline_metrics import _resolve_runtime_token_metrics
 from ._pipeline_session import _load_ask_snapshot, _start_ask_session
 from ._telemetry import (
@@ -41,11 +42,38 @@ from ._telemetry import (
 logger = logging.getLogger(__name__)
 
 
+def _maybe_record_llm_exchange_phase(timer: PhaseTimer) -> None:
+    """Record `ask.external.llm_exchange` only when adapter-reported.
+
+    Reads the optional `SDD_ADAPTER_LLM_EXCHANGE_MS` env var, the minimal
+    viable channel for an IDE/adapter to report externally-observed LLM
+    exchange latency that `sdd_cli` cannot measure locally. If unset or not
+    a valid non-negative integer, no phase is recorded — never fabricate a
+    `0ms` measurement.
+    """
+    raw = os.environ.get("SDD_ADAPTER_LLM_EXCHANGE_MS", "").strip()
+    if not raw:
+        return
+    try:
+        duration_ms = int(raw)
+    except ValueError:
+        return
+    if duration_ms < 0:
+        return
+    timer.record_external(
+        "ask.external.llm_exchange",
+        latency_domain="external_llm",
+        duration_ms=duration_ms,
+        measurement_quality="adapter_reported",
+        observed_by="adapter",
+    )
+
+
 def _sync_ask_runtime(
     inputs: _AskInputs,
     session: _AskSessionContext,
     ask_snapshot: dict[str, Any],
-) -> tuple[str, str]:
+) -> tuple[str, str, int]:
     from sdd_cli.commands import _ask_backend as _backend
 
     context_source = ask_snapshot["context_source"]
@@ -115,6 +143,7 @@ def _sync_ask_runtime(
         ),
     )
     parent_span_id = getattr(parent_event, "span_id", "") or ""
+    _maybe_record_llm_exchange_phase(session.phase_timer)
     for record in session.phase_timer.records():
         _backend._emit_ask_telemetry(
             "governance.ask.phase",
@@ -158,11 +187,15 @@ def _sync_ask_runtime(
     _backend._upsert_ask_session(
         session.workspace_root, session.agent_id, "ask", fingerprint
     )
-    return output_text, _backend._governance_footer_for_state(
-        state=session.state,
-        profile=session.profile,
-        drift_detected=drift_detected,
-        root_seed_drift_detected=root_seed_drift_detected,
+    return (
+        output_text,
+        _backend._governance_footer_for_state(
+            state=session.state,
+            profile=session.profile,
+            drift_detected=drift_detected,
+            root_seed_drift_detected=root_seed_drift_detected,
+        ),
+        duration_ms,
     )
 
 
@@ -194,13 +227,16 @@ def _ask_cmd_impl(
 
     session = _start_ask_session(inputs.query)
     ask_snapshot = _load_ask_snapshot(inputs, session)
-    output_text, governance_footer = _sync_ask_runtime(inputs, session, ask_snapshot)
+    output_text, governance_footer, duration_ms = _sync_ask_runtime(
+        inputs, session, ask_snapshot
+    )
     emit_ask_response(
         inputs=inputs,
         session=session,
         ask_snapshot=ask_snapshot,
         output_text=output_text,
         governance_footer=governance_footer,
+        duration_ms=duration_ms,
         json_mode_fn=_json_mode,
         emit_json_response_fn=_emit_ask_json_response,
         emit_text_response_fn=_emit_ask_text_response,

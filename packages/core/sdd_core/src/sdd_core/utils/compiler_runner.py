@@ -167,7 +167,7 @@ def _fetch_release_binary(version: str, asset_name: str) -> tuple[bytes, str]:
 
     raise CompilerRunnerError(
         f"No sdd-compile release binary found for version {version} "
-        f"(tried tags v{version} and V{version}). "
+        f"(asset {asset_name}; tried tags v{version} and V{version}). "
         "Standalone installs need a release asset matching the installed "
         "sdd-cli version, or a local binary provided via SDD_COMPILE_BIN."
     )

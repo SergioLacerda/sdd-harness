@@ -98,6 +98,7 @@ def emit_ask_response(
     ask_snapshot: dict[str, Any],
     output_text: str,
     governance_footer: str,
+    duration_ms: int,
     json_mode_fn: Any,
     emit_json_response_fn: Any,
     emit_text_response_fn: Any,
@@ -114,6 +115,7 @@ def emit_ask_response(
             session,
             ask_snapshot,
             governance_footer,
+            duration_ms=duration_ms,
             resolve_dossier_budget_fn=resolve_dossier_budget_fn,
             load_dossier_artifact_fn=load_dossier_artifact_fn,
             build_dossier_lines_fn=build_dossier_lines_fn,
@@ -127,6 +129,7 @@ def emit_ask_response(
         ask_snapshot,
         output_text,
         governance_footer,
+        duration_ms=duration_ms,
         build_and_output_dossier_fn=build_and_output_dossier_fn,
     )
 

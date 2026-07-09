@@ -60,6 +60,7 @@ def emit_ask_json_response(
     ask_snapshot: dict[str, Any],
     governance_footer: str,
     *,
+    duration_ms: int = 0,
     resolve_dossier_budget_fn: Callable[[int | None], int],
     load_dossier_artifact_fn: Callable[[Path], Any | None],
     build_dossier_lines_fn: Callable[..., list[str]],
@@ -98,6 +99,25 @@ def emit_ask_json_response(
         if execution_gate == "allowed"
         else "intake_index_mode=none: governance context not indexed; agent must not proceed"
     )
+    phase_records = session.phase_timer.records()
+    timing: dict[str, Any] | None = None
+    if inputs.full and phase_records:
+        timing = {
+            "total_ms": duration_ms,
+            "phase_total_ms": session.phase_timer.phase_total_ms(),
+            "unattributed_ms": session.phase_timer.unattributed_ms(
+                session_duration_ms=duration_ms
+            ),
+            "phases": [
+                {
+                    "phase_id": record.phase_id,
+                    "duration_ms": record.duration_ms,
+                    "latency_domain": record.latency_domain,
+                    "measurement_quality": record.measurement_quality,
+                }
+                for record in phase_records
+            ],
+        }
     data = build_ask_json_data(
         profile=session.profile,
         query_hash=_hash_query(inputs.query),
@@ -138,6 +158,7 @@ def emit_ask_json_response(
         else None,
         extra={
             **({"log_format": inputs.log_format} if inputs.full else {}),
+            **({"timing": timing} if timing is not None else {}),
             **(
                 {"runtime_handbook": handbook_lookup}
                 if isinstance(handbook_lookup, dict)
