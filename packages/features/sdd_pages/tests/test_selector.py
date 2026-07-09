@@ -99,6 +99,14 @@ class TestDocumentIndexer:
         assert data["schema_version"] == INDEX_SCHEMA_VERSION
         assert "generated_at" in data
 
+    def test_to_json_creates_parent_directories(self, tmp_path: Path) -> None:
+        indexer = DocumentIndexer()
+        output_path = tmp_path / "build" / "site" / "selector" / "docs.index.json"
+
+        indexer.to_json([], output_path)
+
+        assert output_path.exists()
+
     def test_to_search_json_includes_body(self, tmp_path: Path) -> None:
         (tmp_path / "a.md").write_text(
             "---\ntitle: A\n---\nThis is the body.\n", encoding="utf-8"
@@ -110,6 +118,14 @@ class TestDocumentIndexer:
 
         data = json.loads(output_path.read_text(encoding="utf-8"))
         assert data["documents"][0]["body"].strip() == "This is the body."
+
+    def test_to_search_json_creates_parent_directories(self, tmp_path: Path) -> None:
+        indexer = DocumentIndexer()
+        output_path = tmp_path / "build" / "site" / "selector" / "search.index.json"
+
+        indexer.to_search_json([], tmp_path, output_path)
+
+        assert output_path.exists()
 
     def test_indexes_date_and_category_from_frontmatter(self, tmp_path: Path) -> None:
         (tmp_path / "a.md").write_text(

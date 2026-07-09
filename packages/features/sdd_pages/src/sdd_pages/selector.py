@@ -72,6 +72,7 @@ class DocumentIndexer:
             "generated_at": datetime.now(tz=timezone.utc).isoformat(),
             "documents": [asdict(e) for e in entries],
         }
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return output_path
 
@@ -92,5 +93,6 @@ class DocumentIndexer:
             "generated_at": datetime.now(tz=timezone.utc).isoformat(),
             "documents": docs,
         }
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return output_path
