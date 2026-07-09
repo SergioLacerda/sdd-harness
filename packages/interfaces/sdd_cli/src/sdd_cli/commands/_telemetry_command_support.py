@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import typer
+from sdd_runtime.metrics import AskLatencyCollector
 
 from sdd_cli.commands._telemetry_command_validation import (
     abort_invalid_format,
@@ -25,6 +26,7 @@ __all__ = [
     "emit_init",
     "emit_query",
     "emit_status",
+    "emit_summary",
 ]
 
 
@@ -127,6 +129,67 @@ def emit_query(
     for event in selected:
         typer.echo(json.dumps(event, ensure_ascii=False))
     typer.echo(f"\n({matched} events matched)", err=True)
+
+
+def emit_summary(
+    path: Path,
+    events: list[dict[str, Any]],
+    *,
+    phase_id: str | None,
+    latency_domain: str | None,
+    path_id: str | None,
+    output_json: bool,
+) -> None:
+    collector = AskLatencyCollector()
+    for event in events:
+        collector.ingest(event)
+    snapshot = collector.snapshot()
+
+    groups = [
+        {
+            "phase_id": key[0],
+            "latency_domain": key[1],
+            "path_id": key[2],
+            "count": group.count,
+            "min_ms": group.min_ms,
+            "max_ms": group.max_ms,
+            "avg_ms": group.avg_ms,
+            "p50_ms": group.p50_ms,
+            "p95_ms": group.p95_ms,
+        }
+        for key, group in snapshot.groups.items()
+    ]
+
+    if output_json:
+        emit_json(
+            build_ok_result(
+                "telemetry summary",
+                {
+                    "events_file": str(path),
+                    "phase_id": phase_id,
+                    "latency_domain": latency_domain,
+                    "path_id": path_id,
+                    "groups": groups,
+                    "exit_code": 0,
+                },
+            )
+        )
+        return
+
+    if not groups:
+        typer.echo(f"No governance.ask.phase events found at {path}")
+        return
+
+    typer.echo(
+        f"{'phase_id':<28} {'latency_domain':<16} {'path_id':<10} "
+        f"{'count':>6} {'min_ms':>8} {'avg_ms':>8} {'p50_ms':>8} {'p95_ms':>8} {'max_ms':>8}"
+    )
+    for row in groups:
+        typer.echo(
+            f"{row['phase_id']:<28} {row['latency_domain']:<16} {row['path_id']:<10} "
+            f"{row['count']:>6} {row['min_ms']:>8} {row['avg_ms']:>8.1f} "
+            f"{row['p50_ms']:>8} {row['p95_ms']:>8} {row['max_ms']:>8}"
+        )
 
 
 def emit_init(path: Path, result: dict[str, Any], *, output_json: bool) -> None:

@@ -12,7 +12,7 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 
 def _utc_now_iso() -> str:
@@ -71,6 +71,35 @@ class PhaseTimer:
                     failed=failed,
                 )
             )
+
+    def record_external(
+        self,
+        phase_id: str,
+        *,
+        latency_domain: str,
+        duration_ms: int,
+        measurement_quality: str,
+        observed_by: str,
+    ) -> None:
+        """Append a `PhaseRecord` for a phase that was not locally measured.
+
+        Used for adapter/IDE-reported timings (e.g. external LLM exchange
+        latency) that `sdd_cli` cannot observe directly with `phase()`.
+        """
+        end_dt = datetime.now(timezone.utc)
+        start_dt = end_dt - timedelta(milliseconds=duration_ms)
+        self._records.append(
+            PhaseRecord(
+                phase_id=phase_id,
+                latency_domain=latency_domain,
+                duration_ms=duration_ms,
+                start_ts=start_dt.isoformat(),
+                end_ts=end_dt.isoformat(),
+                measurement_quality=measurement_quality,
+                observed_by=observed_by,
+                failed=False,
+            )
+        )
 
     def records(self) -> list[PhaseRecord]:
         return list(self._records)

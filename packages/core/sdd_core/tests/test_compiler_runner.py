@@ -20,6 +20,7 @@ def test_fetch_release_binary_error_names_standalone_remediation(
 
     message = str(exc_info.value)
     assert "No sdd-compile release binary found for version 1.0.0" in message
+    assert "asset sdd-compile-linux-amd64" in message
     assert "tried tags v1.0.0 and V1.0.0" in message
     assert "Standalone installs need a release asset" in message
     assert "SDD_COMPILE_BIN" in message

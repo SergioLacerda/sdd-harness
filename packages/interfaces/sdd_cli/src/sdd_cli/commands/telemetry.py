@@ -16,6 +16,7 @@ from sdd_cli.commands._telemetry_command_support import (
     emit_init,
     emit_query,
     emit_status,
+    emit_summary,
 )
 from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.telemetry_handler import (
@@ -49,7 +50,35 @@ def _default_events_path() -> Path:
     return root / ".sdd" / "runtime" / "compliance-events.jsonl"
 
 
+def _warn_if_telemetry_paths_diverge() -> None:
+    """Soft-warn (stderr only) when the two telemetry path env overrides diverge.
+
+    ``SDD_COMPLIANCE_EVENTS_PATH`` (read by ``sdd ask`` telemetry, see
+    ``utils/telemetry_paths.resolve_compliance_events_path``) and
+    ``SDD_TELEMETRY_PATH`` (read by this module's ``_default_events_path``)
+    resolve the compliance-events JSONL path independently. If an operator
+    sets only one, or sets both to the same value, there is nothing to
+    compare. Only warn when both are explicitly set and resolve to
+    different absolute paths — never raise or change exit codes.
+    """
+    compliance_raw = os.environ.get("SDD_COMPLIANCE_EVENTS_PATH", "").strip()
+    telemetry_raw = os.environ.get("SDD_TELEMETRY_PATH", "").strip()
+    if not compliance_raw or not telemetry_raw:
+        return
+    compliance_path = Path(compliance_raw).expanduser().resolve()
+    telemetry_path = Path(telemetry_raw).expanduser().resolve()
+    if compliance_path != telemetry_path:
+        typer.echo(
+            "WARN: telemetry event log paths diverge — "
+            f"SDD_COMPLIANCE_EVENTS_PATH ({compliance_path}) != "
+            f"SDD_TELEMETRY_PATH ({telemetry_path}); "
+            "sdd ask and sdd telemetry may read/write different event logs.",
+            err=True,
+        )
+
+
 def _resolve_events_path(command: str) -> Path:
+    _warn_if_telemetry_paths_diverge()
     try:
         return _default_events_path()
     except RuntimeError as exc:
@@ -71,7 +100,7 @@ def telemetry_default(
     if ctx.invoked_subcommand is not None:
         return
     if list_commands or ctx.invoked_subcommand is None:
-        show_command_group("Telemetry", ["status", "dump", "query", "init"])
+        show_command_group("Telemetry", ["status", "dump", "query", "summary", "init"])
         raise typer.Exit(0)
 
 
@@ -175,6 +204,36 @@ def query(
         until=until,
         work_item=work_item,
         limit=limit,
+        output_json=_ctx_json(),
+    )
+
+
+@app.command()
+def summary(
+    phase_id: str | None = typer.Option(
+        None, "--phase-id", help="Filter by details.phase_id."
+    ),
+    latency_domain: str | None = typer.Option(
+        None, "--latency-domain", help="Filter by details.latency_domain."
+    ),
+    path_id: str | None = typer.Option(None, "--path-id", help="Filter by path_id."),
+) -> None:
+    """Aggregate governance.ask.phase events into per-phase latency statistics."""
+    path = _resolve_events_path("telemetry summary")
+    events = _read_events(path)
+    events = filter_events(
+        events,
+        event_type="governance.ask.phase",
+        phase_id=phase_id,
+        latency_domain=latency_domain,
+        path_id=path_id,
+    )
+    emit_summary(
+        path,
+        events,
+        phase_id=phase_id,
+        latency_domain=latency_domain,
+        path_id=path_id,
         output_json=_ctx_json(),
     )
 

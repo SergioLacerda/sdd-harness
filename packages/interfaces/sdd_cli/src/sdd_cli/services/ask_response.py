@@ -33,6 +33,7 @@ def emit_ask_text_response(
     output_text: str,
     governance_footer: str,
     *,
+    duration_ms: int = 0,
     build_and_output_dossier_fn: Callable[..., None],
 ) -> None:
     """Echo the plain-text response and footer for `sdd ask` to stdout."""
@@ -68,3 +69,18 @@ def emit_ask_text_response(
             workspace_root=session.workspace_root,
         )
     typer.echo(governance_footer)
+    phase_records = session.phase_timer.records()
+    if inputs.full and phase_records:
+        phase_timer = session.phase_timer
+        typer.echo("timing:")
+        typer.echo(
+            f"  total_ms={duration_ms} "
+            f"phase_total_ms={phase_timer.phase_total_ms()} "
+            f"unattributed_ms="
+            f"{phase_timer.unattributed_ms(session_duration_ms=duration_ms)}"
+        )
+        for record in phase_records:
+            typer.echo(
+                f"  {record.phase_id}={record.duration_ms}ms "
+                f"{record.latency_domain} {record.measurement_quality}"
+            )
