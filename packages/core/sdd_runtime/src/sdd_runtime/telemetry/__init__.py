@@ -26,7 +26,7 @@ from ._constants import (
     MODE_PASSIVE,
     MODE_STRICT,
 )
-from ._factory import create_sink
+from ._factory import create_sink, get_otel_endpoint
 from ._otel_bridge import OtelBridge
 from ._sink import TelemetrySink
 
@@ -37,6 +37,7 @@ __all__ = [
     "OtelAttributes",
     "OtelBridge",
     "create_sink",
+    "get_otel_endpoint",
     "MODE_PASSIVE",
     "MODE_ACTIVE",
     "MODE_STRICT",

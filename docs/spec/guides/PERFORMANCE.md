@@ -101,7 +101,7 @@ The `@cached_load(cache)` decorator automatically caches results from `ContextLo
 > originally published in this section came from `tests/perf/benchmark_performance.py`,
 > whose "compile" step only ran `spec.split("\n")` — it never called the real compiler.
 > They did not measure `sdd_compiler` (deleted) or `tools/sdd-compile` (its Go
-> replacement). See **[ADR-015](../decisions/ADR-015-go-compiler-migration-performance.md)**
+> replacement). See **[ADR-015](../../adr/ADR-015-go-compiler-migration-performance.md)**
 > for a real, reproducible measurement of both implementations and the corrected
 > numbers. `tests/perf/benchmark_performance.py` itself has not been fixed and should
 > not be used for compiler performance claims until it calls the real compile path.

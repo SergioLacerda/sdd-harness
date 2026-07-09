@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from sdd_wizard.orchestration.mandate_compiler import MandateCompiler
 from sdd_wizard.orchestration.phase5_artifact_compiler import ArtifactCompiler
 
 
@@ -81,6 +82,16 @@ def test_compile_artifacts_swallows_compiler_exceptions(
     )
 
     assert compiler.compile_artifacts() is True
+
+
+def test_mandate_compiler_defaults_missing_criticality_to_mandatory() -> None:
+    compiler = MandateCompiler()
+    count, mandates = compiler.parse_mandate_spec(
+        'mandate M001 {\n  title: "Bootstrap"\n}\n'
+    )
+
+    assert count == 1
+    assert mandates[0]["criticality"] == "MANDATORY"
 
 
 def test_generate_metadata_returns_false_when_dump_fails(

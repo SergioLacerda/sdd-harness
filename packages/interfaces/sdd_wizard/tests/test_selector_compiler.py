@@ -8,7 +8,13 @@ from pathlib import Path
 import pytest
 
 from sdd_wizard.orchestration.wizard import (
+    _selector_canonical_fallback as canonical_fallback_module,
+)
+from sdd_wizard.orchestration.wizard import (
     selector_compiler as selector_compiler_module,
+)
+from sdd_wizard.orchestration.wizard import (
+    selector_compiler_cli as selector_compiler_cli_module,
 )
 from sdd_wizard.orchestration.wizard.selector_compiler import SelectorCompiler
 
@@ -309,7 +315,7 @@ def test_selector_compiler_falls_back_to_canonical_docs(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """When .sdd is missing but docs/spec/canonical has mandate docs, they are used."""
-    monkeypatch.setattr(selector_compiler_module, "_BOOTSTRAP_GUIDELINES", None)
+    monkeypatch.setattr(canonical_fallback_module, "_BOOTSTRAP_GUIDELINES", None)
     canonical_dir = tmp_path / "docs" / "spec" / "canonical"
     canonical_dir.mkdir(parents=True)
     (canonical_dir / "m001.md").write_text(
@@ -393,7 +399,7 @@ def test_selector_compiler_canonical_docs_skip_duplicate_and_unreadable_files(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Duplicate IDs across files are deduplicated; unreadable files are skipped."""
-    monkeypatch.setattr(selector_compiler_module, "_BOOTSTRAP_GUIDELINES", None)
+    monkeypatch.setattr(canonical_fallback_module, "_BOOTSTRAP_GUIDELINES", None)
     canonical_dir = tmp_path / "docs" / "spec" / "canonical" / "nested"
     canonical_dir.mkdir(parents=True)
     doc = """
@@ -497,7 +503,7 @@ def test_selector_compiler_canonical_fallback_merges_bootstrap_guidelines(
 ) -> None:
     """When _BOOTSTRAP_GUIDELINES is set, it is parsed and merged into the fallback payload."""
     monkeypatch.setattr(
-        selector_compiler_module, "_BOOTSTRAP_GUIDELINES", _BOOTSTRAP_DSL
+        canonical_fallback_module, "_BOOTSTRAP_GUIDELINES", _BOOTSTRAP_DSL
     )
     canonical_dir = tmp_path / "docs" / "spec" / "canonical"
     canonical_dir.mkdir(parents=True)
@@ -539,7 +545,7 @@ def test_selector_compiler_bootstrap_guidelines_none_returns_no_guideline_items(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """When _BOOTSTRAP_GUIDELINES is None, the canonical fallback has no guideline items."""
-    monkeypatch.setattr(selector_compiler_module, "_BOOTSTRAP_GUIDELINES", None)
+    monkeypatch.setattr(canonical_fallback_module, "_BOOTSTRAP_GUIDELINES", None)
     canonical_dir = tmp_path / "docs" / "spec" / "canonical"
     canonical_dir.mkdir(parents=True)
     (canonical_dir / "m001.md").write_text(
@@ -613,14 +619,14 @@ def test_parse_args_reads_repo_root_and_output_dir(
         "argv",
         ["selector_compiler", "--repo-root", "/tmp/repo", "--output-dir", "/tmp/out"],
     )
-    args = selector_compiler_module._parse_args()
+    args = selector_compiler_cli_module._parse_args()
     assert args.repo_root == "/tmp/repo"
     assert args.output_dir == "/tmp/out"
 
 
 def test_parse_args_defaults_repo_root_to_cwd(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "argv", ["selector_compiler", "--output-dir", "/tmp/out"])
-    args = selector_compiler_module._parse_args()
+    args = selector_compiler_cli_module._parse_args()
     assert args.repo_root == "."
 
 
@@ -656,7 +662,7 @@ Domain logic must stay isolated from infrastructure details.
         ],
     )
 
-    selector_compiler_module.main()
+    selector_compiler_cli_module.main()
 
     assert (output_dir / "data.json").exists()
 
@@ -665,8 +671,8 @@ def test_module_main_guard_invokes_main(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Running the module as __main__ triggers main() and exits with a usage error."""
-    monkeypatch.setattr(sys, "argv", ["selector_compiler"])
+    monkeypatch.setattr(sys, "argv", ["selector_compiler_cli"])
     with pytest.raises(SystemExit):
         runpy.run_module(
-            "sdd_wizard.orchestration.wizard.selector_compiler", run_name="__main__"
+            "sdd_wizard.orchestration.wizard.selector_compiler_cli", run_name="__main__"
         )

@@ -31,6 +31,13 @@ class GuidelinesCompiler:
             for guideline in guidelines:
                 by_category[guideline.get("category", "general")].append(guideline)
 
+            expected_files = {
+                f"{category.lower().replace(' ', '-')}.md" for category in by_category
+            }
+            for existing in guidelines_dir.glob("*.md"):
+                if existing.name not in expected_files:
+                    existing.unlink()
+
             for category, items in sorted(by_category.items()):
                 filename = category.lower().replace(" ", "-")
                 lines = [

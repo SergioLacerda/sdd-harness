@@ -11,6 +11,7 @@ deeper docs tree.
 | bootstrap governance in a project | [`guides/CLIENT_ONBOARDING.md`](./guides/CLIENT_ONBOARDING.md) |
 | contribute to this repository | [`guides/ONBOARDING.md`](./guides/ONBOARDING.md) |
 | understand the architecture | [`architecture/README.md`](./architecture/README.md) |
+| understand governance source vs runtime output | [`governance-runtime-model.md`](./governance-runtime-model.md) |
 | inspect CLI commands and contracts | [`spec/reference/commands/cli.md`](./spec/reference/commands/cli.md) |
 | understand runtime agent entrypoints | [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md) |
 | navigate the broader docs corpus | [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md) |
@@ -39,6 +40,7 @@ deeper docs tree.
 ### Architecture and Governance
 
 - `architecture/README.md`
+- `governance-runtime-model.md`
 - `runtime/protocols/AGENT_ENTRYPOINT.md`
 - `runtime/protocols/AGENT_RUNTIME_PROTOCOL.md`
 - `adr/INDEX.md`

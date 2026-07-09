@@ -82,6 +82,7 @@ def generate_artifacts_flow(
     write_instruction_files_safe_fn: Callable[..., Any],
     write_prompt_commands_safe_fn: Callable[..., Any],
     generate_adapters_safe_fn: Callable[..., Any],
+    generate_runtime_handbook_fn: Callable[..., Any],
     panel_cls: Any,
 ) -> None:
     if output_dir is None:
@@ -120,6 +121,7 @@ def generate_artifacts_flow(
         {"agent_template": agent, "location": str(file_path), "status": status}
         for agent, file_path, status in seeds_info
     ]
+    generate_runtime_handbook_fn(output_base, console=console, quiet=output_json)
     if output_json:
         emit_json_fn(
             run_governance_generate_json_fn(

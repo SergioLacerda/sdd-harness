@@ -76,6 +76,7 @@ def emit_ask_json_response(
     drift_detected = ask_snapshot["drift_detected"]
     root_seed_drift_detected = ask_snapshot["root_seed_drift_detected"]
     learning_signals = ask_snapshot["learning_signals"]
+    handbook_lookup = ask_snapshot.get("handbook_lookup")
     dossier_lines = build_json_dossier_lines(
         inputs,
         session,
@@ -135,7 +136,14 @@ def emit_ask_json_response(
         ]
         if inputs.full
         else None,
-        extra={"log_format": inputs.log_format} if inputs.full else None,
+        extra={
+            **({"log_format": inputs.log_format} if inputs.full else {}),
+            **(
+                {"runtime_handbook": handbook_lookup}
+                if isinstance(handbook_lookup, dict)
+                else {}
+            ),
+        },
     )
     if dossier_lines:
         data["dossier"] = {"lines": dossier_lines}

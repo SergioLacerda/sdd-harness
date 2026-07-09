@@ -1,3 +1,20 @@
+---
+governance_source:
+  id: HBK-CONTEXT-LOADING
+  type: handbook
+  kind: decision_model
+  status: active
+  title: Context Flow
+  refs: [M003, M005]
+  task_types: [planning, implementation, diagnosis]
+  operation_phases: [context_loading, planning]
+  load_policy:
+    mode: selective
+    max_tokens: 700
+    require_relevance_reason: true
+  summary: How agents route, prune, and pack relevant context before execution.
+---
+
 # 🧠 Context Flow — Token Optimization
 
 ```mermaid

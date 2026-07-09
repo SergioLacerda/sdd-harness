@@ -99,6 +99,27 @@ def generate_adapters_safe(output_base: Path, *, console: Console) -> None:
         console.print(f"[yellow]WARN: could not generate adapter files: {_e}[/yellow]")
 
 
+def generate_runtime_handbook_required(
+    output_base: Path, *, console: Console, quiet: bool = False
+) -> None:
+    """Generate mandatory runtime handbook slices from docs/ source registry."""
+    from sdd_cli.services.governance_docs_sources import (
+        DEFAULT_REGISTRY,
+        generate_runtime_handbook,
+    )
+    from sdd_cli.utils.environment import detect_repo_root
+    from sdd_cli.utils.sdd_authority import resolve_workspace_root
+
+    source_root = resolve_workspace_root() or output_base
+    if not (source_root / DEFAULT_REGISTRY).exists():
+        repo_root = detect_repo_root()
+        if (repo_root / DEFAULT_REGISTRY).exists():
+            source_root = repo_root
+    written = generate_runtime_handbook(source_root, runtime_root=output_base)
+    if written and not quiet:
+        console.print(f"[green]Runtime handbook: {len(written)} files written[/green]")
+
+
 def run_generate_phases(
     output_base: str, config: dict[str, Any]
 ) -> tuple[bool, bool, bool]:
@@ -162,6 +183,7 @@ def generate_artifacts(
         write_instruction_files_safe_fn=write_instruction_files_safe,
         write_prompt_commands_safe_fn=write_prompt_commands_safe,
         generate_adapters_safe_fn=generate_adapters_safe,
+        generate_runtime_handbook_fn=generate_runtime_handbook_required,
         panel_cls=Panel,
     )
 

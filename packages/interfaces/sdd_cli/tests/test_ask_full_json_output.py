@@ -102,6 +102,11 @@ def test_ask_full_mode_json_output_uses_canonical_envelope(
                 "observed_events": 1,
                 "window_days": 7,
             },
+            "handbook_lookup": {
+                "status": "matched",
+                "diagnostic": "handbook_match=1",
+                "matches": [{"id": "HBK-CONTEXT-LOADING"}],
+            },
         },
     )
     monkeypatch.setattr(
@@ -117,6 +122,7 @@ def test_ask_full_mode_json_output_uses_canonical_envelope(
     assert payload["command"] == "ask"
     assert payload["data"]["execution_gate"] == "allowed"
     assert payload["data"]["learning_signals"]["diagnosis_inconclusive"] == 1
+    assert payload["data"]["runtime_handbook"]["diagnostic"] == "handbook_match=1"
     assert payload["data"]["steps"][0]["step_id"] == "PARSE"
 
 

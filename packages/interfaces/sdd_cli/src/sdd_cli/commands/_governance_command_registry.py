@@ -8,6 +8,7 @@ import typer
 from rich.console import Console
 
 from sdd_cli.services.governance_config_handlers import run_governance_load_cmd
+from sdd_cli.services.governance_preflight_handlers import run_governance_preflight_cmd
 from sdd_cli.services.governance_registry_handlers import run_reconcile_registries
 from sdd_cli.services.governance_runtime_handlers import (
     run_governance_audit,
@@ -83,6 +84,27 @@ def register_governance_commands(
             path=path,
             signature_mode=signature_mode,
             skip_handshake=skip_handshake,
+            output_json=ctx_json_fn(),
+            console=console,
+        )
+
+    @app.command()
+    @handle_cli_errors(command_name="governance preflight")
+    def preflight(
+        path: str = typer.Option(
+            ".sdd/compiled",
+            help="Path to governance configuration (default: .sdd/compiled)",
+        ),
+        dry_run: bool = typer.Option(
+            True,
+            "--dry-run/--no-dry-run",
+            help="Explain which checks would pass per mandate without gating or mutating anything (always read-only).",
+        ),
+    ) -> None:
+        """Explain, per mandate, whether governance checks would pass. Never blocks or mutates."""
+        del dry_run  # this command is always a dry run; the flag documents intent
+        run_governance_preflight_cmd(
+            path=path,
             output_json=ctx_json_fn(),
             console=console,
         )

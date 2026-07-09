@@ -22,6 +22,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          # Full history so the TDD diff-coverage gate can diff against the
+          # PR base ref (default checkout is shallow, depth 1).
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
@@ -71,6 +75,12 @@ jobs:
           else
             echo "✓ Found $TEST_COUNT test files"
           fi
+
+          # Per-change diff gate: flags PRs that change production code without
+          # touching any test file. Starts at warn (new gate, per the project's
+          # own WARN -> BLOCK -> STRICT enforcement-ladder convention); promote
+          # to --mode enforce once false-block rate is observed to be low.
+          uv run python tools/ci/check_tdd_diff_coverage.py --mode warn
 
           echo "✓ M002 Test-Driven Development validated."
 

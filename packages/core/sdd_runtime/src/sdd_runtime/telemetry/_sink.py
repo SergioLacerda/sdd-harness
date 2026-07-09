@@ -7,6 +7,11 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+try:
+    import fcntl
+except ImportError:  # pragma: no cover — fcntl is POSIX-only (no Windows)
+    fcntl = None  # type: ignore[assignment]
+
 from .._events import RuntimeEvent
 from ._constants import (
     _MANDATORY_EVENTS,
@@ -180,5 +185,15 @@ class TelemetrySink:
         target = self._resolve_path(event)
         target.parent.mkdir(parents=True, exist_ok=True)
         with target.open("a", encoding="utf-8") as fh:
+            # Exclusive advisory lock so concurrent writers (multiple agent
+            # processes appending to the same segment) never interleave
+            # partial lines; released automatically when the file closes.
+            if fcntl is not None:
+                fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
             fh.write(event.to_json() + "\n")
+            fh.flush()
+            # fsync forces the append to disk before returning, so a crash
+            # right after emit() can't lose an event that only ever lived in
+            # the page cache — the JSONL sink is the audit source of truth.
+            os.fsync(fh.fileno())
         self._persisted_event_ids.add(id(event))

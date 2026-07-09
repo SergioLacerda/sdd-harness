@@ -64,6 +64,7 @@ from .telemetry import (
     RuntimeEvent,
     TelemetrySink,
     create_sink,
+    get_otel_endpoint,
 )
 from .validator import SchemaValidator, TraceabilityValidator
 
@@ -133,6 +134,7 @@ __all__ = [
     "RuntimeEvent",
     "TelemetrySink",
     "create_sink",  # Phase 1: Factory for OTel activation via env var
+    "get_otel_endpoint",
     # Telemetry Reader (Phase 1: Local query interface)
     "TelemetryReader",
     "TokenStats",

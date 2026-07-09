@@ -117,3 +117,28 @@ def _validate_dependencies(items: list[SelectorItem]) -> None:
     )
     if unknown:
         raise ValueError(f"Unknown selector dependency ids: {', '.join(unknown)}")
+
+
+def _parse_guideline_dsl_block(body: str) -> dict[str, object]:
+    """Extract fields from a single guideline DSL block body.
+
+    Shared by both the primary .sdd/guidelines.dsl parsing path and the
+    docs/spec/canonical fallback path (see _selector_canonical_fallback.py).
+    """
+    desc_match = re.search(r'description:\s*"([^"]*)"', body)
+    cat_match = re.search(r"category:\s*(\w+)", body)
+    type_match = re.search(r"\btype:\s*(HARD|SOFT)\b", body)
+    tags_match = re.search(r"tags:\s*\[([^\]]*)\]", body)
+
+    tags: list[str] | None = None
+    if tags_match:
+        raw = tags_match.group(1)
+        tags = [t.strip().strip('"') for t in raw.split(",") if t.strip().strip('"')]
+
+    return {
+        "description": desc_match.group(1) if desc_match else None,
+        "category": cat_match.group(1) if cat_match else None,
+        "mandatory": (type_match.group(1) == "HARD") if type_match else None,
+        "tags": tags,
+        "depends_on": None,
+    }

@@ -15,7 +15,7 @@ else
   PYTHON := $(VENV_PYTHON)
 endif
 
-.PHONY: check ci-pr ci-pr-full test test-fast test-perf lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check build-compiler test-compiler-go lint-go install-web build-web lint-web test-web cover-web
+.PHONY: check ci-pr ci-pr-full test test-fast test-perf lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff signoff-draft core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check build-compiler test-compiler-go lint-go install-web build-web lint-web test-web cover-web
 
 help:
 	@echo "SDD Architecture Development"
@@ -108,6 +108,9 @@ enforcement-ladder-digest:
 
 enforcement-threshold-signoff:
 	$(PYTHON) tools/maintenance/make_tasks.py enforcement-threshold-signoff
+
+signoff-draft:
+	$(PYTHON) tools/maintenance/make_tasks.py signoff-draft
 
 core-compiler-runtime-contract:
 	$(PYTHON) tools/maintenance/make_tasks.py core-compiler-runtime-contract

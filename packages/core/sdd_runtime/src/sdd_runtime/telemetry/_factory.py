@@ -12,6 +12,35 @@ from ._sink import TelemetrySink
 
 logger: logging.Logger = logging.getLogger(__name__)
 
+# Canonical OTLP endpoint env var (documented, preferred). SDD_OTEL_ENDPOINT is
+# a legacy alias kept for CLI backward-compatibility — see get_otel_endpoint().
+_OTEL_ENDPOINT_ENV = "SDD_OTEL_EXPORTER_ENDPOINT"
+_OTEL_ENDPOINT_ENV_LEGACY = "SDD_OTEL_ENDPOINT"
+
+
+def get_otel_endpoint() -> str:
+    """Resolve the OTLP export endpoint from environment, in one place.
+
+    Reads SDD_OTEL_EXPORTER_ENDPOINT (canonical). Falls back to the legacy
+    SDD_OTEL_ENDPOINT alias — previously read independently by the CLI's
+    ask_telemetry path — with a one-line deprecation warning, so both layers
+    agree on which variable wins when a workspace sets both.
+    """
+    endpoint = os.environ.get(_OTEL_ENDPOINT_ENV, "").strip()
+    if endpoint:
+        return endpoint
+
+    legacy_endpoint = os.environ.get(_OTEL_ENDPOINT_ENV_LEGACY, "").strip()
+    if legacy_endpoint:
+        logger.warning(
+            "%s is deprecated; use %s instead",
+            _OTEL_ENDPOINT_ENV_LEGACY,
+            _OTEL_ENDPOINT_ENV,
+        )
+        return legacy_endpoint
+
+    return ""
+
 
 def create_sink(
     jsonl_path: Path | None = None,
@@ -21,9 +50,10 @@ def create_sink(
 ) -> TelemetrySink:
     """Create a TelemetrySink or OtelBridge based on environment configuration.
 
-    Activation via environment variables:
+    Activation via environment variables (resolved via get_otel_endpoint()):
       - SDD_OTEL_EXPORTER_ENDPOINT: Full OTLP HTTP endpoint (e.g., https://...)
         When set, returns OtelBridge; when unset, returns TelemetrySink.
+      - SDD_OTEL_ENDPOINT: Deprecated alias for SDD_OTEL_EXPORTER_ENDPOINT.
       - SDD_OTEL_API_KEY: Optional API key header (e.g., for Datadog DD-API-KEY).
       - SDD_AGENT_ID: Agent identifier (fallback in TelemetrySink.__init__).
       - SDD_WEBHOOK_URL: Fase 2 — webhook destination for alert dispatch.
@@ -51,7 +81,7 @@ def create_sink(
         )
 
     # Check if OTEL is configured
-    otel_endpoint = os.environ.get("SDD_OTEL_EXPORTER_ENDPOINT", "").strip()
+    otel_endpoint = get_otel_endpoint()
 
     # If no endpoint configured, return plain TelemetrySink with optional alert dispatcher
     if not otel_endpoint:

@@ -277,6 +277,10 @@ def run_enforcement_threshold_signoff() -> int:
     return _run(_python_cmd() + ["tools/ci/check_enforcement_threshold_signoff.py"])
 
 
+def run_signoff_draft() -> int:
+    return _run(_python_cmd() + ["tools/ci/generate_signoff_draft.py"])
+
+
 def run_core_compiler_runtime_contract() -> int:
     return _run(
         _python_cmd()
@@ -385,6 +389,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("enforcement-ladder-consistency")
     sub.add_parser("enforcement-ladder-digest")
     sub.add_parser("enforcement-threshold-signoff")
+    sub.add_parser("signoff-draft")
     sub.add_parser("core-compiler-runtime-contract")
     sub.add_parser("observability-contract-check")
     sub.add_parser("release-readiness-v1-check")
@@ -416,6 +421,7 @@ def main(argv: list[str] | None = None) -> int:
         "enforcement-ladder-consistency": run_enforcement_ladder_consistency,
         "enforcement-ladder-digest": run_enforcement_ladder_digest,
         "enforcement-threshold-signoff": run_enforcement_threshold_signoff,
+        "signoff-draft": run_signoff_draft,
         "core-compiler-runtime-contract": run_core_compiler_runtime_contract,
         "observability-contract-check": run_observability_contract_check,
         "release-readiness-v1-check": run_release_readiness_v1_check,

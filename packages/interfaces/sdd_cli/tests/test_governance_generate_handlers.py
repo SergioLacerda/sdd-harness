@@ -12,6 +12,7 @@ from rich.console import Console
 
 from sdd_cli.services.governance_generate_handlers import (
     generate_adapters_safe,
+    generate_runtime_handbook_required,
     generate_seeds,
     resolve_generate_path,
     run_generate_phases,
@@ -145,6 +146,68 @@ class TestGenerateAdaptersSafe:
             generate_adapters_safe(tmp_path, console=console)
         output = console.file.getvalue()
         assert "could not generate adapter files" in output
+
+
+class TestGenerateRuntimeHandbookRequired:
+    def test_success_prints_written_count(self, tmp_path: Path) -> None:
+        console = _console()
+        workspace = tmp_path / "workspace"
+        registry = workspace / "docs/spec/canonical/governance-sources.yaml"
+        registry.parent.mkdir(parents=True)
+        registry.write_text("schema_version: '1'\nsources: []\n", encoding="utf-8")
+        with (
+            patch(
+                "sdd_cli.utils.sdd_authority.resolve_workspace_root",
+                return_value=workspace,
+            ),
+            patch(
+                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                return_value=[tmp_path / ".sdd/source/handbook/index.yaml"],
+            ) as mock_generate,
+        ):
+            generate_runtime_handbook_required(tmp_path / "out", console=console)
+
+        mock_generate.assert_called_once_with(workspace, runtime_root=tmp_path / "out")
+        assert "Runtime handbook: 1 files written" in console.file.getvalue()
+
+    def test_missing_workspace_registry_uses_repo_sources(self, tmp_path: Path) -> None:
+        console = _console()
+        with (
+            patch(
+                "sdd_cli.utils.sdd_authority.resolve_workspace_root",
+                return_value=tmp_path / "workspace",
+            ),
+            patch(
+                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                return_value=[],
+            ) as mock_generate,
+        ):
+            generate_runtime_handbook_required(tmp_path / "out", console=console)
+
+        args, kwargs = mock_generate.call_args
+        assert args[0].name == "sdd-harness"
+        assert kwargs == {"runtime_root": tmp_path / "out"}
+
+    def test_quiet_suppresses_success_output(self, tmp_path: Path) -> None:
+        console = _console()
+        with patch(
+            "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+            return_value=[tmp_path / ".sdd/source/handbook/index.yaml"],
+        ):
+            generate_runtime_handbook_required(tmp_path, console=console, quiet=True)
+
+        assert console.file.getvalue() == ""
+
+    def test_exception_propagates(self, tmp_path: Path) -> None:
+        console = _console()
+        with (
+            patch(
+                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                side_effect=RuntimeError("boom"),
+            ),
+            pytest.raises(RuntimeError, match="boom"),
+        ):
+            generate_runtime_handbook_required(tmp_path, console=console)
 
 
 class TestRunGeneratePhases:

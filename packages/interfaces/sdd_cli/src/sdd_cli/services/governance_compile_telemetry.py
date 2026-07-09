@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
+from typing import Any
 
 from rich.console import Console
 
@@ -16,6 +17,10 @@ from sdd_cli.services._governance_compile_support import (
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 
 logger = logging.getLogger(__name__)
+
+
+class RuntimeHandbookRegenerationError(RuntimeError):
+    """Raised when mandatory docs-derived runtime handbook generation fails."""
 
 
 def _resolve_output_base(output_dir: Path) -> Path:
@@ -91,7 +96,16 @@ def regenerate_seeds(*, console: Console | None = None) -> None:
     if console is None:
         console = Console()
     from sdd_cli.generators.agent_seeds import generate_agent_instruction_files
+    from sdd_cli.services.governance_docs_sources import generate_runtime_handbook
     from sdd_cli.utils.loader import load_governance_config, validate_governance_path
+
+    def generate_runtime_handbook_required(*args: Any, **kwargs: Any) -> list[Path]:
+        try:
+            return generate_runtime_handbook(*args, **kwargs)
+        except Exception as exc:
+            raise RuntimeHandbookRegenerationError(
+                f"could not regenerate runtime handbook: {exc}"
+            ) from exc
 
     try:
         regenerate_seeds_flow(
@@ -101,7 +115,10 @@ def regenerate_seeds(*, console: Console | None = None) -> None:
             load_governance_config_fn=load_governance_config,
             resolve_output_base_fn=_resolve_output_base,
             generate_agent_instruction_files_fn=generate_agent_instruction_files,
+            generate_runtime_handbook_fn=generate_runtime_handbook_required,
         )
+    except RuntimeHandbookRegenerationError:
+        raise
     except Exception as _gen_err:
         console.print(
             f"[yellow]WARN: could not auto-regenerate agent files: {_gen_err}[/yellow]"

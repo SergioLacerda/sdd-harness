@@ -127,7 +127,12 @@ Optional OTLP HTTP span export. If unset, **zero overhead** (OtelBridge not inst
 
 | Env Var | Default | Purpose | Example |
 |---------|---------|---------|---------|
-| `SDD_OTEL_EXPORTER_ENDPOINT` | (unset) | OTLP HTTP collector endpoint. If unset, OTLP export disabled. | `http://localhost:4318`, `https://otel.example.com` |
+| `SDD_OTEL_EXPORTER_ENDPOINT` | (unset) | Canonical OTLP HTTP collector endpoint. If unset (and the legacy alias below is also unset), OTLP export disabled. | `http://localhost:4318`, `https://otel.example.com` |
+| `SDD_OTEL_ENDPOINT` | (unset) | **Deprecated alias** for `SDD_OTEL_EXPORTER_ENDPOINT`, kept for backward compatibility with existing CLI configs. Emits a `DeprecationWarning`-level log line when used. If both are set, `SDD_OTEL_EXPORTER_ENDPOINT` wins. | — |
+| `SDD_OTEL_API_KEY` | (unset) | Optional API key header (`DD-API-KEY` for Datadog hosts, `Authorization: Bearer` otherwise). | — |
+| `SDD_OTEL_ALLOW_INSECURE_HTTP` | (unset) | Allow plaintext `http://` export to non-local hosts (local/loopback is always allowed). | `1` |
+
+All consumers (runtime `create_sink()`, CLI `ask` telemetry) resolve the endpoint through the single `sdd_runtime.telemetry.get_otel_endpoint()` helper, so both layers apply the same precedence instead of reading the environment independently.
 
 **Setup:**
 ```bash
@@ -141,6 +146,10 @@ sdd ask "query"  # Spans exported to OTEL collector
 - Spans exported after event emit (non-blocking)
 - Includes trace_id and span_id for correlation
 - Compatible with Jaeger, Datadog, GCP Cloud Trace, etc.
+
+**Sampling & retention policy:**
+- **No sampling.** Every emitted `RuntimeEvent` is exported when OTLP is enabled — there is no probabilistic or rate-based sampler in this exporter (`OtlpHttpExporter` is a stdlib-only HTTP client, not backed by `opentelemetry-sdk`). To control export volume, disable OTLP for noisy environments by leaving `SDD_OTEL_EXPORTER_ENDPOINT` unset, or filter/sample at the collector.
+- **Retention is the OTLP backend's responsibility.** This project does not manage OTLP-side retention; export is best-effort and non-blocking. The **JSONL sink is the source of truth and local retention boundary** — see `.sdd/runtime/compliance-events.jsonl` and the audit-integrity mandate for local log lifecycle. If the OTLP export fails, the JSONL record is unaffected.
 
 ---
 

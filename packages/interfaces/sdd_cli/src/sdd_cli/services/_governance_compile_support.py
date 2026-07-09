@@ -31,15 +31,37 @@ def resolve_output_base_path(
     output = output_dir.resolve()
     if not override:
         return output
-    try:
-        workspace_root = resolve_workspace_root_fn()
-    except Exception:
+    redirected = Path(override).resolve()
+    env_workspace = os.environ.get("SDD_WORKSPACE_ROOT", "").strip()
+    if env_workspace:
+        try:
+            workspace_root = Path(env_workspace).expanduser().resolve()
+        except Exception:
+            workspace_root = None
+    else:
         workspace_root = None
+    try:
+        resolved_workspace = resolve_workspace_root_fn()
+    except Exception:
+        resolved_workspace = None
+    if workspace_root is None:
+        workspace_root = resolved_workspace
     if workspace_root is not None and output == workspace_root.resolve():
-        redirected = Path(override).resolve()
+        redirected.mkdir(parents=True, exist_ok=True)
+        return redirected
+    if (
+        env_workspace
+        and resolved_workspace is not None
+        and output == resolved_workspace.resolve()
+        and not _is_session_default_override(redirected)
+    ):
         redirected.mkdir(parents=True, exist_ok=True)
         return redirected
     return output
+
+
+def _is_session_default_override(path: Path) -> bool:
+    return path.name == f"sdd-test-output-{os.getpid()}"
 
 
 def maybe_load_artifact_fingerprint(
@@ -175,6 +197,7 @@ def regenerate_seeds_flow(
     load_governance_config_fn: Callable[[str], dict[str, Any]],
     resolve_output_base_fn: Callable[[Path], Path],
     generate_agent_instruction_files_fn: Callable[[Path, dict[str, Any]], Any],
+    generate_runtime_handbook_fn: Callable[..., list[Path]] | None = None,
 ) -> None:
     if os.environ.get("SDD_SKIP_SEED_REGEN") == "1":
         return
@@ -193,6 +216,12 @@ def regenerate_seeds_flow(
     generate_agent_instruction_files_fn(output_base, config)
     console.print("[cyan]Agent instruction files regenerated[/cyan]")
     maybe_regenerate_wizard_contracts(output_base, config, console=console)
+    if generate_runtime_handbook_fn is not None:
+        written = generate_runtime_handbook_fn(workspace_root, runtime_root=output_base)
+        if written:
+            console.print(
+                f"[cyan]Runtime handbook regenerated ({len(written)} files)[/cyan]"
+            )
 
 
 def run_compile_flow(

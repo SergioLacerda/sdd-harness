@@ -1,5 +1,9 @@
 > Layer: spec/canonical - immutable governance definition
 
+> Generated mirror notice: this page is a publication mirror for runtime agent
+> protocol material. Edit the classified source under `docs/`; regenerate
+> `.sdd/` runtime outputs instead of editing generated runtime files directly.
+
 # 🧠 AGENT ENTRYPOINT --- SDD Execution Kernel
 
 ## 🎯 Purpose

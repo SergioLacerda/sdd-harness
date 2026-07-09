@@ -12,34 +12,36 @@ Human Review: [Signed-off]
 
 ## ✅ Checklist
 
+### TDD (M002 — mandatory, not customizable)
+
+`.sdd/source/mandates/mandates.md` requires writing tests before implementation
+(Red-Green-Refactor). CI's "Validate Test Coverage (M002)" step runs
+`tools/ci/check_tdd_diff_coverage.py`, which flags production changes with no
+test file touched in the same diff.
+
+- [ ] Every changed production file (`packages/*/src/**`) has a corresponding
+      test change in this diff
+- [ ] Tests were written/updated before (or alongside) the implementation, not
+      as an afterthought
+- [ ] `make test` passes locally
+- [ ] `make coverage-strict` passes locally (core ≥ 90%, features/interfaces ≥ 70%)
+
 ### Health & Compliance
 
-- [ ] Health check passes: `python3 packages/health_check.py --force-recheck` → 10/10
-- [ ] Governance compliant: `python3 packages/tools/governance_compliance.py --verify` → 100%
-- [ ] Performance acceptable: `python3 tests/performance/benchmark.py`
-- [ ] No governance violations or policy breaks
+- [ ] `uv run python -m sdd_cli governance validate --skip-handshake` passes
+- [ ] No governance violations or mandate breaks
 
 ### Code Quality
 
 - [ ] Type hints on all new functions
-- [ ] Docstrings on classes and public methods
-- [ ] Error handling included (try/except)
-- [ ] No hardcoded values (use config files)
-- [ ] Uses logging instead of print()
-
-### Testing
-
-- [ ] Unit tests added for new code
-- [ ] Tests pass locally: `python3 -m pytest tests/ -v`
-- [ ] Edge cases covered
-- [ ] Error cases tested
+- [ ] Docstrings on classes and public methods where behavior isn't obvious
+- [ ] No hardcoded values that should be config/env-driven
+- [ ] `make lint` passes
 
 ### Documentation
 
-- [ ] Updated relevant docs (HEALTH_CHECK_GUIDE, TROUBLESHOOTING, etc.)
-- [ ] Added code examples to docs
+- [ ] Updated relevant docs (READMEs, ADRs) if behavior or contracts changed
 - [ ] Docstrings are clear and complete
-- [ ] README.md updated if needed
 
 ### Git Workflow
 
@@ -47,7 +49,7 @@ Human Review: [Signed-off]
 - [ ] Commits are atomic (one change per commit)
 - [ ] Commit messages are clear and reference issues
 - [ ] No merge conflicts
-- [ ] All workflow checks passing (health-check, governance-enforce, tests)
+- [ ] All required CI workflows passing
 
 ---
 
@@ -55,11 +57,10 @@ Human Review: [Signed-off]
 
 **Key areas for reviewers to check:**
 
-1. **Governance** - Does this respect all 7 mandatory policies?
-2. **Performance** - Does this meet target metrics? (200ms, 500ms, 2s, etc.)
-3. **Health** - Will this pass all 10 health checks?
-4. **Testing** - Are tests comprehensive and maintainable?
-5. **Documentation** - Is the change clearly documented?
+1. **TDD** — Does every production change carry a test in this diff?
+2. **Governance** — Does this respect the active mandates (`.sdd/source/mandates/mandates.md`)?
+3. **Testing** — Are tests comprehensive and maintainable?
+4. **Documentation** — Is the change clearly documented?
 
 ---
 
@@ -75,28 +76,6 @@ Human Review: [Signed-off]
 
 ---
 
-## 📊 Automated Checks
-
-This PR will automatically:
-1. ✅ Run health check (`health-check` workflow)
-2. ✅ Verify governance (`governance-enforce` workflow)
-3. ✅ Run tests (test workflow)
-4. ✅ Generate compliance report (weekly)
-
-**All checks must pass before merge.**
-
----
-
 ## 💬 Questions for Reviewers
 
 [Optional: Ask specific questions about the implementation]
-
----
-
-**Note**: If you need to bypass checks (emergency only):
-```bash
-git push --no-verify
-git commit --no-verify
-```
-
-But this requires architect approval. Use normal workflow whenever possible.

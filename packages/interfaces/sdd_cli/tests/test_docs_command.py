@@ -136,3 +136,117 @@ class TestDocsDeploy:
                 result = runner.invoke(app, ["docs", "deploy"])
         assert result.exit_code == 127
         assert "could not start" in result.output
+
+
+class TestDocsGovernanceSources:
+    def test_validate_governance_sources_success(self) -> None:
+        with (
+            runner.isolated_filesystem(),
+            patch(
+                "sdd_cli.commands.docs.validate_governance_sources",
+                return_value=MagicMock(
+                    ok=True,
+                    errors=[],
+                    warnings=[],
+                    mandate_ids=["M001"],
+                    guideline_ids=["G01"],
+                    handbook_ids=["HBK"],
+                ),
+            ),
+        ):
+            result = runner.invoke(app, ["docs", "validate-governance-sources"])
+        assert result.exit_code == 0
+        assert "docs governance sources validated" in result.output
+
+    def test_validate_governance_sources_failure(self) -> None:
+        with (
+            runner.isolated_filesystem(),
+            patch(
+                "sdd_cli.commands.docs.validate_governance_sources",
+                return_value=MagicMock(
+                    ok=False,
+                    errors=["duplicate active mandate id M001"],
+                    warnings=[],
+                    mandate_ids=[],
+                    guideline_ids=[],
+                    handbook_ids=[],
+                ),
+            ),
+        ):
+            result = runner.invoke(app, ["docs", "validate-governance-sources"])
+        assert result.exit_code == 1
+        assert "duplicate active mandate id M001" in result.output
+
+    def test_generate_handbook_success(self) -> None:
+        with (
+            runner.isolated_filesystem(),
+            patch(
+                "sdd_cli.commands.docs.validate_governance_sources",
+                return_value=MagicMock(
+                    ok=True,
+                    errors=[],
+                    warnings=[],
+                    mandate_ids=[],
+                    guideline_ids=[],
+                    handbook_ids=["HBK"],
+                ),
+            ),
+            patch(
+                "sdd_cli.commands.docs.generate_runtime_handbook",
+                return_value=[Path.cwd() / ".sdd/source/handbook/index.yaml"],
+            ),
+        ):
+            result = runner.invoke(app, ["docs", "generate-handbook"])
+        assert result.exit_code == 0
+        assert "runtime handbook generated" in result.output
+
+    def test_lookup_handbook_success(self) -> None:
+        with (
+            runner.isolated_filesystem(),
+            patch(
+                "sdd_cli.commands.docs.lookup_runtime_handbook",
+                return_value=MagicMock(
+                    status="matched",
+                    diagnostic="handbook_match=1",
+                    matches=[
+                        {
+                            "id": "HBK",
+                            "source_doc": "docs/a.md",
+                            "runtime_doc": ".sdd/source/handbook/a.yaml",
+                        }
+                    ],
+                ),
+            ),
+        ):
+            result = runner.invoke(
+                app,
+                [
+                    "docs",
+                    "lookup-handbook",
+                    "--task-type",
+                    "planning",
+                    "--mandate-ref",
+                    "M003",
+                    "--operation-phase",
+                    "context_loading",
+                ],
+            )
+        assert result.exit_code == 0
+        assert "runtime handbook lookup: handbook_match=1" in result.output
+        assert "HBK source=docs/a.md" in result.output
+
+    def test_lookup_handbook_missing_exits_1(self) -> None:
+        with (
+            runner.isolated_filesystem(),
+            patch(
+                "sdd_cli.commands.docs.lookup_runtime_handbook",
+                return_value=MagicMock(
+                    status="missing",
+                    diagnostic="handbook_index_missing",
+                    matches=[],
+                ),
+            ),
+        ):
+            result = runner.invoke(app, ["docs", "lookup-handbook"])
+        assert result.exit_code == 1
+        assert "handbook_index_missing" in result.output

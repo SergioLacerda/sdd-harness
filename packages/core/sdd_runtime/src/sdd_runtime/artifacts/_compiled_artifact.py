@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import os
@@ -202,17 +201,15 @@ class CompiledArtifact:
     async def from_sdd_compiled_dir_async(
         cls, compiled_dir: Path, profile: str = "master"
     ) -> CompiledArtifact:
-        """Async wrapper: load core artifact without blocking the event loop."""
-        return await asyncio.to_thread(cls.from_sdd_compiled_dir, compiled_dir, profile)
+        """Async wrapper for loading the local core artifact."""
+        return cls.from_sdd_compiled_dir(compiled_dir, profile)
 
     @classmethod
     async def from_sdd_compiled_dir_with_auth_async(
         cls, compiled_dir: Path, profile: str = "master"
     ) -> ArtifactLoadResult:
-        """Async wrapper: load core artifact with auth metadata without blocking."""
-        return await asyncio.to_thread(
-            cls.from_sdd_compiled_dir_with_auth, compiled_dir, profile
-        )
+        """Async wrapper for loading the local core artifact with auth metadata."""
+        return cls.from_sdd_compiled_dir_with_auth(compiled_dir, profile)
 
 
 @dataclass

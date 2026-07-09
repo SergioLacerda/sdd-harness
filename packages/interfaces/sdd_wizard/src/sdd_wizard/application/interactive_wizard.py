@@ -19,7 +19,6 @@ from sdd_wizard.application.generation_runtime import (
     PhaseFourRuntime,
     PhaseThreeRuntime,
 )
-from sdd_wizard.application.operator_state import read_enforcement_label
 from sdd_wizard.application.phase_runtime import (
     InteractiveFlowRuntime,
     PhaseOneRuntime,
@@ -28,31 +27,17 @@ from sdd_wizard.application.phase_runtime import (
 from sdd_wizard.application.preferences_flow import PreferencesFlow
 from sdd_wizard.application.prompter import Prompter, _wrap_prompter
 from sdd_wizard.application.seedling_bridge import SeedlingBridge
-from sdd_wizard.application.workspace_runtime import (
-    build_selector_discovery_config,
-    build_selector_selection_config,
-    cleanup_post_generation_artifacts,
-    docs_meta_ready,
-    emit_selector_phase1_hint,
-    ensure_onboarding_scaffold,
-    load_selector_selection_ids,
-    source_spec_ready,
-)
-from sdd_wizard.orchestration.wizard.final_template_bundle import (
-    consolidate_final_template,
-)
-from sdd_wizard.orchestration.wizard.models import (
-    FinalTemplateConsolidationResult,
-    Phase1GenerateResult,
-    Phase2StageResult,
-)
+from sdd_wizard.constants import WIZARD_CONFIG_FILENAME as _WIZARD_CONFIG_FILENAME
 from sdd_wizard.orchestration.wizard.models import (
     InteractivePhase3CompileResult as Phase3CompileResult,
 )
 from sdd_wizard.orchestration.wizard.models import (
     InteractivePhase4GenerateResult as Phase4GenerateResult,
 )
-from sdd_wizard.orchestration.wizard.seedling_selection import ask_seedling_selection
+from sdd_wizard.orchestration.wizard.models import (
+    Phase1GenerateResult,
+    Phase2StageResult,
+)
 from sdd_wizard.orchestration.wizard.seedlings_runtime import (
     run_phase6_seedlings_generation,
 )
@@ -66,22 +51,13 @@ from ._interactive_wizard_constants import (
     _INTERACTION_LANGUAGE_CHOICES,
     _LOCAL_DOCS_LANGUAGE_CHOICES,
     _LOCALE_BY_LANGUAGE,
-    _ONBOARDING_BASELINE_GUIDELINES,
-    _ONBOARDING_BASELINE_MANDATE,
     _PHASE1_CHOICES_DIRNAME,
     _PHASE2_INPUT_DIRNAME,
-    _TEMP_BUILD_DIRS,
-    _TEMP_COMPILED_DIRS,
 )
-from ._interactive_wizard_helpers import (
-    _build_phase1_status,
-    _do_consolidate_final_template,
-    _ensure_docs_meta_ready,
-    _save_config,
-)
+from ._interactive_wizard_context_mixin import InteractiveWizardContextMixin
 
 
-class InteractiveWizard:
+class InteractiveWizard(InteractiveWizardContextMixin):
     """Interactive guide for SDD Wizard v3"""
 
     SUPPORTED_PHASE2_PATTERNS: tuple[str, ...] = ("*.md", "*.spec", "*.dsl")
@@ -120,62 +96,11 @@ class InteractiveWizard:
             if output_dir is not None
             else self.client_build_dir / _FINAL_TEMPLATE_DIRNAME
         )
-        self.wizard_config_path = self.client_build_dir / "wizard-config.json"
+        self.wizard_config_path = self.client_build_dir / _WIZARD_CONFIG_FILENAME
         self.selector_output_path = self.client_build_dir / "selector-selection.json"
         self.selector_site_path = (
             self.repo_root / "build" / "site" / "selector" / "index.html"
         )
-
-    def load_selector_selection_ids(
-        self,
-        selection_path: Path | None = None,
-        *,
-        available_ids: set[str] | None = None,
-    ) -> list[str]:
-        """Load selector IDs when a selection artifact is present."""
-        return load_selector_selection_ids(
-            selection_path or self.selector_output_path,
-            available_ids=available_ids,
-        )
-
-    def _load_selector_selection_config(self) -> dict[str, Any]:
-        """Return selector selection metadata when an export artifact exists."""
-        return build_selector_selection_config(self.selector_output_path)
-
-    def _emit_selector_phase1_hint(self, selector_selection: dict[str, Any]) -> None:
-        """Emit an optional selector hint without changing phase semantics."""
-        if not self.debug:
-            return
-        emit_selector_phase1_hint(
-            self._emit,
-            selector_output_path=self.selector_output_path,
-            selector_site_path=self.selector_site_path,
-            selector_selection=selector_selection,
-        )
-
-    def _build_selector_discovery_config(
-        self, selector_selection: dict[str, Any]
-    ) -> dict[str, Any]:
-        """Persist selector discovery context for auditability."""
-        return build_selector_discovery_config(
-            selector_output_path=self.selector_output_path,
-            selector_site_path=self.selector_site_path,
-            selector_selection=selector_selection,
-        )
-
-    def _consolidate_final_template(self) -> FinalTemplateConsolidationResult:
-        """Move all compiled artifacts into build/final-template for user handoff."""
-        return _do_consolidate_final_template(
-            self.client_compiled_dir,
-            self.final_template_dir,
-            self._emit if self.debug else (lambda _message: None),
-            consolidate_final_template,
-        )
-
-    def print_header(self, title: str, icon: str = "🧙") -> None:
-        """Print formatted header"""
-        self._emit(f"\n{icon} {title}")
-        self._emit("=" * 70)
 
     def ask_user_preferences(self) -> dict[str, Any]:
         """Resolve user preferences: enforcement mode, language, and handshake mode.
@@ -209,39 +134,6 @@ class InteractiveWizard:
         )
         return self._resolved_preferences
 
-    def save_config(self, config: dict[str, Any]) -> Path:
-        """Save configuration to wizard-config.json"""
-        return _save_config(self.client_build_dir, self.wizard_config_path, config)
-
-    def _build_phase1_status(
-        self, status: str, reason: str = "", artifacts: list[str] | None = None
-    ) -> dict[str, Any]:
-        """Build phase-1 status block persisted to wizard-config.json."""
-        return _build_phase1_status(status, reason, artifacts)
-
-    def _ensure_onboarding_scaffold(self) -> tuple[bool, str]:
-        """Create minimal wizard scaffold for first-run onboarding."""
-        return ensure_onboarding_scaffold(
-            client_build_dir=self.client_build_dir,
-            phase1_choices_dir=self.phase1_choices_dir,
-            phase2_input_dir=self.phase2_input_dir,
-            baseline_mandate=_ONBOARDING_BASELINE_MANDATE,
-            baseline_guidelines=_ONBOARDING_BASELINE_GUIDELINES,
-            emit=self._emit,
-        )
-
-    def _ensure_docs_meta_ready(self) -> tuple[bool, str]:
-        """Ensure Phase 1 inputs exist (legacy docs-meta or unified source_spec)."""
-        scaffold_ok, scaffold_reason = self._ensure_onboarding_scaffold()
-        return _ensure_docs_meta_ready(
-            scaffold_ok,
-            scaffold_reason,
-            docs_meta_ready(self.client_build_dir),
-            source_spec_ready(self.paths, self.client_build_dir),
-            self.client_build_dir,
-            self.paths,
-        )
-
     def phase_1_generate_templates(self) -> Phase1GenerateResult:
         """Execute Phase 1: Generate templates with user preferences"""
         result = PhaseOneRuntime(self).execute()
@@ -255,45 +147,13 @@ class InteractiveWizard:
         """Show Phase 2 instructions and stage markdown files into phase-2-input."""
         return PhaseTwoRuntime(self).execute()
 
-    def _ask_seedling_selection(self) -> set[str] | None:
-        """Resolve which seedlings to include. Returns None for all.
-
-        Resolved once and cached — safe to call multiple times without
-        prompting twice. When `non_interactive` is set, resolves to `None`
-        (all seedlings) without prompting.
-        """
-        if self._agent_selection_resolved:
-            return self._resolved_agent_selection
-
-        if self.non_interactive:
-            self._resolved_agent_selection = None
-        else:
-            emitter = self._emit if self.debug else (lambda _message: None)
-            self._resolved_agent_selection = ask_seedling_selection(
-                emitter, prompter=self._prompter
-            )
-        self._agent_selection_resolved = True
-        return self._resolved_agent_selection
+    def phase_3_compile_templates(self) -> Phase3CompileResult:
+        """Execute Phase 3: Compile edited templates to governance JSON"""
+        return PhaseThreeRuntime(self).execute()
 
     def phase_4_generate_project(self) -> Phase4GenerateResult:
         """Execute Phase 4-6: Generate project structure from compiled governance"""
         return PhaseFourRuntime(self).execute()
-
-    def _cleanup_post_generation_artifacts(self) -> list[str]:
-        """Remove wizard temporary artifacts while preserving final-template."""
-        return cleanup_post_generation_artifacts(
-            repo_root=self.repo_root,
-            client_build_dir=self.client_build_dir,
-            client_compiled_dir=self.client_compiled_dir,
-            final_template_dir=self.final_template_dir,
-            wizard_config_path=self.wizard_config_path,
-            temp_build_dirs=_TEMP_BUILD_DIRS,
-            temp_compiled_dirs=_TEMP_COMPILED_DIRS,
-        )
-
-    def phase_3_compile_templates(self) -> Phase3CompileResult:
-        """Execute Phase 3: Compile edited templates to governance JSON"""
-        return PhaseThreeRuntime(self).execute()
 
     def phase_6_generate_seedlings(self, output_base: Path) -> bool:
         """Execute Phase 6: Generate intelligent seedlings"""
@@ -304,10 +164,6 @@ class InteractiveWizard:
             runner=run_phase6_seedlings_generation,
             debug=self.debug,
         )
-
-    def _get_enforcement_label(self) -> str:
-        """Get enforcement mode label from config"""
-        return read_enforcement_label(self.wizard_config_path)
 
     def run(self) -> bool:
         """Main interactive flow"""

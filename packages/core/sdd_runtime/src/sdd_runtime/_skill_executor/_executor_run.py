@@ -103,7 +103,7 @@ def run_skill_flow(
         else (0, [], [])
     )
     artifacts["command_results"] = command_results
-    if exit_code == 124 and handler is not None and hasattr(handler, "timeout_hook"):
+    if exit_code == 124 and handler is not None:
         artifacts.update(
             handler.timeout_hook(
                 handler_context,
@@ -112,7 +112,7 @@ def run_skill_flow(
                 elapsed_seconds=int(skill.budget_policy.get("timeout_seconds", 120)),
             )
         )
-    if handler is not None and hasattr(handler, "post_run"):
+    if handler is not None:
         artifacts.update(
             handler.post_run(
                 handler_context,
@@ -139,7 +139,7 @@ def run_skill_flow(
 
 def _try_pre_run(**kwargs: Any) -> SkillRunResult | None:
     handler = kwargs["handler"]
-    if handler is None or not hasattr(handler, "pre_run"):
+    if handler is None:
         return None
     outcome = handler.pre_run(
         kwargs["handler_context"],

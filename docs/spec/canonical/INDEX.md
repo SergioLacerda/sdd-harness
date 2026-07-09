@@ -11,6 +11,7 @@
 - **Guidelines**: [core/policies/INDEX.md](./core/policies/INDEX.md) — Customization and governance policy rules.
 - **Policies**: [core/policies/INDEX.md](./core/policies/INDEX.md) — Enforcement levels (Strict/Permissive).
 - **Invariants**: [core/INDEX.md](./core/INDEX.md) — Architectural lock-in rules.
+- **Governance Sources Registry**: [governance-sources.yaml](./governance-sources.yaml) — Maps canonical source documents to generated runtime governance outputs.
 
 ## 🧩 Specifications (Technical Guardrails)
 
