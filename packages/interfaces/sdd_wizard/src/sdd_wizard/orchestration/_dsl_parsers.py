@@ -36,7 +36,7 @@ def parse_mandate_spec_text(text: str) -> tuple[int, list[dict[str, Any]]]:
                 else ""
             ),
             "criticality": (
-                criticality_match.group(1) if criticality_match else "OBRIGATÓRIO"
+                criticality_match.group(1) if criticality_match else "MANDATORY"
             ),
         }
         mandates.append(mandate)

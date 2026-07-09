@@ -7,10 +7,15 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, cast
 
-from sdd_core.utils.environment import get_sdd_paths
+from sdd_wizard.constants import (
+    GOVERNANCE_CLIENT_FILENAME as _GOVERNANCE_CLIENT_FILENAME,
+)
+from sdd_wizard.constants import GOVERNANCE_CORE_FILENAME as _GOVERNANCE_CORE_FILENAME
 from sdd_wizard.constants import PHASE2_INPUT_DIRNAME as _PHASE2_INPUT_DIRNAME
+from sdd_wizard.constants import WIZARD_CONFIG_FILENAME as _WIZARD_CONFIG_FILENAME
 
 from ._phase3_helpers import (
+    _compile_with_pipeline_builder,
     _copy_seedlings,
     _generate_source_files,
     _generate_spec_file,
@@ -25,7 +30,7 @@ class Phase3Compiler:
     """Compile edited markdown templates to governance artifacts."""
 
     PHASE2_INPUT_DIRNAME = _PHASE2_INPUT_DIRNAME
-    WIZARD_CONFIG_FILENAME = "wizard-config.json"
+    WIZARD_CONFIG_FILENAME = _WIZARD_CONFIG_FILENAME
 
     def __init__(
         self,
@@ -110,37 +115,9 @@ class Phase3Compiler:
 
     def compile_with_pipeline_builder(self, items: ParsedItems) -> bool:
         """Run PipelineBuilder on parsed items and save outputs to .sdd/source/."""
-        try:
-            from sdd_integration.builders.governance.pipeline_builder import (
-                PipelineBuilder,
-            )
-
-            try:
-                paths = get_sdd_paths()
-                spec_path = paths.get("docs_meta", paths["client_build"] / "docs-meta")
-            except RuntimeError:
-                spec_path = (
-                    self.repo_root / "generated" / "client" / "build" / "docs-meta"
-                )
-
-            builder = PipelineBuilder(
-                str(spec_path),
-                parsed_items=cast(dict[str, list[dict[str, Any]]], items),
-            )
-            builder.build()
-            source = self.output_path / "source"
-            source.mkdir(parents=True, exist_ok=True)
-            builder.save_outputs(str(source))
-            return True
-        except ImportError as exc:
-            self._emit(f"❌ PipelineBuilder not available as package: {exc}")
-            return False
-        except Exception as exc:
-            self._emit(f"❌ Pipeline builder error: {exc}")
-            import traceback
-
-            traceback.print_exc()
-            return False
+        return _compile_with_pipeline_builder(
+            self.repo_root, self.output_path, cast(dict[str, Any], items), self._emit
+        )
 
     def load_compiled_governance(
         self,
@@ -195,8 +172,8 @@ class Phase3Compiler:
             "output_path": str(self.output_path),
             "language": self.language,
             "files": [
-                "governance-core.json",
-                "governance-client.json",
+                _GOVERNANCE_CORE_FILENAME,
+                _GOVERNANCE_CLIENT_FILENAME,
                 "seedling/",
                 "mandates.md",
                 "guidelines/",

@@ -26,6 +26,20 @@ __all__ = [
 ]
 
 
+def _infer_handbook_task_type(query: str, skill: str | None) -> str:
+    skill_value = (skill or "").strip().lower()
+    if skill_value in {"planning", "implementation", "diagnosis"}:
+        return skill_value
+    if skill_value in {"diagnose", "debug", "stabilize"}:
+        return "diagnosis"
+    query_value = query.lower()
+    if any(token in query_value for token in ("diagnos", "erro", "error", "fail")):
+        return "diagnosis"
+    if any(token in query_value for token in ("plan", "design", "proposal")):
+        return "planning"
+    return "implementation"
+
+
 def build_governed_ask_snapshot(
     *,
     query: str,
@@ -54,6 +68,13 @@ def build_governed_ask_snapshot(
     drift_detected = _backend._runtime_drift_check(root, fingerprint)
     root_seed_drift_detected = _backend._root_seed_drift_check(root)
     learning_signals = _collect_learning_signals(workspace_root=root)
+    from sdd_cli.services.governance_docs_sources import lookup_runtime_handbook
+
+    handbook_lookup = lookup_runtime_handbook(
+        root,
+        task_type=_infer_handbook_task_type(query, skill),
+        operation_phase="context_loading",
+    )
     return {
         "workspace_root": root,
         "context_source": context_source,
@@ -66,6 +87,11 @@ def build_governed_ask_snapshot(
         "drift_detected": drift_detected,
         "root_seed_drift_detected": root_seed_drift_detected,
         "learning_signals": learning_signals,
+        "handbook_lookup": {
+            "status": handbook_lookup.status,
+            "diagnostic": handbook_lookup.diagnostic,
+            "matches": handbook_lookup.matches,
+        },
     }
 
 

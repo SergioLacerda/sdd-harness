@@ -83,7 +83,7 @@ Mandatory rules that CANNOT be customized or skipped.
                 )
                 content += f"""## {mandate_id}: {mandate_title}
 
-**Criticality**: {mandate.get("criticality", "OBRIGATÓRIO")}
+**Criticality**: {mandate.get("criticality", "MANDATORY")}
 **Customizable**: No
 
 {description}

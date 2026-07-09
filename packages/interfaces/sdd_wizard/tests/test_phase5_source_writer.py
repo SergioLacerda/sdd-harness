@@ -22,17 +22,17 @@ _SAMPLE_MANDATES = [
     {
         "id": "M001",
         "title": "Validate First",
-        "criticality": "OBRIGATÓRIO",
+        "criticality": "MANDATORY",
         "content": "Always validate.",
     },
     {
         "id": "M002",
         "title": None,
-        "criticality": "OBRIGATÓRIO",
+        "criticality": "MANDATORY",
         "description": "Use descriptions.",
         "summary_minimal": None,
     },
-    {"id": "M003", "title": "No Desc", "criticality": "OBRIGATÓRIO"},
+    {"id": "M003", "title": "No Desc", "criticality": "MANDATORY"},
 ]
 
 _SAMPLE_GUIDELINES: dict[str, Any] = {
@@ -296,6 +296,17 @@ class TestMandatesWriter:
         writer.generate()
         content = read_text_utf8(mandates_dir / "mandates.md")
         assert "desc fallback" in content
+
+    def test_mandate_missing_criticality_defaults_to_mandatory(
+        self, tmp_path: Path
+    ) -> None:
+        _, _, mandates_dir, _, _ = _setup_dirs(tmp_path)
+        mandates = [{"id": "M001", "title": "T", "content": "my content"}]
+        writer = MandatesWriter(mandates_dir, mandates, _CONFIG)
+        writer.generate()
+        content = read_text_utf8(mandates_dir / "mandates.md")
+        assert "**Criticality**: MANDATORY" in content
+        assert "OBRIGATÓRIO" not in content
 
     def test_m011_renders_language_policy_summary(self, tmp_path: Path) -> None:
         _, _, mandates_dir, _, _ = _setup_dirs(tmp_path)

@@ -207,7 +207,7 @@ def test_compile_with_pipeline_builder_uses_fallback_docs_meta(
 
     compiler = _make_compiler(tmp_path)
     monkeypatch.setattr(
-        "sdd_wizard.orchestration.wizard.phase3_compiler.get_sdd_paths",
+        "sdd_wizard.orchestration.wizard._phase3_helpers.get_sdd_paths",
         lambda: (_ for _ in ()).throw(RuntimeError("no env")),
     )
     monkeypatch.setattr(

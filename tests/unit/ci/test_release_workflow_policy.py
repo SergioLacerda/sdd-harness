@@ -36,6 +36,40 @@ def test_release_workflow_has_windows_install_smoke_lane() -> None:
     assert "ubuntu-latest" in matrix_os
 
 
+def test_release_workflow_is_tag_driven_and_accepts_uppercase_v() -> None:
+    workflow = _load_workflow(RELEASE_WORKFLOW)
+    tags = workflow["on"]["push"]["tags"]
+    assert "v*.*.*" in tags
+    assert "V*.*.*" in tags
+
+    validate_steps = "\n".join(
+        step.get("run", "") for step in _jobs(workflow)["validate"]["steps"]
+    )
+    assert "^[vV][0-9]+" in validate_steps
+    assert "setuptools_scm" not in validate_steps
+    assert "tools/release/resolve_vcs_version.py" in validate_steps
+
+
+def test_release_build_syncs_versions_from_git_tag() -> None:
+    workflow = _load_workflow(RELEASE_WORKFLOW)
+    build_steps = "\n".join(
+        step.get("run", "") for step in _jobs(workflow)["build"]["steps"]
+    )
+    assert 'VERSION="${VERSION#V}"' in build_steps
+    assert "tools/release/sync_versions.py" in build_steps
+    assert "steps.version.outputs.tag" in build_steps
+
+
+def test_release_dry_run_syncs_versions_from_git_tag() -> None:
+    workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
+    dry_run_steps = "\n".join(
+        step.get("run", "") for step in _jobs(workflow)["dry-run"]["steps"]
+    )
+    assert "^[vV][0-9]+" in dry_run_steps
+    assert 'VERSION="${VERSION#V}"' in dry_run_steps
+    assert 'tools/release/sync_versions.py "$TAG"' in dry_run_steps
+
+
 def test_release_workflow_smoke_install_uses_local_dist_only() -> None:
     workflow = _load_workflow(RELEASE_WORKFLOW)
     smoke = _jobs(workflow)["release-install-smoke"]

@@ -733,7 +733,7 @@ class TestConsolidateFinalTemplate:
         logs: list[str] = []
         wizard = _make_wizard(tmp_path, emitter=logs.append, debug=True)
         with patch(
-            "sdd_wizard.application.interactive_wizard.consolidate_final_template",
+            "sdd_wizard.application._interactive_wizard_context_mixin.consolidate_final_template",
             return_value={"success": True, "moved_items": 3},
         ):
             wizard._consolidate_final_template()
@@ -742,7 +742,7 @@ class TestConsolidateFinalTemplate:
     def test_returns_result_on_failure(self, tmp_path: Path) -> None:
         wizard = _make_wizard(tmp_path)
         with patch(
-            "sdd_wizard.application.interactive_wizard.consolidate_final_template",
+            "sdd_wizard.application._interactive_wizard_context_mixin.consolidate_final_template",
             return_value={"success": False, "error": "x"},
         ):
             result = wizard._consolidate_final_template()
@@ -816,11 +816,11 @@ class TestEnsureDocsMetaReadyFailures:
                 wizard, "_ensure_onboarding_scaffold", return_value=(True, "")
             ),
             patch(
-                "sdd_wizard.application.interactive_wizard.docs_meta_ready",
+                "sdd_wizard.application._interactive_wizard_context_mixin.docs_meta_ready",
                 return_value=False,
             ),
             patch(
-                "sdd_wizard.application.interactive_wizard.source_spec_ready",
+                "sdd_wizard.application._interactive_wizard_context_mixin.source_spec_ready",
                 return_value=False,
             ),
         ):

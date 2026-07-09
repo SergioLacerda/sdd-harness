@@ -4,6 +4,20 @@ Local ADRs specific to the SDD Harness runtime layer. These are distinct from th
 
 ---
 
+## Published Framework ADR Mirrors
+
+### ADR-015: Python-to-Go Compiler Migration Performance Comparison (2026-07-01)
+
+**Decision:** Supersede placeholder compiler benchmark claims with a real Python
+vs Go compiler comparison.
+
+**Links:**
+
+- [ADR-015-go-compiler-migration-performance.md](ADR-015-go-compiler-migration-performance.md)
+- Referenced by `docs/spec/guides/PERFORMANCE.md` section 5.3.C.
+
+---
+
 ## 📋 Harness-Local ADRs
 
 ### ADR-001: Runtime Authority Boundary (2026-05-10)

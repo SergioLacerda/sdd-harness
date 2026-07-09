@@ -698,9 +698,7 @@ class TestHttpProviderAdvanced:
 
     async def test_http_provider_with_url_but_health_fails(self) -> None:
         """Should be unavailable if health check fails."""
-        with patch.dict(
-            "os.environ", {"SDD_INTELLIGENCE_URL": "http://localhost:9999"}
-        ):
+        with patch.dict("os.environ", {"SDD_INTELLIGENCE_URL": "http://127.0.0.1:9"}):
             provider = HttpProvider()
             # Should be unavailable since service is not running
             assert await provider.is_available() is False

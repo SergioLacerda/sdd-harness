@@ -105,6 +105,7 @@ nav:
     - Agent Entrypoint: runtime/protocols/AGENT_ENTRYPOINT.md
     - Agent Runtime Protocol: runtime/protocols/AGENT_RUNTIME_PROTOCOL.md
   - Governance:
+    - Source And Runtime Model: governance-runtime-model.md
     - Mandatory Human Review: spec/canonical/core/policies/P003_MANDATORY_HUMAN_REVIEW.md
     - Honest Critique: spec/canonical/core/policies/P002_HONEST_CRITIQUE.md
 

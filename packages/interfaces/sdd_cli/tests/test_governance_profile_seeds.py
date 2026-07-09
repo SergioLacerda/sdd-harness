@@ -19,6 +19,9 @@ from sdd_cli.services.governance_compile_handlers import (
     regenerate_seeds,
     update_profile_hash,
 )
+from sdd_cli.services.governance_compile_telemetry import (
+    RuntimeHandbookRegenerationError,
+)
 
 
 def _console() -> Console:
@@ -219,6 +222,7 @@ class TestRegenerateSeeds:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.delenv("SDD_SKIP_SEED_REGEN", raising=False)
+        monkeypatch.delenv("SDD_TEST_OUTPUT_DIR", raising=False)
         console = _console()
         with (
             patch(
@@ -250,17 +254,23 @@ class TestRegenerateSeeds:
                 "sdd_wizard.contracts.generate_root_bootstrap_from_config",
                 return_value=True,
             ) as mock_gen_root,
+            patch(
+                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                return_value=[tmp_path / ".sdd/source/handbook/index.yaml"],
+            ) as mock_handbook,
         ):
             regenerate_seeds(console=console)
 
         mock_gen_instr.assert_called_once()
         mock_gen_wizard.assert_called_once()
         mock_gen_root.assert_called_once()
+        mock_handbook.assert_called_once_with(tmp_path, runtime_root=tmp_path.resolve())
         output = console.file.getvalue()
         assert ".sdd/metadata.json synchronized" in output
         assert "Agent instruction files regenerated" in output
         assert ".sdd/agent-instructions.md regenerated" in output
         assert "Root bootstrap files regenerated" in output
+        assert "Runtime handbook regenerated" in output
 
     def test_test_output_dir_redirects_metadata_sync(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -301,6 +311,10 @@ class TestRegenerateSeeds:
                 "sdd_wizard.contracts.generate_root_bootstrap_from_config",
                 return_value=True,
             ),
+            patch(
+                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                return_value=[],
+            ) as mock_handbook,
         ):
             regenerate_seeds(console=console)
 
@@ -311,6 +325,9 @@ class TestRegenerateSeeds:
         assert synced["governance_fingerprint"] == "abcdef0123456789"
         args, _ = mock_gen_instr.call_args
         assert args[0] == redirected.resolve()
+        mock_handbook.assert_called_once_with(
+            workspace, runtime_root=redirected.resolve()
+        )
 
     def test_invalid_governance_path_uses_empty_config(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -333,6 +350,10 @@ class TestRegenerateSeeds:
             patch(
                 "sdd_wizard.contracts.generate_root_bootstrap_from_config",
                 return_value=True,
+            ),
+            patch(
+                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                return_value=[],
             ),
         ):
             regenerate_seeds(console=console)
@@ -392,6 +413,10 @@ class TestRegenerateSeeds:
                 return_value={"items": []},
             ),
             patch("sdd_cli.generators.agent_seeds.generate_agent_instruction_files"),
+            patch(
+                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                return_value=[],
+            ),
             patch.dict(sys.modules, {"sdd_wizard.contracts": None}),
         ):
             regenerate_seeds(console=console)
@@ -421,3 +446,44 @@ class TestRegenerateSeeds:
             regenerate_seeds(console=console)
 
         assert "could not auto-regenerate agent files" in console.file.getvalue()
+
+    def test_runtime_handbook_exception_propagates(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("SDD_SKIP_SEED_REGEN", raising=False)
+        console = _console()
+        with (
+            patch(
+                "sdd_cli.services.governance_compile_telemetry.resolve_workspace_root",
+                return_value=tmp_path,
+            ),
+            patch("sdd_cli.utils.loader.validate_governance_path", return_value=True),
+            patch(
+                "sdd_cli.utils.loader.load_governance_config",
+                return_value={
+                    "core_fingerprint": "abcdef0123456789",
+                    "items": [
+                        {
+                            "id": "M001",
+                            "type": "MANDATE",
+                            "title": "Clean Architecture",
+                        }
+                    ],
+                },
+            ),
+            patch("sdd_cli.generators.agent_seeds.generate_agent_instruction_files"),
+            patch(
+                "sdd_wizard.contracts.generate_agent_instructions_from_config",
+                return_value=True,
+            ),
+            patch(
+                "sdd_wizard.contracts.generate_root_bootstrap_from_config",
+                return_value=True,
+            ),
+            patch(
+                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                side_effect=RuntimeError("boom"),
+            ),
+            pytest.raises(RuntimeHandbookRegenerationError, match="boom"),
+        ):
+            regenerate_seeds(console=console)

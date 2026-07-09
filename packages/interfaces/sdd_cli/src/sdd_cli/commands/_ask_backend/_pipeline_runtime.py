@@ -58,6 +58,7 @@ def _sync_ask_runtime(
     drift_detected = ask_snapshot["drift_detected"]
     root_seed_drift_detected = ask_snapshot["root_seed_drift_detected"]
     learning_signals = ask_snapshot["learning_signals"]
+    handbook_lookup = ask_snapshot.get("handbook_lookup")
     end_ts = _now()
     duration_ms = int((time.monotonic() - session.start_mono) * 1000)
     output_text = _render_context_output(
@@ -108,6 +109,9 @@ def _sync_ask_runtime(
             token_source=token_source,
             learning_signals=learning_signals,
             inputs=inputs,
+            handbook_lookup=handbook_lookup
+            if isinstance(handbook_lookup, dict)
+            else None,
         ),
     )
     _backend._write_runtime_cache(

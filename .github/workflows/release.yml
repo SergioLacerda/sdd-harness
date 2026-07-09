@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*"
+      - "V*.*.*"
 
 concurrency:
   group: release-${{ github.ref }}
@@ -29,12 +30,14 @@ jobs:
         shell: bash
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "ERROR: Tag '$TAG' does not match semver format vX.Y.Z"
+          if ! echo "$TAG" | grep -qE '^[vV][0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "ERROR: Tag '$TAG' does not match semver format vX.Y.Z or VX.Y.Z"
             exit 1
           fi
           echo "TAG=$TAG" >> "$GITHUB_ENV"
-          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+          VERSION="${TAG#v}"
+          VERSION="${VERSION#V}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
@@ -80,13 +83,12 @@ jobs:
       - name: Verify version matches tag
         shell: bash
         run: |
-          # Generate _version.py from the current git tag via setuptools_scm
-          uv run python -m setuptools_scm
-          PKG_VERSION=$(uv run python -c "from _version import __version__; print(__version__)")
-          echo "Package version: $PKG_VERSION"
+          # The root package uses hatch-vcs; the release tag is the version authority.
+          PKG_VERSION=$(uv run python tools/release/resolve_vcs_version.py)
+          echo "Resolved version: $PKG_VERSION"
           echo "Tag version:     $VERSION"
-          if [ "$PKG_VERSION" != "$VERSION" ]; then
-            echo "ERROR: _version.py ($PKG_VERSION) does not match tag ($VERSION)"
+          if [ "${PKG_VERSION%%+*}" != "$VERSION" ]; then
+            echo "ERROR: resolved version ($PKG_VERSION) does not match tag ($VERSION)"
             exit 1
           fi
 
@@ -129,11 +131,13 @@ jobs:
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           VERSION="${TAG#v}"
+          VERSION="${VERSION#V}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Sync sub-package versions to tag
         shell: bash
-        run: python tools/release/sync_versions.py "${{ steps.version.outputs.version }}"
+        run: python tools/release/sync_versions.py "${{ steps.version.outputs.tag }}"
 
       - name: Verify all package versions match tag
         shell: bash
@@ -281,6 +285,7 @@ jobs:
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           VERSION="${TAG#v}"
+          VERSION="${VERSION#V}"
           # Extract section between this version header and the next
           NOTES=$(awk "/^## \[$VERSION\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
           if [ -z "$NOTES" ]; then

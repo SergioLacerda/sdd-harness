@@ -50,6 +50,21 @@ def test_write_uses_general_category_when_missing(tmp_path: Path) -> None:
     assert (tmp_path / "source" / "guidelines" / "general.md").exists()
 
 
+def test_write_removes_stale_category_files(tmp_path: Path) -> None:
+    guidelines_dir = tmp_path / "source" / "guidelines"
+    guidelines_dir.mkdir(parents=True)
+    stale_file = guidelines_dir / "other.md"
+    stale_file.write_text("stale", encoding="utf-8")
+
+    result = _make_compiler(tmp_path).write(
+        [{"id": "G001", "title": "X", "description": ""}]
+    )
+
+    assert result is True
+    assert (guidelines_dir / "general.md").exists()
+    assert not stale_file.exists()
+
+
 def test_write_empty_guidelines_returns_true(tmp_path: Path) -> None:
     result = _make_compiler(tmp_path).write([])
     assert result is True

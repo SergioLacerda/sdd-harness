@@ -242,6 +242,11 @@ class TestGenerateArtifacts:
                     "sdd_cli.services.governance_generate_handlers.generate_adapters_safe"
                 )
             )
+            stack.enter_context(
+                patch(
+                    "sdd_cli.services.governance_generate_handlers.generate_runtime_handbook_required"
+                )
+            )
             generate_artifacts(
                 output_dir=None, path="", output_json=False, console=_console()
             )
@@ -259,11 +264,18 @@ class TestGenerateArtifacts:
             mock_emit = stack.enter_context(
                 patch("sdd_cli.services.governance_generate_handlers.emit_json")
             )
+            mock_handbook = stack.enter_context(
+                patch(
+                    "sdd_cli.services.governance_generate_handlers.generate_runtime_handbook_required"
+                )
+            )
             generate_artifacts(
                 output_dir=str(tmp_path), path="", output_json=True, console=_console()
             )
         mock_json.assert_called_once()
         mock_emit.assert_called_once_with({"status": "ok"})
+        mock_handbook.assert_called_once()
+        assert mock_handbook.call_args.kwargs["quiet"] is True
 
     def test_non_json_renders_table_and_writes_files(self, tmp_path: Path) -> None:
         with ExitStack() as stack:
@@ -289,6 +301,11 @@ class TestGenerateArtifacts:
                     "sdd_cli.services.governance_generate_handlers.generate_adapters_safe"
                 )
             )
+            mock_handbook = stack.enter_context(
+                patch(
+                    "sdd_cli.services.governance_generate_handlers.generate_runtime_handbook_required"
+                )
+            )
             generate_artifacts(
                 output_dir=str(tmp_path), path="", output_json=False, console=_console()
             )
@@ -296,3 +313,5 @@ class TestGenerateArtifacts:
         mock_instr.assert_called_once()
         mock_prompt.assert_called_once()
         mock_adapters.assert_called_once()
+        mock_handbook.assert_called_once()
+        assert mock_handbook.call_args.kwargs["quiet"] is False

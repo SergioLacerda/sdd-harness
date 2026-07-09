@@ -9,6 +9,7 @@ import pytest
 import typer
 from click.testing import CliRunner
 
+from sdd_cli.commands import lint
 from sdd_cli.commands.lint import _run_step
 from sdd_cli.main import app
 
@@ -264,3 +265,47 @@ class TestLintRunCommand:
         assert result.exit_code == 0
         calls_str = str(mock_runner.run.call_args_list)
         assert "bandit" in calls_str
+
+
+# ---------------------------------------------------------------------------
+# lint.run step ordering (merged from tests/unit/cli/test_lint_command.py)
+# ---------------------------------------------------------------------------
+
+
+class TestLintRunStepOrdering:
+    def test_run_executes_architecture_checks_before_mypy_and_bandit(self) -> None:
+        calls: list[str] = []
+
+        def _fake_run_step(label: str, cmd: list[str], *, fix: bool) -> int:
+            calls.append(label)
+            return 0
+
+        with (
+            patch("sdd_cli.commands.lint._run_ruff", return_value=False),
+            patch("sdd_cli.commands.lint._run_step", side_effect=_fake_run_step),
+            patch("sdd_cli.commands.lint.spec"),
+        ):
+            lint.run(fix=False, skip_mypy=False, skip_bandit=False, skip_spec=False)
+
+        assert calls[:6] == [
+            "architecture imports",
+            "architecture cycles",
+            "architecture class-size",
+            "cognitive governance",
+            "mypy",
+            "bandit",
+        ]
+
+    def test_run_exits_nonzero_when_architecture_check_fails(self) -> None:
+        with (
+            patch("sdd_cli.commands.lint._run_ruff", return_value=False),
+            patch(
+                "sdd_cli.commands.lint._run_step",
+                side_effect=[1, 0, 0, 0, 0],
+            ),
+            patch("sdd_cli.commands.lint.spec"),
+            pytest.raises(typer.Exit) as exc,
+        ):
+            lint.run(fix=False, skip_mypy=False, skip_bandit=False, skip_spec=False)
+
+        assert exc.value.exit_code == 1

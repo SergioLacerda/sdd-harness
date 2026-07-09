@@ -8,6 +8,9 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from sdd_core.utils.environment import get_sdd_paths
+from sdd_wizard.constants import GOVERNANCE_CLIENT_FILENAME, GOVERNANCE_CORE_FILENAME
+
 from .guidelines_compiler import GuidelinesCompiler
 from .mandates_compiler import MandatesCompiler
 from .source_readme_compiler import SourceReadmeCompiler
@@ -74,6 +77,44 @@ def _generate_spec_file(
         emitter(f"  ⚠️  Spec file generation skipped: {exc}")
 
 
+def _compile_with_pipeline_builder(
+    repo_root: Path,
+    output_path: Path,
+    items: dict[str, list[dict[str, Any]]],
+    emitter: Callable[[str], None],
+) -> bool:
+    """Run PipelineBuilder on parsed items and save outputs to .sdd/source/."""
+    try:
+        from sdd_integration.builders.governance.pipeline_builder import (
+            PipelineBuilder,
+        )
+
+        try:
+            paths = get_sdd_paths()
+            spec_path = paths.get("docs_meta", paths["client_build"] / "docs-meta")
+        except RuntimeError:
+            spec_path = repo_root / "generated" / "client" / "build" / "docs-meta"
+
+        builder = PipelineBuilder(
+            str(spec_path),
+            parsed_items=items,
+        )
+        builder.build()
+        source = output_path / "source"
+        source.mkdir(parents=True, exist_ok=True)
+        builder.save_outputs(str(source))
+        return True
+    except ImportError as exc:
+        emitter(f"❌ PipelineBuilder not available as package: {exc}")
+        return False
+    except Exception as exc:
+        emitter(f"❌ Pipeline builder error: {exc}")
+        import traceback
+
+        traceback.print_exc()
+        return False
+
+
 def _generate_source_files(
     output_path: Path,
     language: str,
@@ -102,8 +143,8 @@ def _load_compiled_governance(
         source_dir = output_path / "source"
         mandates: list[dict[str, Any]] = []
         guidelines: list[dict[str, Any]] = []
-        core_file = source_dir / "governance-core.json"
-        client_file = source_dir / "governance-client.json"
+        core_file = source_dir / GOVERNANCE_CORE_FILENAME
+        client_file = source_dir / GOVERNANCE_CLIENT_FILENAME
         if core_file.exists():
             with open(core_file, encoding="utf-8") as f:
                 for item in json.load(f).get("items", []):

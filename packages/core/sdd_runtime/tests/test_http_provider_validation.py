@@ -169,7 +169,7 @@ async def test_is_available_false_on_connection_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """is_available() returns False when health check fails."""
-    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "https://nonexistent.internal")
+    monkeypatch.setenv("SDD_INTELLIGENCE_URL", "http://127.0.0.1:9")
     provider = HttpProvider()
     result = await provider.is_available()
     assert result is False

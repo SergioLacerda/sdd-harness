@@ -12,6 +12,7 @@ from sdd_runtime import (
     SessionManager,
     SessionState,
     TelemetrySink,
+    get_otel_endpoint,
 )
 from sdd_runtime.otel import OtlpHttpExporter
 
@@ -104,7 +105,7 @@ def emit_ask_telemetry(
             extra_details=extra_details,
         )
         status = resolve_status(state)
-        otel_endpoint = os.environ.get("SDD_OTEL_ENDPOINT", "").strip()
+        otel_endpoint = get_otel_endpoint()
         sink: _EventSink = build_sink(
             otel_endpoint=otel_endpoint,
             events_path=events_path,

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from sdd_cli.shared.contracts import build_error_result, build_ok_result
+from sdd_cli.shared.contracts import (
+    ENVELOPE_SCHEMA_VERSION,
+    build_error_result,
+    build_ok_result,
+)
 
 
 def test_build_ok_result_uses_canonical_envelope() -> None:
@@ -10,6 +14,7 @@ def test_build_ok_result_uses_canonical_envelope() -> None:
     assert payload["ok"] is True
     assert payload["error"] is None
     assert payload["data"]["state"] == "HEALTHY"
+    assert payload["schema_version"] == ENVELOPE_SCHEMA_VERSION
 
 
 def test_build_error_result_uses_canonical_envelope() -> None:
@@ -25,3 +30,9 @@ def test_build_error_result_uses_canonical_envelope() -> None:
     assert payload["error"]["code"] == "runtime_state_not_healthy"
     assert payload["error"]["message"] == "runtime unavailable"
     assert payload["data"]["state"] == "NOT_CONNECTED"
+    assert payload["schema_version"] == ENVELOPE_SCHEMA_VERSION
+
+
+def test_build_ok_result_accepts_schema_version_override() -> None:
+    payload = build_ok_result("runtime status", {}, schema_version="2.0.0")
+    assert payload["schema_version"] == "2.0.0"

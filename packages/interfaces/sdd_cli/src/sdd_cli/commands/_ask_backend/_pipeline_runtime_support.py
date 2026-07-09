@@ -57,8 +57,9 @@ def build_runtime_details(
     token_source: str,
     learning_signals: dict[str, int],
     inputs: _AskInputs,
+    handbook_lookup: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return {
+    details = {
         "compiled_fingerprint_used": fingerprint,
         "degraded": degraded,
         "degraded_reason": degraded_reason,
@@ -80,6 +81,14 @@ def build_runtime_details(
         "log_format": inputs.log_format,
         "log_path": inputs.log_path or "default",
     }
+    if handbook_lookup is not None:
+        matches = handbook_lookup.get("matches", [])
+        details["handbook_lookup_status"] = handbook_lookup.get("status", "unknown")
+        details["handbook_lookup_diagnostic"] = handbook_lookup.get("diagnostic", "")
+        details["handbook_match_count"] = (
+            len(matches) if isinstance(matches, list) else 0
+        )
+    return details
 
 
 def emit_ask_response(

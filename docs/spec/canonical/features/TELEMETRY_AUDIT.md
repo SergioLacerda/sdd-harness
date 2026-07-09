@@ -1,7 +1,17 @@
-# Mandate: Telemetry & Audit Trail
+---
+governance_source:
+  id: DOC-TELEMETRY-AUDIT
+  type: feature
+  status: active
+  title: Telemetry and Audit Trail
+  refs: [M007, M008, M009]
+  publication: published
+---
 
-**Type:** CORE FEATURE / HARD MANDATE
-**ID:** M007
+# Feature: Telemetry & Audit Trail
+
+**Type:** CORE FEATURE
+**Governance refs:** M007, M008, M009
 **Category:** Observability
 
 ---

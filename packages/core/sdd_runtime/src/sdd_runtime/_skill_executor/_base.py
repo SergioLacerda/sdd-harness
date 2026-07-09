@@ -27,13 +27,42 @@ class PreRunOutcome:
 
 
 class Handler:
-    """Base skill handler lifecycle hooks.
+    """Base skill handler lifecycle hooks (the project's ISkillLifecycle contract).
+
+    Every concrete skill handler inherits from this class and gets uniform
+    pre_run/post_run/can_retry/retry_hook/timeout_hook lifecycle methods, so
+    the executor can invoke them unconditionally instead of relying on
+    hasattr() duck-typing. Subclasses override only the hooks they need;
+    the defaults are no-ops.
 
     Example:
         Subclasses override `pre_run`, `post_run`, `can_retry`, `retry_hook`,
         or `timeout_hook` to extend governed execution without changing the
         executor template.
     """
+
+    def pre_run(
+        self,
+        context: dict[str, Any],
+        *,
+        learning: Any,
+        skill: SkillDefinition | None,
+        profile: str,
+        footer_fn: Any,
+    ) -> PreRunOutcome:
+        del context, learning, skill, profile, footer_fn
+        return PreRunOutcome()
+
+    def post_run(
+        self,
+        context: dict[str, Any],
+        *,
+        learning: Any,
+        exit_code: int,
+        artifacts: dict[str, Any],
+    ) -> dict[str, Any]:
+        del context, learning, exit_code, artifacts
+        return {}
 
     def can_retry(
         self,
@@ -109,6 +138,10 @@ class Handler:
                 "action": "retry_with_lower_budget",
             }
         }
+
+
+# Alias exposing the project's public name for the skill lifecycle contract.
+BaseSkillHandler = Handler
 
 
 class ContextCarrier:

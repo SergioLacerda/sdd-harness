@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ._architecture_review import _build_architecture_review
-from ._base import ContextCarrier, Handler, PreRunOutcome
+from ._base import BaseSkillHandler, ContextCarrier, Handler, PreRunOutcome
 from ._context_builders import (
     _build_convergence_delta_report,
     _build_diagnosis_attestation,
@@ -32,6 +32,7 @@ from ._stabilization import _build_stabilization_report
 
 __all__ = [
     "AskHandler",
+    "BaseSkillHandler",
     "CompressContextHandler",
     "ContextCarrier",
     "ConvergeHandler",
