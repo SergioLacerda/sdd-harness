@@ -10,9 +10,9 @@ from typing import Any
 from sdd_core.utils.process import SafeProcessRunner
 
 try:
-    from tools.release.sync_versions import normalize_version
+    from tools.release import sync_versions
 except ModuleNotFoundError:  # pragma: no cover - script execution path
-    from sync_versions import normalize_version
+    import sync_versions  # type: ignore[import-not-found,no-redef]
 
 
 def resolve_head_tag(repo_root: Path, *, runner: Any | None = None) -> str:
@@ -33,7 +33,7 @@ def resolve_head_tag(repo_root: Path, *, runner: Any | None = None) -> str:
 
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[2]
-    print(normalize_version(resolve_head_tag(repo_root)))
+    print(sync_versions.normalize_version(resolve_head_tag(repo_root)))
     return 0
 
 

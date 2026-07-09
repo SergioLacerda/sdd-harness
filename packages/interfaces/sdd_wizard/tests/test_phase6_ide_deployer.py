@@ -218,6 +218,7 @@ def test_create_ide_templates_handles_optional_file_copy_error(
         repo_root=tmp_path,
         output_base=output_base,
         config={"include_optional_hooks": True},
+        selected_seedlings={"pre-commit"},
         verbose=True,
     )
     template_base = tmp_path / "templates"
@@ -226,6 +227,7 @@ def test_create_ide_templates_handles_optional_file_copy_error(
     (template_base / ".pre-commit-config.yaml").write_text(
         "repos: []\n", encoding="utf-8"
     )
+    (template_base / ".sdd" / "templates").mkdir(parents=True)
     deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
 
     original_copy2 = shutil.copy2
@@ -385,6 +387,26 @@ def test_ci_selected_copies_workflow(tmp_path: Path) -> None:
     assert deployer.create_ide_templates() is True
 
     assert (output_base / ".github" / "workflows" / "sdd-validation.yml").exists()
+
+
+def test_create_ide_templates_fails_when_selected_template_dir_missing(
+    tmp_path: Path,
+) -> None:
+    """A selected adapter with no template dir must fail generation explicitly
+
+    instead of silently succeeding because an unrelated always-needed
+    mapping (.sdd/templates) was copied.
+    """
+    output_base = tmp_path / "out"
+    template_base = tmp_path / "templates"
+    (template_base / ".sdd" / "templates").mkdir(parents=True)
+    deployer = TemplateDeployer(
+        repo_root=tmp_path, output_base=output_base, selected_seedlings={"claude"}
+    )
+    deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
+
+    assert deployer.create_ide_templates() is False
+    assert not (output_base / ".claude").exists()
 
 
 def test_pre_commit_selected_copies_pre_commit_artifacts(tmp_path: Path) -> None:

@@ -41,6 +41,11 @@ class ProcessAuthorizer:
 
     def resolve_binary_name(self, binary: str) -> str:
         binary_name = Path(binary).name
+        # Strip Windows executable suffixes (sdd.exe -> sdd, uv.exe -> uv, etc.).
+        for suffix in (".exe", ".bat", ".cmd"):
+            if binary_name.lower().endswith(suffix):
+                binary_name = binary_name[: -len(suffix)]
+                break
         # Accept versioned python executable names (python3.11, python3.12, etc.).
         if binary_name.startswith("python"):
             return "python3"
