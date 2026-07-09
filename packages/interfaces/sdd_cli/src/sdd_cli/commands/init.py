@@ -16,6 +16,7 @@ from sdd_cli.utils.operational_errors import (
     render_operational_error,
 )
 from sdd_core.utils.environment import (
+    ProfileContext,
     SddProfile,
     find_workspace_root,
     write_profile,
@@ -50,6 +51,21 @@ def _raise_init_operational_error(
 def _exit_init_operational_error(error: OperationalCliError) -> NoReturn:
     render_operational_error(error)
     raise typer.Exit(error.exit_code) from None
+
+
+def _write_profile_or_exit(
+    cwd: Path, profile_type: SddProfile, effective_name: str
+) -> ProfileContext:
+    try:
+        return write_profile(cwd, profile_type, effective_name)
+    except OSError as exc:
+        _raise_init_operational_error(
+            exc,
+            headline="Could not write SDD workspace profile.",
+            step="profile",
+            operation="write profile",
+            path=cwd / ".sdd" / "profile",
+        )
 
 
 def _resolve_default_flags(
@@ -139,16 +155,7 @@ def init(  # noqa: C901
 
     profile_type = cast(SddProfile, normalized_type)
     effective_name = name or profile_type
-    try:
-        profile_ctx = write_profile(cwd, profile_type, effective_name)
-    except OSError as exc:
-        _raise_init_operational_error(
-            exc,
-            headline="Could not write SDD workspace profile.",
-            step="profile",
-            operation="write profile",
-            path=cwd / ".sdd" / "profile",
-        )
+    profile_ctx = _write_profile_or_exit(cwd, profile_type, effective_name)
 
     runtime_dir = cwd / ".sdd" / "runtime"
     try:

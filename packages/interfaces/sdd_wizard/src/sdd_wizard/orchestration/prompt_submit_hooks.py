@@ -29,20 +29,29 @@ def _extract_context_field(context: str, field: str, default: str) -> str:
     match = re.search(pattern, context)
     return match.group(1) if match else default
 
+def _extract_footer_line(context: str) -> str | None:
+    match = re.search(r"^SDD GOVERNANCE:.*$", context, re.MULTILINE)
+    return match.group(0) if match else None
+
 def _render_activation_header(context: str) -> str:
     fingerprint = _extract_context_field(context, "fingerprint", "unknown")[:8]
     execution_gate = _extract_context_field(context, "execution_gate", "unknown")
-    return "\\n".join(
-        [
-            "SDD GOVERNANCE ACTIVE | "
-            "source=prompt-submit-hook | "
-            "governance_mode=hard | "
-            f"execution_gate={execution_gate} | "
-            f"fingerprint={fingerprint}",
-            "Instruction: start your response with one short SDD governance "
-            "status line when this context is present.",
-        ]
-    )
+    lines = [
+        "SDD GOVERNANCE ACTIVE | "
+        "source=prompt-submit-hook | "
+        "governance_mode=hard | "
+        f"execution_gate={execution_gate} | "
+        f"fingerprint={fingerprint}",
+        "Instruction: start your response with one short SDD governance "
+        "status line when this context is present.",
+    ]
+    footer_line = _extract_footer_line(context)
+    if footer_line:
+        lines.append(
+            "Instruction: if the platform response policy allows it, end your "
+            f"response with this compact footer: {footer_line}"
+        )
+    return "\\n".join(lines)
 
 def main() -> int:
     if Path(".sdd/runtime/hook-disabled").exists():

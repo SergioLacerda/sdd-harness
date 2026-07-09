@@ -26,6 +26,15 @@ _HOOK_REFERENCES = (
     ".sdd/runtime/hooks/prompt-submit.py",
 )
 
+# Behavior markers that must be present in the central hook for it to match
+# the current source template (packages/interfaces/sdd_wizard/.../prompt_submit_hooks.py).
+# A hook missing these still passes adapter-reference checks but is stale:
+# it was generated before this behavior was added to the template.
+_CENTRAL_HOOK_CURRENT_MARKERS = (
+    "SDD GOVERNANCE ACTIVE",
+    "_render_activation_header",
+)
+
 
 def _resolve_root() -> Path:
     from sdd_core.utils.environment import find_workspace_root
@@ -60,13 +69,40 @@ def run_governance_hook_status(*, console: Console) -> None:
         console.print("[green]Governance prompt-submit hook: enabled[/green]")
 
     central_hook_present = (root / CENTRAL_HOOK_RELATIVE).exists()
+    central_hook_stale = central_hook_present and _central_hook_is_stale(root)
+    if central_hook_stale:
+        console.print(
+            "  [yellow]central hook: configured but stale "
+            "(missing activation-header behavior; "
+            "run 'sdd governance generate' to refresh)[/yellow]"
+        )
     for platform, relative_path in _PLATFORM_ADAPTER_FILES.items():
-        state = _platform_hook_state(root, relative_path, central_hook_present)
+        state = _platform_hook_state(
+            root, relative_path, central_hook_present, central_hook_stale
+        )
         console.print(f"  {platform}: {state}")
 
 
+def _central_hook_is_stale(root: Path) -> bool:
+    """Return True when the central hook lacks the current template's markers.
+
+    Adapter files only reference the central hook path, so `status` used to
+    report "configured" even when the central hook itself was generated from
+    an older template version (missing the activation-header instructions).
+    """
+    hook_path = root / CENTRAL_HOOK_RELATIVE
+    try:
+        content = hook_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False
+    return not all(marker in content for marker in _CENTRAL_HOOK_CURRENT_MARKERS)
+
+
 def _platform_hook_state(
-    root: Path, relative_path: Path, central_hook_present: bool
+    root: Path,
+    relative_path: Path,
+    central_hook_present: bool,
+    central_hook_stale: bool,
 ) -> str:
     adapter_path = root / relative_path
     if not central_hook_present or not adapter_path.exists():
@@ -76,5 +112,5 @@ def _platform_hook_state(
     except (OSError, UnicodeDecodeError):
         return "unknown"
     if any(reference in content for reference in _HOOK_REFERENCES):
-        return "configured"
+        return "configured (stale)" if central_hook_stale else "configured"
     return "not configured"
