@@ -201,6 +201,10 @@ jobs:
             --python-version 312 \
             --abi cp312 \
             dist/sdd_cli-*.whl
+          python -m pip download \
+            --dest dist \
+            --only-binary=:all: \
+            "colorama>=0.4.6"
 
       - name: Install packages for compile step
         shell: bash

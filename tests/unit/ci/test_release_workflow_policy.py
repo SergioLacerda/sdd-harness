@@ -113,6 +113,7 @@ def test_release_workflows_build_cross_platform_runtime_wheelhouse() -> None:
         assert "--python-version 312" in steps
         assert "--find-links dist" in steps
         assert "dist/sdd_cli-*.whl" in steps
+        assert '"colorama>=0.4.6"' in steps
 
 
 def test_release_job_depends_on_install_smoke() -> None:
