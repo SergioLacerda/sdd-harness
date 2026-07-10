@@ -64,7 +64,8 @@ def _write_current_central_hook(root: Path) -> Path:
         "#!/usr/bin/env python3\n"
         "# SDD GOVERNANCE ACTIVE\n"
         "def _render_activation_header(context):\n"
-        "    return context\n",
+        "    return context\n"
+        '# {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit"}}\n',
         encoding="utf-8",
     )
     return central_hook

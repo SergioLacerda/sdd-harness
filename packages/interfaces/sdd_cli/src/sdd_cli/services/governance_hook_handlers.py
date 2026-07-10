@@ -33,6 +33,7 @@ _HOOK_REFERENCES = (
 _CENTRAL_HOOK_CURRENT_MARKERS = (
     "SDD GOVERNANCE ACTIVE",
     "_render_activation_header",
+    '"hookEventName"',
 )
 
 

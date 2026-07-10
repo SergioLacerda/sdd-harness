@@ -153,6 +153,7 @@ def test_prompt_submit_hook_injects_governance_activation_header(
 
     assert result.returncode == 0
     payload = json.loads(result.stdout)
+    assert payload["hookSpecificOutput"]["hookEventName"] == "UserPromptSubmit"
     context = payload["hookSpecificOutput"]["additionalContext"]
     assert context.startswith("SDD GOVERNANCE ACTIVE")
     assert "source=prompt-submit-hook" in context
