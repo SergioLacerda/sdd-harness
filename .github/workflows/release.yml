@@ -54,7 +54,8 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
-            if uv sync --all-groups \
+            if uv venv \
+              && uv sync --all-groups \
               && uv pip install -e packages/core/sdd_core \
               && uv pip install -e packages/core/sdd_telemetry \
               && uv pip install -e packages/features/sdd_integration \
@@ -182,6 +183,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          uv venv
           uv sync --all-groups
           uv pip install -e packages/core/sdd_core \
             && uv pip install -e packages/core/sdd_telemetry \
