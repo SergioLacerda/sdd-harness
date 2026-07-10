@@ -13,6 +13,7 @@ import os
 import platform
 import shutil
 import stat
+import sys
 import urllib.error
 import urllib.request
 from importlib.metadata import PackageNotFoundError
@@ -113,23 +114,42 @@ def _installed_cli_version() -> str:
         ) from exc
 
 
+def _debug_downloads_enabled() -> bool:
+    return os.environ.get("SDD_COMPILE_DEBUG_DOWNLOADS", "").strip().lower() not in (
+        "",
+        "0",
+        "false",
+    )
+
+
+def _debug_log(message: str) -> None:
+    if _debug_downloads_enabled():
+        sys.stderr.write(f"[sdd-compile download] {message}\n")
+
+
 def _download(url: str) -> bytes | None:
     if not url.startswith("https://github.com/"):
         raise CompilerRunnerError(
             f"Refusing to fetch sdd-compile from non-GitHub URL: {url}"
         )
+    _debug_log(f"GET {url}")
     try:
         with urllib.request.urlopen(  # nosec B310 -- scheme/host pinned to https://github.com/ above.
             url, timeout=_DOWNLOAD_TIMEOUT_SECONDS
         ) as response:
-            return cast(bytes, response.read())
+            payload = cast(bytes, response.read())
+            _debug_log(f"200 {url} ({len(payload)} bytes)")
+            return payload
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
+            _debug_log(f"404 {url}")
             return None
+        _debug_log(f"error {url}: {exc}")
         raise CompilerRunnerError(
             f"Failed to download sdd-compile from {url}: {exc}"
         ) from exc
     except urllib.error.URLError as exc:
+        _debug_log(f"error {url}: {exc}")
         raise CompilerRunnerError(
             f"Failed to download sdd-compile from {url}: {exc}"
         ) from exc

@@ -74,7 +74,12 @@ def main() -> int:
         return 0
     if context:
         context = _render_activation_header(context) + "\\n\\n" + context
-        print(json.dumps({"hookSpecificOutput": {"additionalContext": context}}))
+        print(json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": context,
+            }
+        }))
     return 0
 
 if __name__ == "__main__":

@@ -121,6 +121,20 @@ def test_release_signing_step_is_blocking() -> None:
     sign_step = next(
         step
         for step in release_steps
-        if "sigstore/gh-action-release-sign" in step.get("uses", "")
+        if "sigstore/gh-action-sigstore-python" in step.get("uses", "")
     )
     assert "continue-on-error" not in sign_step
+
+
+def test_release_signing_uses_real_sigstore_action_with_oidc_permission() -> None:
+    """The signing action must be a real, resolvable action (not a placeholder),
+    and the job must request the OIDC token it needs for keyless signing."""
+    workflow = _load_workflow(RELEASE_WORKFLOW)
+    release_job = _jobs(workflow)["release"]
+    sign_step = next(
+        step
+        for step in release_job["steps"]
+        if "sigstore/gh-action-sigstore-python" in step.get("uses", "")
+    )
+    assert "@5b79a39c381910c090341a2c9b0bf022c8b387e1" in sign_step["uses"]
+    assert release_job["permissions"]["id-token"] == "write"

@@ -306,6 +306,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
     env:
       SDD_ENFORCE_PIPELINE_CORRECT: "1"
     timeout-minutes: 10
@@ -320,34 +321,14 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.11"
+
       - name: Verify release assets are staged
         shell: bash
-        run: |
-          set -euo pipefail
-          required=(
-            "sdd-compile-linux-amd64"
-            "sdd-compile-linux-arm64"
-            "sdd-compile-darwin-amd64"
-            "sdd-compile-darwin-arm64"
-            "sdd-compile-windows-amd64.exe"
-            "SHA256SUMS"
-          )
-          for asset in "${required[@]}"; do
-            test -s "dist/$asset" || {
-              echo "ERROR: missing release asset dist/$asset"
-              find dist -maxdepth 1 -type f -printf '%f\n' | sort
-              exit 1
-            }
-          done
-          for asset in "${required[@]}"; do
-            if [ "$asset" != "SHA256SUMS" ]; then
-              grep -q "  $asset$" dist/SHA256SUMS || {
-                echo "ERROR: SHA256SUMS does not list $asset"
-                cat dist/SHA256SUMS
-                exit 1
-              }
-            fi
-          done
+        run: python3 tools/release/validate_release_assets.py dist
 
       - name: Extract changelog entry
         id: changelog
@@ -373,12 +354,16 @@ jobs:
           output-file: sbom.spdx.json
           format: spdx-json
 
-      - name: Sign artifacts with cosign
-        uses: sigstore/gh-action-release-sign@4c6f2d1f9d8a5c7e2b9a3f4e5d6c7b8a9f0e1d2c
+      - name: Sign artifacts with sigstore
+        uses: sigstore/gh-action-sigstore-python@5b79a39c381910c090341a2c9b0bf022c8b387e1 # v3.4.0
         with:
-          artifact-path: dist/
-          token: ${{ secrets.GITHUB_TOKEN }}
-          release-signing-secret: ${{ secrets.SIGSTORE_SIGNING_SECRET }}
+          inputs: |
+            dist/sdd-compile-linux-amd64
+            dist/sdd-compile-linux-arm64
+            dist/sdd-compile-darwin-amd64
+            dist/sdd-compile-darwin-arm64
+            dist/sdd-compile-windows-amd64.exe
+            dist/SHA256SUMS
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
@@ -389,6 +374,10 @@ jobs:
             dist/*
             sbom.spdx.json
           tag_name: ${{ github.ref_name }}
+          # If a release for this tag already exists (e.g. a manually created
+          # release shell with no assets), update it in place and replace any
+          # files with matching names rather than failing or duplicating.
+          overwrite_files: true
 
       - name: Verify GitHub Release exposes standalone compiler assets
         shell: bash

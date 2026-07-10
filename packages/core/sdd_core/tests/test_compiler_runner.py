@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import hashlib
+import stat
+import urllib.error
+from pathlib import Path
+from types import SimpleNamespace
+
 import pytest
 
 from sdd_core.utils import compiler_runner
-from sdd_core.utils.compiler_runner import CompilerRunnerError
+from sdd_core.utils.compiler_runner import CompilerRunner, CompilerRunnerError
 
 
 def test_fetch_release_binary_error_names_standalone_remediation(
@@ -24,3 +30,420 @@ def test_fetch_release_binary_error_names_standalone_remediation(
     assert "tried tags v1.0.0 and V1.0.0" in message
     assert "Standalone installs need a release asset" in message
     assert "SDD_COMPILE_BIN" in message
+
+
+def test_fetch_release_binary_error_when_sha256sums_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A binary present without a SHA256SUMS manifest must be refused, not trusted."""
+
+    def _fake_download(url: str) -> bytes | None:
+        if url.endswith("SHA256SUMS"):
+            return None
+        return b"binary-payload"
+
+    monkeypatch.setattr(compiler_runner, "_download", _fake_download)
+
+    with pytest.raises(CompilerRunnerError) as exc_info:
+        compiler_runner._fetch_release_binary("1.0.0", "sdd-compile-linux-amd64")
+
+    message = str(exc_info.value)
+    assert "SHA256SUMS is missing" in message
+    assert "refusing to use an unverified binary" in message
+
+
+def test_fetch_release_binary_error_when_checksum_entry_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A SHA256SUMS manifest that omits the requested asset must be refused."""
+
+    def _fake_download(url: str) -> bytes | None:
+        if url.endswith("SHA256SUMS"):
+            return b"deadbeef  sdd-compile-darwin-arm64\n"
+        return b"binary-payload"
+
+    monkeypatch.setattr(compiler_runner, "_download", _fake_download)
+
+    with pytest.raises(CompilerRunnerError) as exc_info:
+        compiler_runner._fetch_release_binary("1.0.0", "sdd-compile-linux-amd64")
+
+    message = str(exc_info.value)
+    assert "SHA256SUMS for tag v1.0.0 does not list sdd-compile-linux-amd64" in message
+    assert "refusing to use an unverified binary" in message
+
+
+def test_download_logs_attempted_urls_when_debug_env_set(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """SDD_COMPILE_DEBUG_DOWNLOADS should surface the exact URLs attempted."""
+
+    monkeypatch.setenv("SDD_COMPILE_DEBUG_DOWNLOADS", "1")
+
+    class _FakeResponse:
+        def __enter__(self) -> _FakeResponse:
+            return self
+
+        def __exit__(self, *_exc: object) -> None:
+            return None
+
+        def read(self) -> bytes:
+            return b"payload"
+
+    monkeypatch.setattr(
+        compiler_runner.urllib.request, "urlopen", lambda *_a, **_kw: _FakeResponse()
+    )
+
+    result = compiler_runner._download("https://github.com/example/asset")
+
+    assert result == b"payload"
+    stderr = capsys.readouterr().err
+    assert "https://github.com/example/asset" in stderr
+
+
+def test_download_debug_logging_disabled_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.delenv("SDD_COMPILE_DEBUG_DOWNLOADS", raising=False)
+
+    class _FakeResponse:
+        def __enter__(self) -> _FakeResponse:
+            return self
+
+        def __exit__(self, *_exc: object) -> None:
+            return None
+
+        def read(self) -> bytes:
+            return b"payload"
+
+    monkeypatch.setattr(
+        compiler_runner.urllib.request, "urlopen", lambda *_a, **_kw: _FakeResponse()
+    )
+
+    compiler_runner._download("https://github.com/example/asset")
+
+    assert capsys.readouterr().err == ""
+
+
+def test_asset_platform_rejects_unsupported_os(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(compiler_runner.platform, "system", lambda: "PlayStation")
+
+    with pytest.raises(CompilerRunnerError, match="Unsupported platform"):
+        compiler_runner._asset_platform()
+
+
+def test_asset_platform_rejects_unsupported_arch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(compiler_runner.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(compiler_runner.platform, "machine", lambda: "riscv64")
+
+    with pytest.raises(CompilerRunnerError, match="Unsupported architecture"):
+        compiler_runner._asset_platform()
+
+
+def test_installed_cli_version_raises_when_package_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise(_name: str) -> str:
+        raise compiler_runner.PackageNotFoundError()
+
+    monkeypatch.setattr(compiler_runner, "_pkg_version", _raise)
+
+    with pytest.raises(CompilerRunnerError, match="Cannot determine sdd-cli version"):
+        compiler_runner._installed_cli_version()
+
+
+def test_download_rejects_non_github_url() -> None:
+    with pytest.raises(CompilerRunnerError, match="non-GitHub URL"):
+        compiler_runner._download("https://evil.example.com/asset")
+
+
+def test_download_raises_on_http_error_non_404(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _raise_urlopen(*_a: object, **_kw: object) -> None:
+        raise urllib.error.HTTPError(
+            url="https://github.com/x", code=500, msg="err", hdrs=None, fp=None
+        )
+
+    monkeypatch.setattr(compiler_runner.urllib.request, "urlopen", _raise_urlopen)
+
+    with pytest.raises(CompilerRunnerError, match="Failed to download"):
+        compiler_runner._download("https://github.com/example/asset")
+
+
+def test_download_raises_on_url_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _raise_urlopen(*_a: object, **_kw: object) -> None:
+        raise urllib.error.URLError("network down")
+
+    monkeypatch.setattr(compiler_runner.urllib.request, "urlopen", _raise_urlopen)
+
+    with pytest.raises(CompilerRunnerError, match="Failed to download"):
+        compiler_runner._download("https://github.com/example/asset")
+
+
+def test_fetch_release_binary_succeeds_and_returns_matching_checksum(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _fake_download(url: str) -> bytes:
+        if url.endswith("SHA256SUMS"):
+            return b"deadbeef  sdd-compile-linux-amd64\n"
+        return b"binary-bytes"
+
+    monkeypatch.setattr(compiler_runner, "_download", _fake_download)
+
+    payload, digest = compiler_runner._fetch_release_binary(
+        "1.0.0", "sdd-compile-linux-amd64"
+    )
+
+    assert payload == b"binary-bytes"
+    assert digest == "deadbeef"
+
+
+def test_download_and_cache_binary_returns_existing_cache(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(compiler_runner, "_cache_dir", lambda: tmp_path)
+    monkeypatch.setattr(
+        compiler_runner, "_asset_platform", lambda: ("linux", "amd64", "")
+    )
+    cached = tmp_path / "1.0.0" / "sdd-compile-linux-amd64"
+    cached.parent.mkdir(parents=True)
+    cached.write_bytes(b"cached")
+
+    result = compiler_runner._download_and_cache_binary("1.0.0")
+
+    assert result == cached
+
+
+def test_download_and_cache_binary_raises_on_checksum_mismatch(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(compiler_runner, "_cache_dir", lambda: tmp_path)
+    monkeypatch.setattr(
+        compiler_runner, "_asset_platform", lambda: ("linux", "amd64", "")
+    )
+    monkeypatch.setattr(
+        compiler_runner, "_fetch_release_binary", lambda *_a: (b"payload", "0" * 64)
+    )
+
+    with pytest.raises(CompilerRunnerError, match="checksum mismatch"):
+        compiler_runner._download_and_cache_binary("1.0.0")
+
+
+def test_download_and_cache_binary_writes_and_marks_executable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(compiler_runner, "_cache_dir", lambda: tmp_path)
+    monkeypatch.setattr(
+        compiler_runner, "_asset_platform", lambda: ("linux", "amd64", "")
+    )
+    payload = b"payload"
+    digest = hashlib.sha256(payload).hexdigest()
+    monkeypatch.setattr(
+        compiler_runner, "_fetch_release_binary", lambda *_a: (payload, digest)
+    )
+
+    result = compiler_runner._download_and_cache_binary("1.0.0")
+
+    assert result.read_bytes() == payload
+    assert result.stat().st_mode & stat.S_IXUSR
+
+
+def test_locate_binary_env_override_returns_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    binary = tmp_path / "sdd-compile"
+    binary.write_text("x")
+    monkeypatch.setenv("SDD_COMPILE_BIN", str(binary))
+
+    assert compiler_runner._locate_binary() == binary
+
+
+def test_locate_binary_env_override_raises_when_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    missing = tmp_path / "nope"
+    monkeypatch.setenv("SDD_COMPILE_BIN", str(missing))
+
+    with pytest.raises(CompilerRunnerError, match="does not exist"):
+        compiler_runner._locate_binary()
+
+
+def test_locate_binary_finds_binary_on_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
+    monkeypatch.setattr(compiler_runner, "_try_detect_repo_root", lambda: None)
+    fake_path = tmp_path / "sdd-compile"
+    fake_path.write_text("x")
+    monkeypatch.setattr(compiler_runner.shutil, "which", lambda _name: str(fake_path))
+
+    assert compiler_runner._locate_binary() == fake_path
+
+
+def test_locate_binary_raises_when_nothing_found_and_download_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
+    monkeypatch.setattr(compiler_runner, "_try_detect_repo_root", lambda: None)
+    monkeypatch.setattr(compiler_runner.shutil, "which", lambda _name: None)
+    monkeypatch.setenv("SDD_COMPILE_NO_DOWNLOAD", "1")
+
+    with pytest.raises(CompilerRunnerError, match="sdd-compile binary not found"):
+        compiler_runner._locate_binary()
+
+
+def test_try_detect_repo_root_returns_none_on_runtime_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise() -> Path:
+        raise RuntimeError("no repo")
+
+    monkeypatch.setattr(compiler_runner, "detect_repo_root", _raise)
+
+    assert compiler_runner._try_detect_repo_root() is None
+
+
+def _make_runner(fake_result: SimpleNamespace) -> CompilerRunner:
+    runner = CompilerRunner.__new__(CompilerRunner)
+    runner._binary = Path("/fake/sdd-compile")  # type: ignore[attr-defined]
+    runner._runner = SimpleNamespace(run=lambda _args: fake_result)  # type: ignore[attr-defined]
+    return runner
+
+
+def test_version_returns_stripped_stdout_on_success() -> None:
+    runner = _make_runner(SimpleNamespace(success=True, stdout=" 1.2.3 \n", stderr=""))
+
+    assert runner.version() == "1.2.3"
+
+
+def test_version_raises_on_process_failure() -> None:
+    runner = _make_runner(SimpleNamespace(success=False, stdout="", stderr="boom"))
+
+    with pytest.raises(CompilerRunnerError, match="sdd-compile version failed: boom"):
+        runner.version()
+
+
+def test_compile_raises_when_result_reports_not_ok() -> None:
+    runner = _make_runner(
+        SimpleNamespace(
+            success=True, stdout='{"ok": false, "error": "bad spec"}', stderr=""
+        )
+    )
+
+    with pytest.raises(CompilerRunnerError, match="bad spec"):
+        runner.compile("in", "out")
+
+
+def test_parse_json_raises_on_empty_stdout() -> None:
+    with pytest.raises(CompilerRunnerError, match="produced no output"):
+        CompilerRunner._parse_json("   ", context="compile")
+
+
+def test_parse_json_raises_on_invalid_json() -> None:
+    with pytest.raises(CompilerRunnerError, match="produced invalid JSON"):
+        CompilerRunner._parse_json("not json", context="validate")
+
+
+def test_cache_dir_is_under_home_sdd_bin() -> None:
+    assert compiler_runner._cache_dir() == Path.home() / ".sdd" / "bin"
+
+
+def test_asset_platform_windows_uses_exe_extension(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(compiler_runner.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(compiler_runner.platform, "machine", lambda: "AMD64")
+
+    goos, goarch, ext = compiler_runner._asset_platform()
+
+    assert (goos, goarch, ext) == ("windows", "amd64", ".exe")
+
+
+def test_download_returns_none_on_http_404(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _raise_urlopen(*_a: object, **_kw: object) -> None:
+        raise urllib.error.HTTPError(
+            url="https://github.com/x", code=404, msg="not found", hdrs=None, fp=None
+        )
+
+    monkeypatch.setattr(compiler_runner.urllib.request, "urlopen", _raise_urlopen)
+
+    assert compiler_runner._download("https://github.com/example/asset") is None
+
+
+def test_locate_binary_finds_repo_built_binary(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
+    built_path = tmp_path / "tools" / "sdd-compile" / "bin" / "sdd-compile"
+    built_path.parent.mkdir(parents=True)
+    built_path.write_text("x")
+
+    assert compiler_runner._locate_binary(tmp_path) == built_path
+
+
+def test_locate_binary_downloads_when_nothing_found(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
+    monkeypatch.delenv("SDD_COMPILE_NO_DOWNLOAD", raising=False)
+    monkeypatch.setattr(compiler_runner.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(compiler_runner, "_installed_cli_version", lambda: "1.0.0")
+    downloaded = tmp_path / "downloaded-sdd-compile"
+    downloaded.write_text("x")
+    monkeypatch.setattr(
+        compiler_runner, "_download_and_cache_binary", lambda _version: downloaded
+    )
+
+    assert compiler_runner._locate_binary(tmp_path) == downloaded
+
+
+def test_compiler_runner_init_locates_binary_via_env_override(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    binary = tmp_path / "sdd-compile"
+    binary.write_text("x")
+    monkeypatch.setenv("SDD_COMPILE_BIN", str(binary))
+
+    runner = CompilerRunner(repo_root=tmp_path)
+
+    assert runner._binary == binary
+    assert runner.repo_root == tmp_path.resolve()
+
+
+def test_compile_returns_payload_on_success() -> None:
+    runner = _make_runner(
+        SimpleNamespace(
+            success=True, stdout='{"ok": true, "core_item_count": 3}', stderr=""
+        )
+    )
+
+    result = runner.compile("in", "out")
+
+    assert result["ok"] is True
+    assert result["core_item_count"] == 3
+
+
+def test_validate_compilation_detailed_returns_parsed_payload() -> None:
+    runner = _make_runner(
+        SimpleNamespace(
+            success=True, stdout='{"ok": true, "errors": [], "checks": []}', stderr=""
+        )
+    )
+
+    result = runner.validate_compilation_detailed("out")
+
+    assert result["ok"] is True
+
+
+def test_validate_compilation_returns_ok_flag() -> None:
+    runner = _make_runner(
+        SimpleNamespace(
+            success=True,
+            stdout='{"ok": false, "errors": ["x"], "checks": []}',
+            stderr="",
+        )
+    )
+
+    assert runner.validate_compilation("out") is False
