@@ -189,6 +189,30 @@ class TestGenerateRuntimeHandbookRequired:
         assert (args[0] / "docs/spec/canonical/governance-sources.yaml").exists()
         assert kwargs == {"runtime_root": tmp_path / "out"}
 
+    def test_missing_workspace_registry_without_repo_skips_handbook(
+        self, tmp_path: Path
+    ) -> None:
+        console = _console()
+        workspace = tmp_path / "workspace"
+        with (
+            patch(
+                "sdd_cli.utils.sdd_authority.resolve_workspace_root",
+                return_value=workspace,
+            ),
+            patch(
+                "sdd_cli.utils.environment.detect_repo_root",
+                side_effect=RuntimeError("repo missing"),
+            ),
+            patch(
+                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                return_value=[],
+            ) as mock_generate,
+        ):
+            generate_runtime_handbook_required(tmp_path / "out", console=console)
+
+        mock_generate.assert_called_once_with(workspace, runtime_root=tmp_path / "out")
+        assert console.file.getvalue() == ""
+
     def test_quiet_suppresses_success_output(self, tmp_path: Path) -> None:
         console = _console()
         with patch(

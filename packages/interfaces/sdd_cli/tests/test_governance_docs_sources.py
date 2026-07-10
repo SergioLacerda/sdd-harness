@@ -173,6 +173,19 @@ def test_generate_runtime_handbook_writes_index_and_item(tmp_path: Path) -> None
     assert item["source_doc"] == "docs/cognition/context-loading/context_flow.md"
 
 
+def test_generate_runtime_handbook_skips_when_registry_is_absent(
+    tmp_path: Path,
+) -> None:
+    existing = tmp_path / ".sdd/source/handbook/index.yaml"
+    existing.parent.mkdir(parents=True)
+    existing.write_text("schema_version: '1'\nitems: []\n", encoding="utf-8")
+
+    written = generate_runtime_handbook(tmp_path)
+
+    assert written == []
+    assert existing.read_text(encoding="utf-8") == "schema_version: '1'\nitems: []\n"
+
+
 def test_validate_governance_sources_detects_missing_handbook_output(
     tmp_path: Path,
 ) -> None:

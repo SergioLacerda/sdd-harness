@@ -356,6 +356,8 @@ def generate_runtime_handbook(
 ) -> list[Path]:
     """Generate selective runtime handbook entries from docs-source registry."""
     registry_file = root / (registry_path or DEFAULT_REGISTRY)
+    if not registry_file.exists():
+        return []
     registry = _load_yaml(registry_file)
     target_root = runtime_root or root
     handbook_root = target_root / (output_dir or DEFAULT_HANDBOOK_DIR)
