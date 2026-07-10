@@ -68,6 +68,16 @@ jobs:
           done
           exit 1
 
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: "1.26"
+          cache-dependency-path: tools/sdd-compile/go.sum
+
+      - name: Build sdd-compile binary
+        shell: bash
+        run: make build-compiler
+
       - name: Run tests
         shell: bash
         run: uv run pytest tests/unit tests/integration -q --tb=short
