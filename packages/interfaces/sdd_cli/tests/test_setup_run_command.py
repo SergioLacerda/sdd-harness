@@ -45,7 +45,7 @@ class TestRunSetup:
                 return_value="/venv/bin/sdd",
             ),
         ):
-            result = runner.invoke(app, ["setup", "run", "--no-hooks"])
+            result = runner.invoke(app, ["setup", "run"])
 
         assert result.exit_code == 0
         assert "completed" in result.output.lower()
@@ -65,7 +65,7 @@ class TestRunSetup:
                 side_effect=RuntimeError("not found"),
             ),
         ):
-            result = runner.invoke(app, ["setup", "run", "--no-hooks"])
+            result = runner.invoke(app, ["setup", "run"])
 
         assert result.exit_code == 1
         assert "venv python" in result.output.lower()
@@ -86,7 +86,7 @@ class TestRunSetup:
                 return_value="/venv/bin/python",
             ),
         ):
-            result = runner.invoke(app, ["setup", "run", "--no-hooks"])
+            result = runner.invoke(app, ["setup", "run"])
 
         assert result.exit_code == 1
         assert "FAILED" in result.output
@@ -111,7 +111,7 @@ class TestRunSetup:
                 side_effect=RuntimeError("not found"),
             ),
         ):
-            result = runner.invoke(app, ["setup", "run", "--no-hooks"])
+            result = runner.invoke(app, ["setup", "run"])
 
         assert result.exit_code == 1
         assert "sdd CLI not found" in result.output
@@ -137,7 +137,7 @@ class TestRunSetup:
                 return_value="/venv/bin/sdd",
             ),
         ):
-            result = runner.invoke(app, ["setup", "run", "--no-hooks"])
+            result = runner.invoke(app, ["setup", "run"])
 
         # Either fails due to package install or CLI check
         assert result.exit_code != 0
@@ -168,30 +168,27 @@ class TestRunSetup:
                 return_value="/venv/bin/sdd",
             ),
         ):
-            result = runner.invoke(app, ["setup", "run", "--no-hooks"])
+            result = runner.invoke(app, ["setup", "run"])
 
         assert result.exit_code == 0
         calls_str = str(mock_runner.run.call_args_list)
         assert "ensurepip" in calls_str
 
 
-class TestSetupGitHooksCommandTree:
-    """Command-tree regression: setup git-hooks must be registered in the CLI."""
+class TestSetupGitHooksRemoved:
+    """Command-tree regression: setup git-hooks must not be registered."""
 
-    def test_setup_git_hooks_help_is_registered(self) -> None:
-        """setup git-hooks --help exits 0, proving the subcommand is in the tree."""
+    def test_setup_git_hooks_help_is_not_registered(self) -> None:
+        """setup git-hooks --help must fail because Git hooks are not client setup."""
         from sdd_cli.main import app
 
         result = CliRunner().invoke(app, ["setup", "git-hooks", "--help"])
-        assert result.exit_code == 0, (
-            f"setup git-hooks --help failed (exit {result.exit_code}):\n{result.output}"
-        )
-        assert "git-hooks" in result.output.lower() or "hook" in result.output.lower()
+        assert result.exit_code != 0
 
-    def test_setup_subgroup_lists_git_hooks(self) -> None:
-        """sdd setup --help lists git-hooks as a registered subcommand."""
+    def test_setup_subgroup_does_not_list_git_hooks(self) -> None:
+        """sdd setup --help must not list git-hooks as a registered subcommand."""
         from sdd_cli.main import app
 
         result = CliRunner().invoke(app, ["setup", "--help"])
         assert result.exit_code == 0
-        assert "git-hooks" in result.output
+        assert "git-hooks" not in result.output

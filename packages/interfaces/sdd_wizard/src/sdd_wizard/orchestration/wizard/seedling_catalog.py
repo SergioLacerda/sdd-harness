@@ -44,7 +44,6 @@ CATALOG: tuple[SeedlingOption, ...] = (
     SeedlingOption(
         "ci", OPTIONAL, "CI/CD workflow (sdd-validation.yml)", default=False
     ),
-    SeedlingOption("pre-commit", OPTIONAL, "pre-commit hooks", default=False),
     SeedlingOption("compliance", OPTIONAL, "compliance.seed.json", default=False),
     SeedlingOption(
         "personal-overlay", OPTIONAL, "personal skill overlay", default=False
@@ -55,7 +54,7 @@ CATALOG_BY_KEY: dict[str, SeedlingOption] = {option.key: option for option in CA
 
 # Recommended default: everything except OPTIONAL-group options and any
 # option explicitly marked `default=False`. This is what "no selection" means
-# — it is deliberately NOT "generate everything" (CI/CD, pre-commit, and
+# — it is deliberately NOT "generate everything" (CI/CD and
 # compliance artifacts are opt-in only).
 RECOMMENDED_DEFAULT: frozenset[str] = frozenset(
     option.key for option in CATALOG if option.default
@@ -78,7 +77,7 @@ def resolve_selection(selected: set[str] | None) -> set[str]:
     """Resolve a user selection to a concrete set of keys.
 
     `None` means "no explicit selection was made" and resolves to the
-    recommended default (core + IDEs + agents, excluding CI/pre-commit/
+    recommended default (core + IDEs + agents, excluding CI/
     compliance). An explicit (possibly empty) set is returned unchanged.
     """
     if selected is None:

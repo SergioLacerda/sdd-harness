@@ -35,7 +35,7 @@ class TestRunSetupAdvanced:
                 return_value="/venv/bin/sdd",
             ),
         ):
-            runner.invoke(app, ["setup", "run", "--no-hooks"])
+            runner.invoke(app, ["setup", "run"])
 
         # _run for venv creation should have been called
         calls_str = str(mock_runner.run.call_args_list)
@@ -68,7 +68,7 @@ class TestRunSetupAdvanced:
                 return_value="/venv/bin/sdd",
             ),
         ):
-            runner.invoke(app, ["setup", "run", "--no-hooks"])
+            runner.invoke(app, ["setup", "run"])
 
         calls_str = str(mock_runner.run.call_args_list)
         assert "sdd_core" in calls_str
@@ -100,7 +100,7 @@ class TestRunSetupAdvanced:
                 return_value="/venv/bin/sdd",
             ),
         ):
-            runner.invoke(app, ["setup", "run", "--no-hooks"])
+            runner.invoke(app, ["setup", "run"])
 
         calls_str = str(mock_runner.run.call_args_list)
         assert "sdd_extra" in calls_str
@@ -131,36 +131,7 @@ class TestRunSetupAdvanced:
                 return_value="/venv/bin/sdd",
             ),
         ):
-            runner.invoke(app, ["setup", "run", "--no-hooks"])
+            runner.invoke(app, ["setup", "run"])
 
         calls_str = str(mock_runner.run.call_args_list)
         assert "[dev]" in calls_str
-
-    def test_run_setup_with_hooks_calls_setup_git_hooks(self, tmp_path: Path) -> None:
-        from sdd_cli.main import app
-
-        (tmp_path / ".venv").mkdir()
-        mock_runner = MagicMock()
-        mock_runner.run.return_value = MagicMock(success=True)
-
-        hooks_src = tmp_path / "tools" / "scripts" / "git-hooks"
-        hooks_src.mkdir(parents=True)
-        git_hooks = tmp_path / ".git" / "hooks"
-        git_hooks.mkdir(parents=True)
-
-        with (
-            patch.object(setup_mod, "_REPO_ROOT", tmp_path),
-            patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
-            patch.object(setup_mod, "_validate_module_import", return_value=True),
-            patch(
-                "sdd_cli.commands.setup.resolve_venv_python",
-                return_value="/venv/bin/python",
-            ),
-            patch(
-                "sdd_cli.commands.setup.resolve_venv_sdd",
-                return_value="/venv/bin/sdd",
-            ),
-        ):
-            result = runner.invoke(app, ["setup", "run", "--hooks"])
-
-        assert "Hooks" in result.output or result.exit_code == 0

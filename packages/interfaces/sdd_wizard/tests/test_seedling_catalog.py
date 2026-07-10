@@ -28,12 +28,16 @@ def test_ide_and_agents_are_separate_groups() -> None:
     assert "AGENT/IDE" not in groups
 
 
-def test_ci_pre_commit_compliance_are_optional_and_off_by_default() -> None:
-    for key in ("ci", "pre-commit", "compliance"):
+def test_ci_and_compliance_are_optional_and_off_by_default() -> None:
+    for key in ("ci", "compliance"):
         option = CATALOG_BY_KEY[key]
         assert option.group == OPTIONAL
         assert option.default is False
         assert key not in RECOMMENDED_DEFAULT
+
+
+def test_pre_commit_is_not_a_seedling_option() -> None:
+    assert "pre-commit" not in CATALOG_BY_KEY
 
 
 def test_recommended_default_excludes_optional_group() -> None:

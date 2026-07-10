@@ -16,8 +16,8 @@ Get your SDD workspace running with governed bootstrap and agent command packs.
 After `sdd install --wizard` has generated and deployed your project template,
 `sdd init --default` runs the full client bootstrap chain in one step: workspace
 profile, governance generate (`--full-bootstrap`), skills bootstrap
-(`--full-bootstrap --regenerate-seeds`), runtime validation, and git hooks
-install. It is equivalent to `sdd init --type client --name local-dev --force`,
+(`--full-bootstrap --regenerate-seeds`), and runtime validation. It is
+equivalent to `sdd init --type client --name local-dev --force`,
 with any of `--type`/`--name`/`--force` you pass explicitly taking precedence.
 
 ```bash
@@ -65,9 +65,8 @@ sdd governance generate --full-bootstrap
 # 5. Generate skills/commands/seeds for agent entrypoints
 sdd skills --full-bootstrap --regenerate-seeds
 
-# 6. Verify runtime/governance health and install git hooks
+# 6. Verify runtime/governance health
 sdd runtime status
-sdd setup git-hooks
 sdd governance validate
 ```
 
@@ -92,13 +91,13 @@ The interactive seedling selector groups options into four sections:
   `verify`. Always part of the recommended default.
 - **IDEs** — `vscode`, `cursor`, `antigravity`.
 - **AGENTS** — `claude`, `codex`, `gemini`, `copilot`.
-- **OPTIONAL** — `ci`, `pre-commit`, `compliance`, `personal-overlay`. Off by
-  default; select explicitly to generate `.github/workflows/sdd-validation.yml`,
-  pre-commit hooks, or `compliance.seed.json`.
+- **OPTIONAL** — `ci`, `compliance`, `personal-overlay`. Off by
+  default; select explicitly to generate `.github/workflows/sdd-validation.yml`
+  or `compliance.seed.json`.
 
 Leaving the selection empty applies the **recommended default** (CORE + all
 IDEs + all AGENTS) — it is not "generate everything," and it never includes
-CI/CD or pre-commit artifacts unless you opt in.
+CI/CD or compliance artifacts unless you opt in.
 
 Only the artifacts belonging to your selection are generated, deployed, and
 validated. Files from a previous wizard run that belong to options you no

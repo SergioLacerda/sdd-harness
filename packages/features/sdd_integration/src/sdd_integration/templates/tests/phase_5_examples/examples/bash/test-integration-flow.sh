@@ -93,7 +93,6 @@ test_step_2_templates() {
         ".vscode/ai-rules.md"
         ".vscode/settings.json"
         ".cursor/rules/spec.mdc"
-        ".pre-commit-config.yaml"
         ".sdd/README.md"
     )
 

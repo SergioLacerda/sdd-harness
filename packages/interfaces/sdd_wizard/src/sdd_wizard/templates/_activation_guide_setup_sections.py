@@ -115,10 +115,9 @@ def _seedling_descriptions_section() -> str:
 **Purpose:** Sets up compliance checking
 - Validates fingerprint hasn't drifted
 - Enforces mandates in CI/CD
-- Configures pre-commit hooks
-- Triggers on git operations
+- Supports selected runtime and CI checks
 
-**You'll know it works when:** Pre-commit blocks non-compliant changes
+**You'll know it works when:** selected governance checks flag non-compliant changes
 
 ### 4. ACTIVATION_GUIDE.md (This File)
 **Purpose:** Instructions for using seedlings

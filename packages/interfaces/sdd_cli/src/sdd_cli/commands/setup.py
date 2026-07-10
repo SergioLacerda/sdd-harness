@@ -1,7 +1,6 @@
 """Setup."""
 
 import sys
-from pathlib import Path
 
 import typer
 
@@ -10,11 +9,6 @@ from sdd_cli.utils.environment import (
     detect_repo_root,
     resolve_venv_python,
     resolve_venv_sdd,
-)
-from sdd_cli.utils.operational_errors import (
-    OperationalCliError,
-    operational_error_from_exception,
-    render_operational_error,
 )
 
 app = typer.Typer(invoke_without_command=True)
@@ -28,7 +22,7 @@ def _(
 ) -> None:
     """Setup environment."""
     if list_commands or ctx.invoked_subcommand is None:
-        show_command_group("Setup", ["git-hooks", "run"])
+        show_command_group("Setup", ["run"])
         raise typer.Exit(0)
 
 
@@ -56,134 +50,8 @@ def _ensure_phase_0_marker() -> None:
     (runtime_dir / ".phase-0-complete").touch(exist_ok=True)
 
 
-def _uninstall_git_hooks(hooks_src: Path, git_hooks_dest: Path) -> None:
-    """Remove previously installed SDD git hooks."""
-    typer.echo("Uninstalling SDD Internal Hooks...")
-    for hook_file in hooks_src.iterdir():
-        if hook_file.is_dir() or hook_file.name.startswith("."):
-            continue
-        target = git_hooks_dest / hook_file.name
-        if target.is_symlink() or target.exists():
-            try:
-                target.unlink()
-            except OSError as exc:
-                operational_error = operational_error_from_exception(
-                    exc,
-                    headline="Could not remove an installed Git hook.",
-                    command="sdd setup git-hooks",
-                    step="hooks",
-                    operation="unlink",
-                    path=target,
-                    next_hint="close programs using the hook file, then retry: sdd setup git-hooks --uninstall",
-                )
-                if operational_error is None:
-                    raise
-                raise operational_error from exc
-            typer.echo(f"  Removed: {hook_file.name}")
-
-
-def _install_git_hook(hook_file: Path, git_hooks_dest: Path) -> bool:
-    """Install a single git hook, returns True if copied instead of symlinked."""
-    import os
-    import shutil
-
-    target = git_hooks_dest / hook_file.name
-    if target.exists() or target.is_symlink():
-        try:
-            target.unlink()
-        except OSError as exc:
-            operational_error = operational_error_from_exception(
-                exc,
-                headline="Could not replace an existing Git hook.",
-                command="sdd setup git-hooks",
-                step="hooks",
-                operation="unlink",
-                path=target,
-                next_hint="close programs using the hook file, then retry: sdd setup git-hooks",
-            )
-            if operational_error is None:
-                raise
-            raise operational_error from exc
-    try:
-        os.symlink(hook_file.absolute(), target)
-        try:
-            hook_file.chmod(0o755)
-        except OSError as exc:
-            typer.echo(
-                f"  WARN: Could not chmod {hook_file.name}; continuing because the hook was linked ({exc})"
-            )
-        typer.echo(f"  OK: Linked {hook_file.name}")
-        return False
-    except OSError:
-        try:
-            shutil.copy2(hook_file, target)
-        except OSError as exc:
-            operational_error = operational_error_from_exception(
-                exc,
-                headline="Could not copy Git hook after symlink fallback.",
-                command="sdd setup git-hooks",
-                step="hooks",
-                operation="copy",
-                path=target,
-                next_hint="check .git/hooks permissions, then retry: sdd setup git-hooks",
-            )
-            if operational_error is None:
-                raise
-            raise operational_error from exc
-        try:
-            target.chmod(0o755)
-        except OSError as exc:
-            typer.echo(
-                f"  WARN: Could not chmod {hook_file.name}; continuing because the hook was copied ({exc})"
-            )
-        typer.echo(
-            f"  OK: Copied {hook_file.name} (symlink unavailable on this platform)"
-        )
-        return True
-
-
-@app.command(name="git-hooks")
-def setup_git_hooks(
-    uninstall: bool = typer.Option(False, "--uninstall", help="Remove SDD git hooks"),
-) -> None:
-    """Install or uninstall SDD git hooks."""
-    hooks_src = _REPO_ROOT / "tools" / "scripts" / "git-hooks"
-    git_hooks_dest = _REPO_ROOT / ".git" / "hooks"
-
-    if not git_hooks_dest.exists():
-        typer.echo(f"ERROR: .git/hooks directory not found at {git_hooks_dest}")
-        raise typer.Exit(1)
-
-    if uninstall:
-        try:
-            _uninstall_git_hooks(hooks_src, git_hooks_dest)
-        except OperationalCliError as exc:
-            render_operational_error(exc)
-            raise typer.Exit(exc.exit_code) from None
-        return
-
-    typer.echo(f"Installing SDD World-Class Hooks from {hooks_src}...")
-    any_copied = False
-    try:
-        for hook_file in hooks_src.iterdir():
-            if hook_file.is_dir() or hook_file.name.startswith("."):
-                continue
-            if _install_git_hook(hook_file, git_hooks_dest):
-                any_copied = True
-    except OperationalCliError as exc:
-        render_operational_error(exc)
-        raise typer.Exit(exc.exit_code) from None
-    if any_copied:
-        typer.echo(
-            "\nNote: hooks were copied (not linked) because symlinks are unavailable on this platform. Re-run 'sdd setup git-hooks' after pulling changes to tools/scripts/git-hooks/."
-        )
-    typer.echo("\n✅ SDD Internal Hooks Installed.")
-
-
 @app.command(name="run")
-def run_setup(  # noqa: C901
-    hooks: bool = typer.Option(True, help="Install git hooks after setup"),
-) -> None:
+def run_setup() -> None:  # noqa: C901
     """Setup SDD workspace."""
 
     typer.echo("SDD Workspace Setup")
@@ -266,7 +134,4 @@ def run_setup(  # noqa: C901
 
     _ensure_phase_0_marker()
     typer.echo("  OK: Runtime phase-0 marker initialized")
-    if hooks:
-        typer.echo("")
-        setup_git_hooks()
     typer.echo("\nSetup completed!")

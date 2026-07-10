@@ -58,8 +58,8 @@ class TestOnboardingOrchestrator:
             "sdd_cli.services.onboarding.resolve_sdd_child_cmd", lambda: resolved
         )
         orc = OnboardingOrchestrator(tmp_path)
-        orc._run_step("x", ["setup", "git-hooks"])
-        assert seen["cmd"] == [resolved, "setup", "git-hooks"]
+        orc._run_step("x", ["runtime", "status"])
+        assert seen["cmd"] == [resolved, "runtime", "status"]
 
     def test_run_step_process_permission_error_has_operational_context(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -188,7 +188,6 @@ class TestOnboardingOrchestrator:
             patch.object(orc, "step_governance", return_value=True),
             patch.object(orc, "step_skills", return_value=True),
             patch.object(orc, "step_validate", return_value=True),
-            patch.object(orc, "step_hooks", return_value=True),
         ):
             result = orc.run(force=False)
         assert result.success is True
@@ -202,15 +201,13 @@ class TestOnboardingOrchestrator:
             patch.object(orc, "step_governance", return_value=True),
             patch.object(orc, "step_skills", return_value=True),
             patch.object(orc, "step_validate", return_value=False),
-            patch.object(orc, "step_hooks") as mock_hooks,
         ):
             result = orc.run(force=False)
-        mock_hooks.assert_not_called()
         assert result.success is False
         assert result.failed_step == "validate"
         assert result.exit_code == 4
 
-    def test_run_hooks_failure_gives_exit_code_5(self, tmp_path: Path) -> None:
+    def test_run_does_not_install_git_hooks(self, tmp_path: Path) -> None:
         from sdd_cli.services.onboarding import OnboardingOrchestrator
 
         orc = OnboardingOrchestrator(tmp_path)
@@ -218,106 +215,15 @@ class TestOnboardingOrchestrator:
             patch.object(orc, "step_governance", return_value=True),
             patch.object(orc, "step_skills", return_value=True),
             patch.object(orc, "step_validate", return_value=True),
-            patch.object(orc, "step_hooks", return_value=False),
         ):
             result = orc.run(force=False)
-        assert result.success is False
-        assert result.failed_step == "hooks"
-        assert result.exit_code == 5
+        assert result.success is True
 
-    def test_step_hooks_skipped_when_not_a_git_repo(self, tmp_path: Path) -> None:
-        from sdd_cli.services.onboarding import OnboardingOrchestrator
-
-        orc = OnboardingOrchestrator(tmp_path)
-        with patch.object(orc, "_run_step", return_value=True) as mock_run:
-            result = orc.step_hooks(force=False)
-        mock_run.assert_not_called()
-        assert result is True
-
-    def test_step_hooks_skipped_when_already_installed_no_force(
-        self, tmp_path: Path
-    ) -> None:
+    def test_onboarding_has_no_git_hook_step(self, tmp_path: Path) -> None:
         from sdd_cli.services.onboarding import OnboardingOrchestrator
 
         hooks_dir = tmp_path / ".git" / "hooks"
         hooks_dir.mkdir(parents=True)
-        target = hooks_dir / "pre-commit"
-        source = tmp_path / "pre-commit-source"
-        source.write_text("#!/bin/sh\n", encoding="utf-8")
-        target.symlink_to(source)
 
         orc = OnboardingOrchestrator(tmp_path)
-        with patch.object(orc, "_run_step", return_value=True) as mock_run:
-            result = orc.step_hooks(force=False)
-        mock_run.assert_not_called()
-        assert result is True
-
-    def test_step_hooks_runs_when_force(self, tmp_path: Path) -> None:
-        from sdd_cli.services.onboarding import OnboardingOrchestrator
-
-        hooks_dir = tmp_path / ".git" / "hooks"
-        hooks_dir.mkdir(parents=True)
-        target = hooks_dir / "pre-commit"
-        source = tmp_path / "pre-commit-source"
-        source.write_text("#!/bin/sh\n", encoding="utf-8")
-        target.symlink_to(source)
-
-        orc = OnboardingOrchestrator(tmp_path)
-        with patch.object(orc, "_run_step", return_value=True) as mock_run:
-            result = orc.step_hooks(force=True)
-        mock_run.assert_called_once()
-        assert result is True
-
-    def test_step_hooks_runs_when_git_repo_and_not_installed(
-        self, tmp_path: Path
-    ) -> None:
-        from sdd_cli.services.onboarding import OnboardingOrchestrator
-
-        (tmp_path / ".git" / "hooks").mkdir(parents=True)
-
-        orc = OnboardingOrchestrator(tmp_path)
-        with patch.object(orc, "_run_step", return_value=True) as mock_run:
-            result = orc.step_hooks(force=False)
-        mock_run.assert_called_once_with("setup git-hooks", ["setup", "git-hooks"])
-        assert result is True
-
-    def test_step_hooks_failure_emits_executable_in_diagnostics(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-        capsys: pytest.CaptureFixture,
-    ) -> None:
-        """Hook failure message includes the resolved executable path."""
-        from sdd_cli.services import onboarding as mod
-        from sdd_cli.services.onboarding import OnboardingOrchestrator
-
-        monkeypatch.setattr(mod, "resolve_sdd_child_cmd", lambda: "/test/bin/sdd")
-        (tmp_path / ".git" / "hooks").mkdir(parents=True)
-
-        orc = OnboardingOrchestrator(tmp_path)
-        with patch.object(orc, "_run_step", return_value=False):
-            orc.step_hooks(force=False)
-
-        captured = capsys.readouterr()
-        assert "/test/bin/sdd" in captured.err
-
-    def test_run_hooks_failure_message_includes_executable(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """OnboardingResult messages include the resolved executable on hook failure."""
-        from sdd_cli.services import onboarding as mod
-        from sdd_cli.services.onboarding import OnboardingOrchestrator
-
-        monkeypatch.setattr(mod, "resolve_sdd_child_cmd", lambda: "/test/bin/sdd")
-
-        orc = OnboardingOrchestrator(tmp_path)
-        with (
-            patch.object(orc, "step_governance", return_value=True),
-            patch.object(orc, "step_skills", return_value=True),
-            patch.object(orc, "step_validate", return_value=True),
-            patch.object(orc, "step_hooks", return_value=False),
-        ):
-            result = orc.run(force=False)
-
-        assert result.failed_step == "hooks"
-        assert any("/test/bin/sdd" in m for m in result.messages)
+        assert not hasattr(orc, "step_hooks")

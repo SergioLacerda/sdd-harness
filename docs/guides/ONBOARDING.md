@@ -27,7 +27,6 @@ and Windows.
 - installs all workspace packages (core, telemetry, runtime, compiler, integration, wizard,
   cli) + dev/test dependencies from root `pyproject.toml`
 - validates imports and CLI responsiveness
-- installs SDD git hooks (`sdd setup git-hooks`)
 
 > Equivalent via Make (used by CI/automation): `make install`, followed by
 > `source .venv/bin/activate` (or `.venv\Scripts\activate` on Windows) if you prefer an
@@ -46,7 +45,7 @@ and Windows.
 ## Quick bootstrap
 
 ```bash
-# Bootstrap local governance runtime: profile + governance generate + skills + runtime validate + git hooks
+# Bootstrap local governance runtime: profile + governance generate + skills + runtime validate
 uv run sdd init --default
 ```
 
@@ -57,19 +56,6 @@ runs the full chain:
 2. `sdd governance generate --full-bootstrap`
 3. `sdd skills --full-bootstrap --regenerate-seeds`
 4. `sdd runtime status --force`
-5. `sdd setup git-hooks`
-
-```bash
-# Restore the pre-commit framework hook chain
-make hooks-install
-```
-
-> [!NOTE]
-> `sdd init --default` always re-installs git hooks via `sdd setup git-hooks` (step 5/5 —
-> `--default` implies `--force`), which only links the SDD-internal hooks and does **not**
-> preserve the `pre-commit` framework chain. Run `make hooks-install` afterwards to restore
-> the chained hook (SDD hooks + `pre-commit` framework). Tracked as a known gap in
-> `sdd setup git-hooks`.
 
 ```bash
 # Verify everything is healthy
@@ -88,7 +74,6 @@ make governance-bootstrap   # compile + generate + sign artifacts (= sdd governa
 uv run sdd skills --full-bootstrap --regenerate-seeds
 uv run sdd runtime status --force
 uv run sdd governance validate
-make hooks-install           # SDD hooks + pre-commit framework chain
 ```
 
 CLI reference: [`docs/spec/reference/commands/cli.md`](../spec/reference/commands/cli.md)
