@@ -354,9 +354,7 @@ class TestRegenerateSeeds:
                     ],
                 },
             ),
-            patch(
-                "sdd_cli.generators.agent_seeds.generate_agent_instruction_files"
-            ),
+            patch("sdd_cli.generators.agent_seeds.generate_agent_instruction_files"),
             patch(
                 "sdd_wizard.contracts.generate_agent_instructions_from_config",
                 return_value=True,
