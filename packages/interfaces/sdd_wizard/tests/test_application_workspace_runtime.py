@@ -95,3 +95,34 @@ def test_cleanup_post_generation_artifacts_keeps_final_template(tmp_path: Path) 
     )
     assert "build/docs-meta" in cleaned
     assert final_template.exists()
+
+
+def test_cleanup_post_generation_artifacts_allows_external_build_dir(
+    tmp_path: Path,
+) -> None:
+    repo_root = tmp_path / "project"
+    generated_root = tmp_path / "checkout" / "generated" / "client"
+    client_build = generated_root / "build"
+    client_compiled = generated_root / "compiled"
+    final_template = client_build / "final-template"
+    repo_root.mkdir(parents=True)
+    final_template.mkdir(parents=True, exist_ok=True)
+    (client_build / "docs-meta").mkdir(parents=True, exist_ok=True)
+    (client_compiled / ".sdd").mkdir(parents=True, exist_ok=True)
+    wizard_config = client_build / "wizard-config.json"
+    wizard_config.write_text("{}", encoding="utf-8")
+
+    cleaned = cleanup_post_generation_artifacts(
+        repo_root=repo_root,
+        client_build_dir=client_build,
+        client_compiled_dir=client_compiled,
+        final_template_dir=final_template,
+        wizard_config_path=wizard_config,
+        temp_build_dirs=("docs-meta",),
+        temp_compiled_dirs=(".sdd",),
+    )
+
+    assert str(client_build / "docs-meta") in cleaned
+    assert str(wizard_config) in cleaned
+    assert str(client_compiled / ".sdd") in cleaned
+    assert final_template.exists()
