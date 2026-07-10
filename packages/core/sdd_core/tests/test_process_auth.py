@@ -74,6 +74,16 @@ class TestProcessAuthorizerAuthorize:
         assert auth.resolve_binary_name("uv.bat") == "uv"
         assert auth.resolve_binary_name("uv.cmd") == "uv"
 
+    def test_release_compiler_asset_names_resolve_to_sdd_compile(self) -> None:
+        """Platform-suffixed release compiler assets remain governed compiler runs."""
+        auth = ProcessAuthorizer()
+        assert auth.resolve_binary_name("sdd-compile-linux-amd64") == "sdd-compile"
+        assert auth.resolve_binary_name("sdd-compile-windows-amd64.exe") == (
+            "sdd-compile"
+        )
+        auth.authorize(["sdd-compile-linux-amd64", "version"])
+        auth.authorize(["sdd-compile-windows-amd64.exe", "version"])
+
 
 class TestValidatePythonArgsCoverage:
     """Extended coverage for Python argument validation."""

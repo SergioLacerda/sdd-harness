@@ -46,6 +46,10 @@ class ProcessAuthorizer:
             if binary_name.lower().endswith(suffix):
                 binary_name = binary_name[: -len(suffix)]
                 break
+        # Release assets are platform-suffixed (for example
+        # sdd-compile-linux-amd64) but represent the governed compiler binary.
+        if binary_name.startswith("sdd-compile-"):
+            return "sdd-compile"
         # Accept versioned python executable names (python3.11, python3.12, etc.).
         if binary_name.startswith("python"):
             return "python3"
