@@ -84,19 +84,22 @@ def sync_version(version_or_tag: str, *, workspace_root: Path | None = None) -> 
             # Read the file
             content = pyproject.read_text(encoding="utf-8")
 
-            # Replace version line (handles various formats)
             # Matches: version = "..." (with optional whitespace)
-            new_content = re.sub(
-                r'^version\s*=\s*"[^"]*"',
-                f'version = "{version}"',
-                content,
-                count=1,
-                flags=re.MULTILINE,
-            )
-
-            if new_content == content:
+            version_line_re = re.compile(r'^version\s*=\s*"([^"]*)"', re.MULTILINE)
+            match = version_line_re.search(content)
+            if match is None:
                 failed.append(f"{pkg_path}: no version line found")
                 continue
+
+            if match.group(1) == version:
+                # Already at the target version: nothing to write, not a failure.
+                updated.append(pkg_path)
+                print(f"✓ {pkg_path} already at {version}")
+                continue
+
+            new_content = version_line_re.sub(
+                f'version = "{version}"', content, count=1
+            )
 
             # Write back
             pyproject.write_text(new_content, encoding="utf-8")

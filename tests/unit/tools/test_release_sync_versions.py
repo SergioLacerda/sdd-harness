@@ -78,3 +78,32 @@ members = [
     for member in members:
         content = (tmp_path / member / "pyproject.toml").read_text(encoding="utf-8")
         assert 'version = "0.1.0"' in content
+
+
+def test_sync_version_succeeds_when_already_at_target_version(tmp_path: Path) -> None:
+    """A package already pinned to the target version must not be reported as
+    a failure just because re-writing it would be a no-op."""
+    members = [
+        "packages/core/sdd_core",
+        "packages/interfaces/sdd_cli",
+    ]
+    (tmp_path / "pyproject.toml").write_text(
+        """[tool.uv.workspace]
+members = [
+    "packages/core/sdd_core",
+    "packages/interfaces/sdd_cli",
+]
+""",
+        encoding="utf-8",
+    )
+    # sdd_core is already at the target version; sdd_cli is not.
+    _write_package(tmp_path, "packages/core/sdd_core", version="0.1.0")
+    _write_package(tmp_path, "packages/interfaces/sdd_cli", version="0.0.9")
+
+    with pytest.raises(SystemExit) as exc:
+        sync_version("V0.1.0", workspace_root=tmp_path)
+
+    assert exc.value.code == 0
+    for member in members:
+        content = (tmp_path / member / "pyproject.toml").read_text(encoding="utf-8")
+        assert 'version = "0.1.0"' in content
