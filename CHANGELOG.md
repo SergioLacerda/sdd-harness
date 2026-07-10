@@ -40,6 +40,16 @@ Before tagging a new release, verify:
 
 ---
 
+## [1.0.1] — 2026-07-10
+
+### Fixed
+- Fixed release workflows to invoke the canonical `sdd governance compile --profile client` command and prepare `generated/client/build/final-template/.sdd` before copying generated governance artifacts.
+- Added release wheelhouse dependencies for offline `pip install --no-index --find-links dist sdd-cli` smoke tests on Linux and Windows.
+- Fixed standalone `sdd init --default` compiler execution by authorizing official platform-suffixed `sdd-compile-*` release assets as governed compiler binaries.
+- Fixed wizard cleanup reporting when standalone install smoke uses a project root outside the generated client build directory.
+
+---
+
 ## [0.1.0] — 2026-05-09
 
 ### Added
@@ -93,6 +103,7 @@ Initial stable release of the multi-package workspace structure.
 - `sdd lint spec`, `sdd governance compile`, `sdd governance generate`, `sdd doctor run`
 - MkDocs documentation site
 
-[Unreleased]: https://github.com/SergioLacerda/sdd-harness/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/SergioLacerda/sdd-harness/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v1.0.1
 [0.1.0]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v0.1.0
 [1.0.0]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v1.0.0
