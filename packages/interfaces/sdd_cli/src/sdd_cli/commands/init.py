@@ -24,6 +24,17 @@ from sdd_core.utils.environment import (
 
 app = typer.Typer()
 
+_PROJECT_BOUNDARY_MARKERS = (
+    ".git",
+    "pyproject.toml",
+    "package.json",
+    "go.mod",
+    "Cargo.toml",
+    "pom.xml",
+    "build.gradle",
+    "Makefile",
+)
+
 
 def _raise_init_operational_error(
     exc: BaseException,
@@ -85,6 +96,33 @@ def _resolve_default_flags(
     return type_, name, force
 
 
+def _is_relative_to(path: Path, base: Path) -> bool:
+    try:
+        path.resolve().relative_to(base.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def _find_project_boundary(cwd: Path) -> Path | None:
+    for candidate in [cwd, *cwd.parents]:
+        if any((candidate / marker).exists() for marker in _PROJECT_BOUNDARY_MARKERS):
+            return candidate
+    return None
+
+
+def _find_blocking_parent_workspace(cwd: Path) -> Path | None:
+    parent_workspace = find_workspace_root(cwd.parent)
+    if parent_workspace is None:
+        return None
+    project_boundary = _find_project_boundary(cwd)
+    if project_boundary is not None and not _is_relative_to(
+        parent_workspace, project_boundary
+    ):
+        return None
+    return parent_workspace
+
+
 @app.callback(invoke_without_command=True)
 def init(  # noqa: C901
     ctx: typer.Context,
@@ -130,7 +168,7 @@ def init(  # noqa: C901
 
     if default:
         type, name, force = _resolve_default_flags(ctx, type, name, force)  # noqa: A001
-    parent_workspace = find_workspace_root(cwd.parent)
+    parent_workspace = _find_blocking_parent_workspace(cwd)
     if parent_workspace is not None:
         typer.echo(
             f"[SDD] ERROR: A workspace already exists at '{parent_workspace}'.\nNested workspaces are not supported. Run 'sdd init' from a directory outside the existing workspace.",

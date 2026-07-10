@@ -78,6 +78,29 @@ class TestInitEdgeCases:
         assert result.exit_code == 1
         assert "already exists" in result.output
 
+    def test_allows_project_workspace_when_home_workspace_exists(
+        self, tmp_path: Path
+    ) -> None:
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+
+        runner = CliRunner()
+        home = tmp_path / "home"
+        project = home / "dev" / "project"
+        (home / ".sdd").mkdir(parents=True)
+        (project / ".git").mkdir(parents=True)
+
+        def _fake_cwd():
+            return project
+
+        with patch("sdd_cli.commands.init.Path.cwd", _fake_cwd):
+            result = runner.invoke(app, ["--default", "--no-bootstrap"])
+
+        assert result.exit_code == 0, result.output
+        assert (project / ".sdd" / "profile").exists()
+        assert "Workspace initialized" in result.output
+
     def test_exits_1_when_profile_exists_and_no_force(self, tmp_path: Path) -> None:
         from typer.testing import CliRunner
 
