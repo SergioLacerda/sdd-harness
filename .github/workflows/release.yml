@@ -179,6 +179,29 @@ jobs:
             fi
           done
 
+      - name: Download runtime dependency wheelhouse
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip download \
+            --dest dist \
+            --find-links dist \
+            --only-binary=:all: \
+            --platform manylinux2014_x86_64 \
+            --implementation cp \
+            --python-version 312 \
+            --abi cp312 \
+            dist/sdd_cli-*.whl
+          python -m pip download \
+            --dest dist \
+            --find-links dist \
+            --only-binary=:all: \
+            --platform win_amd64 \
+            --implementation cp \
+            --python-version 312 \
+            --abi cp312 \
+            dist/sdd_cli-*.whl
+
       - name: Install packages for compile step
         shell: bash
         run: |

@@ -97,6 +97,24 @@ def test_release_workflow_smoke_install_uses_local_dist_only() -> None:
     assert "--find-links dist" in install_steps
 
 
+def test_release_workflows_build_cross_platform_runtime_wheelhouse() -> None:
+    workflows = [
+        (RELEASE_WORKFLOW, "build"),
+        (RELEASE_DRY_RUN_WORKFLOW, "dry-run"),
+    ]
+
+    for path, job_name in workflows:
+        workflow = _load_workflow(path)
+        steps = "\n".join(
+            step.get("run", "") for step in _jobs(workflow)[job_name]["steps"]
+        )
+        assert "--platform manylinux2014_x86_64" in steps
+        assert "--platform win_amd64" in steps
+        assert "--python-version 312" in steps
+        assert "--find-links dist" in steps
+        assert "dist/sdd_cli-*.whl" in steps
+
+
 def test_release_job_depends_on_install_smoke() -> None:
     workflow = _load_workflow(RELEASE_WORKFLOW)
     jobs = _jobs(workflow)
