@@ -70,6 +70,21 @@ def test_release_dry_run_syncs_versions_from_git_tag() -> None:
     assert 'tools/release/sync_versions.py "$TAG"' in dry_run_steps
 
 
+def test_release_workflows_use_canonical_governance_compile_command() -> None:
+    workflows = [
+        (RELEASE_WORKFLOW, "build"),
+        (RELEASE_DRY_RUN_WORKFLOW, "dry-run"),
+    ]
+
+    for path, job_name in workflows:
+        workflow = _load_workflow(path)
+        steps = "\n".join(
+            step.get("run", "") for step in _jobs(workflow)[job_name]["steps"]
+        )
+        assert "uv run python -m sdd_cli governance compile" in steps
+        assert "uv run python -m sdd_cli compile" not in steps
+
+
 def test_release_workflow_smoke_install_uses_local_dist_only() -> None:
     workflow = _load_workflow(RELEASE_WORKFLOW)
     smoke = _jobs(workflow)["release-install-smoke"]
