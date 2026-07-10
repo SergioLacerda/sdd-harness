@@ -139,6 +139,7 @@ jobs:
           uv run python -m sdd_cli governance compile --profile client
           cp generated/client/build/governance-core.json dist/governance-core.json
           cp generated/client/build/governance-client.json dist/governance-client.json
+          mkdir -p generated/client/build/final-template/.sdd
           cp generated/client/build/governance-core.json generated/client/build/final-template/.sdd/governance-core.json
           cp generated/client/build/governance-client.json generated/client/build/final-template/.sdd/governance-client.json
 

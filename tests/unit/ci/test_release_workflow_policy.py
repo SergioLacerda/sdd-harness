@@ -84,6 +84,7 @@ def test_release_workflows_use_canonical_governance_compile_command() -> None:
         assert "uv run python -m sdd_cli governance compile --profile client" in steps
         assert "uv run python -m sdd_cli compile" not in steps
         assert "cp generated/client/build/governance-core.json" in steps
+        assert "mkdir -p generated/client/build/final-template/.sdd" in steps
 
 
 def test_release_workflow_smoke_install_uses_local_dist_only() -> None:
