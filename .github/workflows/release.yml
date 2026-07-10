@@ -205,7 +205,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv run python -m sdd_cli governance compile
+          uv run python -m sdd_cli governance compile --profile client
           cp generated/client/build/governance-core.json dist/governance-core.json
           cp generated/client/build/governance-client.json dist/governance-client.json
           cp generated/client/build/governance-core.json generated/client/build/final-template/.sdd/governance-core.json
