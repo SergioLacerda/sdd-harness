@@ -182,6 +182,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          uv sync --all-groups
           uv pip install -e packages/core/sdd_core \
             && uv pip install -e packages/core/sdd_telemetry \
             && uv pip install -e packages/features/sdd_integration \
