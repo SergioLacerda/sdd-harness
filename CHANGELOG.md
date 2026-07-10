@@ -33,10 +33,10 @@ Before tagging a new release, verify:
 - Breaking change: `sdd_runtime.SkillEngine` no longer accepts legacy short skill aliases (for example `diagnose`, `validate-governance`); only canonical `sdd-*` names are valid, and legacy alias calls now return `legacy_alias_removed` with a canonical-name suggestion.
 - Promoted `uv run sdd setup run` as the primary cross-platform local-setup path in `README.md` (works without a pre-existing `.venv` or shell activation on Linux, macOS, and Windows); `make install` is documented as the CI/automation equivalent. Added a PATH-shadowing warning for contributors who also have `sdd-cli` installed globally via `uv tool install`.
 - Fixed `Makefile`'s `VENV_PYTHON` detection to also find `.venv/Scripts/python.exe` (Windows venv layout), not just `.venv/bin/python`.
-- `sdd setup git-hooks` and `.github/setup-precommit-hook.sh` now fall back to copying hook files when symlinks are unavailable on the platform, instead of failing with an `OSError`/exit 1.
 
 ### Removed
 - Removed `install.sh` and the legacy `curl | sh` global-install instructions from `README.md` and `docs/guides/CLIENT_ONBOARDING.md`, to avoid ambiguity with the local/`uv`-based install paths.
+- Removed client-facing Git hook/pre-commit setup from `sdd setup`, `sdd init --default`, wizard seedling selection, and generated templates.
 
 ---
 

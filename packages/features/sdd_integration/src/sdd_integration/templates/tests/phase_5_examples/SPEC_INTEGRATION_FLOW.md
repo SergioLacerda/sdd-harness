@@ -58,11 +58,10 @@ Verify these files exist in `packages/features/sdd_integration/src/sdd_integrati
 - [ ] `.vscode/ai-rules.md`
 - [ ] `.vscode/settings.json`
 - [ ] `.cursor/rules/spec.mdc`
-- [ ] `.pre-commit-config.yaml`
 - [ ] `.sdd/README.md`
 
 ### Success criteria:
-All 7 template files found and readable
+All 6 template files found and readable
 
 ### Expected output:
 ```
@@ -71,7 +70,6 @@ All 7 template files found and readable
 ✅ Template found: .vscode/ai-rules.md
 ✅ Template found: .vscode/settings.json
 ✅ Template found: .cursor/rules/spec.mdc
-✅ Template found: .pre-commit-config.yaml
 ✅ Template found: .sdd/README.md
 ✅ STEP 2 PASSED: All templates present
 ```

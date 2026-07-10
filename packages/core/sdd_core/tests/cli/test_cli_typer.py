@@ -210,7 +210,7 @@ class TestCommandBaseHelpers:
             ("release", "Release commands:", "build"),
             ("runtime", "Runtime commands:", "status"),
             ("scaffold", "Scaffold commands:", "skill"),
-            ("setup", "Setup commands:", "git-hooks"),
+            ("setup", "Setup commands:", "run"),
             ("skills", "Skills commands:", "describe"),
             ("test", "Test commands:", "ci-validate"),
             ("tools", "Tools commands:", "run"),

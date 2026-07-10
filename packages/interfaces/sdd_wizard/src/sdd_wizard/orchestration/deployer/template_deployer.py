@@ -82,12 +82,6 @@ class TemplateDeployer:
         )
         return candidates
 
-    def _optional_hooks_enabled(self) -> bool:
-        return bool(
-            self.config.get("include_optional_hooks", False)
-            or "pre-commit" in self.selection
-        )
-
     def _ci_enabled(self) -> bool:
         return "ci" in self.selection
 
@@ -112,10 +106,6 @@ class TemplateDeployer:
             workflow_file = github_dir / "workflows" / "sdd-validation.yml"
             if workflow_file.exists():
                 workflow_file.unlink()
-        if not self._optional_hooks_enabled():
-            hook = github_dir / "setup-precommit-hook.sh"
-            if hook.exists():
-                hook.unlink()
 
     def copy_templates(self) -> bool:
         """Copy base templates to .github/workflows (only when `ci` is selected)."""
@@ -154,11 +144,7 @@ class TemplateDeployer:
                 return False
 
             copied_count = 0
-            github_needed = (
-                "copilot" in self.selection
-                or self._ci_enabled()
-                or self._optional_hooks_enabled()
-            )
+            github_needed = "copilot" in self.selection or self._ci_enabled()
             dir_mappings: list[tuple[Path, Path, bool]] = [
                 (
                     template_base / ".github",
@@ -216,24 +202,6 @@ class TemplateDeployer:
 
             if missing_needed:
                 return False
-
-            optional_files: list[tuple[Path, Path]] = []
-            if self._optional_hooks_enabled():
-                optional_files.append(
-                    (
-                        template_base / ".pre-commit-config.yaml",
-                        self.output_base / ".pre-commit-config.yaml",
-                    )
-                )
-            for src, dst in optional_files:
-                try:
-                    source = self._resolve_template_path(src.relative_to(template_base))
-                    if source is not None:
-                        dst.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copy2(source, dst)
-                        self._log(f"Copied optional file {source.name}")
-                except Exception as e:
-                    self._log(f"⚠️  Failed to copy optional file {src.name}: {e}")
 
             if copied_count == 0:
                 print("  ❌ No template files were copied")  # noqa: T201

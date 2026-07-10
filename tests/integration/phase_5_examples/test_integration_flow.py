@@ -67,7 +67,6 @@ class TestIntegrationFlow:
             ".vscode/ai-rules.md",
             ".vscode/settings.json",
             ".cursor/rules/spec.mdc",
-            ".pre-commit-config.yaml",
             ".sdd/README.md",
         ]
 

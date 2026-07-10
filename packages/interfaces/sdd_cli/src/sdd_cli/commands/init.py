@@ -225,7 +225,7 @@ def init(  # noqa: C901
     run_bootstrap = (profile_type == "client") and not no_bootstrap
     if run_bootstrap:
         typer.echo("")
-        typer.echo("[1/5] Workspace profile created ✓")
+        typer.echo("[1/4] Workspace profile created ✓")
         orc = OnboardingOrchestrator(cwd)
         try:
             bootstrap_result = orc.run(force=bool(force))

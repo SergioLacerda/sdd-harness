@@ -141,19 +141,6 @@ def _troubleshooting_section(fingerprint: str) -> str:
 - Run `sdd governance hook status` to check current state
 - Run `sdd governance hook enable` once the underlying issue is fixed
 
-### Problem: Pre-commit hooks not working
-**Check:**
-1. Are git hooks installed?
-2. Does compliance.seed.json have correct trigger?
-
-**Fix:**
-```bash
-# Install/reinstall git hooks
-python3 scripts/git_hooks.py install
-```
-
----
-
 """
 
 
@@ -173,7 +160,7 @@ Once activated, your project will:
 
 ✅ **Auto-load governance** on project open
 ✅ **Give agents access** to mandates and guidelines
-✅ **Validate compliance** in pre-commit hooks
+✅ **Validate compliance** through selected CI/runtime checks
 ✅ **Enforce rules** in CI/CD pipelines
 ✅ **Track fingerprint** to detect drift
 

@@ -29,7 +29,6 @@ sdd_integration = [
     "py.typed",
     "contracts/*.json",
     "templates/README.md",
-    "templates/.pre-commit-config.yaml",
     "templates/.ai/**",  # legacy-path-ok: AI tooling template dir, not governance legacy
     "templates/.claude/**",
     "templates/.cursor/**",

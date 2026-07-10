@@ -32,22 +32,18 @@ def test_create_ide_templates_reports_missing_base(tmp_path: Path) -> None:
     assert deployer.create_ide_templates() is False
 
 
-def test_create_ide_templates_copies_optional_hooks_when_enabled(
+def test_create_ide_templates_does_not_create_precommit_hooks(
     tmp_path: Path,
 ) -> None:
     output_base = tmp_path / "out"
     deployer = TemplateDeployer(
         repo_root=tmp_path,
         output_base=output_base,
-        config={"include_optional_hooks": True},
     )
     template_base = tmp_path / "templates"
     (template_base / ".github").mkdir(parents=True)
-    (template_base / ".github" / "setup-precommit-hook.sh").write_text(
-        "#!/bin/sh\n", encoding="utf-8"
-    )
-    (template_base / ".pre-commit-config.yaml").write_text(
-        "repos: []\n", encoding="utf-8"
+    (template_base / ".github" / "copilot-instructions.md").write_text(
+        "copilot", encoding="utf-8"
     )
     (template_base / ".vscode").mkdir(parents=True)
     (template_base / ".vscode" / "ai-rules.md").write_text("x", encoding="utf-8")
@@ -64,9 +60,10 @@ def test_create_ide_templates_copies_optional_hooks_when_enabled(
     (template_base / ".sdd" / "templates").mkdir(parents=True)
     deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
 
+    assert deployer.copy_templates() is True
     assert deployer.create_ide_templates() is True
-    assert (output_base / ".github" / "setup-precommit-hook.sh").exists()
-    assert (output_base / ".pre-commit-config.yaml").exists()
+    assert not (output_base / ".github" / "setup-precommit-hook.sh").exists()
+    assert not (output_base / ".pre-commit-config.yaml").exists()
 
 
 def test_create_ide_templates_merges_template_candidates(tmp_path: Path) -> None:
@@ -210,41 +207,6 @@ def test_create_ide_templates_logs_missing_and_failed_copies(
     assert deployer.create_ide_templates() is False
 
 
-def test_create_ide_templates_handles_optional_file_copy_error(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    output_base = tmp_path / "out"
-    deployer = TemplateDeployer(
-        repo_root=tmp_path,
-        output_base=output_base,
-        config={"include_optional_hooks": True},
-        selected_seedlings={"pre-commit"},
-        verbose=True,
-    )
-    template_base = tmp_path / "templates"
-    (template_base / ".github").mkdir(parents=True)
-    (template_base / ".github" / "ci.yml").write_text("x", encoding="utf-8")
-    (template_base / ".pre-commit-config.yaml").write_text(
-        "repos: []\n", encoding="utf-8"
-    )
-    (template_base / ".sdd" / "templates").mkdir(parents=True)
-    deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
-
-    original_copy2 = shutil.copy2
-
-    def fake_copy2(src: Path, dst: Path) -> Path | str:
-        if src.name == ".pre-commit-config.yaml":
-            raise OSError("copy failed")
-        return original_copy2(src, dst)
-
-    monkeypatch.setattr(
-        "sdd_wizard.orchestration.deployer.template_deployer.shutil.copy2",
-        fake_copy2,
-    )
-
-    assert deployer.create_ide_templates() is True
-
-
 def test_create_ide_templates_returns_false_on_outer_exception(
     tmp_path: Path,
 ) -> None:
@@ -270,12 +232,6 @@ def _write_full_template_tree(template_base: Path) -> None:
     )
     (template_base / ".github" / "copilot-instructions.md").write_text(
         "copilot", encoding="utf-8"
-    )
-    (template_base / ".github" / "setup-precommit-hook.sh").write_text(
-        "#!/bin/sh\n", encoding="utf-8"
-    )
-    (template_base / ".pre-commit-config.yaml").write_text(
-        "repos: []\n", encoding="utf-8"
     )
     (template_base / ".vscode").mkdir(parents=True)
     (template_base / ".vscode" / "ai-rules.md").write_text("vscode", encoding="utf-8")
@@ -407,19 +363,3 @@ def test_create_ide_templates_fails_when_selected_template_dir_missing(
 
     assert deployer.create_ide_templates() is False
     assert not (output_base / ".claude").exists()
-
-
-def test_pre_commit_selected_copies_pre_commit_artifacts(tmp_path: Path) -> None:
-    output_base = tmp_path / "out"
-    template_base = tmp_path / "templates"
-    _write_full_template_tree(template_base)
-    deployer = TemplateDeployer(
-        repo_root=tmp_path, output_base=output_base, selected_seedlings={"pre-commit"}
-    )
-    deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
-
-    assert deployer.copy_templates() is True
-    assert deployer.create_ide_templates() is True
-
-    assert (output_base / ".pre-commit-config.yaml").exists()
-    assert (output_base / ".github" / "setup-precommit-hook.sh").exists()

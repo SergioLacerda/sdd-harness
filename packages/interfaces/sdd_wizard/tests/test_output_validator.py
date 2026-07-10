@@ -91,18 +91,12 @@ class TestOutputValidatorAllPresent:
         is_valid, _ = validator.validate()
         assert is_valid is True
 
-    def test_optional_hooks_required_when_enabled(self, tmp_path: Path) -> None:
+    def test_legacy_optional_hooks_flag_is_ignored(self, tmp_path: Path) -> None:
         _create_all_required(tmp_path)
-        (tmp_path / ".github" / "setup-precommit-hook.sh").write_text(
-            "#!/bin/sh\n", encoding="utf-8"
-        )
-        (tmp_path / ".pre-commit-config.yaml").write_text(
-            "repos: []\n", encoding="utf-8"
-        )
         validator = _make_validator(tmp_path, config={"include_optional_hooks": True})
         is_valid, result = validator.validate()
         assert is_valid is True
-        assert result["checks"]["optional: setup-precommit-hook.sh"] == "OK"
+        assert "optional: setup-precommit-hook.sh" not in result["checks"]
 
     def test_prompt_submit_hooks_required_in_hook_mode(self, tmp_path: Path) -> None:
         _create_all_required(tmp_path)
@@ -184,12 +178,14 @@ class TestOutputValidatorMissingFiles:
         assert is_valid is False
         assert any("security" in e for e in result["errors"])
 
-    def test_optional_hooks_missing_invalid_when_enabled(self, tmp_path: Path) -> None:
+    def test_legacy_optional_hooks_missing_does_not_invalidate(
+        self, tmp_path: Path
+    ) -> None:
         _create_all_required(tmp_path)
         validator = _make_validator(tmp_path, config={"include_optional_hooks": True})
         is_valid, result = validator.validate()
-        assert is_valid is False
-        assert any("Missing optional-enabled file" in e for e in result["errors"])
+        assert is_valid is True
+        assert not any("optional-enabled" in e for e in result["errors"])
 
     def test_prompt_submit_hooks_missing_invalid_in_hook_mode(
         self, tmp_path: Path

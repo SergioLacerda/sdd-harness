@@ -68,8 +68,6 @@ your-project/
 ├── .spec.config                    ← Points to ../sdd-harness + adoption_level
 ├── .github/copilot-instructions.md ← From templates/
 ├── .vscode/ai-rules.md             ← From templates/ (filtered for your level)
-├── .pre-commit-config.yaml         ← From templates/
-├── .github/setup-precommit-hook.sh ← From templates/
 ├── .cursor/rules/spec.mdc          ← From templates/
 └── .sdd/
     ├── context-aware/
@@ -120,8 +118,6 @@ Want to understand the concepts first?
 **Support:** See STEP_X_* files for troubleshooting or [guides/INDEX.md](./guides/INDEX.md) for concepts
 ├── .github/copilot-instructions.md ← From templates/
 ├── .vscode/ai-rules.md             ← From templates/ (LITE or FULL version)
-├── .pre-commit-config.yaml         ← From templates/
-├── .github/setup-precommit-hook.sh ← From templates/
 ├── .cursor/rules/spec.mdc          ← From templates/
 └── .sdd/
     ├── context-aware/

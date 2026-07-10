@@ -58,13 +58,6 @@ class OutputValidator:
             for filename in ("spec.mdc", "sdd-governance.mdc")
         )
 
-    def _optional_hooks_enabled(self) -> bool:
-        """Return whether optional hook artifacts are required."""
-        return bool(
-            self.config.get("include_optional_hooks", False)
-            or "pre-commit" in self.selection
-        )
-
     def _ci_enabled(self) -> bool:
         """Return whether the CI/CD workflow artifact is required."""
         return "ci" in self.selection
@@ -82,25 +75,6 @@ class OutputValidator:
                 if str(agent) in SUPPORTED_PROMPT_HOOK_AGENTS
             }
         return set(SUPPORTED_PROMPT_HOOK_AGENTS)
-
-    def _validate_optional_hook_files(self, result: ValidationDetail) -> None:
-        """Validate optional hook artifacts only when explicitly enabled."""
-        if not self._optional_hooks_enabled():
-            return
-        optional_files = [
-            self.output_base / ".pre-commit-config.yaml",
-            self.output_base / ".github" / "setup-precommit-hook.sh",
-        ]
-        for optional_file in optional_files:
-            exists = self._path_exists(optional_file)
-            result["checks"][f"optional: {optional_file.name}"] = (
-                "OK" if exists else "MISSING"
-            )
-            if not exists:
-                result["valid"] = False
-                result["errors"].append(
-                    f"Missing optional-enabled file: {optional_file}"
-                )
 
     def _validate_prompt_submit_hook_files(self, result: ValidationDetail) -> None:
         """Validate prompt-submit hook artifacts when handshake_mode=hook."""
@@ -246,7 +220,6 @@ class OutputValidator:
             self._validate_paths(result, self._required_dirs(), "directory")
             self._validate_files(result)
             self._validate_cursor_rules(result)
-            self._validate_optional_hook_files(result)
             self._validate_prompt_submit_hook_files(result)
             self._validate_guidelines(result)
             return result["valid"], result
