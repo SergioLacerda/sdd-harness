@@ -188,6 +188,14 @@ def ensure_docs_meta_ready(
     )
 
 
+def _display_cleaned_path(path: Path, *, repo_root: Path) -> str:
+    """Return a repo-relative cleanup path when possible, otherwise absolute."""
+    try:
+        return str(path.relative_to(repo_root))
+    except ValueError:
+        return str(path)
+
+
 def cleanup_post_generation_artifacts(
     *,
     repo_root: Path,
@@ -214,7 +222,7 @@ def cleanup_post_generation_artifacts(
                 shutil.rmtree(path)
             else:
                 path.unlink()
-            cleaned.append(str(path.relative_to(repo_root)))
+            cleaned.append(_display_cleaned_path(path, repo_root=repo_root))
         except OSError:
             continue
     return cleaned
