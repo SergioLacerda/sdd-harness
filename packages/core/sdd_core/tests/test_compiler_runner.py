@@ -12,6 +12,7 @@ import pytest
 
 from sdd_core.utils import compiler_runner
 from sdd_core.utils.compiler_runner import CompilerRunner, CompilerRunnerError
+from sdd_core.utils.text_io import write_text_utf8
 
 
 def test_fetch_release_binary_error_names_standalone_remediation(
@@ -254,7 +255,7 @@ def test_locate_binary_env_override_returns_path(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     binary = tmp_path / "sdd-compile"
-    binary.write_text("x")
+    write_text_utf8(binary, "x")
     monkeypatch.setenv("SDD_COMPILE_BIN", str(binary))
 
     assert compiler_runner._locate_binary() == binary
@@ -276,7 +277,7 @@ def test_locate_binary_finds_binary_on_path(
     monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
     monkeypatch.setattr(compiler_runner, "_try_detect_repo_root", lambda: None)
     fake_path = tmp_path / "sdd-compile"
-    fake_path.write_text("x")
+    write_text_utf8(fake_path, "x")
     monkeypatch.setattr(compiler_runner.shutil, "which", lambda _name: str(fake_path))
 
     assert compiler_runner._locate_binary() == fake_path
@@ -378,7 +379,7 @@ def test_locate_binary_finds_repo_built_binary(
     monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
     built_path = tmp_path / "tools" / "sdd-compile" / "bin" / "sdd-compile"
     built_path.parent.mkdir(parents=True)
-    built_path.write_text("x")
+    write_text_utf8(built_path, "x")
 
     assert compiler_runner._locate_binary(tmp_path) == built_path
 
@@ -391,7 +392,7 @@ def test_locate_binary_downloads_when_nothing_found(
     monkeypatch.setattr(compiler_runner.shutil, "which", lambda _name: None)
     monkeypatch.setattr(compiler_runner, "_installed_cli_version", lambda: "1.0.0")
     downloaded = tmp_path / "downloaded-sdd-compile"
-    downloaded.write_text("x")
+    write_text_utf8(downloaded, "x")
     monkeypatch.setattr(
         compiler_runner, "_download_and_cache_binary", lambda _version: downloaded
     )
@@ -403,7 +404,7 @@ def test_compiler_runner_init_locates_binary_via_env_override(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     binary = tmp_path / "sdd-compile"
-    binary.write_text("x")
+    write_text_utf8(binary, "x")
     monkeypatch.setenv("SDD_COMPILE_BIN", str(binary))
 
     runner = CompilerRunner(repo_root=tmp_path)
