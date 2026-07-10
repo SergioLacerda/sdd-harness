@@ -112,8 +112,11 @@ def generate_runtime_handbook_required(
 
     source_root = resolve_workspace_root() or output_base
     if not (source_root / DEFAULT_REGISTRY).exists():
-        repo_root = detect_repo_root()
-        if (repo_root / DEFAULT_REGISTRY).exists():
+        try:
+            repo_root = detect_repo_root()
+        except RuntimeError:
+            repo_root = None
+        if repo_root is not None and (repo_root / DEFAULT_REGISTRY).exists():
             source_root = repo_root
     written = generate_runtime_handbook(source_root, runtime_root=output_base)
     if written and not quiet:

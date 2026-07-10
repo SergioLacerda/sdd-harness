@@ -329,6 +329,49 @@ class TestRegenerateSeeds:
             workspace, runtime_root=redirected.resolve()
         )
 
+    def test_missing_docs_registry_does_not_fail_seed_regeneration(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("SDD_SKIP_SEED_REGEN", raising=False)
+        console = _console()
+
+        with (
+            patch(
+                "sdd_cli.services.governance_compile_telemetry.resolve_workspace_root",
+                return_value=tmp_path,
+            ),
+            patch("sdd_cli.utils.loader.validate_governance_path", return_value=True),
+            patch(
+                "sdd_cli.utils.loader.load_governance_config",
+                return_value={
+                    "core_fingerprint": "abcdef0123456789",
+                    "items": [
+                        {
+                            "id": "M001",
+                            "type": "MANDATE",
+                            "title": "Clean Architecture",
+                        }
+                    ],
+                },
+            ),
+            patch(
+                "sdd_cli.generators.agent_seeds.generate_agent_instruction_files"
+            ),
+            patch(
+                "sdd_wizard.contracts.generate_agent_instructions_from_config",
+                return_value=True,
+            ),
+            patch(
+                "sdd_wizard.contracts.generate_root_bootstrap_from_config",
+                return_value=True,
+            ),
+        ):
+            regenerate_seeds(console=console)
+
+        output = console.file.getvalue()
+        assert "could not regenerate runtime handbook" not in output
+        assert "Runtime handbook regenerated" not in output
+
     def test_invalid_governance_path_uses_empty_config(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
