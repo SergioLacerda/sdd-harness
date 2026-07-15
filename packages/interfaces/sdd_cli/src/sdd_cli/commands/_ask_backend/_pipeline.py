@@ -134,6 +134,11 @@ def _ask_cli_cmd(
         "--tokens-output",
         help="LLM API output tokens (overrides SDD_TOKENS_OUTPUT).",
     ),
+    intake_only: bool = typer.Option(
+        False,
+        "--intake-only",
+        help="Cheap hook-mode profile: execution_gate/intake_index_mode/intent only.",
+    ),
 ) -> None:
     """Query SDD governance context — minimal governed output."""
     from sdd_cli.commands import _ask_backend as _backend
@@ -150,6 +155,7 @@ def _ask_cli_cmd(
             log_format=log_format,
             tokens_input=tokens_input,
             tokens_output=tokens_output,
+            intake_only=intake_only,
         )
     finally:
         _backend._JSON_MODE_OVERRIDE.reset(token)
@@ -166,6 +172,7 @@ def ask_cmd(
     tokens_input: int | None = None,
     tokens_output: int | None = None,
     *,
+    intake_only: bool = False,
     output_json: bool | None = None,
 ) -> None:
     """Query SDD governance context — minimal governed output."""
@@ -187,6 +194,7 @@ def ask_cmd(
             log_format=log_format,
             tokens_input=tokens_input,
             tokens_output=tokens_output,
+            intake_only=intake_only,
         )
     finally:
         if token is not None:

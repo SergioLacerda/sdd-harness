@@ -41,7 +41,7 @@ def _load_token_budget_config() -> dict[str, Any]:
             try:
                 import tomllib
             except ImportError:
-                import tomli as tomllib  # type: ignore[import-not-found]
+                import tomli as tomllib
 
             with open(pyproject_path, "rb") as f:
                 config = tomllib.load(f)

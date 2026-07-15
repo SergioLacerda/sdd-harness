@@ -135,6 +135,27 @@ def test_light_input_with_execution_gate_allowed_is_not_blocked(
     assert "intake_skipped" not in stdout
 
 
+def test_implementation_intent_reports_query_only_handoff(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Implementation intent must not look like executed provider delegation."""
+    stdout = _run_ask_capture_stdout(
+        tmp_path,
+        monkeypatch,
+        capsys,
+        "implementar demanda .analysis/refined/example/tasks.md",
+        organize_used=False,
+        organize_reason="light_input",
+    )
+
+    assert "execution_gate    : allowed" in stdout
+    assert "sdd ask contract  : governance-context query only" in stdout
+    assert "delegation_status : not_executed" in stdout
+    assert "implementation_handoff" in stdout
+
+
 def test_non_light_input_missing_organize_index_remains_blocked(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -159,3 +180,53 @@ def test_non_light_input_missing_organize_index_remains_blocked(
     assert "execution_gate    : blocked" in stdout
     assert "gate_reason       : intake_index_mode=none" in stdout
     assert "intake_skipped    : index_unavailable" in stdout
+
+
+def test_implementation_intent_text_output_states_no_provider_binding(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Spike follow-up (20260714-sdd-ask-single-entrypoint-spike): text output
+    must state explicitly that delegation was not executed and no provider is
+    bound, alongside the existing implementation_handoff signal."""
+    monkeypatch.delenv("SDD_ASK_ENTRYPOINT", raising=False)
+    stdout = _run_ask_capture_stdout(
+        tmp_path,
+        monkeypatch,
+        capsys,
+        "implementar demanda .analysis/refined/example/tasks.md",
+        organize_used=False,
+        organize_reason="light_input",
+    )
+
+    assert "sdd ask contract  : governance-context query only" in stdout
+    assert "delegation_status : not_executed" in stdout
+    assert "implementation_handoff" in stdout
+    assert "delegation_executed : false" in stdout
+    assert "provider_bound    : false" in stdout
+    assert "intent            : implementation_request" in stdout
+    assert "entrypoint        : explicit_command" in stdout
+    assert "next_action       : create_execution_contract" in stdout
+
+
+def test_governance_query_text_output_reports_hook_entrypoint(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """When SDD_ASK_ENTRYPOINT=hook, text output reflects the hook origin
+    without implying a separate/duplicate semantic action."""
+    monkeypatch.setenv("SDD_ASK_ENTRYPOINT", "hook")
+    stdout = _run_ask_capture_stdout(
+        tmp_path,
+        monkeypatch,
+        capsys,
+        "short query",
+        organize_used=False,
+        organize_reason="light_input",
+    )
+
+    assert "entrypoint        : hook" in stdout
+    assert "intent            : governance_query" in stdout
+    assert "next_action       : answer_from_governance" in stdout

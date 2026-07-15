@@ -48,6 +48,15 @@ def ask(
         "--tokens-output",
         help="LLM API output tokens (overrides SDD_TOKENS_OUTPUT).",
     ),
+    intake_only: bool = typer.Option(
+        False,
+        "--intake-only",
+        help=(
+            "Cheap hook-mode profile: emit execution_gate/intake_index_mode/"
+            "intent only. Skips compiled-governance load, signature "
+            "verification, handbook lookup, and telemetry emission."
+        ),
+    ),
 ) -> None:
     """Run governed ask query."""
     if list_commands:
@@ -71,5 +80,6 @@ def ask(
         log_format=log_format,
         tokens_input=tokens_input,
         tokens_output=tokens_output,
+        intake_only=intake_only,
         output_json=is_json_mode(click.get_current_context(silent=True)),
     )

@@ -39,7 +39,7 @@ def _load_pyproject() -> dict[str, Any] | None:
     try:
         import tomllib  # py311+
     except ImportError:  # pragma: no cover
-        import tomli as tomllib  # type: ignore[import-not-found]
+        import tomli as tomllib
 
     data: dict[str, Any] = tomllib.loads(pyproject.read_text(encoding="utf-8"))
     return data

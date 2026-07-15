@@ -81,3 +81,36 @@ func loadEd25519Key(path string) (ed25519.PrivateKey, error) {
 	}
 	return ed, nil
 }
+
+// VerifySignature verifies an Ed25519 signature over message using a PEM-encoded
+// (SPKI/PKIX) public key. It matches the OpenSSL `pkeyutl -verify` contract this
+// package replaces: message is the raw bytes that were signed (the UTF-8 encoded
+// hex payload hash), signatureB64 is the base64-encoded raw signature.
+func VerifySignature(publicKeyPEM string, message []byte, signatureB64 string) (bool, error) {
+	sig, err := base64.StdEncoding.DecodeString(signatureB64)
+	if err != nil {
+		return false, fmt.Errorf("decode signature: %w", err)
+	}
+	pub, err := loadEd25519PublicKey([]byte(publicKeyPEM))
+	if err != nil {
+		return false, fmt.Errorf("load public key: %w", err)
+	}
+	return ed25519.Verify(pub, message, sig), nil
+}
+
+// loadEd25519PublicKey reads a PEM-encoded Ed25519 public key (PKIX/SPKI).
+func loadEd25519PublicKey(pemBytes []byte) (ed25519.PublicKey, error) {
+	block, _ := pem.Decode(pemBytes)
+	if block == nil {
+		return nil, fmt.Errorf("no PEM block found")
+	}
+	key, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("parse public key: %w", err)
+	}
+	pub, ok := key.(ed25519.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("key is not Ed25519 (got %T)", key)
+	}
+	return pub, nil
+}

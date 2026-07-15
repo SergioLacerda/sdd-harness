@@ -448,3 +448,78 @@ def test_validate_compilation_returns_ok_flag() -> None:
     )
 
     assert runner.validate_compilation("out") is False
+
+
+def test_sign_returns_payload_on_success() -> None:
+    runner = _make_runner(
+        SimpleNamespace(
+            success=True, stdout='{"ok": true, "sig_path": "a.json.sig"}', stderr=""
+        )
+    )
+
+    result = runner.sign(
+        artifact_path="a.json", key_path="k.key", key_id="k1", profile="master"
+    )
+
+    assert result["ok"] is True
+    assert result["sig_path"] == "a.json.sig"
+
+
+def test_sign_raises_when_result_reports_not_ok() -> None:
+    runner = _make_runner(
+        SimpleNamespace(
+            success=True, stdout='{"ok": false, "error": "bad key"}', stderr=""
+        )
+    )
+
+    with pytest.raises(CompilerRunnerError, match="bad key"):
+        runner.sign(
+            artifact_path="a.json", key_path="k.key", key_id="k1", profile="master"
+        )
+
+
+def _make_verify_runner(fake_result: SimpleNamespace) -> CompilerRunner:
+    runner = CompilerRunner.__new__(CompilerRunner)
+    runner._binary = Path("/fake/sdd-compile")  # type: ignore[attr-defined]
+    runner._runner = SimpleNamespace(  # type: ignore[attr-defined]
+        run=lambda _args, **_kwargs: fake_result
+    )
+    return runner
+
+
+def test_verify_returns_valid_true_on_success() -> None:
+    runner = _make_verify_runner(
+        SimpleNamespace(success=True, stdout='{"ok": true, "valid": true}', stderr="")
+    )
+
+    result = runner.verify(
+        public_key_pem="pem", message="deadbeef", signature_b64="c2ln"
+    )
+
+    assert result["valid"] is True
+
+
+def test_verify_returns_valid_false_on_bad_signature() -> None:
+    runner = _make_verify_runner(
+        SimpleNamespace(success=True, stdout='{"ok": true, "valid": false}', stderr="")
+    )
+
+    result = runner.verify(
+        public_key_pem="pem", message="deadbeef", signature_b64="c2ln"
+    )
+
+    assert result["valid"] is False
+
+
+def test_verify_returns_valid_false_on_malformed_output() -> None:
+    runner = _make_verify_runner(
+        SimpleNamespace(success=False, stdout="", stderr="boom")
+    )
+
+    result = runner.verify(
+        public_key_pem="pem", message="deadbeef", signature_b64="c2ln"
+    )
+
+    assert result["ok"] is False
+    assert result["valid"] is False
+    assert "boom" in result["error"]

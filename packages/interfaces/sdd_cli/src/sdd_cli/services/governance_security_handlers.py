@@ -66,15 +66,12 @@ def resolve_compiled_dir(
 def _perform_artifact_signing(
     *, c_dir: Path, k_path: Path, key_id: str, targets: list[str], console: Console
 ) -> int:
-    from sdd_core.utils.process import SafeProcessRunner
-
     return perform_artifact_signing_flow(
         c_dir=c_dir,
         k_path=k_path,
         key_id=key_id,
         targets=targets,
         console=console,
-        runner=SafeProcessRunner(),
     )
 
 

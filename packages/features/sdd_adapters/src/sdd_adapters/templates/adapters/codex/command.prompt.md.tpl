@@ -20,6 +20,11 @@ mode: agent
    `echo "Invalid command routes_to configuration"`
 {% endif %}
 4. Return `policy_result` and `next_actions`
+{% if command.routes_to.note %}
+## Adapter note
+
+{{ command.routes_to.note }}
+{% endif %}
 
 ## SDD GOVERNANCE
 

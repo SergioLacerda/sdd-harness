@@ -83,23 +83,21 @@ def test_verify_ed25519_signature_invalid_base64_short_circuit() -> None:
     )
 
 
-def test_verify_ed25519_signature_runner_success_and_failure(
+def test_verify_ed25519_signature_native_backend_success_and_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    class _Result:
-        def __init__(self, success: bool) -> None:
-            self.success = success
-
     class _Runner:
-        def __init__(self, success: bool) -> None:
-            self._success = success
+        def __init__(self, valid: bool) -> None:
+            self._valid = valid
 
-        def run(self, _cmd: list[str], capture_output: bool = True) -> _Result:
-            return _Result(self._success)
+        def verify(
+            self, *, public_key_pem: str, message: str, signature_b64: str
+        ) -> dict[str, bool]:
+            return {"ok": True, "valid": self._valid}
 
     sig_b64 = base64.b64encode(b"sig").decode()
     monkeypatch.setattr(
-        "sdd_core.utils.process.SafeProcessRunner", lambda: _Runner(True)
+        "sdd_core.utils.compiler_runner.CompilerRunner", lambda: _Runner(True)
     )
     assert (
         sig._verify_ed25519_signature(
@@ -108,8 +106,24 @@ def test_verify_ed25519_signature_runner_success_and_failure(
         is True
     )
     monkeypatch.setattr(
-        "sdd_core.utils.process.SafeProcessRunner", lambda: _Runner(False)
+        "sdd_core.utils.compiler_runner.CompilerRunner", lambda: _Runner(False)
     )
+    assert (
+        sig._verify_ed25519_signature(
+            public_key_pem="pem", message=b"m", signature_b64=sig_b64
+        )
+        is False
+    )
+
+
+def test_verify_ed25519_signature_backend_unavailable_returns_false(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise() -> None:
+        raise RuntimeError("sdd-compile binary not found")
+
+    sig_b64 = base64.b64encode(b"sig").decode()
+    monkeypatch.setattr("sdd_core.utils.compiler_runner.CompilerRunner", _raise)
     assert (
         sig._verify_ed25519_signature(
             public_key_pem="pem", message=b"m", signature_b64=sig_b64

@@ -23,7 +23,7 @@ from pathlib import Path
 try:
     import tomllib
 except ImportError:  # pragma: no cover - Python < 3.11 fallback
-    import tomli as tomllib  # type: ignore[import-not-found]
+    import tomli as tomllib
 
 
 SEMVER_TAG_RE = re.compile(r"^[vV]?(?P<version>\d+\.\d+\.\d+)$")

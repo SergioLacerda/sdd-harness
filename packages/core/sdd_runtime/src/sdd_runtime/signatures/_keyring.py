@@ -5,7 +5,6 @@ from __future__ import annotations
 import base64
 import json
 import os
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
@@ -79,43 +78,29 @@ def _verify_ed25519_signature(
     message: bytes,
     signature_b64: str,
 ) -> bool:
+    """Verify an Ed25519 signature via the native Go `sdd-compile verify` backend.
+
+    Any failure to decode the signature, load the key, or reach the native
+    signing backend is treated as an invalid signature rather than raised,
+    matching the previous OpenSSL-backed contract.
+    """
     try:
-        sig_bytes = base64.b64decode(signature_b64)
+        base64.b64decode(signature_b64)
     except Exception:
         return False
 
-    with tempfile.TemporaryDirectory(prefix="sdd-sig-") as td:
-        root = Path(td)
-        pub_path = root / "pub.pem"
-        msg_path = root / "msg.bin"
-        sig_path = root / "sig.bin"
-        pub_path.write_text(public_key_pem, encoding="utf-8")
-        msg_path.write_bytes(message)
-        sig_path.write_bytes(sig_bytes)
+    try:
+        from sdd_core.utils.compiler_runner import CompilerRunner
 
-        # OpenSSL verification (Ed25519) via governed SafeProcessRunner
-        try:
-            from sdd_core.utils.process import SafeProcessRunner
-
-            runner = SafeProcessRunner()
-            cmd = [
-                "openssl",
-                "pkeyutl",
-                "-verify",
-                "-pubin",
-                "-inkey",
-                str(pub_path),
-                "-rawin",
-                "-in",
-                str(msg_path),
-                "-sigfile",
-                str(sig_path),
-            ]
-            result = runner.run(cmd, capture_output=True)
-            return result.success
-        except Exception:
-            # If governed execution fails, fall back to False (signature invalid)
-            return False
+        runner = CompilerRunner()
+        result = runner.verify(
+            public_key_pem=public_key_pem,
+            message=message.decode("utf-8"),
+            signature_b64=signature_b64,
+        )
+        return bool(result.get("valid", False))
+    except Exception:
+        return False
 
 
 def _is_key_time_valid(record: dict[str, Any]) -> bool:

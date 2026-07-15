@@ -50,7 +50,7 @@ examples-langgraph = [
 examples-crewai = [
     "crewai==1.15.2",
     "onnxruntime<1.25",
-    "setuptools",
+    "setuptools>=83.0.0",
 ]
 
 [project.urls]
@@ -84,6 +84,8 @@ conflicts = [
 ]
 constraint-dependencies = [
     "idna>=3.15",  # CVE-2026-45409: DoS via arbitrarily large inputs in idna.encode()
+    "click>=8.3.3",  # PYSEC-2026-2132: command injection in click.edit()
+    "setuptools>=83.0.0",  # PYSEC-2026-3447: MANIFEST.in exclude bypass via Unicode normalization
 ]
 
 [tool.uv.workspace]

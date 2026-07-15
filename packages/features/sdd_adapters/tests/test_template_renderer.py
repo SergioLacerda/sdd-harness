@@ -82,6 +82,43 @@ class TestTemplateRenderer:
         )
         assert "`sdd ask`" in content
 
+    def test_render_claude_command_cli_route_omits_note_block_by_default(self) -> None:
+        """Spike follow-up (20260714-sdd-ask-single-entrypoint-spike): the
+        optional adapter note is additive — commands without routes_to.note
+        must render unchanged."""
+        renderer = TemplateRenderer()
+        content = renderer.render("claude", "command.md", skill=SAMPLE_COMMAND_CLI)
+        assert "Adapter note" not in content
+
+    def test_render_claude_command_cli_route_includes_note_when_present(self) -> None:
+        renderer = TemplateRenderer()
+        command_with_note = {
+            "id": "sdd-ask",
+            "routes_to": {
+                "type": "cli",
+                "command": "sdd ask",
+                "note": "sdd ask is the single governed source of truth.",
+            },
+        }
+        content = renderer.render("claude", "command.md", skill=command_with_note)
+        assert "sdd ask is the single governed source of truth." in content
+
+    def test_render_codex_command_cli_route_includes_note_when_present(self) -> None:
+        renderer = TemplateRenderer()
+        command_with_note = {
+            "id": "sdd-ask",
+            "routes_to": {
+                "type": "cli",
+                "command": "sdd ask",
+                "note": "sdd ask is the single governed source of truth.",
+            },
+        }
+        content = renderer.render(
+            "codex", "command.prompt.md", command=command_with_note
+        )
+        assert "sdd ask is the single governed source of truth." in content
+        assert "Adapter note" in content
+
     def test_render_copilot_command_skill_route(self) -> None:
         renderer = TemplateRenderer()
         content = renderer.render(

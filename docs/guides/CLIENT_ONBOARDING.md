@@ -70,6 +70,42 @@ sdd runtime status
 sdd governance validate
 ```
 
+### Windows signing troubleshooting
+
+Signing (`sdd governance sign`, full bootstrap) and runtime signature
+verification use a native Ed25519 backend (the `sdd-compile` binary) and do
+not shell out to OpenSSL — Windows standalone signing does not require
+`openssl.exe` on `PATH`.
+
+`sdd governance keygen` still shells out to OpenSSL to generate the key
+pair. If keygen fails with `[WinError 2]` and an `openssl genpkey ...`
+command, Windows could not find `openssl.exe`:
+
+```powershell
+where openssl
+openssl version
+```
+
+If those commands fail, install OpenSSL and ensure its `bin` directory is on
+`PATH`, then rerun `sdd governance keygen`.
+
+Full bootstrap and client onboarding use the default key id `dev-01`, so an
+idempotent bootstrap can print:
+
+```text
+Key dev-01 already exists at .sdd\trust\dev-01.key
+```
+
+That line is informational. A direct command such as
+`sdd governance sign --key-id my-org-01` resolves
+`.sdd\trust\my-org-01.key`; it does not fall back to `dev-01`. To use a custom
+key id directly, generate it first:
+
+```bash
+sdd governance keygen --key-id my-org-01
+sdd governance sign --key-id my-org-01
+```
+
 ### Zero-state onboarding behavior
 
 `sdd install --wizard` runs a single guided flow in an empty workspace — no

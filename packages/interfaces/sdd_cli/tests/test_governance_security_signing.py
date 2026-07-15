@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import json
+from io import StringIO
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
+import typer
 from rich.console import Console
 
+from sdd_cli.services._governance_security_support import (
+    perform_artifact_signing_flow,
+)
 from sdd_cli.services.governance_security_handlers import (
     _perform_artifact_signing,
     _update_trusted_keyring,
@@ -17,6 +22,29 @@ from sdd_cli.services.governance_security_handlers import (
 pytestmark = pytest.mark.unit
 
 _CONSOLE = Console(highlight=False)
+
+
+def _fake_signing_runner() -> MagicMock:
+    """A CompilerRunner stand-in whose .sign() writes a compatible manifest."""
+    runner = MagicMock()
+
+    def fake_sign(*, artifact_path, key_path, key_id, profile):  # noqa: ANN001
+        sig_path = Path(artifact_path).with_suffix(Path(artifact_path).suffix + ".sig")
+        manifest = {
+            "schema_version": "1.0",
+            "algorithm": "ed25519",
+            "key_id": key_id,
+            "artifact_name": Path(artifact_path).name,
+            "profile": profile,
+            "payload_hash": "a" * 64,
+            "signature": "ZmFrZS1zaWc=",
+            "signed_at": "2026-01-01T00:00:00Z",
+        }
+        sig_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+        return {"ok": True, "sig_path": str(sig_path)}
+
+    runner.sign.side_effect = fake_sign
+    return runner
 
 
 # ---------------------------------------------------------------------------
@@ -29,28 +57,14 @@ class TestPerformArtifactSigning:
         artifact = tmp_path / "governance-core.json"
         artifact.write_text('{"key": "value"}', encoding="utf-8")
 
-        mock_runner = MagicMock()
-        mock_runner.run.return_value = MagicMock(success=True)
-
-        # Fake the sig.bin output from openssl pkeyutl
-        def fake_run(cmd, **kwargs):  # noqa: ANN001
-            if "-out" in cmd:
-                out_idx = cmd.index("-out") + 1
-                Path(cmd[out_idx]).write_bytes(b"fake-signature")
-            return MagicMock(success=True)
-
-        mock_runner.run.side_effect = fake_run
-
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
-        ):
-            count = _perform_artifact_signing(
-                c_dir=tmp_path,
-                k_path=tmp_path / "mykey.key",
-                key_id="mykey",
-                targets=["governance-core.json"],
-                console=_CONSOLE,
-            )
+        count = perform_artifact_signing_flow(
+            c_dir=tmp_path,
+            k_path=tmp_path / "mykey.key",
+            key_id="mykey",
+            targets=["governance-core.json"],
+            console=_CONSOLE,
+            compiler_runner_factory=_fake_signing_runner,
+        )
 
         assert count == 1
         sig_file = tmp_path / "governance-core.json.sig"
@@ -60,42 +74,30 @@ class TestPerformArtifactSigning:
         assert manifest["algorithm"] == "ed25519"
 
     def test_skips_missing_artifact(self, tmp_path: Path) -> None:
-        mock_runner = MagicMock()
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
-        ):
-            count = _perform_artifact_signing(
-                c_dir=tmp_path,
-                k_path=tmp_path / "key.key",
-                key_id="k",
-                targets=["nonexistent.json"],
-                console=_CONSOLE,
-            )
+        factory = MagicMock(side_effect=_fake_signing_runner)
+        count = perform_artifact_signing_flow(
+            c_dir=tmp_path,
+            k_path=tmp_path / "key.key",
+            key_id="k",
+            targets=["nonexistent.json"],
+            console=_CONSOLE,
+            compiler_runner_factory=factory,
+        )
         assert count == 0
-        mock_runner.run.assert_not_called()
+        factory.assert_not_called()
 
     def test_profile_uses_core_in_name(self, tmp_path: Path) -> None:
         artifact = tmp_path / "governance-core.json"
         artifact.write_text("{}", encoding="utf-8")
 
-        def fake_run(cmd, **kwargs):  # noqa: ANN001
-            if "-out" in cmd:
-                Path(cmd[cmd.index("-out") + 1]).write_bytes(b"sig")
-            return MagicMock(success=True)
-
-        mock_runner = MagicMock()
-        mock_runner.run.side_effect = fake_run
-
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
-        ):
-            _perform_artifact_signing(
-                c_dir=tmp_path,
-                k_path=tmp_path / "k.key",
-                key_id="k",
-                targets=["governance-core.json"],
-                console=_CONSOLE,
-            )
+        perform_artifact_signing_flow(
+            c_dir=tmp_path,
+            k_path=tmp_path / "k.key",
+            key_id="k",
+            targets=["governance-core.json"],
+            console=_CONSOLE,
+            compiler_runner_factory=_fake_signing_runner,
+        )
 
         sig = json.loads(
             (tmp_path / "governance-core.json.sig").read_text(encoding="utf-8")
@@ -106,29 +108,121 @@ class TestPerformArtifactSigning:
         artifact = tmp_path / "skill-registry.json"
         artifact.write_text("{}", encoding="utf-8")
 
-        def fake_run(cmd, **kwargs):  # noqa: ANN001
-            if "-out" in cmd:
-                Path(cmd[cmd.index("-out") + 1]).write_bytes(b"sig")
-            return MagicMock(success=True)
-
-        mock_runner = MagicMock()
-        mock_runner.run.side_effect = fake_run
-
-        with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
-        ):
-            _perform_artifact_signing(
-                c_dir=tmp_path,
-                k_path=tmp_path / "k.key",
-                key_id="k",
-                targets=["skill-registry.json"],
-                console=_CONSOLE,
-            )
+        perform_artifact_signing_flow(
+            c_dir=tmp_path,
+            k_path=tmp_path / "k.key",
+            key_id="k",
+            targets=["skill-registry.json"],
+            console=_CONSOLE,
+            compiler_runner_factory=_fake_signing_runner,
+        )
 
         sig = json.loads(
             (tmp_path / "skill-registry.json.sig").read_text(encoding="utf-8")
         )
         assert sig["profile"] == "client"
+
+    def test_missing_native_backend_reports_actionable_dependency_error(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = tmp_path / "governance-core.json"
+        artifact.write_text("{}", encoding="utf-8")
+        output = StringIO()
+        console = Console(file=output, highlight=False, force_terminal=False)
+
+        def factory() -> MagicMock:
+            raise RuntimeError("sdd-compile binary not found")
+
+        with pytest.raises(typer.Exit) as exc_info:
+            perform_artifact_signing_flow(
+                c_dir=tmp_path,
+                k_path=tmp_path / ".sdd" / "trust" / "dev-01.key",
+                key_id="dev-01",
+                targets=["governance-core.json"],
+                console=console,
+                compiler_runner_factory=factory,
+            )
+
+        assert exc_info.value.exit_code == 1
+        text = output.getvalue()
+        assert "Native signing backend (sdd-compile) is not available" in text
+        assert "sdd-compile binary not found" in text
+        assert "full bootstrap defaults to key id 'dev-01'" in text
+
+    def test_signing_backend_failure_reports_actionable_error(
+        self, tmp_path: Path
+    ) -> None:
+        artifact = tmp_path / "governance-core.json"
+        artifact.write_text("{}", encoding="utf-8")
+        output = StringIO()
+        console = Console(file=output, highlight=False, force_terminal=False)
+
+        runner = MagicMock()
+        runner.sign.side_effect = RuntimeError("sign failed: bad key")
+
+        with pytest.raises(typer.Exit) as exc_info:
+            perform_artifact_signing_flow(
+                c_dir=tmp_path,
+                k_path=tmp_path / "k.key",
+                key_id="k",
+                targets=["governance-core.json"],
+                console=console,
+                compiler_runner_factory=lambda: runner,
+            )
+
+        assert exc_info.value.exit_code == 1
+        assert "Signing failed for governance-core.json" in output.getvalue()
+
+    def test_uses_default_compiler_runner_when_no_factory_given(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        artifact = tmp_path / "governance-core.json"
+        artifact.write_text("{}", encoding="utf-8")
+
+        runner = _fake_signing_runner()
+        monkeypatch.setattr(
+            "sdd_cli.services._governance_security_support.CompilerRunner",
+            lambda: runner,
+        )
+
+        count = perform_artifact_signing_flow(
+            c_dir=tmp_path,
+            k_path=tmp_path / "k.key",
+            key_id="k",
+            targets=["governance-core.json"],
+            console=_CONSOLE,
+        )
+
+        assert count == 1
+        runner.sign.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# _perform_artifact_signing (wrapper)
+# ---------------------------------------------------------------------------
+
+
+class TestPerformArtifactSigningWrapper:
+    def test_delegates_to_flow(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        artifact = tmp_path / "governance-core.json"
+        artifact.write_text("{}", encoding="utf-8")
+
+        runner = _fake_signing_runner()
+        monkeypatch.setattr(
+            "sdd_cli.services._governance_security_support.CompilerRunner",
+            lambda: runner,
+        )
+
+        count = _perform_artifact_signing(
+            c_dir=tmp_path,
+            k_path=tmp_path / "k.key",
+            key_id="k",
+            targets=["governance-core.json"],
+            console=_CONSOLE,
+        )
+        assert count == 1
 
 
 # ---------------------------------------------------------------------------

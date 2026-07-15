@@ -40,4 +40,10 @@ condition to the user by name and value — do not describe it as "the gate is
 blocked" unless `execution_gate: blocked` is also present. If `execution_gate:
 blocked` is present, follow Rule 1 (stop and wait for re-authorization). If
 `execution_gate: allowed`, proceed normally — `intake_index_mode: none` alone
-is informational, not a stop condition."""
+is informational, not a stop condition.
+
+**Rule 4 — Context is not execution:**
+Prompt-submit hook context and `sdd ask` query output are governance context
+only. They do not prove that provider delegation, implementation, source
+mutation, or user approval occurred. If implementation intent is present, use
+an explicitly authorized implementation path or provider result."""

@@ -214,6 +214,29 @@ def test_plugin_validate_pass_with_empty_knowledge_paths(
     assert "pass" in result.output
 
 
+def test_plugin_validate_blocks_strategist_base_path_mismatch(
+    plugin_workspace: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """.sdd plugin injection must not silently conflict with Strategist runtime."""
+    strategist_dir = plugin_workspace / ".strategist"
+    strategist_dir.mkdir()
+    (strategist_dir / "active.yaml").write_text(
+        "base_path: .analysis\nslots:\n  execution: sniper\n",
+        encoding="utf-8",
+    )
+
+    from sdd_cli.commands import plugin as plugin_mod
+
+    monkeypatch.setattr(plugin_mod, "resolve_workspace_root", lambda: plugin_workspace)
+
+    result = runner.invoke(plugin_app, ["validate", "strategist"])
+
+    assert result.exit_code != 0
+    assert "strategist_base_path_mismatch" in result.output
+    assert "sdd_injection.base_path=.sdd/analysis" in result.output
+    assert "strategist.active.base_path=.analysis" in result.output
+
+
 # ---------------------------------------------------------------------------
 # 6.9 mission-contract includes governance_context
 # ---------------------------------------------------------------------------
