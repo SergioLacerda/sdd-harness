@@ -120,6 +120,10 @@ def test_intake_only_json_response_matches_full_gate_semantics(
         patches[4],
         patches[5],
         patch(
+            "sdd_core.governance.handshake.AgentHandshakeProtocol.validate",
+            return_value=("HEALTHY", None),
+        ),
+        patch(
             "sdd_cli.commands._ask_backend.build_governed_ask_snapshot"
         ) as mock_snapshot,
         patch("sdd_cli.commands._ask_backend._emit_ask_telemetry") as mock_telemetry,
@@ -162,6 +166,10 @@ def test_default_ask_without_intake_only_flag_still_loads_full_snapshot(
         patches[3],
         patches[4],
         patches[5],
+        patch(
+            "sdd_core.governance.handshake.AgentHandshakeProtocol.validate",
+            return_value=("HEALTHY", None),
+        ),
         patch(
             "sdd_cli.commands._ask_backend.build_governed_ask_snapshot",
             return_value={
