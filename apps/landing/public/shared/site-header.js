@@ -167,8 +167,9 @@
     || (document.querySelector(".md-header") ? "docs" : null);
   if (autoNav) {
     var mountAuto = function () { build({ nav: autoNav }); };
-    if (window.document$ && typeof window.document$.subscribe === "function") {
-      window.document$.subscribe(mountAuto);
+    var documentObservable = window["document$"];
+    if (documentObservable && typeof documentObservable.subscribe === "function") {
+      documentObservable.subscribe(mountAuto);
     } else if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", mountAuto);
     } else {
