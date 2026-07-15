@@ -17,8 +17,16 @@ PROMPT_SUBMIT_HOOK_SCRIPT = '''#!/usr/bin/env python3
 Reads the hook's stdin JSON payload, extracts the "prompt" field, runs a
 lightweight governance check, and emits the shared additionalContext output
 shape understood by supported platforms. Never blocks (always exits 0).
+
+Explicit `/sdd-ask ...` prompts are a special case: the slash-command adapter
+for that turn will itself run a full `sdd ask` call, so this hook skips its
+own full invocation to avoid paying the governance-snapshot cost twice in the
+same turn (spike: 20260714-sdd-ask-single-entrypoint-spike, R-001 preferred
+strategy). If detection is ever uncertain, this hook falls back to the full
+path rather than silently dropping governance context.
 """
 import json
+import os
 import re
 import subprocess
 import sys
@@ -44,6 +52,8 @@ def _render_activation_header(context: str) -> str:
         f"fingerprint={fingerprint}",
         "Instruction: start your response with one short SDD governance "
         "status line when this context is present.",
+        "Instruction: this is context injection only; no provider delegation or "
+        "implementation was executed by the hook.",
     ]
     footer_line = _extract_footer_line(context)
     if footer_line:
@@ -52,6 +62,24 @@ def _render_activation_header(context: str) -> str:
             f"response with this compact footer: {footer_line}"
         )
     return "\\n".join(lines)
+
+def _is_explicit_sdd_ask(prompt: str) -> bool:
+    stripped = prompt.strip().casefold()
+    return stripped == "/sdd-ask" or stripped.startswith("/sdd-ask ")
+
+def _render_explicit_command_context() -> str:
+    return "\\n".join([
+        "SDD GOVERNANCE ACTIVE | "
+        "source=prompt-submit-hook | "
+        "entrypoint=explicit_command | "
+        "explicit_command=sdd-ask",
+        "Instruction: this turn is an explicit /sdd-ask invocation; the hook "
+        "deferred its own governance query to that command's own `sdd ask` "
+        "call this turn, to avoid running the full governance snapshot "
+        "twice in one turn.",
+        "Instruction: this is context injection only; no provider delegation or "
+        "implementation was executed by the hook.",
+    ])
 
 def main() -> int:
     if Path(".sdd/runtime/hook-disabled").exists():
@@ -65,9 +93,23 @@ def main() -> int:
     prompt = payload.get("prompt", "")
     if not prompt:
         return 0
+    if _is_explicit_sdd_ask(prompt):
+        print(json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": _render_explicit_command_context(),
+            }
+        }))
+        return 0
     try:
+        env = dict(os.environ)
+        env["SDD_ASK_ENTRYPOINT"] = "hook"
         result = subprocess.run(
-            ["sdd", "ask", prompt], capture_output=True, text=True, timeout=10
+            ["sdd", "ask", prompt],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            env=env,
         )
         context = result.stdout.strip()
     except Exception:

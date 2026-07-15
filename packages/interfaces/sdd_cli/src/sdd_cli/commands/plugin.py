@@ -64,7 +64,23 @@ def _load_registry(ws_root: Path) -> dict[str, Any]:
         return {"schema_version": "1.0.0", "plugins": []}
 
 
-def _validate_entry(entry: dict[str, Any]) -> list[str]:
+def _strategist_active_base_path(ws_root: Path) -> str | None:
+    active_path = ws_root / ".strategist" / "active.yaml"
+    if not active_path.exists():
+        return None
+    try:
+        import yaml
+
+        payload = yaml.safe_load(active_path.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    base_path = payload.get("base_path")
+    return str(base_path).strip() if base_path else None
+
+
+def _validate_entry(entry: dict[str, Any], ws_root: Path | None = None) -> list[str]:
     violations: list[str] = []
     for field in _REQUIRED_FIELDS:
         if field not in entry:
@@ -77,6 +93,16 @@ def _validate_entry(entry: dict[str, Any]) -> list[str]:
         for inj_field in _REQUIRED_INJECTION_FIELDS:
             if inj_field not in injection:
                 violations.append(f"missing sdd_injection field: {inj_field}")
+        if entry.get("id") == "strategist" and ws_root is not None:
+            injected_base = str(injection.get("base_path", "")).strip()
+            active_base = _strategist_active_base_path(ws_root)
+            if active_base and injected_base and active_base != injected_base:
+                violations.append(
+                    "strategist_base_path_mismatch: "
+                    f"sdd_injection.base_path={injected_base} "
+                    f"strategist.active.base_path={active_base}; "
+                    "automatic delegation must block or use an explicit mapping"
+                )
     return violations
 
 
@@ -140,7 +166,7 @@ def validate_plugin(
             typer.echo(f"Error: {msg}", err=True)
         raise typer.Exit(1)
 
-    violations = _validate_entry(entry)
+    violations = _validate_entry(entry, ws_root=ws_root)
     passed = len(violations) == 0
 
     if _ctx_json() or json_output:

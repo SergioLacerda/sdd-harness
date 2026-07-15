@@ -37,6 +37,7 @@ def test_ask_top_level_invocation_without_duplication(monkeypatch) -> None:
         log_format: str = "jsonl",
         tokens_input: int | None = None,
         tokens_output: int | None = None,
+        intake_only: bool = False,
         output_json: bool | None = None,
     ) -> None:
         called["query"] = query
@@ -44,6 +45,7 @@ def test_ask_top_level_invocation_without_duplication(monkeypatch) -> None:
         called["skill"] = skill
         called["budget"] = budget
         called["full"] = full
+        called["intake_only"] = intake_only
         called["output_json"] = output_json
 
     monkeypatch.setattr("sdd_cli.commands._ask_backend.ask_cmd", _fake_ask_cmd)
@@ -69,6 +71,7 @@ def test_ask_top_level_noop_when_query_is_empty_or_null(monkeypatch) -> None:
         log_format: str = "jsonl",
         tokens_input: int | None = None,
         tokens_output: int | None = None,
+        intake_only: bool = False,
         output_json: bool | None = None,
     ) -> None:
         called["count"] += 1
@@ -97,6 +100,7 @@ def test_ask_full_flag_passes_full_true_to_ask_cmd(monkeypatch) -> None:
         log_format: str = "jsonl",
         tokens_input: int | None = None,
         tokens_output: int | None = None,
+        intake_only: bool = False,
         output_json: bool | None = None,
     ) -> None:
         called["query"] = query
@@ -104,6 +108,7 @@ def test_ask_full_flag_passes_full_true_to_ask_cmd(monkeypatch) -> None:
         called["log_format"] = log_format
         called["tokens_input"] = tokens_input
         called["tokens_output"] = tokens_output
+        called["intake_only"] = intake_only
         called["output_json"] = output_json
 
     monkeypatch.setattr("sdd_cli.commands._ask_backend.ask_cmd", _fake_ask_cmd)

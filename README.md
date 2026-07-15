@@ -158,8 +158,27 @@ Contributor setup and troubleshooting: `docs/guides/ONBOARDING.md`
 sdd governance compile
 sdd governance validate
 sdd governance score --verbose
+sdd governance keygen --key-id my-org-01
 sdd governance sign --key-id my-org-01
 ```
+
+`sdd governance sign --key-id <id>` reads `.sdd/trust/<id>.key` unless
+`--key-path` is provided. Full bootstrap and client onboarding use `dev-01` by
+default, so a bootstrap log can mention `.sdd/trust/dev-01.key` even when a
+separate direct signing flow uses another key id.
+
+`sdd governance sign` and runtime signature verification use a native Ed25519
+backend (the `sdd-compile` binary) and do not require `openssl.exe` on
+Windows or any other platform. `sdd governance keygen` still shells out to
+OpenSSL to generate the key pair; if keygen fails with `[WinError 2]` while
+running `openssl`, verify the dependency first:
+
+```powershell
+where openssl
+openssl version
+```
+
+Install OpenSSL or update `PATH` before rerunning `sdd governance keygen`.
 
 ### Runtime and Audit
 

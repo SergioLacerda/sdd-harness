@@ -11,7 +11,7 @@ _ORCHESTRATION_SKILLS: dict[str, SkillDefinition] = {
         name="sdd-ask",
         version="1.0.0",
         category="orchestrator",
-        description="Classify user intent and route to the correct governed skill pipeline. Single entrypoint for all user requests.",
+        description="Query governed SDD context and report execution gates. Does not execute provider delegation.",
         when_to_use=[
             "any user request requiring skill routing",
             "before any other skill",
@@ -20,10 +20,10 @@ _ORCHESTRATION_SKILLS: dict[str, SkillDefinition] = {
             "analysis",
         ],
         outcomes=[
-            "execution_contract",
-            "selected_route",
-            "confidence_scores",
-            "skill_pipeline_result",
+            "governance_context",
+            "execution_gate",
+            "intake_index_mode",
+            "implementation_handoff",
         ],
         allowed_tools=[
             "sdd ask",
@@ -66,7 +66,18 @@ _ORCHESTRATION_SKILLS: dict[str, SkillDefinition] = {
         idempotent=False,
         context_policy={"max_context_tokens": 1200, "default_detail": "minimal"},
         delegation_policy={
-            "enabled": True,
+            "enabled": False,
+            "runtime_status": "not_implemented",
+            "current_contract": "query_only",
+            "metadata_status": (
+                "declarative_only: no runtime code path in sdd_cli's ask "
+                "pipeline reads this object today (spike: "
+                "20260714-sdd-ask-single-entrypoint-spike, analysis A-002). "
+                "The fields below describe a future delegation contract, not "
+                "current behavior. sdd ask independently reports "
+                "delegation_executed=false and provider_bound=false at "
+                "runtime regardless of this metadata."
+            ),
             "triggers": [
                 "analyze and plan",
                 "create implementation plan",
@@ -75,8 +86,9 @@ _ORCHESTRATION_SKILLS: dict[str, SkillDefinition] = {
                 "orchestrate",
                 "multi-phase analysis",
             ],
-            "delegate_to": "analysis_orchestrator",
+            "future_delegate_to": "analysis_orchestrator",
             "plugin_registry": ".sdd/plugins/registry.yaml",
+            "unsupported_intent_response": "implementation_handoff",
             "input_transform": {
                 "user_prompt": "mission_contract",
                 "reviewed_task": "direct_execution",

@@ -173,7 +173,7 @@ class HandshakeCache:
                 try:
                     import tomllib
                 except ImportError:
-                    import tomli as tomllib  # type: ignore[import-not-found]
+                    import tomli as tomllib
                 config = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
                 sdd_runtime = config.get("tool", {}).get("sdd", {}).get("runtime", {})
                 if "handshake_ttl_minutes" in sdd_runtime:

@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-import base64
 import contextlib
-import hashlib
 import json as _json
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import typer
 from rich.console import Console
+
+from sdd_core.utils.compiler_runner import CompilerRunner
 
 
 def resolve_compiled_dir_path(
@@ -49,46 +48,48 @@ def perform_artifact_signing_flow(
     key_id: str,
     targets: list[str],
     console: Console,
-    runner: Any,
+    compiler_runner_factory: Any | None = None,
 ) -> int:
+    """Sign artifacts using the native Ed25519 backend (Go `sdd-compile sign`).
+
+    This path no longer shells out to OpenSSL: signing is delegated to the
+    `sdd-compile` binary via `CompilerRunner`, the same Go-native bridge
+    already used for `sdd governance compile`.
+    """
     signed_count = 0
+    runner: Any | None = None
+    make_runner = compiler_runner_factory or CompilerRunner
     for filename in targets:
         target_path = c_dir / filename
         if not target_path.exists():
             continue
-        sig_path = target_path.with_suffix(target_path.suffix + ".sig")
-        payload_hash = hashlib.sha256(target_path.read_bytes()).hexdigest()
-        with tempfile.TemporaryDirectory(prefix="sdd-sign-") as td:
-            msg_path = Path(td) / "msg.bin"
-            sig_raw_path = Path(td) / "sig.bin"
-            msg_path.write_bytes(payload_hash.encode("utf-8"))
-            runner.run(
-                [
-                    "openssl",
-                    "pkeyutl",
-                    "-sign",
-                    "-inkey",
-                    str(k_path),
-                    "-rawin",
-                    "-in",
-                    str(msg_path),
-                    "-out",
-                    str(sig_raw_path),
-                ],
-                check=True,
+        if runner is None:
+            try:
+                runner = make_runner()
+            except Exception as exc:
+                console.print(
+                    "[red]ERROR: Native signing backend (sdd-compile) is not "
+                    "available.[/red]"
+                )
+                console.print(f"  Reason: {exc}")
+                console.print(f"  Key id: {key_id}")
+                console.print(
+                    "  Note: full bootstrap defaults to key id 'dev-01'; "
+                    f"direct signing with --key-id {key_id} uses {k_path}."
+                )
+                raise typer.Exit(1) from exc
+        profile = "master" if "core" in filename else "client"
+        try:
+            runner.sign(
+                artifact_path=target_path,
+                key_path=k_path,
+                key_id=key_id,
+                profile=profile,
             )
-            signature_b64 = base64.b64encode(sig_raw_path.read_bytes()).decode("utf-8")
-        manifest = {
-            "schema_version": "1.0",
-            "algorithm": "ed25519",
-            "key_id": key_id,
-            "artifact_name": filename,
-            "profile": "master" if "core" in filename else "client",
-            "payload_hash": payload_hash,
-            "signature": signature_b64,
-            "signed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        }
-        sig_path.write_text(_json.dumps(manifest, indent=2), encoding="utf-8")
+        except Exception as exc:
+            console.print(f"[red]ERROR: Signing failed for {filename}: {exc}[/red]")
+            raise typer.Exit(1) from exc
+        sig_path = target_path.with_suffix(target_path.suffix + ".sig")
         console.print(f"[green]Signed {filename} -> {sig_path.name}[/green]")
         signed_count += 1
     return signed_count

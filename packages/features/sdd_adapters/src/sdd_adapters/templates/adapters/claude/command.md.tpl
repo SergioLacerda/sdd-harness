@@ -16,6 +16,9 @@ Execute SDD CLI command `{{ routes_to.command }}`.
 Run: `{{ routes_to.command }} "$ARGUMENTS"`
 
 Pass user arguments directly to the CLI command. Do not interpret or modify the arguments.
+{% if routes_to.note %}
+{{ routes_to.note }}
+{% endif %}
 
 ## When to use
 

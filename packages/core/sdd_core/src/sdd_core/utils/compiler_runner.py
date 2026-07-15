@@ -28,8 +28,10 @@ __all__ = [
     "CompilationResult",
     "CompilerRunner",
     "CompilerRunnerError",
+    "SignResult",
     "ValidationCheck",
     "ValidationResult",
+    "VerifyResult",
 ]
 
 _RELEASE_REPO = "SergioLacerda/sdd-harness"
@@ -73,6 +75,22 @@ class ValidationResult(TypedDict):
     ok: bool
     errors: list[str]
     checks: list[ValidationCheck]
+
+
+class SignResult(TypedDict, total=False):
+    """Mirrors the Go binary's `sign` JSON output."""
+
+    ok: bool
+    sig_path: str
+    error: str
+
+
+class VerifyResult(TypedDict, total=False):
+    """Mirrors the Go binary's `verify` JSON output."""
+
+    ok: bool
+    valid: bool
+    error: str
 
 
 def _cache_dir() -> Path:
@@ -316,6 +334,62 @@ class CompilerRunner:
     def validate_compilation(self, output_dir: str | Path) -> bool:
         """Backward-compatible boolean validation entrypoint."""
         return self.validate_compilation_detailed(output_dir).get("ok", False)
+
+    def sign(
+        self,
+        *,
+        artifact_path: str | Path,
+        key_path: str | Path,
+        key_id: str,
+        profile: str,
+    ) -> SignResult:
+        """Sign an artifact with a native Ed25519 key via the Go binary."""
+        result = self._runner.run(
+            [
+                str(self._binary),
+                "sign",
+                "--artifact",
+                str(artifact_path),
+                "--key",
+                str(key_path),
+                "--key-id",
+                key_id,
+                "--profile",
+                profile,
+            ]
+        )
+        payload = self._parse_json(result.stdout, context="sign")
+        if not payload.get("ok", False):
+            error = payload.get("error") or result.stderr.strip() or "sign failed"
+            raise CompilerRunnerError(f"sdd-compile sign failed: {error}")
+        return payload  # type: ignore[return-value]
+
+    def verify(
+        self,
+        *,
+        public_key_pem: str,
+        message: str,
+        signature_b64: str,
+    ) -> VerifyResult:
+        """Verify an Ed25519 signature via the Go binary. Never raises for an
+        invalid/malformed signature; returns valid=False instead."""
+        request = json.dumps(
+            {
+                "public_key_pem": public_key_pem,
+                "message": message,
+                "signature_b64": signature_b64,
+            }
+        )
+        result = self._runner.run([str(self._binary), "verify"], input_data=request)
+        try:
+            payload = self._parse_json(result.stdout, context="verify")
+        except CompilerRunnerError as exc:
+            return {
+                "ok": False,
+                "valid": False,
+                "error": result.stderr.strip() or str(exc),
+            }
+        return payload  # type: ignore[return-value]
 
     @staticmethod
     def _parse_json(stdout: str, *, context: str) -> dict[str, Any]:

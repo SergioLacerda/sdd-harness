@@ -31,6 +31,30 @@ same payload — the hex-encoded SHA-256 hash of the artifact file, encoded as
 UTF-8 bytes — so signatures produced by either implementation are protocol
 compatible and verifiable by the same downstream consumers.
 
+## `sign`/`verify` subcommands and runtime verification parity (2026-07-13)
+
+The `internal/signing` Ed25519 backend originally only served the `compile`
+pipeline's own signing step (`internal/govcompiler`). The Python CLI's
+`sdd governance sign` path and the runtime's signature verification
+(`sdd_runtime.signatures`) still shelled out to `openssl pkeyutl -sign` /
+`openssl pkeyutl -verify` separately, leaving OpenSSL a required ambient
+dependency for Windows standalone signing and verification.
+
+`sign` and `verify` cobra commands were added (`cmd/sign.go`, `cmd/verify.go`)
+so `CompilerRunner` (`sdd_core.utils.compiler_runner`) can drive both from
+Python without spawning `openssl`. `verify` reads its request
+(`public_key_pem`, `message`, `signature_b64`) as JSON on stdin rather than
+CLI flags, since a PEM public key does not fit safely into a single argv
+entry on Windows. A malformed key or signature is reported as
+`{"ok": true, "valid": false}` rather than a process failure, matching the
+previous OpenSSL-backed contract where any verification problem resolved to
+"signature invalid" rather than raising.
+
+`sdd governance keygen` (private/public key generation) still shells out to
+OpenSSL; only signing and verification moved to the native backend, per the
+residual scope in
+`.analysis/pending/20260713-windows-standalone-native-signing-verification-residual.md`.
+
 ## msgpack number fidelity
 
 Go's `encoding/json` decodes all JSON numbers into `interface{}` as `float64`

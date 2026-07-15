@@ -38,7 +38,7 @@ try:
     tomllib = _tomllib
 except ImportError:
     try:
-        import tomli as _tomllib  # type: ignore[import-not-found]
+        import tomli as _tomllib
 
         tomllib = _tomllib
     except ImportError:

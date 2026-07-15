@@ -159,9 +159,113 @@ def test_prompt_submit_hook_injects_governance_activation_header(
     assert "source=prompt-submit-hook" in context
     assert "execution_gate=allowed" in context
     assert "fingerprint=58a087b3" in context
+    assert "context injection only" in context
+    assert "no provider delegation or implementation was executed" in context
     assert "start your response with one short SDD governance status line" in context
     assert "SDD GOVERNANCE: drift=none" in context
     assert (
         "end your response with this compact footer: "
         "SDD GOVERNANCE: drift=none | governance=ok | profile=default"
     ) in context
+
+
+def test_prompt_submit_hook_skips_full_sdd_ask_for_explicit_slash_command(
+    tmp_path: Path,
+) -> None:
+    """Spike follow-up (20260714-sdd-ask-single-entrypoint-spike, R-001
+    preferred strategy): when the raw prompt starts with /sdd-ask, the hook
+    must not run a full `sdd ask` subprocess — the slash-command adapter
+    performs the single full invocation for that turn instead."""
+    generator = PromptSubmitHookGenerator(tmp_path, {"codex"})
+    generator.generate()
+    (tmp_path / ".sdd" / "metadata.json").write_text("{}", encoding="utf-8")
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    fake_sdd = bin_dir / "sdd"
+    marker_path = tmp_path / "sdd-invoked.marker"
+    fake_sdd.write_text(
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                f"open(r'{marker_path}', 'w').close()",
+                "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
+                "print('execution_gate=allowed')",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    fake_sdd.chmod(0o755)
+
+    env = dict(os.environ)
+    env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"
+    result = subprocess.run(
+        [sys.executable, str(tmp_path / CENTRAL_PROMPT_SUBMIT_HOOK)],
+        input=json.dumps({"prompt": "/sdd-ask implementar X"}),
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert not marker_path.exists(), "hook must not invoke `sdd ask` a second time"
+    payload = json.loads(result.stdout)
+    context = payload["hookSpecificOutput"]["additionalContext"]
+    assert "entrypoint=explicit_command" in context
+    assert "explicit_command=sdd-ask" in context
+    assert "context injection only" in context
+    assert "no provider delegation or implementation was executed" in context
+
+
+def test_prompt_submit_hook_runs_full_path_for_non_slash_prompt(
+    tmp_path: Path,
+) -> None:
+    """A plain prompt (no /sdd-ask prefix) must still run the full `sdd ask`
+    path exactly as before, with SDD_ASK_ENTRYPOINT=hook set so the CLI can
+    report `entrypoint: hook` in its structured output."""
+    generator = PromptSubmitHookGenerator(tmp_path, {"codex"})
+    generator.generate()
+    (tmp_path / ".sdd" / "metadata.json").write_text("{}", encoding="utf-8")
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    fake_sdd = bin_dir / "sdd"
+    env_marker_path = tmp_path / "entrypoint-env.marker"
+    fake_sdd.write_text(
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                "import os",
+                f"open(r'{env_marker_path}', 'w').write(os.environ.get('SDD_ASK_ENTRYPOINT', ''))",
+                "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
+                "print('execution_gate=allowed')",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    fake_sdd.chmod(0o755)
+
+    env = dict(os.environ)
+    env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"
+    result = subprocess.run(
+        [sys.executable, str(tmp_path / CENTRAL_PROMPT_SUBMIT_HOOK)],
+        input=json.dumps({"prompt": "implementar X"}),
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert env_marker_path.exists(), (
+        "hook must still invoke `sdd ask` for non-slash prompts"
+    )
+    assert env_marker_path.read_text(encoding="utf-8") == "hook"
+    payload = json.loads(result.stdout)
+    context = payload["hookSpecificOutput"]["additionalContext"]
+    assert context.startswith("SDD GOVERNANCE ACTIVE")

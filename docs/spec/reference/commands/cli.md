@@ -98,12 +98,17 @@ sdd test run --cov-fail-under 80
 
 ### Governance Query (Ask)
 
-Entry point for governed queries and skill routing. Loads compiled governance context before any agent response.
+`sdd ask` is the single governed entrypoint: it is the source of truth that
+the prompt-submit hook and the `/sdd-ask` slash/skill adapters route through.
+Adapters do not classify intent independently; they consume the CLI's
+structured decision. Loads compiled governance context before any agent
+response.
 
 - `sdd ask "<query>"` — minimal governance context (fingerprint + mandates). Use for quick queries and skill routing decisions.
 - `sdd ask "<query>" --full` — full governance context with telemetry. Use when confidence or drift information is needed.
+- `sdd ask "<query>" --intake-only` — cheap profile for automated callers (e.g. a prompt-submit hook): emits only `execution_gate`, `intake_index_mode`, and the structured intent fields below. Skips the compiled-governance load, signature verification, handbook lookup, and telemetry emission that the full profile performs.
 
-Both commands emit:
+Both `sdd ask` and `sdd ask --full` emit:
 
 ```
 === SDD Governance Context ===
@@ -117,6 +122,28 @@ degraded        : no
 SDD GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>
 ```
 
+Every profile (including `--intake-only`) also emits a structured intake
+contract distinguishing what was decided from what was executed:
+
+```
+intent            : governance_query | implementation_request | analysis_request | planning_request
+entrypoint        : hook | explicit_command
+next_action       : acknowledge_context | create_execution_contract | answer_from_governance
+delegation_executed : false
+provider_bound    : false
+```
+
+`delegation_executed` and `provider_bound` are always `false` today: no
+runtime code path in `sdd ask` invokes an external provider (e.g.
+Strategist) or any other analysis skill. `next_action:
+create_execution_contract` (surfaced today as `next_valid_path:
+implementation_handoff`) means the calling agent should proceed with an
+authorized implementation path itself — it is not a signal that
+implementation, delegation, or provider execution already happened.
+Governance stays provider-agnostic: using an analysis skill such as
+Strategist to refine an implementation plan is the user's independent
+choice, not something `sdd ask` selects or invokes automatically.
+
 If `drift=detected` or `governance=partial`, run `sdd governance compile` before retrying.
 
 ```bash
@@ -125,6 +152,9 @@ sdd ask "diagnose failing tests"
 
 # Full telemetry (confidence gate, drift check)
 sdd ask "implementar plano: .sdd/skills/sdd-ask/skill.yaml" --full
+
+# Cheap profile for automated hook callers
+sdd ask "diagnose failing tests" --intake-only
 ```
 
 ### Capability Layer (Skills)

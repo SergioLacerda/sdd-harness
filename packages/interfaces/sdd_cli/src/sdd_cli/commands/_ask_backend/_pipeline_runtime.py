@@ -13,7 +13,13 @@ from sdd_cli.commands._ask_backend._pipeline_runtime_support import (
     normalize_ask_inputs,
 )
 from sdd_cli.services.ask_response import (
+    emit_ask_intake_only_text_response as _emit_ask_intake_only_text_response,
+)
+from sdd_cli.services.ask_response import (
     emit_ask_text_response as _emit_ask_text_response,
+)
+from sdd_cli.services.ask_response_json import (
+    emit_ask_intake_only_json_response as _emit_ask_intake_only_json_response,
 )
 from sdd_cli.services.ask_response_json import (
     emit_ask_json_response as _emit_ask_json_response,
@@ -210,6 +216,7 @@ def _ask_cmd_impl(
     log_format: str,
     tokens_input: int | None,
     tokens_output: int | None,
+    intake_only: bool = False,
 ) -> None:
     inputs = normalize_ask_inputs(
         query=query,
@@ -226,6 +233,18 @@ def _ask_cmd_impl(
     from sdd_cli.commands import _ask_backend as _backend
 
     session = _start_ask_session(inputs.query)
+    if intake_only:
+        # Cheap hook-mode profile (spike: 20260714-sdd-ask-single-entrypoint-
+        # spike, I-005). Deliberately skips build_governed_ask_snapshot
+        # (compiled-governance load, signature verification, drift checks,
+        # handbook lookup) and telemetry/runtime-cache writes — those are the
+        # stages the spike identified as unnecessary for every hook-fired
+        # prompt. Full `sdd ask` behavior (no --intake-only) is unchanged.
+        if _json_mode():
+            _emit_ask_intake_only_json_response(inputs, session)
+        else:
+            _emit_ask_intake_only_text_response(inputs, session)
+        return
     ask_snapshot = _load_ask_snapshot(inputs, session)
     output_text, governance_footer, duration_ms = _sync_ask_runtime(
         inputs, session, ask_snapshot

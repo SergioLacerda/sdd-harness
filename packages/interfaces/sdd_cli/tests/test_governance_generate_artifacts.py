@@ -92,6 +92,26 @@ class TestRunBootstrapSigning:
             run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)
         sign_fn.assert_called_once()
 
+    def test_existing_key_then_signing_failure_is_reraised(
+        self, tmp_path: Path
+    ) -> None:
+        keygen_fn = MagicMock(side_effect=typer.Exit(0))
+        sign_fn = MagicMock(side_effect=typer.Exit(1))
+        with (
+            patch(
+                "sdd_cli.services.governance_bootstrap_handlers.resolve_workspace_root",
+                return_value=tmp_path,
+            ),
+            pytest.raises(typer.Exit) as exc_info,
+        ):
+            run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)
+
+        assert exc_info.value.exit_code == 1
+        keygen_fn.assert_called_once_with(key_id="dev-01", output_dir=".sdd/trust")
+        sign_fn.assert_called_once_with(
+            key_id="dev-01", key_path=None, compiled_dir=None, source=False
+        )
+
     def test_keygen_exit_nonzero_is_reraised(self, tmp_path: Path) -> None:
         keygen_fn = MagicMock(side_effect=typer.Exit(1))
         sign_fn = MagicMock()

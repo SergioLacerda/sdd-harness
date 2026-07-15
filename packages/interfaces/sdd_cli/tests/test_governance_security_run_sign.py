@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -33,6 +34,51 @@ class TestRunSign:
                 console=_CONSOLE,
             )
         assert exc_info.value.exit_code == 1
+
+    def test_missing_custom_key_id_reports_expected_path(self, tmp_path: Path) -> None:
+        output = StringIO()
+        console = Console(file=output, highlight=False, force_terminal=False, width=240)
+
+        with pytest.raises(typer.Exit) as exc_info:
+            run_sign(
+                key_id="my-org-01",
+                key_path=None,
+                ws_root=tmp_path,
+                target_dir=tmp_path,
+                targets=["artifact.json"],
+                console=console,
+            )
+
+        assert exc_info.value.exit_code == 1
+        text = output.getvalue()
+        assert str(tmp_path / ".sdd" / "trust" / "my-org-01.key") in text
+        assert "sdd governance keygen --key-id my-org-01" in text
+
+    def test_custom_key_id_does_not_fall_back_to_dev_01(self, tmp_path: Path) -> None:
+        custom_key = tmp_path / ".sdd" / "trust" / "my-org-01.key"
+        custom_key.parent.mkdir(parents=True)
+        custom_key.write_text("priv", encoding="utf-8")
+
+        with (
+            patch(
+                "sdd_cli.services.governance_security_handlers._perform_artifact_signing",
+                return_value=0,
+            ) as signing,
+            patch(
+                "sdd_cli.services.governance_security_handlers._update_trusted_keyring"
+            ),
+        ):
+            run_sign(
+                key_id="my-org-01",
+                key_path=None,
+                ws_root=tmp_path,
+                target_dir=tmp_path,
+                targets=["artifact.json"],
+                console=_CONSOLE,
+            )
+
+        assert signing.call_args.kwargs["k_path"] == custom_key
+        assert signing.call_args.kwargs["key_id"] == "my-org-01"
 
     def test_explicit_key_path_used(self, tmp_path: Path) -> None:
         k_path = tmp_path / "custom.key"

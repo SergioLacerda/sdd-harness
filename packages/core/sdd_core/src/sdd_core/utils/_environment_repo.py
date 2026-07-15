@@ -10,10 +10,10 @@ from typing import Any, cast
 
 _tomllib_mod: types.ModuleType | None = None
 if sys.version_info >= (3, 11):
-    import tomllib as _tomllib_mod  # type: ignore[no-redef]
+    import tomllib as _tomllib_mod
 else:
     try:
-        import tomli as _tomllib_mod  # type: ignore[import-not-found, no-redef]
+        import tomli as _tomllib_mod
     except ImportError:
         _tomllib_mod = None
 tomllib = _tomllib_mod

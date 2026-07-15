@@ -55,21 +55,20 @@ def test_analysis_list_empty_workspace(
 
 
 # ---------------------------------------------------------------------------
-# 6.5 sdd-ask delegation triggers on analysis intent keywords
+# 6.5 sdd-ask stays query-only until real delegation exists
 # ---------------------------------------------------------------------------
 
 
-def test_sdd_ask_delegation_policy_has_triggers() -> None:
-    """sdd-ask skill has delegation_policy with analysis mission triggers."""
+def test_sdd_ask_registry_marks_delegation_not_implemented() -> None:
+    """sdd-ask skill must not imply executed provider delegation."""
     from sdd_runtime.skills import _REGISTRY
 
     skill = _REGISTRY.get("sdd-ask")
     assert skill is not None
     assert skill.delegation_policy is not None
-    assert skill.delegation_policy.get("enabled") is True
-    triggers = skill.delegation_policy.get("triggers", [])
-    assert len(triggers) > 0
-    assert any("plan" in t.lower() for t in triggers)
+    assert skill.delegation_policy.get("enabled") is False
+    assert skill.delegation_policy.get("runtime_status") == "not_implemented"
+    assert skill.delegation_policy.get("current_contract") == "query_only"
 
 
 # ---------------------------------------------------------------------------
@@ -77,10 +76,48 @@ def test_sdd_ask_delegation_policy_has_triggers() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_sdd_ask_delegation_policy_has_delegate_to() -> None:
-    """sdd-ask delegation_policy.delegate_to is analysis_orchestrator."""
+def test_sdd_ask_registry_preserves_future_delegation_target_as_internal() -> None:
+    """Future delegation target is documented without being executable."""
     from sdd_runtime.skills import _REGISTRY
 
     skill = _REGISTRY["sdd-ask"]
     assert skill.delegation_policy is not None
-    assert skill.delegation_policy.get("delegate_to") == "analysis_orchestrator"
+    assert skill.delegation_policy.get("future_delegate_to") == "analysis_orchestrator"
+    assert "implementation_handoff" in skill.delegation_policy.get(
+        "unsupported_intent_response", ""
+    )
+
+
+# ---------------------------------------------------------------------------
+# 6.7 skill metadata and runtime ask output must agree on delegation state
+# (spike follow-up: 20260714-sdd-ask-single-entrypoint-spike, I-007)
+# ---------------------------------------------------------------------------
+
+
+def test_sdd_ask_registry_declares_delegation_policy_as_declarative_only() -> None:
+    """The skill registry must not read as a working delegation pipeline."""
+    from sdd_runtime.skills import _REGISTRY
+
+    skill = _REGISTRY["sdd-ask"]
+    assert skill.delegation_policy is not None
+    assert "declarative_only" in skill.delegation_policy.get("metadata_status", "")
+
+
+def test_sdd_ask_metadata_and_runtime_output_agree_on_delegation_state() -> None:
+    """skill.delegation_policy.enabled and the live ask response's
+    delegation_executed/provider_bound fields must never drift apart: both
+    must report "no delegation happened" until a real provider path exists.
+    """
+    from sdd_runtime.skills import _REGISTRY
+
+    from sdd_cli.services.ask_response import build_intake_contract_fields
+
+    skill = _REGISTRY["sdd-ask"]
+    assert skill.delegation_policy is not None
+    assert skill.delegation_policy.get("enabled") is False
+
+    fields = build_intake_contract_fields(
+        execution_gate="allowed", query="implementar X", skill=None
+    )
+    assert fields["delegation_executed"] is False
+    assert fields["provider_bound"] is False
