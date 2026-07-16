@@ -26,6 +26,10 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [1.0.2] — 2026-07-16
+
 ### Added
 - `check_module_available()` (in `sdd_core.utils.process`) and `require_dev_module()` (in `sdd_cli.utils.dev_deps`): governance-safe (no `python -c`) checks that give an actionable error instead of a raw `ModuleNotFoundError` traceback when an optional dev tool (`ruff`, `mypy`, `bandit`, `build`) or the `sdd_cli` package itself is missing from the active interpreter, applied to `sdd lint`, `sdd audit` (compliance pack), and `sdd release`.
 
@@ -103,7 +107,8 @@ Initial stable release of the multi-package workspace structure.
 - `sdd lint spec`, `sdd governance compile`, `sdd governance generate`, `sdd doctor run`
 - MkDocs documentation site
 
-[Unreleased]: https://github.com/SergioLacerda/sdd-harness/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/SergioLacerda/sdd-harness/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v1.0.2
 [1.0.1]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v1.0.1
 [0.1.0]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v0.1.0
 [1.0.0]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v1.0.0
