@@ -33,6 +33,39 @@ def test_fetch_release_binary_error_names_standalone_remediation(
     assert "SDD_COMPILE_BIN" in message
 
 
+def test_release_version_candidates_include_base_release_for_dev_version() -> None:
+    candidates = compiler_runner._release_version_candidates("1.0.3.dev15+g725459b8d")
+
+    assert candidates == ["1.0.3.dev15+g725459b8d", "1.0.3"]
+
+
+def test_fetch_release_binary_falls_back_to_base_release_for_dev_version(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A dev/local package version can use the nearest release compiler asset."""
+
+    attempts: list[str] = []
+
+    def _fake_download(url: str) -> bytes | None:
+        attempts.append(url)
+        if "/v1.0.3/" not in url:
+            return None
+        if url.endswith("SHA256SUMS"):
+            return b"deadbeef  sdd-compile-linux-amd64\n"
+        return b"binary-bytes"
+
+    monkeypatch.setattr(compiler_runner, "_download", _fake_download)
+
+    payload, digest = compiler_runner._fetch_release_binary(
+        "1.0.3.dev15+g725459b8d", "sdd-compile-linux-amd64"
+    )
+
+    assert payload == b"binary-bytes"
+    assert digest == "deadbeef"
+    assert any("/v1.0.3.dev15+g725459b8d/" in url for url in attempts)
+    assert any("/v1.0.3/" in url for url in attempts)
+
+
 def test_fetch_release_binary_error_when_sha256sums_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

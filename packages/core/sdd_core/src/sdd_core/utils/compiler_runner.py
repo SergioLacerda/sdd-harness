@@ -38,6 +38,7 @@ __all__ = [
 _RELEASE_REPO = "SergioLacerda/sdd-harness"
 _DOWNLOAD_TIMEOUT_SECONDS = 30
 _UNKNOWN_COMMAND_RE = re.compile(r'unknown command "([^"]+)" for')
+_SEMVER_RELEASE_RE = re.compile(r"^(?P<release>\d+\.\d+\.\d+)(?P<suffix>.*)$")
 
 
 class CompilerRunnerError(RuntimeError):
@@ -175,41 +176,72 @@ def _download(url: str) -> bytes | None:
         ) from exc
 
 
+def _release_version_candidates(version: str) -> list[str]:
+    """Return release versions worth checking for a package version.
+
+    Hatch-vcs installs from commits after a tag produce versions such as
+    ``1.0.3.dev15+g725459b8d``. Those are valid package versions but not release
+    tags. In that case, try the exact package version first and then the nearest
+    base release tag.
+    """
+    candidates = [version]
+    match = _SEMVER_RELEASE_RE.match(version)
+    if match and match.group("suffix"):
+        release = match.group("release")
+        if release not in candidates:
+            candidates.append(release)
+    return candidates
+
+
+def _format_tried_tags(tags: list[str]) -> str:
+    if len(tags) == 2:
+        return f"{tags[0]} and {tags[1]}"
+    if len(tags) > 2:
+        return f"{', '.join(tags[:-1])}, and {tags[-1]}"
+    return ", ".join(tags)
+
+
 def _fetch_release_binary(version: str, asset_name: str) -> tuple[bytes, str]:
     """Fetch the asset bytes and its expected sha256 for a given release version.
 
     Tries both the lowercase-v and uppercase-V tag conventions used by this
-    project's release workflow.
+    project's release workflow. For local/dev package versions generated from a
+    release tag, also tries the base release version because no GitHub release
+    asset can exist for the local version identifier.
     """
-    for tag in (f"v{version}", f"V{version}"):
-        base = f"https://github.com/{_RELEASE_REPO}/releases/download/{tag}"
-        payload = _download(f"{base}/{asset_name}")
-        if payload is None:
-            continue
-        checksums = _download(f"{base}/SHA256SUMS")
-        if checksums is None:
-            raise CompilerRunnerError(
-                f"sdd-compile release asset found for tag {tag} but SHA256SUMS is missing; "
-                "refusing to use an unverified binary."
-            )
-        expected = None
-        for line in checksums.decode("utf-8", errors="replace").splitlines():
-            parts = line.split()
-            if len(parts) == 2 and parts[1] == asset_name:
-                expected = parts[0]
-                break
-        if expected is None:
-            raise CompilerRunnerError(
-                f"SHA256SUMS for tag {tag} does not list {asset_name}; "
-                "refusing to use an unverified binary."
-            )
-        return payload, expected
+    tried_tags: list[str] = []
+    for candidate in _release_version_candidates(version):
+        for tag in (f"v{candidate}", f"V{candidate}"):
+            tried_tags.append(tag)
+            base = f"https://github.com/{_RELEASE_REPO}/releases/download/{tag}"
+            payload = _download(f"{base}/{asset_name}")
+            if payload is None:
+                continue
+            checksums = _download(f"{base}/SHA256SUMS")
+            if checksums is None:
+                raise CompilerRunnerError(
+                    f"sdd-compile release asset found for tag {tag} but SHA256SUMS is missing; "
+                    "refusing to use an unverified binary."
+                )
+            expected = None
+            for line in checksums.decode("utf-8", errors="replace").splitlines():
+                parts = line.split()
+                if len(parts) == 2 and parts[1] == asset_name:
+                    expected = parts[0]
+                    break
+            if expected is None:
+                raise CompilerRunnerError(
+                    f"SHA256SUMS for tag {tag} does not list {asset_name}; "
+                    "refusing to use an unverified binary."
+                )
+            return payload, expected
 
     raise CompilerRunnerError(
         f"No sdd-compile release binary found for version {version} "
-        f"(asset {asset_name}; tried tags v{version} and V{version}). "
+        f"(asset {asset_name}; tried tags {_format_tried_tags(tried_tags)}). "
         "Standalone installs need a release asset matching the installed "
-        "sdd-cli version, or a local binary provided via SDD_COMPILE_BIN."
+        "sdd-cli version. For dev/local installs, build sdd-compile locally "
+        "and provide it via SDD_COMPILE_BIN."
     )
 
 
