@@ -121,6 +121,35 @@ jobs:
         shell: bash
         run: python tools/release/sync_versions.py "$TAG"
 
+      - name: Cross-compile sdd-compile release binaries (dry run)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          targets=(
+            "linux amd64"
+            "linux arm64"
+            "darwin amd64"
+            "darwin arm64"
+            "windows amd64"
+          )
+          for target in "${targets[@]}"; do
+            read -r goos goarch <<< "$target"
+            ext=""
+            if [ "$goos" = "windows" ]; then
+              ext=".exe"
+            fi
+            out="dist/sdd-compile-${goos}-${goarch}${ext}"
+            echo "Building $out"
+            GOOS="$goos" GOARCH="$goarch" go build -C tools/sdd-compile -o "$(pwd)/$out" .
+          done
+          (cd dist && sha256sum sdd-compile-* > SHA256SUMS)
+          cat dist/SHA256SUMS
+
+      - name: Stage packaged compiler assets for sdd-core wheel (dry run)
+        shell: bash
+        run: python tools/release/stage_packaged_compiler_assets.py dist
+
       - name: Build packages (dry run)
         shell: bash
         run: |
@@ -230,3 +259,16 @@ jobs:
           "$SDD_BIN" --help
           "$SDD_BIN" install --help
           "$SDD_BIN" wizard --list
+
+      - name: Run standalone install smoke with packaged compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            SDD_BIN=".release-smoke/Scripts/sdd.exe"
+          else
+            SDD_BIN=".release-smoke/bin/sdd"
+          fi
+          mkdir -p .release-smoke/project
+          cd .release-smoke/project
+          "$OLDPWD/$SDD_BIN" install --wizard --non-interactive --only-template

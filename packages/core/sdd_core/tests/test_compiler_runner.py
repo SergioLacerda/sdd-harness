@@ -316,12 +316,55 @@ def test_locate_binary_finds_binary_on_path(
     assert compiler_runner._locate_binary() == fake_path
 
 
+def test_locate_binary_uses_packaged_binary_before_download(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    packaged = tmp_path / "packaged-sdd-compile"
+    write_text_utf8(packaged, "native")
+    monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
+    monkeypatch.setattr(compiler_runner, "_try_detect_repo_root", lambda: None)
+    monkeypatch.setattr(compiler_runner.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(
+        compiler_runner,
+        "_materialize_packaged_binary",
+        lambda _asset_name: packaged,
+    )
+    monkeypatch.setattr(
+        compiler_runner,
+        "_download_and_cache_binary",
+        lambda _version: (_ for _ in ()).throw(AssertionError("unexpected download")),
+    )
+
+    assert compiler_runner._locate_binary() == packaged
+
+
+def test_materialize_packaged_binary_copies_resource_to_cache(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    package_root = tmp_path / "package"
+    native_dir = package_root / "_native"
+    native_dir.mkdir(parents=True)
+    write_text_utf8(native_dir / "sdd-compile-linux-amd64", "native")
+    monkeypatch.setattr(compiler_runner, "_cache_dir", lambda: tmp_path / "cache")
+    monkeypatch.setattr(
+        compiler_runner.resources, "files", lambda _package: package_root
+    )
+
+    result = compiler_runner._materialize_packaged_binary("sdd-compile-linux-amd64")
+
+    assert result is not None
+    assert result.exists()
+    assert result.name == "sdd-compile-linux-amd64"
+    assert result.stat().st_mode & stat.S_IXUSR
+
+
 def test_locate_binary_raises_when_nothing_found_and_download_disabled(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
     monkeypatch.setattr(compiler_runner, "_try_detect_repo_root", lambda: None)
     monkeypatch.setattr(compiler_runner.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(compiler_runner, "_materialize_packaged_binary", lambda _: None)
     monkeypatch.setenv("SDD_COMPILE_NO_DOWNLOAD", "1")
 
     with pytest.raises(CompilerRunnerError, match="sdd-compile binary not found"):
@@ -446,6 +489,7 @@ def test_locate_binary_downloads_when_nothing_found(
     monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
     monkeypatch.delenv("SDD_COMPILE_NO_DOWNLOAD", raising=False)
     monkeypatch.setattr(compiler_runner.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(compiler_runner, "_materialize_packaged_binary", lambda _: None)
     monkeypatch.setattr(compiler_runner, "_installed_cli_version", lambda: "1.0.0")
     downloaded = tmp_path / "downloaded-sdd-compile"
     write_text_utf8(downloaded, "x")

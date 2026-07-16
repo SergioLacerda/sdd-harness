@@ -1,9 +1,10 @@
 # Standalone Compiler Release Asset Contract
 
 Standalone `sdd-cli` installs (no local repo checkout, no `sdd-compile` on
-`PATH`) resolve the Go `sdd-compile` binary by downloading it from the
-GitHub Release matching the installed `sdd-cli` version. This document is
-the contract that release automation and `CompilerRunner` both rely on.
+`PATH`) resolve the Go `sdd-compile` binary from the wheel-packaged native
+assets first, then fall back to the GitHub Release matching the installed
+`sdd-cli` version. This document is the contract that release automation and
+`CompilerRunner` both rely on.
 
 ## Required assets
 
@@ -45,12 +46,12 @@ for the asset matrix and `SHA256SUMS` shape (see
    are staged") — runs the validator against `dist/` before anything is
    published. Fails the build if any asset or checksum entry is missing.
 2. **Standalone install smoke** (`release-install-smoke` job) — installs
-   `sdd-cli` from `dist/` only (no PyPI fallback), points
-   `SDD_COMPILE_BIN` at the staged compiler binary, and runs
+   `sdd-cli` from `dist/` only (no PyPI fallback), does not set
+   `SDD_COMPILE_BIN`, and runs
    `sdd install --wizard --non-interactive --only-template`. This proves the
-   packaged binary can execute the install compile path, but it cannot prove
-   the *published* release exposes assets, because publication hasn't
-   happened yet at this point in the pipeline.
+   wheel-packaged compiler can execute the install compile path, but it
+   cannot prove the *published* release exposes assets, because publication
+   hasn't happened yet at this point in the pipeline.
 3. **Post-publication release gate** (`release` job, "Verify GitHub Release
    exposes standalone compiler assets") — after
    `softprops/action-gh-release` runs, queries the GitHub Release API for
@@ -72,7 +73,8 @@ binary in this order:
 2. `<repo_root>/tools/sdd-compile/bin/sdd-compile` (built via
    `make build-compiler`).
 3. `sdd-compile` on `PATH`.
-4. Cached/downloaded release asset matching the installed `sdd-cli` version
+4. Native compiler asset packaged inside the installed `sdd-core` wheel.
+5. Cached/downloaded release asset matching the installed `sdd-cli` version
    (tries both `vX.Y.Z` and `VX.Y.Z` tags), skipped when
    `SDD_COMPILE_NO_DOWNLOAD` is set.
 

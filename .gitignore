@@ -91,6 +91,7 @@ packages/interfaces/sdd_wizard/src/sdd_wizard/sdd_runtime/templates/
 runtime/compiled/
 compiler/compiled/
 packages/core/sdd_core/src/sdd_core/runtime/compiled/
+packages/core/sdd_core/src/sdd_core/_native/
 
 # Linters
 .ruff_cache/

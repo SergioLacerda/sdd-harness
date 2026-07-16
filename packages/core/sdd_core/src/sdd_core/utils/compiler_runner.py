@@ -8,6 +8,7 @@ with subprocess calls to the Go binary, parsing its JSON stdout output.
 from __future__ import annotations
 
 import hashlib
+import importlib.resources as resources
 import json
 import os
 import platform
@@ -271,6 +272,29 @@ def _download_and_cache_binary(version: str) -> Path:
     return cached_path
 
 
+def _materialize_packaged_binary(asset_name: str) -> Path | None:
+    """Copy a bundled compiler binary to the executable cache, if packaged."""
+    packaged = resources.files("sdd_core") / "_native" / asset_name
+    if not packaged.is_file():
+        return None
+
+    payload = packaged.read_bytes()
+    digest = hashlib.sha256(payload).hexdigest()
+    cached_path = _cache_dir() / "packaged" / digest / asset_name
+    if cached_path.exists():
+        return cached_path
+
+    cached_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = cached_path.with_suffix(cached_path.suffix + ".tmp")
+    tmp_path.write_bytes(payload)
+    if not asset_name.endswith(".exe"):
+        tmp_path.chmod(
+            tmp_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+        )
+    tmp_path.replace(cached_path)
+    return cached_path
+
+
 def _locate_binary(repo_root: Path | None = None) -> Path:
     """Locate the sdd-compile binary.
 
@@ -278,9 +302,12 @@ def _locate_binary(repo_root: Path | None = None) -> Path:
     1. SDD_COMPILE_BIN environment variable
     2. <repo_root>/tools/sdd-compile/bin/sdd-compile (built by `make build-compiler`)
     3. `sdd-compile` on PATH
-    4. Cached/downloaded release binary matching the installed sdd-cli version
+    4. Packaged native binary bundled with sdd-core
+    5. Cached/downloaded release binary matching the installed sdd-cli version
        (skipped when SDD_COMPILE_NO_DOWNLOAD is set)
     """
+    goos, goarch, ext = _asset_platform()
+    asset_name = f"sdd-compile-{goos}-{goarch}{ext}"
     env_override = os.environ.get("SDD_COMPILE_BIN", "").strip()
     if env_override:
         path = Path(env_override)
@@ -302,6 +329,10 @@ def _locate_binary(repo_root: Path | None = None) -> Path:
     on_path = shutil.which("sdd-compile")
     if on_path:
         return Path(on_path)
+
+    packaged = _materialize_packaged_binary(asset_name)
+    if packaged is not None:
+        return packaged
 
     if not os.environ.get("SDD_COMPILE_NO_DOWNLOAD", "").strip():
         version = _installed_cli_version()
