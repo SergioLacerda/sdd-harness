@@ -52,7 +52,7 @@ help:
 	@echo "cover-web       - Run landing app coverage (vitest, 70% gate on src/lib)"
 
 build-compiler:
-	go build -C tools/sdd-compile -o bin/sdd-compile .
+	go build -C tools/sdd-compile -o "bin/sdd-compile$$(go env GOEXE)" .
 
 test-compiler-go:
 	go test -C tools/sdd-compile ./tests/ -count=1
