@@ -341,6 +341,39 @@ jobs:
           cd .release-smoke/project
           "$OLDPWD/$SDD_BIN" install --wizard --non-interactive --only-template
 
+      - name: Run native signing and verification smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            SDD_BIN=".release-smoke/Scripts/sdd.exe"
+            export SDD_COMPILE_BIN="$PWD/dist/sdd-compile-windows-amd64.exe"
+          else
+            SDD_BIN=".release-smoke/bin/sdd"
+            export SDD_COMPILE_BIN="$PWD/dist/sdd-compile-linux-amd64"
+            chmod +x "$SDD_COMPILE_BIN"
+          fi
+          mkdir -p .release-smoke/sign-project
+          cd .release-smoke/sign-project
+          SDD="$OLDPWD/$SDD_BIN"
+          "$SDD" install --wizard --non-interactive
+          "$SDD" governance compile
+          "$SDD" governance keygen --key-id ci-smoke-01
+          "$SDD" governance sign --key-id ci-smoke-01
+          "$SDD" --json governance audit | tee audit-report.json
+          python3 - <<'PYEOF'
+          import json
+
+          with open("audit-report.json", encoding="utf-8") as fh:
+              report = json.load(fh)
+
+          data = report["data"]
+          assert report["ok"] is True, report
+          assert data["exit_code"] == 0, data
+          assert data["metadata"]["verified_artifacts"] >= 2, data
+          print("native signing/verification smoke: OK", data["metadata"])
+          PYEOF
+
   release:
     name: Create GitHub Release
     needs: release-install-smoke
