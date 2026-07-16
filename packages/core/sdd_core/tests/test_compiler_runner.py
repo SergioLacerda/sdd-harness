@@ -337,14 +337,37 @@ def test_compile_raises_when_result_reports_not_ok() -> None:
         runner.compile("in", "out")
 
 
-def test_parse_json_raises_on_empty_stdout() -> None:
-    with pytest.raises(CompilerRunnerError, match="produced no output"):
-        CompilerRunner._parse_json("   ", context="compile")
+def test_parse_json_raises_on_empty_stdout_includes_stderr_and_returncode() -> None:
+    result = SimpleNamespace(stdout="   ", stderr="boom", returncode=7)
+
+    with pytest.raises(CompilerRunnerError) as exc_info:
+        CompilerRunner._parse_json(result, context="compile")
+
+    message = str(exc_info.value)
+    assert "sdd-compile compile produced no output" in message
+    assert "stderr: boom" in message
+    assert "returncode: 7" in message
 
 
-def test_parse_json_raises_on_invalid_json() -> None:
-    with pytest.raises(CompilerRunnerError, match="produced invalid JSON"):
-        CompilerRunner._parse_json("not json", context="validate")
+def test_parse_json_raises_on_invalid_json_includes_stderr_and_returncode() -> None:
+    result = SimpleNamespace(stdout="not json", stderr="parse issue", returncode=1)
+
+    with pytest.raises(CompilerRunnerError) as exc_info:
+        CompilerRunner._parse_json(result, context="validate")
+
+    message = str(exc_info.value)
+    assert "sdd-compile validate produced invalid JSON" in message
+    assert "stderr: parse issue" in message
+    assert "returncode: 1" in message
+
+
+def test_parse_json_empty_stdout_with_no_stderr_omits_stderr_line() -> None:
+    result = SimpleNamespace(stdout="", stderr="", returncode=0)
+
+    with pytest.raises(CompilerRunnerError) as exc_info:
+        CompilerRunner._parse_json(result, context="compile")
+
+    assert "stderr:" not in str(exc_info.value)
 
 
 def test_cache_dir_is_under_home_sdd_bin() -> None:
@@ -506,6 +529,39 @@ def test_sign_raises_when_result_reports_not_ok() -> None:
         runner.sign(
             artifact_path="a.json", key_path="k.key", key_id="k1", profile="master"
         )
+
+
+def test_sign_raises_actionable_error_when_binary_missing_subcommand() -> None:
+    call_log: list[list[str]] = []
+
+    def _fake_run(args: list[str]) -> SimpleNamespace:
+        call_log.append(args)
+        if "version" in args:
+            return SimpleNamespace(
+                success=True, stdout="1.0.0\n", stderr="", returncode=0
+            )
+        return SimpleNamespace(
+            success=False,
+            stdout="",
+            stderr='Error: unknown command "sign" for "sdd-compile"',
+            returncode=1,
+        )
+
+    runner = CompilerRunner.__new__(CompilerRunner)
+    runner._binary = Path("/fake/sdd-compile")  # type: ignore[attr-defined]
+    runner._runner = SimpleNamespace(run=_fake_run)  # type: ignore[attr-defined]
+
+    with pytest.raises(CompilerRunnerError) as exc_info:
+        runner.sign(
+            artifact_path="a.json", key_path="k.key", key_id="k1", profile="master"
+        )
+
+    message = str(exc_info.value)
+    assert "does not support the 'sign' subcommand" in message
+    assert "/fake/sdd-compile" in message
+    assert "version 1.0.0" in message
+    assert "~/.sdd/bin/1.0.0" in message
+    assert "SDD_COMPILE_BIN" in message
 
 
 def _make_verify_runner(fake_result: SimpleNamespace) -> CompilerRunner:
