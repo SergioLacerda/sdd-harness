@@ -151,6 +151,16 @@ Custom command packs are generated from canonical `.sdd` artifacts.
 
 Core aliases include: `/sdd-ask`, `/sdd-organize`, `/sdd-diagnose`.
 
+`/sdd-ask` is a thin adapter over the CLI command `sdd ask`. The CLI is the
+single governed source of truth for intent classification, execution gate, and
+handoff guidance; slash commands and prompt-submit hooks must not classify or
+route independently. When `sdd ask` reports implementation intent, it emits a
+governed handoff (`next_valid_path: implementation_handoff`) for the calling
+agent. It does not execute implementation, bind a provider, or invoke an
+analysis skill automatically; the structured fields `delegation_executed` and
+`provider_bound` remain `false` until a future explicit delegation contract
+exists.
+
 To regenerate:
 
 ```bash

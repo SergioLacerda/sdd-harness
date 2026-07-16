@@ -167,6 +167,24 @@ def test_get_skill_reflects_live_fallback_mutations(tmp_path: Path) -> None:
         live_registry["sdd-diagnose"] = original
 
 
+def test_sdd_ask_registry_remains_query_only_without_runtime_delegation(
+    tmp_path: Path,
+) -> None:
+    """Runtime registry metadata must not imply executed provider delegation."""
+
+    registry = _make_registry(tmp_path)
+    skill = registry.get_skill("sdd-ask")
+
+    assert skill is not None
+    assert skill.delegation_policy is not None
+    assert skill.delegation_policy["enabled"] is False
+    assert skill.delegation_policy["runtime_status"] == "not_implemented"
+    assert skill.delegation_policy["current_contract"] == "query_only"
+    assert "declarative_only" in skill.delegation_policy["metadata_status"]
+    assert "delegation_executed=false" in skill.delegation_policy["metadata_status"]
+    assert "provider_bound=false" in skill.delegation_policy["metadata_status"]
+
+
 # ---------------------------------------------------------------------------
 # export_skills_payload
 # ---------------------------------------------------------------------------

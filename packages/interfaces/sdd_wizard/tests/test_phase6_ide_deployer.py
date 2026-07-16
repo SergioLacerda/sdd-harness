@@ -346,7 +346,7 @@ def test_ci_selected_copies_workflow(tmp_path: Path) -> None:
 
 
 def test_create_ide_templates_fails_when_selected_template_dir_missing(
-    tmp_path: Path,
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """A selected adapter with no template dir must fail generation explicitly
 
@@ -362,4 +362,5 @@ def test_create_ide_templates_fails_when_selected_template_dir_missing(
     deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
 
     assert deployer.create_ide_templates() is False
+    assert "Required template directory not found: .claude/" in capsys.readouterr().out
     assert not (output_base / ".claude").exists()

@@ -210,6 +210,13 @@ make pre-delivery
 
 Complete command reference: `docs/spec/reference/commands/cli.md`
 
+`sdd ask` is the single governed entrypoint for governance queries and agent
+handoff decisions. Prompt-submit hooks and `/sdd-ask` adapters route through the
+CLI decision instead of classifying intent themselves. An implementation handoff
+from `sdd ask` is guidance for the calling agent to use an authorized execution
+path; it is not provider delegation, provider binding, or evidence that
+implementation already ran.
+
 ## Security and Trust Model
 
 SDD Harness uses a fail-closed governance model for sensitive execution paths.
