@@ -76,7 +76,8 @@ def test_release_verify_step_checks_sdd_cli_via_built_wheel() -> None:
     verify_step = _step_run_block(build_steps, "Verify all package versions match tag")
     build_step = _step_run_block(build_steps, "Build packages")
 
-    assert "dynamic" in verify_step and "version" in verify_step
+    assert "dynamic" in verify_step
+    assert "version" in verify_step
     assert "dist/sdd_cli-" in build_step
 
 
