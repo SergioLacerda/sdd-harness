@@ -81,6 +81,22 @@ def test_release_verify_step_checks_sdd_cli_via_built_wheel() -> None:
     assert "dist/sdd_cli-" in build_step
 
 
+def test_release_build_step_pins_setuptools_scm_version() -> None:
+    """The 'Sync sub-package versions to tag' step rewrites other packages'
+    pyproject.toml without committing, leaving the tree dirty. hatch-vcs's
+    dirty-check is repo-wide, so the Build packages step must pin
+    SETUPTOOLS_SCM_PRETEND_VERSION to the tag, or sdd_cli (dynamically
+    versioned) will resolve a guessed dev version instead of the exact tag."""
+    workflow = _load_workflow(RELEASE_WORKFLOW)
+    build_steps = _jobs(workflow)["build"]["steps"]
+    build_package_step = next(
+        step for step in build_steps if step.get("name") == "Build packages"
+    )
+    env = build_package_step.get("env", {})
+    assert "SETUPTOOLS_SCM_PRETEND_VERSION" in env
+    assert "steps.version.outputs.version" in env["SETUPTOOLS_SCM_PRETEND_VERSION"]
+
+
 def test_release_dry_run_syncs_versions_from_git_tag() -> None:
     workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
     dry_run_steps = "\n".join(

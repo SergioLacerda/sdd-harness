@@ -175,6 +175,14 @@ jobs:
 
       - name: Build packages
         shell: bash
+        env:
+          # The "Sync sub-package versions to tag" step above rewrites other
+          # packages' pyproject.toml in place without committing, leaving the
+          # working tree dirty. hatch-vcs's dirty-check is repo-wide, so a
+          # dynamically-versioned package (sdd_cli) would otherwise see that
+          # unrelated dirt and compute a guessed dev version instead of the
+          # exact tag. Pin it explicitly to bypass git introspection entirely.
+          SETUPTOOLS_SCM_PRETEND_VERSION: "${{ steps.version.outputs.version }}"
         run: |
           for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
             if [ -f "$pkg_dir/pyproject.toml" ]; then
