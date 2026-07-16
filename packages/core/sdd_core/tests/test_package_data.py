@@ -38,6 +38,12 @@ def test_built_wheel_exposes_canonical_specs_via_importlib_resources(
         }
 
     shutil.copytree(package_dir, source_copy, symlinks=False, ignore=_ignore)
+    native_dir = source_copy / "src" / "sdd_core" / "_native"
+    native_dir.mkdir(parents=True)
+    (native_dir / "sdd-compile-linux-amd64").write_text("fake-native", encoding="utf-8")
+    (native_dir / "sdd-compile-windows-amd64.exe").write_text(
+        "fake-native", encoding="utf-8"
+    )
 
     build_result = subprocess.run(
         [
@@ -81,11 +87,16 @@ def test_built_wheel_exposes_canonical_specs_via_importlib_resources(
             sys.executable,
             "-c",
             (
-                "import importlib.resources as r, json; "
+                "import importlib.resources as r, json, platform; "
                 "root = r.files('sdd_core'); "
+                "system = platform.system().lower(); "
+                "goos = {'linux': 'linux', 'windows': 'windows'}.get(system, system); "
+                "asset = 'sdd-compile-' + goos + '-amd64' + "
+                "('.exe' if goos == 'windows' else ''); "
                 "print(json.dumps({"
-                "name: (root / name).read_text(encoding='utf-8') "
-                "for name in ('mandate.spec', 'guidelines.dsl')"
+                "'mandate.spec': (root / 'mandate.spec').read_text(encoding='utf-8'), "
+                "'guidelines.dsl': (root / 'guidelines.dsl').read_text(encoding='utf-8'), "
+                "'native_asset_exists': (root / '_native' / asset).is_file()"
                 "}))"
             ),
         ],
@@ -99,3 +110,4 @@ def test_built_wheel_exposes_canonical_specs_via_importlib_resources(
     resources = json.loads(probe.stdout)
     assert "mandate M001" in resources["mandate.spec"]
     assert "guideline G01" in resources["guidelines.dsl"]
+    assert resources["native_asset_exists"] is True
