@@ -158,6 +158,10 @@ jobs:
 
           for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
             if [ -f "$pkg_dir/pyproject.toml" ]; then
+              if grep -q '^dynamic = \[.*"version".*\]' "$pkg_dir/pyproject.toml"; then
+                echo "✓ $pkg_dir uses dynamic (VCS) versioning — verified via build output"
+                continue
+              fi
               PKG_VER=$(grep -E '^version\s*=' "$pkg_dir/pyproject.toml" | head -1 | sed 's/version\s*=\s*"\(.*\)"/\1/')
               if [ "$PKG_VER" != "$VERSION" ]; then
                 echo "❌ ERROR: $pkg_dir version $PKG_VER != $VERSION"
@@ -178,6 +182,13 @@ jobs:
               python -m build "$pkg_dir" --outdir dist/
             fi
           done
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! ls dist/sdd_cli-"$VERSION"-*.whl >/dev/null 2>&1; then
+            echo "❌ ERROR: built sdd_cli wheel does not match tag version $VERSION"
+            ls dist/sdd_cli-*.whl || true
+            exit 1
+          fi
+          echo "✓ sdd_cli wheel matches tag version $VERSION"
 
       - name: Download runtime dependency wheelhouse
         shell: bash

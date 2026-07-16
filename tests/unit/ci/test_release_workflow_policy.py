@@ -25,6 +25,11 @@ def _jobs(workflow: dict) -> dict:
     return workflow["jobs"]
 
 
+def _step_run_block(steps: list[dict], name: str) -> str:
+    step = next(step for step in steps if step.get("name") == name)
+    return step.get("run", "")
+
+
 def test_release_workflow_has_windows_install_smoke_lane() -> None:
     workflow = _load_workflow(RELEASE_WORKFLOW)
     jobs = _jobs(workflow)
@@ -58,6 +63,22 @@ def test_release_build_syncs_versions_from_git_tag() -> None:
     assert 'VERSION="${VERSION#V}"' in build_steps
     assert "tools/release/sync_versions.py" in build_steps
     assert "steps.version.outputs.tag" in build_steps
+
+
+def test_release_verify_step_checks_sdd_cli_via_built_wheel() -> None:
+    """sdd_cli is now dynamically versioned (hatch-vcs) and has no static
+    `version = "..."` line for the verify step to grep. The verify step must
+    skip dynamic-version packages instead of failing on them, and the actual
+    sdd_cli version must be confirmed after the build, via the built wheel
+    filename."""
+    workflow = _load_workflow(RELEASE_WORKFLOW)
+    build_steps = _jobs(workflow)["build"]["steps"]
+    verify_step = _step_run_block(build_steps, "Verify all package versions match tag")
+    build_step = _step_run_block(build_steps, "Build packages")
+
+    assert "dynamic" in verify_step
+    assert "version" in verify_step
+    assert "dist/sdd_cli-" in build_step
 
 
 def test_release_dry_run_syncs_versions_from_git_tag() -> None:
