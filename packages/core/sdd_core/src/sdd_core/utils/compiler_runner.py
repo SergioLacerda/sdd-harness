@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shutil
 import stat
 import sys
@@ -36,6 +37,7 @@ __all__ = [
 
 _RELEASE_REPO = "SergioLacerda/sdd-harness"
 _DOWNLOAD_TIMEOUT_SECONDS = 30
+_UNKNOWN_COMMAND_RE = re.compile(r'unknown command "([^"]+)" for')
 
 
 class CompilerRunnerError(RuntimeError):
@@ -322,7 +324,8 @@ class CompilerRunner:
                 str(output_dir),
             ]
         )
-        payload = self._parse_json(result.stdout, context="compile")
+        self._raise_if_unsupported_subcommand(result, subcommand="compile")
+        payload = self._parse_json(result, context="compile")
         if not result.success or not payload.get("ok", False):
             error = payload.get("error") or result.stderr.strip() or "compile failed"
             raise CompilerRunnerError(f"sdd-compile compile failed: {error}")
@@ -333,7 +336,8 @@ class CompilerRunner:
         result = self._runner.run(
             [str(self._binary), "validate", "--dir", str(output_dir)]
         )
-        payload = self._parse_json(result.stdout, context="validate")
+        self._raise_if_unsupported_subcommand(result, subcommand="validate")
+        payload = self._parse_json(result, context="validate")
         return payload  # type: ignore[return-value]
 
     def validate_compilation(self, output_dir: str | Path) -> bool:
@@ -363,7 +367,8 @@ class CompilerRunner:
                 profile,
             ]
         )
-        payload = self._parse_json(result.stdout, context="sign")
+        self._raise_if_unsupported_subcommand(result, subcommand="sign")
+        payload = self._parse_json(result, context="sign")
         if not payload.get("ok", False):
             error = payload.get("error") or result.stderr.strip() or "sign failed"
             raise CompilerRunnerError(f"sdd-compile sign failed: {error}")
@@ -387,7 +392,7 @@ class CompilerRunner:
         )
         result = self._runner.run([str(self._binary), "verify"], input_data=request)
         try:
-            payload = self._parse_json(result.stdout, context="verify")
+            payload = self._parse_json(result, context="verify")
         except CompilerRunnerError as exc:
             return {
                 "ok": False,
@@ -396,14 +401,47 @@ class CompilerRunner:
             }
         return payload  # type: ignore[return-value]
 
+    def _raise_if_unsupported_subcommand(self, result: Any, *, subcommand: str) -> None:
+        match = _UNKNOWN_COMMAND_RE.search(result.stderr or "")
+        if not match or match.group(1) != subcommand:
+            return
+        try:
+            binary_version = self.version()
+        except CompilerRunnerError:
+            binary_version = "unknown"
+        raise CompilerRunnerError(
+            f"sdd-compile at {self._binary} (version {binary_version}) does not "
+            f"support the '{subcommand}' subcommand — it is likely older than the "
+            "installed sdd-cli. Fix by clearing the cached binary "
+            f"(rm -rf ~/.sdd/bin/{binary_version} then retry) or by setting "
+            "SDD_COMPILE_BIN to a compatible local binary."
+        )
+
     @staticmethod
-    def _parse_json(stdout: str, *, context: str) -> dict[str, Any]:
-        text = stdout.strip()
+    def _parse_json(result: Any, *, context: str) -> dict[str, Any]:
+        text = result.stdout.strip()
         if not text:
-            raise CompilerRunnerError(f"sdd-compile {context} produced no output")
+            raise CompilerRunnerError(
+                CompilerRunner._diagnostic_message(
+                    f"sdd-compile {context} produced no output", result
+                )
+            )
         try:
             return cast(dict[str, Any], json.loads(text))
         except json.JSONDecodeError as exc:
             raise CompilerRunnerError(
-                f"sdd-compile {context} produced invalid JSON: {exc}"
+                CompilerRunner._diagnostic_message(
+                    f"sdd-compile {context} produced invalid JSON: {exc}", result
+                )
             ) from exc
+
+    @staticmethod
+    def _diagnostic_message(headline: str, result: Any) -> str:
+        parts = [headline]
+        stderr = (getattr(result, "stderr", "") or "").strip()
+        if stderr:
+            parts.append(f"stderr: {stderr}")
+        returncode = getattr(result, "returncode", None)
+        if returncode is not None:
+            parts.append(f"returncode: {returncode}")
+        return " | ".join(parts)
