@@ -413,6 +413,36 @@ def test_compiler_runner_init_locates_binary_via_env_override(
     assert runner.repo_root == tmp_path.resolve()
 
 
+def test_compiler_runner_init_does_not_require_repo_root_for_standalone_env_binary(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    binary = tmp_path / "sdd-compile"
+    write_text_utf8(binary, "x")
+    monkeypatch.setenv("SDD_COMPILE_BIN", str(binary))
+    monkeypatch.setattr(
+        compiler_runner,
+        "detect_repo_root",
+        lambda: (_ for _ in ()).throw(RuntimeError("repo root missing")),
+    )
+
+    runner = CompilerRunner()
+
+    assert runner._binary == binary
+    assert runner.repo_root is None
+
+
+def test_locate_binary_uses_windows_repo_binary_name(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    binary = tmp_path / "tools" / "sdd-compile" / "bin" / "sdd-compile.exe"
+    binary.parent.mkdir(parents=True)
+    write_text_utf8(binary, "x")
+    monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
+    monkeypatch.setattr(compiler_runner.platform, "system", lambda: "Windows")
+
+    assert compiler_runner._locate_binary(tmp_path) == binary
+
+
 def test_compile_returns_payload_on_success() -> None:
     runner = _make_runner(
         SimpleNamespace(

@@ -258,7 +258,10 @@ def _locate_binary(repo_root: Path | None = None) -> Path:
 
     root = repo_root or _try_detect_repo_root()
     if root is not None:
-        built_path = root / "tools" / "sdd-compile" / "bin" / "sdd-compile"
+        binary_name = (
+            "sdd-compile.exe" if platform.system() == "Windows" else "sdd-compile"
+        )
+        built_path = root / "tools" / "sdd-compile" / "bin" / binary_name
         if built_path.exists():
             return built_path
 
@@ -292,7 +295,9 @@ class CompilerRunner:
         repo_root: str | Path | None = None,
         runner: SafeProcessRunner | None = None,
     ) -> None:
-        self.repo_root = Path(repo_root).resolve() if repo_root else detect_repo_root()
+        self.repo_root = (
+            Path(repo_root).resolve() if repo_root else _try_detect_repo_root()
+        )
         self._binary = _locate_binary(self.repo_root)
         self._runner = runner or SafeProcessRunner()
 
