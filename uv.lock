@@ -5002,7 +5002,6 @@ requires-dist = [
 
 [[package]]
 name = "sdd-cli"
-version = "1.0.0"
 source = { editable = "packages/interfaces/sdd_cli" }
 dependencies = [
     { name = "click" },

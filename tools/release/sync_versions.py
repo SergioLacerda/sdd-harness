@@ -88,6 +88,10 @@ def sync_version(version_or_tag: str, *, workspace_root: Path | None = None) -> 
             version_line_re = re.compile(r'^version\s*=\s*"([^"]*)"', re.MULTILINE)
             match = version_line_re.search(content)
             if match is None:
+                if re.search(r'dynamic\s*=\s*\[[^\]]*"version"', content):
+                    updated.append(pkg_path)
+                    print(f"✓ {pkg_path} uses dynamic (VCS) versioning — skipped")
+                    continue
                 failed.append(f"{pkg_path}: no version line found")
                 continue
 

@@ -107,3 +107,45 @@ members = [
     for member in members:
         content = (tmp_path / member / "pyproject.toml").read_text(encoding="utf-8")
         assert 'version = "0.1.0"' in content
+
+
+def test_sync_version_skips_packages_with_dynamic_version(tmp_path: Path) -> None:
+    """A package using dynamic (VCS-derived) versioning has no static version
+    line to rewrite and must be skipped, not treated as a sync failure."""
+    members = [
+        "packages/core/sdd_core",
+        "packages/interfaces/sdd_cli",
+    ]
+    (tmp_path / "pyproject.toml").write_text(
+        """[tool.uv.workspace]
+members = [
+    "packages/core/sdd_core",
+    "packages/interfaces/sdd_cli",
+]
+""",
+        encoding="utf-8",
+    )
+    _write_package(tmp_path, "packages/core/sdd_core", version="0.0.9")
+    dynamic_pkg = tmp_path / "packages/interfaces/sdd_cli"
+    dynamic_pkg.mkdir(parents=True)
+    (dynamic_pkg / "pyproject.toml").write_text(
+        """[project]
+name = "sdd-cli"
+dynamic = ["version"]
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        sync_version("V0.1.0", workspace_root=tmp_path)
+
+    assert exc.value.code == 0
+    sdd_core_content = (tmp_path / "packages/core/sdd_core/pyproject.toml").read_text(
+        encoding="utf-8"
+    )
+    assert 'version = "0.1.0"' in sdd_core_content
+    dynamic_content = dynamic_pkg.joinpath("pyproject.toml").read_text(
+        encoding="utf-8"
+    )
+    assert 'dynamic = ["version"]' in dynamic_content
+    assert "version =" not in dynamic_content.replace('dynamic = ["version"]', "")
