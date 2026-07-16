@@ -547,8 +547,13 @@ def test_sign_raises_actionable_error_when_binary_missing_subcommand() -> None:
             returncode=1,
         )
 
+    # Mirrors the real download-cache layout: <cache_dir>/<installed_cli_version>/<asset>.
+    # The binary's own self-reported version (queried via `version`) is a distinct
+    # value (the sdd-compile release version) and must not be used to reconstruct
+    # the cache path.
+    binary_path = Path("/home/user/.sdd/bin/1.0.0/sdd-compile-linux-amd64")
     runner = CompilerRunner.__new__(CompilerRunner)
-    runner._binary = Path("/fake/sdd-compile")  # type: ignore[attr-defined]
+    runner._binary = binary_path  # type: ignore[attr-defined]
     runner._runner = SimpleNamespace(run=_fake_run)  # type: ignore[attr-defined]
 
     with pytest.raises(CompilerRunnerError) as exc_info:
@@ -558,9 +563,9 @@ def test_sign_raises_actionable_error_when_binary_missing_subcommand() -> None:
 
     message = str(exc_info.value)
     assert "does not support the 'sign' subcommand" in message
-    assert "/fake/sdd-compile" in message
-    assert "version 1.0.0" in message
-    assert "~/.sdd/bin/1.0.0" in message
+    assert str(binary_path) in message
+    assert "reports: 1.0.0" in message
+    assert f"rm -rf {binary_path.parent}" in message
     assert "SDD_COMPILE_BIN" in message
 
 

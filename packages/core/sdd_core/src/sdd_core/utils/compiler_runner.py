@@ -410,10 +410,10 @@ class CompilerRunner:
         except CompilerRunnerError:
             binary_version = "unknown"
         raise CompilerRunnerError(
-            f"sdd-compile at {self._binary} (version {binary_version}) does not "
+            f"sdd-compile at {self._binary} (reports: {binary_version}) does not "
             f"support the '{subcommand}' subcommand — it is likely older than the "
             "installed sdd-cli. Fix by clearing the cached binary "
-            f"(rm -rf ~/.sdd/bin/{binary_version} then retry) or by setting "
+            f"(rm -rf {self._binary.parent} then retry) or by setting "
             "SDD_COMPILE_BIN to a compatible local binary."
         )
 
