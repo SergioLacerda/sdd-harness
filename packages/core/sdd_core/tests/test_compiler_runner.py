@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import builtins
 import hashlib
+import ssl
 import stat
 import urllib.error
 from pathlib import Path
@@ -187,6 +189,54 @@ def test_installed_cli_version_raises_when_package_missing(
 
     with pytest.raises(CompilerRunnerError, match="Cannot determine sdd-cli version"):
         compiler_runner._installed_cli_version()
+
+
+def test_tls_context_loads_certifi_bundle() -> None:
+    ctx = compiler_runner._tls_context()
+
+    assert isinstance(ctx, ssl.SSLContext)
+    assert ctx.cert_store_stats()["x509_ca"] > 0
+
+
+def test_tls_context_survives_missing_certifi(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    real_import = builtins.__import__
+
+    def _fake_import(name: str, *args: object, **kwargs: object) -> object:
+        if name == "certifi":
+            raise ImportError("certifi not installed")
+        return real_import(name, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(builtins, "__import__", _fake_import)
+
+    assert isinstance(compiler_runner._tls_context(), ssl.SSLContext)
+
+
+def test_download_passes_tls_context_to_urlopen(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class _FakeResponse:
+        def __enter__(self) -> _FakeResponse:
+            return self
+
+        def __exit__(self, *_exc: object) -> None:
+            return None
+
+        def read(self) -> bytes:
+            return b"payload"
+
+    def _fake_urlopen(_url: str, **kwargs: object) -> _FakeResponse:
+        captured.update(kwargs)
+        return _FakeResponse()
+
+    monkeypatch.setattr(compiler_runner.urllib.request, "urlopen", _fake_urlopen)
+
+    compiler_runner._download("https://github.com/example/asset")
+
+    assert isinstance(captured.get("context"), ssl.SSLContext)
 
 
 def test_download_rejects_non_github_url() -> None:

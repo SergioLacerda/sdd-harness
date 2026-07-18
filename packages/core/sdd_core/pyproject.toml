@@ -13,6 +13,7 @@ authors = [
 ]
 
 dependencies = [
+    "certifi>=2024.7.4",
     "msgpack>=1.2.1",
     "structlog>=23.0",
 ]

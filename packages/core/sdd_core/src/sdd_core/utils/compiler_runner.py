@@ -14,6 +14,7 @@ import os
 import platform
 import re
 import shutil
+import ssl
 import stat
 import sys
 import urllib.error
@@ -159,6 +160,26 @@ def _debug_log(message: str) -> None:
         sys.stderr.write(f"[sdd-compile download] {message}\n")
 
 
+def _tls_context() -> ssl.SSLContext:
+    """TLS context for release downloads: system trust store plus certifi.
+
+    Standalone Python builds (e.g. the uv-managed interpreter used by
+    `uv tool install`) may have no usable system CA store, which surfaces as
+    CERTIFICATE_VERIFY_FAILED on otherwise clean machines. Loading certifi's
+    bundle on top of the default store covers GitHub's chain in that case.
+    Corporate TLS-intercepting proxies still need SSL_CERT_FILE, which
+    create_default_context already honors.
+    """
+    ctx = ssl.create_default_context()
+    try:
+        import certifi
+
+        ctx.load_verify_locations(certifi.where())
+    except ImportError:
+        pass
+    return ctx
+
+
 def _download(url: str) -> bytes | None:
     if not url.startswith("https://github.com/"):
         raise CompilerRunnerError(
@@ -167,7 +188,7 @@ def _download(url: str) -> bytes | None:
     _debug_log(f"GET {url}")
     try:
         with urllib.request.urlopen(  # nosec B310 -- scheme/host pinned to https://github.com/ above.
-            url, timeout=_DOWNLOAD_TIMEOUT_SECONDS
+            url, timeout=_DOWNLOAD_TIMEOUT_SECONDS, context=_tls_context()
         ) as response:
             payload = cast(bytes, response.read())
             _debug_log(f"200 {url} ({len(payload)} bytes)")

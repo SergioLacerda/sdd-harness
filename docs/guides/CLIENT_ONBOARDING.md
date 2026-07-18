@@ -72,22 +72,28 @@ sdd governance validate
 
 ### Windows signing troubleshooting
 
-Signing (`sdd governance sign`, full bootstrap) and runtime signature
-verification use a native Ed25519 backend (the `sdd-compile` binary) and do
-not shell out to OpenSSL — Windows standalone signing does not require
-`openssl.exe` on `PATH`.
+Key generation (`sdd governance keygen`), signing (`sdd governance sign`,
+full bootstrap), and runtime signature verification all use a native Ed25519
+backend (the `sdd-compile` binary) and do not shell out to OpenSSL — Windows
+standalone installs do not require `openssl.exe` on `PATH`.
 
-`sdd governance keygen` still shells out to OpenSSL to generate the key
-pair. If keygen fails with `[WinError 2]` and an `openssl genpkey ...`
-command, Windows could not find `openssl.exe`:
+The `sdd-compile` binary itself is resolved in this order: `SDD_COMPILE_BIN`
+env var → repo-local build → `PATH` → binary bundled in the sdd-core wheel →
+download from the matching GitHub Release.
 
-```powershell
-where openssl
-openssl version
-```
+Only wheels built by the release CI bundle the native binaries. A source
+install (for example `uv tool install "git+https://...#subdirectory=..."`)
+has no bundled binary and falls back to the release download, which requires
+working TLS certificate verification. If that download fails with
+`CERTIFICATE_VERIFY_FAILED`, either:
 
-If those commands fail, install OpenSSL and ensure its `bin` directory is on
-`PATH`, then rerun `sdd governance keygen`.
+- install from the release wheelhouse instead (the CI-proven channel above:
+  `pip install --no-index --find-links <dist-dir> sdd-cli`) — the bundled
+  binary makes the download unnecessary; or
+- download `sdd-compile-windows-amd64.exe` from the GitHub Release manually
+  and point `SDD_COMPILE_BIN` at it; or
+- behind a TLS-intercepting corporate proxy, set `SSL_CERT_FILE` to a CA
+  bundle that includes the proxy's certificate.
 
 Full bootstrap and client onboarding use the default key id `dev-01`, so an
 idempotent bootstrap can print:
