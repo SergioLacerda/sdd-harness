@@ -182,13 +182,18 @@ class TestRunPhase2Exception:
             "core_msgpack_file": "a.msgpack",
             "client_msgpack_file": "b.msgpack",
         }
-        mock_compiler.validate_compilation.return_value = False
+        mock_compiler.validate_compilation_detailed.return_value = {
+            "ok": False,
+            "errors": ["file not found: a.msgpack"],
+            "checks": [],
+        }
         with patch(
             "sdd_core.governance_orchestrator.CompilerRunner",
             return_value=mock_compiler,
         ):
             result = orch._run_phase_2()
         assert result["success"] is False
+        assert "file not found: a.msgpack" in result.get("error", "")
 
 
 class TestGetDeploymentSummary:
