@@ -33,28 +33,52 @@ class TestRunKeygen:
             run_keygen(key_id="mykey", output_dir=str(out), console=_CONSOLE)
         assert exc_info.value.exit_code == 0
 
-    def test_generates_key_pair(self, tmp_path: Path) -> None:
+    def test_generates_key_pair_via_native_backend(self, tmp_path: Path) -> None:
         out = tmp_path / "keys"
         mock_runner = MagicMock()
-        mock_runner.run.return_value = MagicMock(success=True)
         with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
+            "sdd_core.utils.compiler_runner.CompilerRunner", return_value=mock_runner
         ):
             run_keygen(key_id="newkey", output_dir=str(out), console=_CONSOLE)
-        assert mock_runner.run.call_count == 2
-        calls = mock_runner.run.call_args_list
-        assert any("genpkey" in str(c) for c in calls)
-        assert any("pkey" in str(c) for c in calls)
+        mock_runner.keygen.assert_called_once_with(
+            private_key_path=out / "newkey.key",
+            public_key_path=out / "newkey.pub.pem",
+        )
 
     def test_creates_output_dir(self, tmp_path: Path) -> None:
         out = tmp_path / "deep" / "keys"
         mock_runner = MagicMock()
-        mock_runner.run.return_value = MagicMock(success=True)
         with patch(
-            "sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner
+            "sdd_core.utils.compiler_runner.CompilerRunner", return_value=mock_runner
         ):
             run_keygen(key_id="mykey", output_dir=str(out), console=_CONSOLE)
         assert out.exists()
+
+    def test_backend_unavailable_exits_1(self, tmp_path: Path) -> None:
+        out = tmp_path / "keys"
+        with (
+            patch(
+                "sdd_core.utils.compiler_runner.CompilerRunner",
+                side_effect=Exception("binary not found"),
+            ),
+            pytest.raises(typer.Exit) as exc_info,
+        ):
+            run_keygen(key_id="newkey", output_dir=str(out), console=_CONSOLE)
+        assert exc_info.value.exit_code == 1
+
+    def test_keygen_failure_exits_1(self, tmp_path: Path) -> None:
+        out = tmp_path / "keys"
+        mock_runner = MagicMock()
+        mock_runner.keygen.side_effect = Exception("keygen failed")
+        with (
+            patch(
+                "sdd_core.utils.compiler_runner.CompilerRunner",
+                return_value=mock_runner,
+            ),
+            pytest.raises(typer.Exit) as exc_info,
+        ):
+            run_keygen(key_id="newkey", output_dir=str(out), console=_CONSOLE)
+        assert exc_info.value.exit_code == 1
 
 
 # ---------------------------------------------------------------------------

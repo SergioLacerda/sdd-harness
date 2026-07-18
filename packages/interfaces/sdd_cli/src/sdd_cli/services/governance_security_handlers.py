@@ -16,8 +16,12 @@ from sdd_cli.services._governance_security_support import (
 
 
 def run_keygen(*, key_id: str, output_dir: str, console: Console) -> None:
-    """Generate Ed25519 key pair."""
-    from sdd_core.utils.process import SafeProcessRunner
+    """Generate an Ed25519 key pair via the native backend (Go `sdd-compile keygen`).
+
+    This path no longer shells out to OpenSSL, so it works on standalone
+    installs (notably Windows) where no `openssl` binary is on PATH.
+    """
+    from sdd_core.utils.compiler_runner import CompilerRunner
 
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -28,15 +32,20 @@ def run_keygen(*, key_id: str, output_dir: str, console: Console) -> None:
         console.print(f"[yellow]Key {key_id} already exists at {priv_path}[/yellow]")
         raise typer.Exit(0)
 
-    runner = SafeProcessRunner()
-    runner.run(
-        ["openssl", "genpkey", "-algorithm", "ed25519", "-out", str(priv_path)],
-        check=True,
-    )
-    runner.run(
-        ["openssl", "pkey", "-in", str(priv_path), "-pubout", "-out", str(pub_path)],
-        check=True,
-    )
+    try:
+        runner = CompilerRunner()
+    except Exception as exc:
+        console.print(
+            "[red]ERROR: Native keygen backend (sdd-compile) is not available.[/red]"
+        )
+        console.print(f"  Reason: {exc}")
+        raise typer.Exit(1) from exc
+
+    try:
+        runner.keygen(private_key_path=priv_path, public_key_path=pub_path)
+    except Exception as exc:
+        console.print(f"[red]ERROR: Key generation failed for {key_id}: {exc}[/red]")
+        raise typer.Exit(1) from exc
 
     console.print(
         f"[green]Generated Ed25519 key pair '{key_id}' in {output_dir}[/green]"
