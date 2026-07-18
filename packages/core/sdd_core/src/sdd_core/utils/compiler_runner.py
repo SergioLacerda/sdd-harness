@@ -30,6 +30,7 @@ __all__ = [
     "CompilationResult",
     "CompilerRunner",
     "CompilerRunnerError",
+    "KeygenResult",
     "SignResult",
     "ValidationCheck",
     "ValidationResult",
@@ -79,6 +80,15 @@ class ValidationResult(TypedDict):
     ok: bool
     errors: list[str]
     checks: list[ValidationCheck]
+
+
+class KeygenResult(TypedDict, total=False):
+    """Mirrors the Go binary's `keygen` JSON output."""
+
+    ok: bool
+    private_key_path: str
+    public_key_path: str
+    error: str
 
 
 class SignResult(TypedDict, total=False):
@@ -406,6 +416,30 @@ class CompilerRunner:
     def validate_compilation(self, output_dir: str | Path) -> bool:
         """Backward-compatible boolean validation entrypoint."""
         return self.validate_compilation_detailed(output_dir).get("ok", False)
+
+    def keygen(
+        self,
+        *,
+        private_key_path: str | Path,
+        public_key_path: str | Path,
+    ) -> KeygenResult:
+        """Generate a native Ed25519 key pair via the Go binary."""
+        result = self._runner.run(
+            [
+                str(self._binary),
+                "keygen",
+                "--priv",
+                str(private_key_path),
+                "--pub",
+                str(public_key_path),
+            ]
+        )
+        self._raise_if_unsupported_subcommand(result, subcommand="keygen")
+        payload = self._parse_json(result, context="keygen")
+        if not payload.get("ok", False):
+            error = payload.get("error") or result.stderr.strip() or "keygen failed"
+            raise CompilerRunnerError(f"sdd-compile keygen failed: {error}")
+        return payload  # type: ignore[return-value]
 
     def sign(
         self,

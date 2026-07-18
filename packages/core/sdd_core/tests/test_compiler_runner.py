@@ -580,6 +580,54 @@ def test_validate_compilation_returns_ok_flag() -> None:
     assert runner.validate_compilation("out") is False
 
 
+def test_keygen_returns_payload_on_success() -> None:
+    runner = _make_runner(
+        SimpleNamespace(
+            success=True,
+            stdout='{"ok": true, "private_key_path": "t/k.key", "public_key_path": "t/k.pub.pem"}',
+            stderr="",
+        )
+    )
+
+    result = runner.keygen(private_key_path="t/k.key", public_key_path="t/k.pub.pem")
+
+    assert result["ok"] is True
+    assert result["private_key_path"] == "t/k.key"
+    assert result["public_key_path"] == "t/k.pub.pem"
+
+
+def test_keygen_raises_when_result_reports_not_ok() -> None:
+    runner = _make_runner(
+        SimpleNamespace(
+            success=True, stdout='{"ok": false, "error": "disk full"}', stderr=""
+        )
+    )
+
+    with pytest.raises(CompilerRunnerError, match="disk full"):
+        runner.keygen(private_key_path="k.key", public_key_path="k.pub.pem")
+
+
+def test_keygen_raises_actionable_error_when_binary_missing_subcommand() -> None:
+    def _fake_run(args: list[str]) -> SimpleNamespace:
+        if "version" in args:
+            return SimpleNamespace(
+                success=True, stdout="1.0.0\n", stderr="", returncode=0
+            )
+        return SimpleNamespace(
+            success=False,
+            stdout="",
+            stderr='Error: unknown command "keygen" for "sdd-compile"',
+            returncode=1,
+        )
+
+    runner = CompilerRunner.__new__(CompilerRunner)
+    runner._binary = Path("/fake/sdd-compile")  # type: ignore[attr-defined]
+    runner._runner = SimpleNamespace(run=_fake_run)  # type: ignore[attr-defined]
+
+    with pytest.raises(CompilerRunnerError, match="does not support the 'keygen'"):
+        runner.keygen(private_key_path="k.key", public_key_path="k.pub.pem")
+
+
 def test_sign_returns_payload_on_success() -> None:
     runner = _make_runner(
         SimpleNamespace(
