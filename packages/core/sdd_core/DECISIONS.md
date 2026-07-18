@@ -162,7 +162,15 @@
 
 **Consequence:** Patch in sdd_runtime → all packages bump to next patch version
 
-**Implementation:** tools/release/sync_versions.py syncs all pyproject.toml files
+**Implementation (updated 2026-07-17):** All 9 workspace packages use
+`hatch-vcs` dynamic versioning (`[tool.hatch.version] source = "vcs"`), each
+resolving its version directly from the release tag at build time. The
+original implementation (`tools/release/sync_versions.py`, which rewrote a
+static `version = "..."` line in every `pyproject.toml`) was removed — it's no
+longer needed once no package has a static version to rewrite, and removing it
+also eliminated the `SETUPTOOLS_SCM_PRETEND_VERSION` workaround the sync step
+required (it rewrote files in place without committing, leaving the tree
+"dirty" in a way hatch-vcs's dirty-check would otherwise misread).
 
 **Status:** ACTIVE
 **Owner:** @SergioLacerda

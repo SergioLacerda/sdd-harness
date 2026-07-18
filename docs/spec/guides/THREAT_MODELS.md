@@ -613,7 +613,7 @@ Mitigation: Error handling; display "Artifact corrupted, rebuild with sdd compil
 
 **Mitigations Implemented:**
 
-- ✅ §5.2.A Version sync script (sync_versions.py) — ensures all packages release at same version
+- ✅ §5.2.A Per-package hatch-vcs versioning — every package resolves its version directly from the release tag, ensuring all packages release at the same version without a separate sync step
 - ✅ §5.2.B Release workflow verification (checks all packages match tag)
 - ✅ COMPATIBILITY.md (§5.2.C) — documents version matrix and breaking changes
 

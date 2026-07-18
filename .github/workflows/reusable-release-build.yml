@@ -1,0 +1,205 @@
+name: Reusable Release Build
+
+# Shared build steps for release.yml (real release) and release-dry-run.yml
+# (validation-only dry run). Both workflows need the exact same sequence:
+# cross-compile the sdd-compile binaries, stage them into the sdd-core wheel,
+# build every package, download the runtime wheelhouse, and compile
+# governance artifacts. Keeping this in one place is what prevents a bug (or
+# a future change) from having to be applied twice, in sync, in two
+# near-identical files.
+#
+# Every workspace package resolves its own version directly from the tag via
+# hatch-vcs (dynamic VCS versioning) — there is no separate version-sync step;
+# the "Verify built wheels match the tag version" step below is what confirms
+# every package actually resolved the right version.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Plain semver version (no leading v/V), e.g. 1.2.3"
+        required: true
+        type: string
+      tag:
+        description: "Git tag as written, e.g. v1.2.3 or V1.2.3"
+        required: true
+        type: string
+      artifact-name:
+        description: "Name for the uploaded dist/ artifact"
+        required: false
+        type: string
+        default: "dist"
+
+jobs:
+  build:
+    name: Build Distribution
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if pip install uv build; then
+              exit 0
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          exit 1
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version: "1.26"
+          cache-dependency-path: tools/sdd-compile/go.sum
+
+      - name: Verify all packages use dynamic (VCS) versioning
+        shell: bash
+        run: |
+          echo "Verifying every workspace package resolves its version via hatch-vcs"
+          for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
+            if [ -f "$pkg_dir/pyproject.toml" ]; then
+              if ! grep -q '^dynamic = \[.*"version".*\]' "$pkg_dir/pyproject.toml"; then
+                echo "❌ ERROR: $pkg_dir does not use dynamic (VCS) versioning"
+                exit 1
+              fi
+              echo "✓ $pkg_dir uses dynamic (VCS) versioning"
+            fi
+          done
+
+      - name: Cross-compile sdd-compile release binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          make build-compiler
+          mkdir -p dist
+          targets=(
+            "linux amd64"
+            "linux arm64"
+            "darwin amd64"
+            "darwin arm64"
+            "windows amd64"
+          )
+          for target in "${targets[@]}"; do
+            read -r goos goarch <<< "$target"
+            ext=""
+            if [ "$goos" = "windows" ]; then
+              ext=".exe"
+            fi
+            out="dist/sdd-compile-${goos}-${goarch}${ext}"
+            echo "Building $out"
+            GOOS="$goos" GOARCH="$goarch" go build -C tools/sdd-compile -o "$(pwd)/$out" .
+          done
+          (cd dist && sha256sum sdd-compile-* > SHA256SUMS)
+          cat dist/SHA256SUMS
+
+      - name: Stage packaged compiler assets for sdd-core wheel
+        shell: bash
+        run: python -m tools.release.stage_packaged_compiler_assets dist
+
+      - name: Build packages
+        shell: bash
+        run: |
+          for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
+            if [ -f "$pkg_dir/pyproject.toml" ]; then
+              echo "Building $pkg_dir"
+              # --wheel only: sdd_core ships governance spec files as symlinks
+              # (src/sdd_core/mandate.spec -> ../../_spec/mandate.spec, etc.),
+              # and hatchling's default sdist includes the whole project
+              # directory, which also picks up a dangling symlink
+              # (spec.CANONICAL.link) at the package root. That breaks sdist
+              # extraction (tarfile's extraction-safety filter rejects a link
+              # target outside the destination). No sdist is published or
+              # consumed anywhere in this pipeline — only wheels are installed
+              # (see release-install-smoke) — so building wheel-only sidesteps
+              # the problem entirely instead of restructuring the symlinks.
+              python -m build --wheel "$pkg_dir" --outdir dist/
+            fi
+          done
+
+      - name: Verify built wheels match the tag version
+        shell: bash
+        run: |
+          VERSION="${{ inputs.version }}"
+          for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
+            [ -f "$pkg_dir/pyproject.toml" ] || continue
+            pkg_name=$(grep -E '^name = ' "$pkg_dir/pyproject.toml" | head -1 | sed 's/name = "\(.*\)"/\1/' | tr '-' '_')
+            if ! ls dist/"$pkg_name"-"$VERSION"-*.whl >/dev/null 2>&1; then
+              echo "❌ ERROR: built $pkg_name wheel does not match tag version $VERSION"
+              ls dist/"$pkg_name"-*.whl || true
+              exit 1
+            fi
+            echo "✓ $pkg_name wheel matches tag version $VERSION"
+          done
+
+      - name: Download runtime dependency wheelhouse
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip download \
+            --dest dist \
+            --find-links dist \
+            --only-binary=:all: \
+            --platform manylinux2014_x86_64 \
+            --implementation cp \
+            --python-version 312 \
+            --abi cp312 \
+            dist/sdd_cli-*.whl
+          python -m pip download \
+            --dest dist \
+            --find-links dist \
+            --only-binary=:all: \
+            --platform win_amd64 \
+            --implementation cp \
+            --python-version 312 \
+            --abi cp312 \
+            dist/sdd_cli-*.whl
+          python -m pip download \
+            --dest dist \
+            --only-binary=:all: \
+            "colorama>=0.4.6"
+
+      - name: Install packages for compile step
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv venv
+          uv sync --all-groups
+          uv pip install -e packages/core/sdd_core \
+            && uv pip install -e packages/core/sdd_telemetry \
+            && uv pip install -e packages/features/sdd_integration \
+            && uv pip install -e packages/interfaces/sdd_wizard \
+            && uv pip install -e packages/interfaces/sdd_cli
+
+      - name: Compile governance artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run python -m sdd_cli governance compile --profile client
+          cp generated/client/build/governance-core.json dist/governance-core.json
+          cp generated/client/build/governance-client.json dist/governance-client.json
+          mkdir -p generated/client/build/final-template/.sdd
+          cp generated/client/build/governance-core.json generated/client/build/final-template/.sdd/governance-core.json
+          cp generated/client/build/governance-client.json generated/client/build/final-template/.sdd/governance-client.json
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: dist/

@@ -7,6 +7,12 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[3]
 RELEASE_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "release.yml"
 RELEASE_DRY_RUN_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "release-dry-run.yml"
+# release.yml's `build` job no longer inlines its steps — it delegates to this
+# reusable workflow (shared with release-dry-run.yml's build job), so any
+# assertion about the actual build-step content must load this file instead.
+REUSABLE_BUILD_WORKFLOW = (
+    REPO_ROOT / ".github" / "workflows" / "reusable-release-build.yml"
+)
 
 
 def _load_workflow(path: Path) -> dict:
@@ -52,76 +58,104 @@ def test_release_workflow_is_tag_driven_and_accepts_uppercase_v() -> None:
     )
     assert "^[vV][0-9]+" in validate_steps
     assert "setuptools_scm" not in validate_steps
-    assert "tools/release/resolve_vcs_version.py" in validate_steps
+    assert "tools.release.resolve_vcs_version" in validate_steps
 
 
-def test_release_build_syncs_versions_from_git_tag() -> None:
-    workflow = _load_workflow(RELEASE_WORKFLOW)
+def test_release_build_uses_dynamic_versioning_for_all_packages() -> None:
+    """No package has a static `version = "..."` line to sync anymore — every
+    workspace package resolves its version directly from the tag via
+    hatch-vcs. The build workflow verifies this (fails fast if a package
+    regresses to static versioning) instead of rewriting pyproject.toml
+    files in place."""
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
     build_steps = "\n".join(
         step.get("run", "") for step in _jobs(workflow)["build"]["steps"]
     )
-    assert 'VERSION="${VERSION#V}"' in build_steps
-    assert "tools/release/sync_versions.py" in build_steps
-    assert "steps.version.outputs.tag" in build_steps
+    assert "sync_versions" not in build_steps
+    assert "dynamic (VCS) versioning" in build_steps
 
 
-def test_release_verify_step_checks_sdd_cli_via_built_wheel() -> None:
-    """sdd_cli is now dynamically versioned (hatch-vcs) and has no static
-    `version = "..."` line for the verify step to grep. The verify step must
-    skip dynamic-version packages instead of failing on them, and the actual
-    sdd_cli version must be confirmed after the build, via the built wheel
-    filename."""
-    workflow = _load_workflow(RELEASE_WORKFLOW)
+def test_release_verify_step_checks_every_package_via_built_wheel() -> None:
+    """Every package is dynamically versioned (hatch-vcs) and has no static
+    `version = "..."` line to grep. The actual version of every built package
+    is confirmed after the build, via its wheel filename — not just
+    sdd_cli's."""
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
     build_steps = _jobs(workflow)["build"]["steps"]
-    verify_step = _step_run_block(build_steps, "Verify all package versions match tag")
-    build_step = _step_run_block(build_steps, "Build packages")
+    verify_step = _step_run_block(
+        build_steps, "Verify built wheels match the tag version"
+    )
 
-    assert "dynamic" in verify_step
-    assert "version" in verify_step
-    assert "dist/sdd_cli-" in build_step
+    assert "does not match tag version" in verify_step
+    assert "packages/core/*" in verify_step
+    assert "packages/features/*" in verify_step
+    assert "packages/interfaces/*" in verify_step
 
 
-def test_release_build_step_pins_setuptools_scm_version() -> None:
-    """The 'Sync sub-package versions to tag' step rewrites other packages'
-    pyproject.toml without committing, leaving the tree dirty. hatch-vcs's
-    dirty-check is repo-wide, so the Build packages step must pin
-    SETUPTOOLS_SCM_PRETEND_VERSION to the tag, or sdd_cli (dynamically
-    versioned) will resolve a guessed dev version instead of the exact tag."""
-    workflow = _load_workflow(RELEASE_WORKFLOW)
+def test_release_build_step_does_not_pin_setuptools_scm_version() -> None:
+    """There is no in-place pyproject.toml rewrite anymore (sync_versions.py
+    was removed), so the working tree stays clean through the build and
+    hatch-vcs resolves the exact tag without needing a pretend-version pin."""
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
     build_steps = _jobs(workflow)["build"]["steps"]
     build_package_step = next(
         step for step in build_steps if step.get("name") == "Build packages"
     )
     env = build_package_step.get("env", {})
-    assert "SETUPTOOLS_SCM_PRETEND_VERSION" in env
-    assert "steps.version.outputs.version" in env["SETUPTOOLS_SCM_PRETEND_VERSION"]
+    assert "SETUPTOOLS_SCM_PRETEND_VERSION" not in env
 
 
-def test_release_dry_run_syncs_versions_from_git_tag() -> None:
+def test_release_dry_run_resolves_tag_without_sync_versions() -> None:
     workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
     dry_run_steps = "\n".join(
         step.get("run", "") for step in _jobs(workflow)["dry-run"]["steps"]
     )
     assert "^[vV][0-9]+" in dry_run_steps
     assert 'VERSION="${VERSION#V}"' in dry_run_steps
-    assert 'tools/release/sync_versions.py "$TAG"' in dry_run_steps
+    assert "sync_versions" not in dry_run_steps
+
+    build_workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    build_steps = "\n".join(
+        step.get("run", "") for step in _jobs(build_workflow)["build"]["steps"]
+    )
+    assert "sync_versions" not in build_steps
+    dry_run_build_job = _jobs(workflow)["dry-run-build"]
+    assert dry_run_build_job["needs"] == "dry-run"
+    assert dry_run_build_job["with"]["tag"] == "${{ needs.dry-run.outputs.tag }}"
+
+
+def test_release_dry_run_triggers_on_push_to_main() -> None:
+    workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
+    assert workflow["on"]["push"]["branches"] == ["main"]
+
+    dry_run_steps = _jobs(workflow)["dry-run"]["steps"]
+    push_step = next(
+        step
+        for step in dry_run_steps
+        if step.get("name") == "Resolve version for automatic (push) trigger"
+    )
+    assert push_step["if"] == "github.event_name == 'push'"
+
+    tag_format_step = _step_run_block(dry_run_steps, "Validate semver tag format")
+    assert tag_format_step  # sanity: step still exists and has content
+    tag_format_step_obj = next(
+        step
+        for step in dry_run_steps
+        if step.get("name") == "Validate semver tag format"
+    )
+    assert tag_format_step_obj["if"] == "github.event_name == 'workflow_dispatch'"
 
 
 def test_release_workflows_use_canonical_governance_compile_command() -> None:
-    workflows = [
-        (RELEASE_WORKFLOW, "build"),
-        (RELEASE_DRY_RUN_WORKFLOW, "dry-run"),
-    ]
-
-    for path, job_name in workflows:
-        workflow = _load_workflow(path)
-        steps = "\n".join(
-            step.get("run", "") for step in _jobs(workflow)[job_name]["steps"]
-        )
-        assert "uv run python -m sdd_cli governance compile --profile client" in steps
-        assert "uv run python -m sdd_cli compile" not in steps
-        assert "cp generated/client/build/governance-core.json" in steps
-        assert "mkdir -p generated/client/build/final-template/.sdd" in steps
+    # release.yml's `build` job and release-dry-run.yml's `dry-run-build` job
+    # both delegate to this single reusable workflow now — the governance
+    # compile step only needs to be checked once, not per caller.
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    steps = "\n".join(step.get("run", "") for step in _jobs(workflow)["build"]["steps"])
+    assert "uv run python -m sdd_cli governance compile --profile client" in steps
+    assert "uv run python -m sdd_cli compile" not in steps
+    assert "cp generated/client/build/governance-core.json" in steps
+    assert "mkdir -p generated/client/build/final-template/.sdd" in steps
 
 
 def test_release_workflow_smoke_install_uses_local_dist_only() -> None:
@@ -135,22 +169,16 @@ def test_release_workflow_smoke_install_uses_local_dist_only() -> None:
 
 
 def test_release_workflows_build_cross_platform_runtime_wheelhouse() -> None:
-    workflows = [
-        (RELEASE_WORKFLOW, "build"),
-        (RELEASE_DRY_RUN_WORKFLOW, "dry-run"),
-    ]
-
-    for path, job_name in workflows:
-        workflow = _load_workflow(path)
-        steps = "\n".join(
-            step.get("run", "") for step in _jobs(workflow)[job_name]["steps"]
-        )
-        assert "--platform manylinux2014_x86_64" in steps
-        assert "--platform win_amd64" in steps
-        assert "--python-version 312" in steps
-        assert "--find-links dist" in steps
-        assert "dist/sdd_cli-*.whl" in steps
-        assert '"colorama>=0.4.6"' in steps
+    # Same reasoning as the governance-compile test above: both callers share
+    # this one reusable workflow for the wheelhouse download step.
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    steps = "\n".join(step.get("run", "") for step in _jobs(workflow)["build"]["steps"])
+    assert "--platform manylinux2014_x86_64" in steps
+    assert "--platform win_amd64" in steps
+    assert "--python-version 312" in steps
+    assert "--find-links dist" in steps
+    assert "dist/sdd_cli-*.whl" in steps
+    assert '"colorama>=0.4.6"' in steps
 
 
 def test_release_job_depends_on_install_smoke() -> None:
@@ -168,7 +196,7 @@ def test_release_dry_run_has_windows_install_smoke_lane() -> None:
     matrix_os = smoke["strategy"]["matrix"]["os"]
     assert "windows-latest" in matrix_os
     assert "ubuntu-latest" in matrix_os
-    assert smoke["needs"] == "dry-run"
+    assert smoke["needs"] == "dry-run-build"
 
 
 def test_release_workflow_permissions_are_job_scoped() -> None:
@@ -211,3 +239,19 @@ def test_release_signing_uses_real_sigstore_action_with_oidc_permission() -> Non
     )
     assert "@5b79a39c381910c090341a2c9b0bf022c8b387e1" in sign_step["uses"]
     assert release_job["permissions"]["id-token"] == "write"
+
+
+def test_release_workflows_invoke_tools_release_scripts_as_modules() -> None:
+    """tools/release/*.py scripts do package-relative imports (e.g.
+    stage_packaged_compiler_assets.py imports validate_release_assets). Invoking
+    them as bare scripts (`python path/to/script.py`) puts the script's own
+    directory on sys.path instead of the repo root, so the import fails with
+    ModuleNotFoundError. They must be invoked as modules (`python -m
+    tools.release.<name>`), which puts the repo root (cwd) on sys.path."""
+    # Both release.yml's `build` job and release-dry-run.yml's `dry-run-build`
+    # job delegate to reusable-release-build.yml — checking it once covers
+    # both callers.
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    steps = "\n".join(step.get("run", "") for step in _jobs(workflow)["build"]["steps"])
+    assert "python tools/release/stage_packaged_compiler_assets.py" not in steps
+    assert "python -m tools.release.stage_packaged_compiler_assets" in steps

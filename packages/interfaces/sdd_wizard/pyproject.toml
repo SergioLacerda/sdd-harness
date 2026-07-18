@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "sdd-wizard"
-version = "1.0.0"
+dynamic = ["version"]
 description = "Interactive project scaffolding wizard for SDD workspaces"
 requires-python = ">=3.10"
 license = {text = "Proprietary"}
@@ -23,11 +23,11 @@ dependencies = [
 [project.urls]
 Repository = "https://github.com/SergioLacerda/sdd-harness"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "[vV](?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)"
+fallback-version = "0.0.0+unknown"
+raw-options = { root = "../../.." }
 
-[tool.setuptools.package-data]
-sdd_wizard = ["py.typed", "templates/**/*"]
-
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/sdd_wizard"]
