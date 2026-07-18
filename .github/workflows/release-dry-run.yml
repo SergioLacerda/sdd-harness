@@ -138,6 +138,11 @@ jobs:
       version: ${{ needs.dry-run.outputs.version }}
       tag: ${{ needs.dry-run.outputs.tag }}
       artifact-name: release-dry-run-dist
+      # Neither trigger path (workflow_dispatch with a candidate tag, or an
+      # automatic push to main) has a real Git tag at checkout time yet, so
+      # hatch-vcs can never resolve exactly `version` here — see the input's
+      # description in reusable-release-build.yml.
+      verify-exact-version: false
 
   release-install-smoke:
     name: Release Install Smoke (${{ matrix.os }})
