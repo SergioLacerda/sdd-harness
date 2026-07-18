@@ -29,7 +29,7 @@ fallback-version = "0.0.0+unknown"
 # does not search parent directories for the git repo by default — it must be
 # told explicitly where the root is, or it silently falls back to
 # fallback-version above instead of resolving the real tag.
-raw-options = { root = "../../.." }
+raw-options = { root = "../../..", version_scheme = "no-guess-dev" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sdd_core"]

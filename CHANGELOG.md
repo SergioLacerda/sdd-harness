@@ -26,7 +26,18 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
-No unreleased changes yet.
+### Fixed
+- Fixed standalone `sdd governance compile`/`sdd governance generate` failing
+  with "No sdd-compile release binary found" for any install built from a dev
+  checkout between two release tags. `hatch-vcs`'s default version scheme
+  (`guess-next-dev`) reports dev builds under a *guessed, unreleased* next
+  version (e.g. `1.0.4.dev12+g...` for a checkout 12 commits past the `v1.0.3`
+  tag) rather than the actual last release — so `CompilerRunner`'s dev-version
+  fallback (added in a prior release) was trying to download a binary from a
+  GitHub release tag (`v1.0.4`) that never existed. All 9 workspace packages
+  now use the `no-guess-dev` version scheme, so dev builds report a version
+  derived from the real last tag (e.g. `1.0.3.post1.dev0+g...`), which the
+  existing fallback logic already resolves correctly.
 
 ## [1.0.3] — 2026-07-17
 
