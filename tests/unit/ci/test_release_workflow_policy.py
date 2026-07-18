@@ -124,6 +124,39 @@ def test_release_dry_run_resolves_tag_without_sync_versions() -> None:
     assert dry_run_build_job["with"]["tag"] == "${{ needs.dry-run.outputs.tag }}"
 
 
+def test_release_dry_run_skips_exact_version_check() -> None:
+    """Neither dry-run trigger path (workflow_dispatch with a candidate tag,
+    or an automatic push to main) has a real Git tag at checkout time — the
+    tag either hasn't been created yet (that's the point of a dry run) or
+    doesn't exist at all (plain push). hatch-vcs can therefore never resolve
+    exactly the placeholder/candidate `version` passed in, so the dry-run
+    build must opt out of the reusable workflow's exact wheel-version check,
+    or every dry run fails on a version mismatch that has nothing to do with
+    whether the build actually works."""
+    workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
+    dry_run_build_job = _jobs(workflow)["dry-run-build"]
+    # _load_workflow's custom loader stringifies all YAML bools (needed to
+    # handle the `on:` key elsewhere in the document), so `false` parses as
+    # the string "false", not Python False.
+    assert dry_run_build_job["with"]["verify-exact-version"] == "false"
+
+
+def test_release_build_verifies_exact_version_by_default() -> None:
+    """release.yml's real build (triggered by an actual tag push) must keep
+    the exact wheel-version check enabled — unlike the dry run, the tag
+    genuinely exists at checkout time there, so hatch-vcs resolving anything
+    other than the exact tag version is a real bug, not a false positive."""
+    workflow = _load_workflow(RELEASE_WORKFLOW)
+    build_job = _jobs(workflow)["build"]
+    assert "verify-exact-version" not in build_job.get("with", {})
+
+    build_workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    verify_input = build_workflow["on"]["workflow_call"]["inputs"][
+        "verify-exact-version"
+    ]
+    assert verify_input["default"] == "true"
+
+
 def test_release_dry_run_triggers_on_push_to_main() -> None:
     workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
     assert workflow["on"]["push"]["branches"] == ["main"]

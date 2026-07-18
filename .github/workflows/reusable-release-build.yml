@@ -29,6 +29,21 @@ on:
         required: false
         type: string
         default: "dist"
+      verify-exact-version:
+        description: >-
+          Whether to fail the build if a package's wheel filename doesn't
+          exactly match `version`. Only meaningful when `tag` is a Git tag
+          that already exists at checkout time (the real release.yml build,
+          triggered by an actual tag push) — hatch-vcs then resolves that
+          exact tag. release-dry-run.yml runs *before* any such tag exists
+          (either validating a candidate tag that hasn't been created yet, or
+          on a plain push to main with no tag at all), so hatch-vcs always
+          resolves the real git-describe dev version instead — the exact
+          match would always fail there for reasons unrelated to build
+          correctness. Dry runs should pass `false`.
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build:
@@ -134,6 +149,7 @@ jobs:
           done
 
       - name: Verify built wheels match the tag version
+        if: ${{ inputs.verify-exact-version }}
         shell: bash
         run: |
           VERSION="${{ inputs.version }}"
