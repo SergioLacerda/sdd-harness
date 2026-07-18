@@ -7,6 +7,8 @@ on:
         description: "SemVer tag to validate (example: v1.2.3 or V1.2.3)"
         required: true
         type: string
+  push:
+    branches: [main]
 
 concurrency:
   group: release-dry-run-${{ github.run_id }}
@@ -22,12 +24,32 @@ jobs:
     env:
       SDD_ENFORCE_PIPELINE_CORRECT: "1"
     timeout-minutes: 10
+    outputs:
+      version: ${{ steps.parse-tag.outputs.version || steps.parse-tag-push.outputs.version }}
+      tag: ${{ steps.parse-tag.outputs.tag || steps.parse-tag-push.outputs.tag }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           fetch-depth: 0
 
+      - name: Resolve version for automatic (push) trigger
+        id: parse-tag-push
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # On a plain push to main (no tag yet), there is no release version
+          # to validate against the changelog — this run only needs to prove
+          # the shared build steps still succeed, so use a synthetic
+          # placeholder version/tag for the reusable build workflow's inputs.
+          echo "TAG=v0.0.0" >> "$GITHUB_ENV"
+          echo "VERSION=0.0.0" >> "$GITHUB_ENV"
+          echo "tag=v0.0.0" >> "$GITHUB_OUTPUT"
+          echo "version=0.0.0" >> "$GITHUB_OUTPUT"
+
       - name: Validate semver tag format
+        id: parse-tag
+        if: github.event_name == 'workflow_dispatch'
         shell: bash
         env:
           TAG: ${{ inputs.tag }}
@@ -40,8 +62,11 @@ jobs:
           VERSION="${TAG#v}"
           VERSION="${VERSION#V}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Validate changelog entry exists
+        if: github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           NOTES=$(awk "/^## \[$VERSION\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
@@ -103,111 +128,20 @@ jobs:
         shell: bash
         run: uv run python tools/ci/check_release_readiness_v1.py
 
-      - name: Install build tools
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in 1 2 3; do
-            if pip install build; then
-              exit 0
-            fi
-            if [[ "${attempt}" -lt 3 ]]; then
-              sleep $((attempt * 10))
-            fi
-          done
-          exit 1
-
-      - name: Sync sub-package versions (dry run)
-        shell: bash
-        run: python tools/release/sync_versions.py "$TAG"
-
-      - name: Cross-compile sdd-compile release binaries (dry run)
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          targets=(
-            "linux amd64"
-            "linux arm64"
-            "darwin amd64"
-            "darwin arm64"
-            "windows amd64"
-          )
-          for target in "${targets[@]}"; do
-            read -r goos goarch <<< "$target"
-            ext=""
-            if [ "$goos" = "windows" ]; then
-              ext=".exe"
-            fi
-            out="dist/sdd-compile-${goos}-${goarch}${ext}"
-            echo "Building $out"
-            GOOS="$goos" GOARCH="$goarch" go build -C tools/sdd-compile -o "$(pwd)/$out" .
-          done
-          (cd dist && sha256sum sdd-compile-* > SHA256SUMS)
-          cat dist/SHA256SUMS
-
-      - name: Stage packaged compiler assets for sdd-core wheel (dry run)
-        shell: bash
-        run: python tools/release/stage_packaged_compiler_assets.py dist
-
-      - name: Build packages (dry run)
-        shell: bash
-        run: |
-          mkdir -p dist
-          for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
-            if [ -f "$pkg_dir/pyproject.toml" ]; then
-              echo "Building $pkg_dir"
-              python -m build "$pkg_dir" --outdir dist/
-            fi
-          done
-
-      - name: Download runtime dependency wheelhouse (dry run)
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -m pip download \
-            --dest dist \
-            --find-links dist \
-            --only-binary=:all: \
-            --platform manylinux2014_x86_64 \
-            --implementation cp \
-            --python-version 312 \
-            --abi cp312 \
-            dist/sdd_cli-*.whl
-          python -m pip download \
-            --dest dist \
-            --find-links dist \
-            --only-binary=:all: \
-            --platform win_amd64 \
-            --implementation cp \
-            --python-version 312 \
-            --abi cp312 \
-            dist/sdd_cli-*.whl
-          python -m pip download \
-            --dest dist \
-            --only-binary=:all: \
-            "colorama>=0.4.6"
-
-      - name: Compile governance artifacts (dry run)
-        shell: bash
-        run: |
-          set -euo pipefail
-          uv run python -m sdd_cli governance compile --profile client
-          cp generated/client/build/governance-core.json dist/governance-core.json
-          cp generated/client/build/governance-client.json dist/governance-client.json
-          mkdir -p generated/client/build/final-template/.sdd
-          cp generated/client/build/governance-core.json generated/client/build/final-template/.sdd/governance-core.json
-          cp generated/client/build/governance-client.json generated/client/build/final-template/.sdd/governance-client.json
-
-      - name: Upload dry-run artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
-        with:
-          name: release-dry-run-dist
-          path: dist/
+  dry-run-build:
+    name: Build Distribution (Dry Run)
+    needs: dry-run
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-release-build.yml
+    with:
+      version: ${{ needs.dry-run.outputs.version }}
+      tag: ${{ needs.dry-run.outputs.tag }}
+      artifact-name: release-dry-run-dist
 
   release-install-smoke:
     name: Release Install Smoke (${{ matrix.os }})
-    needs: dry-run
+    needs: dry-run-build
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read

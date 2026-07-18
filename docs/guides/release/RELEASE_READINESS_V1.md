@@ -45,4 +45,20 @@ Rollback is recommended when one or more conditions are true after release:
 1. Identify last known good tag in GitHub Releases.
 2. Re-deploy previous artifact set from signed release assets.
 3. Open incident entry in `docs/incidents/FAILURE_LEDGER.md`.
+
+## Branch Protection Prerequisite (Manual)
+
+`release-dry-run.yml` runs automatically on every push to `main` (in addition
+to its manual `workflow_dispatch` form), so that the full release build is
+validated continuously instead of only being caught the first time someone
+pushes a real tag. This is only an effective gate if it is also required to
+pass before merging to `main`.
+
+This must be configured once, manually, in the GitHub repository settings —
+it is not something a workflow file can enforce on its own:
+
+- Settings → Branches → branch protection rule for `main` → require status
+  checks to pass before merging → add the `dry-run` job (or, after the
+  `dry-run-build` job exists, both `dry-run` and `dry-run-build`) from
+  `release-dry-run.yml`.
 4. Record postmortem and update playbooks in `docs/incidents/PLAYBOOKS.md`.

@@ -67,9 +67,11 @@ install sdd-harness` until PyPI publishing is implemented and proven in CI.
 
 **Versioning Strategy:** Single version number for all packages.
 
-- All 7 packages release together with the same version (e.g., `0.2.0`)
+- All 9 workspace packages release together with the same version (e.g., `0.2.0`)
 - Version is derived from git tags: `v0.2.0` → all packages built at `0.2.0`
-- Synchronization is enforced in CI (see `tools/release/sync_versions.py`)
+- Each package resolves its own version directly from the tag via `hatch-vcs`
+  (`[tool.hatch.version] source = "vcs"`) — there is no separate sync step;
+  the release workflow verifies every built wheel's filename matches the tag
 
 ### What Counts as Each Type of Change
 

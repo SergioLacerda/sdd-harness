@@ -4982,7 +4982,6 @@ wheels = [
 
 [[package]]
 name = "sdd-adapters"
-version = "1.0.0"
 source = { editable = "packages/features/sdd_adapters" }
 dependencies = [
     { name = "jinja2" },
@@ -5029,7 +5028,6 @@ requires-dist = [
 
 [[package]]
 name = "sdd-core"
-version = "1.0.0"
 source = { editable = "packages/core/sdd_core" }
 dependencies = [
     { name = "msgpack" },
@@ -5215,7 +5213,6 @@ typing = [
 
 [[package]]
 name = "sdd-integration"
-version = "1.0.0"
 source = { editable = "packages/features/sdd_integration" }
 dependencies = [
     { name = "pydantic", version = "2.12.5", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-11-sdd-harness-examples-crewai'" },
@@ -5233,7 +5230,6 @@ requires-dist = [
 
 [[package]]
 name = "sdd-pages"
-version = "1.0.0"
 source = { editable = "packages/features/sdd_pages" }
 dependencies = [
     { name = "pyyaml" },
@@ -5257,7 +5253,6 @@ provides-extras = ["brotli"]
 
 [[package]]
 name = "sdd-runtime"
-version = "1.0.0"
 source = { editable = "packages/core/sdd_runtime" }
 dependencies = [
     { name = "sdd-skills" },
@@ -5277,7 +5272,6 @@ provides-extras = ["http"]
 
 [[package]]
 name = "sdd-skills"
-version = "1.0.0"
 source = { editable = "packages/features/sdd_skills" }
 dependencies = [
     { name = "sdd-core" },
@@ -5288,7 +5282,6 @@ requires-dist = [{ name = "sdd-core", editable = "packages/core/sdd_core" }]
 
 [[package]]
 name = "sdd-telemetry"
-version = "1.0.0"
 source = { editable = "packages/core/sdd_telemetry" }
 dependencies = [
     { name = "msgpack" },
@@ -5299,7 +5292,6 @@ requires-dist = [{ name = "msgpack", specifier = ">=1.2.1" }]
 
 [[package]]
 name = "sdd-wizard"
-version = "1.0.0"
 source = { editable = "packages/interfaces/sdd_wizard" }
 dependencies = [
     { name = "pyyaml" },
