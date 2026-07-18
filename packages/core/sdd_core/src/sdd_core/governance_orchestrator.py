@@ -171,9 +171,29 @@ class GovernanceOrchestrator:
         try:
             runner = CompilerRunner(repo_root=self.repo_root)
             result = runner.compile(str(self.build_dir), str(self.compiled_dir))
-            if not runner.validate_compilation(str(self.compiled_dir)):
-                self._out("❌ Compilation validation failed", level=logging.ERROR)
-                return {"success": False, "error": "Compilation validation failed"}
+            validation = runner.validate_compilation_detailed(str(self.compiled_dir))
+            if not validation.get("ok", False):
+                failed = [
+                    check
+                    for check in validation.get("checks", [])
+                    if not check.get("ok")
+                ]
+                self._out(
+                    f"❌ Compilation validation failed in {self.compiled_dir}",
+                    level=logging.ERROR,
+                )
+                for check in failed:
+                    self._out(
+                        f"   ❌ {check.get('name')}: {check.get('details')}",
+                        level=logging.ERROR,
+                    )
+                detail = "; ".join(
+                    f"{check.get('name')}: {check.get('details')}" for check in failed
+                ) or "; ".join(validation.get("errors", []))
+                error = "Compilation validation failed"
+                if detail:
+                    error = f"{error}: {detail}"
+                return {"success": False, "error": error}
             copy_build_artifacts(self.build_dir, self.compiled_dir)
             publish_canonical_artifacts(self.workspace_root, self.compiled_dir)
             return phase2_result_from_compile(result)

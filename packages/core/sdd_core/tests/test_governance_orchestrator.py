@@ -409,7 +409,18 @@ class TestRunPhase2:
 
         mock_compiler = MagicMock()
         mock_compiler.compile.return_value = {"success": True}
-        mock_compiler.validate_compilation.return_value = False
+        mock_compiler.validate_compilation_detailed.return_value = {
+            "ok": False,
+            "errors": ["file not found: x.msgpack"],
+            "checks": [
+                {
+                    "name": "core_msgpack_exists",
+                    "ok": False,
+                    "details": "file not found: x.msgpack",
+                },
+                {"name": "client_msgpack_exists", "ok": True, "details": "ok"},
+            ],
+        }
 
         with patch(
             "sdd_core.governance_orchestrator.CompilerRunner",
@@ -417,6 +428,8 @@ class TestRunPhase2:
         ):
             result = orch._run_phase_2()
         assert result["success"] is False
+        assert "core_msgpack_exists: file not found: x.msgpack" in result["error"]
+        assert "client_msgpack_exists" not in result["error"]
 
     def test_returns_false_on_exception(self, tmp_path: Path) -> None:
         orch = _make_orchestrator(tmp_path)
@@ -470,7 +483,11 @@ class TestRunPhase2:
             "core_fingerprint_salt": "abc",
             "client_fingerprint": "def",
         }
-        mock_compiler.validate_compilation.return_value = True
+        mock_compiler.validate_compilation_detailed.return_value = {
+            "ok": True,
+            "errors": [],
+            "checks": [],
+        }
 
         with patch(
             "sdd_core.governance_orchestrator.CompilerRunner",
