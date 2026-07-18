@@ -5030,12 +5030,14 @@ requires-dist = [
 name = "sdd-core"
 source = { editable = "packages/core/sdd_core" }
 dependencies = [
+    { name = "certifi" },
     { name = "msgpack" },
     { name = "structlog" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "certifi", specifier = ">=2024.7.4" },
     { name = "msgpack", specifier = ">=1.2.1" },
     { name = "structlog", specifier = ">=23.0" },
 ]
