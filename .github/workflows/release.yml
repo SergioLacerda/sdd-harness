@@ -321,8 +321,8 @@ jobs:
           mkdir -p git-smoke-project
           cd git-smoke-project
           sdd install --wizard --non-interactive
-          sdd init --default
-          sdd governance validate
+          sdd init --default  # sdd-ci-policy: allow-client-smoke
+          sdd governance validate  # sdd-ci-policy: allow-client-smoke
 
   release:
     name: Create GitHub Release

@@ -178,10 +178,10 @@ def _tls_context() -> ssl.SSLContext:
     ctx = ssl.create_default_context()
     try:
         import certifi
-
-        ctx.load_verify_locations(certifi.where())
     except ImportError:
-        pass
+        _debug_log("certifi not installed; using system trust store only")
+    else:
+        ctx.load_verify_locations(certifi.where())
     return ctx
 
 

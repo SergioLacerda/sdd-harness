@@ -8,11 +8,17 @@ BLOCKED_PATTERNS = (
     re.compile(r"\bsdd\s+(governance|lint|init|docs|tools|runtime|ask|bootstrap)\b"),
 )
 
+# Lines carrying this marker exercise the installed client entrypoint on
+# purpose (e.g. release install smoke tests) and are exempt from the policy.
+ALLOW_MARKER = "sdd-ci-policy: allow-client-smoke"
+
 
 def _scan_file(path: Path) -> list[str]:
     content = path.read_text(encoding="utf-8")
     violations: list[str] = []
     for idx, line in enumerate(content.splitlines(), start=1):
+        if ALLOW_MARKER in line:
+            continue
         for pattern in BLOCKED_PATTERNS:
             if pattern.search(line):
                 violations.append(f"{path}:{idx}: {line.strip()}")
