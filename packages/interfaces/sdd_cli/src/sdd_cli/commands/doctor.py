@@ -36,8 +36,19 @@ def _(
 ) -> None:
     """Run diagnostics."""
     if list_commands or ctx.invoked_subcommand is None:
-        show_command_group("Doctor", ["run"])
+        show_command_group("Doctor", ["run", "compiler"])
         raise typer.Exit(0)
+
+
+@app.command()
+@handle_cli_errors(command_name="doctor compiler")
+def compiler() -> None:
+    """Print read-only sdd-compile toolchain diagnostics as stable JSON."""
+    import json
+
+    from sdd_cli.services.doctor_compiler import build_compiler_report
+
+    typer.echo(json.dumps(build_compiler_report(), indent=2))
 
 
 @app.command()

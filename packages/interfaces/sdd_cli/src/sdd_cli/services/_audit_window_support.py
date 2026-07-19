@@ -7,6 +7,7 @@ from typing import Any
 
 from sdd_cli.services.audit_event_parser import (
     _is_ask_event,
+    _is_ask_invocation,
     _is_drift_event,
     _quality_score,
     _token_totals,
@@ -75,10 +76,17 @@ def window_correlation(
     prev_asks = [event for event in previous_window if _is_ask_event(event)]
     drifts = [event for event in asks if _is_drift_event(event)]
     prev_drifts = [event for event in prev_asks if _is_drift_event(event)]
-    total_in, total_out, with_tokens = _token_totals(asks)
-    prev_in, prev_out, prev_with_tokens = _token_totals(prev_asks)
-    token_coverage = (with_tokens / len(asks)) if asks else 0.0
-    prev_token_coverage = (prev_with_tokens / len(prev_asks)) if prev_asks else 0.0
+    # Token coverage is measured over parent governance.ask invocations only;
+    # phase sub-events never carry tokens and would pin coverage below the
+    # confidence gate no matter how healthy the telemetry is.
+    invocations = [event for event in asks if _is_ask_invocation(event)]
+    prev_invocations = [event for event in prev_asks if _is_ask_invocation(event)]
+    total_in, total_out, with_tokens = _token_totals(invocations)
+    prev_in, prev_out, prev_with_tokens = _token_totals(prev_invocations)
+    token_coverage = (with_tokens / len(invocations)) if invocations else 0.0
+    prev_token_coverage = (
+        (prev_with_tokens / len(prev_invocations)) if prev_invocations else 0.0
+    )
     ratio = (total_out / total_in) if total_in > 0 else 0.0
     prev_ratio = (prev_out / prev_in) if prev_in > 0 else 0.0
     classified = sum(

@@ -92,6 +92,33 @@ def test_release_verify_step_checks_every_package_via_built_wheel() -> None:
     assert "packages/interfaces/*" in verify_step
 
 
+def test_release_build_verifies_wheel_bundles_native_binaries() -> None:
+    """Staging assets happens before the wheel build, so only a post-build
+    inspection of the wheel itself proves standalone clients get the bundled
+    compiler binaries (the wheel is what they install)."""
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    build_steps = _jobs(workflow)["build"]["steps"]
+    verify_step = _step_run_block(
+        build_steps, "Verify sdd-core wheel bundles native compiler binaries"
+    )
+
+    assert "tools.release.verify_wheel_native_assets" in verify_step
+
+
+def test_release_build_injects_release_version_into_compiler_binaries() -> None:
+    """The CLI<->binary version handshake needs the release version compiled
+    into the Go binary; without the ldflags injection every release binary
+    reports "dev" and the skew check never fires."""
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    build_steps = _jobs(workflow)["build"]["steps"]
+    compile_step = _step_run_block(
+        build_steps, "Cross-compile sdd-compile release binaries"
+    )
+
+    assert "-X sdd-compile/cmd.version=" in compile_step
+    assert "-ldflags" in compile_step
+
+
 def test_release_build_step_does_not_pin_setuptools_scm_version() -> None:
     """There is no in-place pyproject.toml rewrite anymore (sync_versions.py
     was removed), so the working tree stays clean through the build and

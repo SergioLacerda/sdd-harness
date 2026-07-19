@@ -10,6 +10,7 @@ from sdd_cli.services.audit_runner import (
     _default_events_path,
     _window_classification,
     _window_confidence,
+    _window_correlation,
 )
 
 
@@ -167,6 +168,79 @@ class TestComputeBaseSummaryUnclassified:
         ]
         result = _compute_base_summary(events, top=10)
         assert result["unclassified_drifts"] == 1
+
+
+def _mixed_token_events(base_ts: str = "2026-05-20T10:00:00Z") -> list[dict]:
+    """One tokenized ask invocation, one tokenless invocation, plus phase and
+    non-LLM events that never carry tokens."""
+    return [
+        {
+            "event": "governance.ask",
+            "command": "ask",
+            "start_ts": base_ts,
+            "tokens_input": 100,
+            "tokens_output": 50,
+            "details": {},
+        },
+        {
+            "event": "governance.ask",
+            "command": "ask",
+            "start_ts": base_ts,
+            "tokens_input": None,
+            "tokens_output": None,
+            "details": {},
+        },
+        {
+            "event": "governance.ask.phase",
+            "command": "ask",
+            "start_ts": base_ts,
+            "tokens_input": None,
+            "tokens_output": None,
+            "details": {"phase_id": "intake"},
+        },
+        {
+            "event": "governance.ask.phase",
+            "command": "ask",
+            "start_ts": base_ts,
+            "tokens_input": None,
+            "tokens_output": None,
+            "details": {"phase_id": "routing"},
+        },
+        {
+            "event": "governance.compile.complete",
+            "command": "governance compile",
+            "start_ts": base_ts,
+            "tokens_input": None,
+            "tokens_output": None,
+            "details": {},
+        },
+    ]
+
+
+class TestComputeBaseSummaryTokenScope:
+    def test_token_metrics_scoped_to_ask_invocations(self) -> None:
+        result = _compute_base_summary(_mixed_token_events(), top=10)
+        assert result["ask_invocations"] == 2
+        assert result["with_tokens"] == 1
+        assert result["missing_tokens"] == 1
+        assert result["non_token_events"] == 3
+        assert result["total_in"] == 100
+        assert result["total_out"] == 50
+
+
+class TestWindowCorrelationTokenCoverage:
+    def test_coverage_ignores_phase_and_non_llm_events(self) -> None:
+        from datetime import datetime, timedelta, timezone
+
+        now = datetime.now(timezone.utc)
+        ts = (now - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        result = _window_correlation(_mixed_token_events(ts), days=7, now_utc=now)
+        # 4 ask events in the window (2 invocations + 2 phase sub-events), but
+        # coverage counts only the parent invocations: 1 tokenized of 2 → 0.5.
+        assert result["ask_events"] == 4
+        assert result["tokens"]["coverage"] == 0.5
+        assert result["tokens"]["input"] == 100
+        assert result["tokens"]["output"] == 50
 
 
 class TestDefaultEventsPath:

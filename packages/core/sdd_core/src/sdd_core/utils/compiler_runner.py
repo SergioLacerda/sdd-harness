@@ -326,16 +326,16 @@ def _materialize_packaged_binary(asset_name: str) -> Path | None:
     return cached_path
 
 
-def _locate_binary(repo_root: Path | None = None) -> Path:
-    """Locate the sdd-compile binary.
+def _locate_binary_with_rule(repo_root: Path | None = None) -> tuple[Path, str]:
+    """Locate the sdd-compile binary and report which resolution rule matched.
 
-    Resolution order:
-    1. SDD_COMPILE_BIN environment variable
-    2. <repo_root>/tools/sdd-compile/bin/sdd-compile (built by `make build-compiler`)
-    3. `sdd-compile` on PATH
-    4. Packaged native binary bundled with sdd-core
+    Resolution order (rule name in parentheses):
+    1. SDD_COMPILE_BIN environment variable (`env_override`)
+    2. <repo_root>/tools/sdd-compile/bin/sdd-compile (`repo_build`)
+    3. `sdd-compile` on PATH (`path`)
+    4. Packaged native binary bundled with sdd-core (`packaged`)
     5. Cached/downloaded release binary matching the installed sdd-cli version
-       (skipped when SDD_COMPILE_NO_DOWNLOAD is set)
+       (`download`; skipped when SDD_COMPILE_NO_DOWNLOAD is set)
     """
     goos, goarch, ext = _asset_platform()
     asset_name = f"sdd-compile-{goos}-{goarch}{ext}"
@@ -343,7 +343,7 @@ def _locate_binary(repo_root: Path | None = None) -> Path:
     if env_override:
         path = Path(env_override)
         if path.exists():
-            return path
+            return path, "env_override"
         raise CompilerRunnerError(
             f"SDD_COMPILE_BIN is set but does not exist: {env_override}"
         )
@@ -355,25 +355,30 @@ def _locate_binary(repo_root: Path | None = None) -> Path:
         )
         built_path = root / "tools" / "sdd-compile" / "bin" / binary_name
         if built_path.exists():
-            return built_path
+            return built_path, "repo_build"
 
     on_path = shutil.which("sdd-compile")
     if on_path:
-        return Path(on_path)
+        return Path(on_path), "path"
 
     packaged = _materialize_packaged_binary(asset_name)
     if packaged is not None:
-        return packaged
+        return packaged, "packaged"
 
     if not os.environ.get("SDD_COMPILE_NO_DOWNLOAD", "").strip():
         version = _installed_cli_version()
-        return _download_and_cache_binary(version)
+        return _download_and_cache_binary(version), "download"
 
     raise CompilerRunnerError(
         "sdd-compile binary not found. Build it with 'make build-compiler', "
         "set SDD_COMPILE_BIN to its path, or unset SDD_COMPILE_NO_DOWNLOAD to "
         "allow fetching the matching release binary."
     )
+
+
+def _locate_binary(repo_root: Path | None = None) -> Path:
+    """Locate the sdd-compile binary (see `_locate_binary_with_rule`)."""
+    return _locate_binary_with_rule(repo_root)[0]
 
 
 def _try_detect_repo_root() -> Path | None:
@@ -394,8 +399,9 @@ class CompilerRunner:
         self.repo_root = (
             Path(repo_root).resolve() if repo_root else _try_detect_repo_root()
         )
-        self._binary = _locate_binary(self.repo_root)
+        self._binary, self.resolution_rule = _locate_binary_with_rule(self.repo_root)
         self._runner = runner or SafeProcessRunner()
+        self._handshake: dict[str, str | None] | None = None
 
     def version(self) -> str:
         """Return the sdd-compile binary version string."""
@@ -404,10 +410,61 @@ class CompilerRunner:
             raise CompilerRunnerError(f"sdd-compile version failed: {result.stderr}")
         return result.stdout.strip()
 
+    def verify_version_handshake(self) -> dict[str, str | None]:
+        """Check that the resolved binary's release version matches the CLI's.
+
+        Detects version skew (a cached, PATH, or packaged binary from a different
+        release than the installed sdd-cli) before any compile work, instead of
+        letting it surface indirectly as an artifact-validation failure later.
+
+        Returns a report dict with `status`, `binary_version`, `cli_version`.
+        Statuses: `ok`, `skipped_dev_override` (SDD_COMPILE_BIN or repo build),
+        `skipped_dev_binary` (binary reports a non-release version such as "dev"),
+        `skipped_no_cli_version`. Raises CompilerRunnerError (compiler_version_skew)
+        on mismatch. The result is cached per runner instance.
+        """
+        if self._handshake is not None:
+            return self._handshake
+
+        def _done(
+            status: str, binary_version: str | None, cli_version: str | None
+        ) -> dict[str, str | None]:
+            self._handshake = {
+                "status": status,
+                "binary_version": binary_version,
+                "cli_version": cli_version,
+            }
+            return self._handshake
+
+        if self.resolution_rule in ("env_override", "repo_build"):
+            return _done("skipped_dev_override", None, None)
+
+        version_output = self.version().strip()
+        binary_version = version_output.split()[-1] if version_output else ""
+        if not _SEMVER_RELEASE_RE.match(binary_version):
+            return _done("skipped_dev_binary", binary_version, None)
+
+        try:
+            cli_version = _installed_cli_version()
+        except CompilerRunnerError:
+            return _done("skipped_no_cli_version", binary_version, None)
+
+        if binary_version in _release_version_candidates(cli_version):
+            return _done("ok", binary_version, cli_version)
+
+        raise CompilerRunnerError(
+            f"compiler_version_skew: sdd-compile at {self._binary} reports version "
+            f"{binary_version}, but the installed sdd-cli is {cli_version} "
+            f"(resolved via rule '{self.resolution_rule}'). Fix by clearing the "
+            f"binary cache (rm -rf {_cache_dir()}) so a matching release is "
+            "re-resolved, or set SDD_COMPILE_BIN to a compatible binary."
+        )
+
     def compile(
         self, input_dir: str | Path, output_dir: str | Path
     ) -> CompilationResult:
         """Compile governance JSON to msgpack artifacts via the Go binary."""
+        self.verify_version_handshake()
         result = self._runner.run(
             [
                 str(self._binary),

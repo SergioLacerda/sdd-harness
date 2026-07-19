@@ -115,7 +115,7 @@ After completing all 7 phases:
 
 **Looking for specific help?** → [NAVIGATION.md](./NAVIGATION.md)
 
-**Ready to implement?** → [guides/onboarding/AGENT_HARNESS.md](../../_spec/guides/onboarding/AGENT_HARNESS.md)
+**Ready to implement?** → [guides/onboarding/AGENT_HARNESS.md](../../../../../docs/spec/guides/onboarding/AGENT_HARNESS.md)
 
 ---
 

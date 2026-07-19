@@ -26,6 +26,21 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
+### Changed
+- **`sdd audit` token metrics are now scoped to `governance.ask` invocations.**
+  Previously `token_comparison.events_missing_tokens` (and the "events without
+  tokens" summary line) counted every event in the compliance log, including
+  `governance.ask.phase` latency sub-events and compile/lifecycle events that
+  never carry token telemetry — reporting ~87% "missing" on healthy data. The
+  denominator is now parent `governance.ask` events only; the JSON payload
+  gains `token_comparison.ask_invocations` and
+  `token_comparison.non_token_events`, and the text summary reads
+  "ask invocations without tokens: N (of M)". The correlation windows'
+  `token_coverage` uses the same scoped denominator, so windows are no longer
+  structurally pinned to `INCONCLUSIVO`/`LOW` confidence by the token-coverage
+  gate. Consumers of `events_missing_tokens` should expect the value to drop
+  accordingly (semantics change, same field name).
+
 ### Fixed
 - Fixed standalone `sdd governance compile`/`sdd governance generate` failing
   with "No sdd-compile release binary found" for any install built from a dev

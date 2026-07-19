@@ -432,10 +432,14 @@ def test_try_detect_repo_root_returns_none_on_runtime_error(
     assert compiler_runner._try_detect_repo_root() is None
 
 
-def _make_runner(fake_result: SimpleNamespace) -> CompilerRunner:
+def _make_runner(
+    fake_result: SimpleNamespace, resolution_rule: str = "env_override"
+) -> CompilerRunner:
     runner = CompilerRunner.__new__(CompilerRunner)
     runner._binary = Path("/fake/sdd-compile")  # type: ignore[attr-defined]
     runner._runner = SimpleNamespace(run=lambda _args: fake_result)  # type: ignore[attr-defined]
+    runner.resolution_rule = resolution_rule
+    runner._handshake = None  # type: ignore[attr-defined]
     return runner
 
 
@@ -628,6 +632,114 @@ def test_validate_compilation_returns_ok_flag() -> None:
     )
 
     assert runner.validate_compilation("out") is False
+
+
+def _make_handshake_runner(
+    version_stdout: str, resolution_rule: str = "download"
+) -> CompilerRunner:
+    return _make_runner(
+        SimpleNamespace(success=True, stdout=version_stdout, stderr=""),
+        resolution_rule=resolution_rule,
+    )
+
+
+def test_handshake_ok_on_exact_version_match(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(compiler_runner, "_installed_cli_version", lambda: "1.0.3")
+    runner = _make_handshake_runner("sdd-compile 1.0.3\n")
+
+    report = runner.verify_version_handshake()
+
+    assert report["status"] == "ok"
+    assert report["binary_version"] == "1.0.3"
+    assert report["cli_version"] == "1.0.3"
+
+
+def test_handshake_accepts_base_release_for_dev_cli_version(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        compiler_runner, "_installed_cli_version", lambda: "1.0.3.dev15+g725459b8d"
+    )
+    runner = _make_handshake_runner("sdd-compile 1.0.3\n")
+
+    assert runner.verify_version_handshake()["status"] == "ok"
+
+
+def test_handshake_raises_compiler_version_skew_on_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(compiler_runner, "_installed_cli_version", lambda: "1.0.4")
+    runner = _make_handshake_runner("sdd-compile 1.0.3\n")
+
+    with pytest.raises(CompilerRunnerError, match="compiler_version_skew") as exc_info:
+        runner.verify_version_handshake()
+    message = str(exc_info.value)
+    assert "1.0.3" in message
+    assert "1.0.4" in message
+    assert "rm -rf" in message
+    assert "SDD_COMPILE_BIN" in message
+
+
+def test_handshake_skipped_for_dev_override_rules() -> None:
+    def _fail_run(_args: list[str]) -> SimpleNamespace:
+        raise AssertionError("version must not be invoked for dev overrides")
+
+    for rule in ("env_override", "repo_build"):
+        runner = CompilerRunner.__new__(CompilerRunner)
+        runner._binary = Path("/fake/sdd-compile")  # type: ignore[attr-defined]
+        runner._runner = SimpleNamespace(run=_fail_run)  # type: ignore[attr-defined]
+        runner.resolution_rule = rule
+        runner._handshake = None  # type: ignore[attr-defined]
+
+        assert runner.verify_version_handshake()["status"] == "skipped_dev_override"
+
+
+def test_handshake_skipped_for_dev_binary_version() -> None:
+    runner = _make_handshake_runner("sdd-compile dev\n")
+
+    report = runner.verify_version_handshake()
+
+    assert report["status"] == "skipped_dev_binary"
+    assert report["binary_version"] == "dev"
+
+
+def test_handshake_skipped_when_cli_version_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise() -> str:
+        raise CompilerRunnerError("no package")
+
+    monkeypatch.setattr(compiler_runner, "_installed_cli_version", _raise)
+    runner = _make_handshake_runner("sdd-compile 1.0.3\n")
+
+    assert runner.verify_version_handshake()["status"] == "skipped_no_cli_version"
+
+
+def test_compile_blocked_by_version_skew_before_invoking_compile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(compiler_runner, "_installed_cli_version", lambda: "1.0.4")
+    invoked: list[list[str]] = []
+
+    def _fake_run(args: list[str]) -> SimpleNamespace:
+        invoked.append(args)
+        if "version" in args:
+            return SimpleNamespace(
+                success=True, stdout="sdd-compile 1.0.3\n", stderr=""
+            )
+        return SimpleNamespace(success=True, stdout='{"ok": true}', stderr="")
+
+    runner = CompilerRunner.__new__(CompilerRunner)
+    runner._binary = Path("/fake/sdd-compile")  # type: ignore[attr-defined]
+    runner._runner = SimpleNamespace(run=_fake_run)  # type: ignore[attr-defined]
+    runner.resolution_rule = "download"
+    runner._handshake = None  # type: ignore[attr-defined]
+
+    with pytest.raises(CompilerRunnerError, match="compiler_version_skew"):
+        runner.compile("in", "out")
+    assert all("compile" not in args for args in invoked)
 
 
 def test_keygen_returns_payload_on_success() -> None:

@@ -104,6 +104,10 @@ jobs:
           set -euo pipefail
           make build-compiler
           mkdir -p dist
+          # Inject the release version so the CLI<->binary version handshake can
+          # detect skew at runtime (local builds report "dev" and skip the check).
+          VERSION="${{ inputs.version }}"
+          LDFLAGS="-X sdd-compile/cmd.version=${VERSION}"
           targets=(
             "linux amd64"
             "linux arm64"
@@ -119,7 +123,7 @@ jobs:
             fi
             out="dist/sdd-compile-${goos}-${goarch}${ext}"
             echo "Building $out"
-            GOOS="$goos" GOARCH="$goarch" go build -C tools/sdd-compile -o "$(pwd)/$out" .
+            GOOS="$goos" GOARCH="$goarch" go build -C tools/sdd-compile -ldflags "$LDFLAGS" -o "$(pwd)/$out" .
           done
           (cd dist && sha256sum sdd-compile-* > SHA256SUMS)
           cat dist/SHA256SUMS
@@ -134,19 +138,16 @@ jobs:
           for pkg_dir in packages/core/* packages/features/* packages/interfaces/*; do
             if [ -f "$pkg_dir/pyproject.toml" ]; then
               echo "Building $pkg_dir"
-              # --wheel only: sdd_core ships governance spec files as symlinks
-              # (src/sdd_core/mandate.spec -> ../../_spec/mandate.spec, etc.),
-              # and hatchling's default sdist includes the whole project
-              # directory, which also picks up a dangling symlink
-              # (spec.CANONICAL.link) at the package root. That breaks sdist
-              # extraction (tarfile's extraction-safety filter rejects a link
-              # target outside the destination). No sdist is published or
-              # consumed anywhere in this pipeline — only wheels are installed
-              # (see release-install-smoke) — so building wheel-only sidesteps
-              # the problem entirely instead of restructuring the symlinks.
+              # --wheel only: no sdist is published or consumed anywhere in
+              # this pipeline — only wheels are installed (see
+              # release-install-smoke).
               python -m build --wheel "$pkg_dir" --outdir dist/
             fi
           done
+
+      - name: Verify sdd-core wheel bundles native compiler binaries
+        shell: bash
+        run: python -m tools.release.verify_wheel_native_assets dist
 
       - name: Verify built wheels match the tag version
         if: ${{ inputs.verify-exact-version }}

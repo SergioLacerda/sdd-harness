@@ -84,6 +84,16 @@ def _is_ask_event(event: dict[str, Any]) -> bool:
     return event_name.startswith("governance.ask")
 
 
+def _is_ask_invocation(event: dict[str, Any]) -> bool:
+    """True only for parent ``governance.ask`` events (one per ``sdd ask`` run).
+
+    Excludes ``governance.ask.phase`` latency sub-events and non-LLM events
+    (compile, lifecycle), which never carry token telemetry. Token metrics must
+    use this denominator; drift-rate denominators keep ``_is_ask_event``.
+    """
+    return str(event.get("event", "")).strip() == "governance.ask"
+
+
 def _is_drift_event(event: dict[str, Any]) -> bool:
     if str(event.get("event", "")).strip() == "runtime.drift.detected":
         return True

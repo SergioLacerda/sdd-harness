@@ -13,6 +13,7 @@ from sdd_cli.services.audit_event_parser import (
     _drift_type,
     _event_ts,
     _has_quality_signals,
+    _is_ask_invocation,
     _is_drift_event,
     _load_events,
     _parse_int,
@@ -93,6 +94,31 @@ class TestLoadEvents:
         path.write_text('{"ok": 1}\n\n{"ok": 2}\n', encoding="utf-8")
         result = _load_events(path)
         assert len(result) == 2
+
+
+class TestIsAskInvocation:
+    def test_true_for_parent_ask_event(self) -> None:
+        event = {"event": "governance.ask", "command": "ask"}
+        assert _is_ask_invocation(event) is True
+
+    def test_false_for_phase_sub_event_even_with_ask_command(self) -> None:
+        event = {"event": "governance.ask.phase", "command": "ask"}
+        assert _is_ask_invocation(event) is False
+
+    def test_false_for_compile_events(self) -> None:
+        event = {
+            "event": "governance.compile.complete",
+            "command": "governance compile",
+        }
+        assert _is_ask_invocation(event) is False
+
+    def test_false_for_lifecycle_events(self) -> None:
+        event = {"event": "runtime.session.start", "command": "runtime status"}
+        assert _is_ask_invocation(event) is False
+
+    def test_false_for_missing_event_name(self) -> None:
+        assert _is_ask_invocation({"command": "ask"}) is False
+        assert _is_ask_invocation({}) is False
 
 
 class TestIsDriftEvent:
