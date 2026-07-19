@@ -23,7 +23,7 @@ class TestInitCommand:
     def test_creates_profile_in_clean_directory(self, tmp_path: Path) -> None:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
         ):
             init(
                 MagicMock(),
@@ -43,7 +43,7 @@ class TestInitCommand:
         # Create profile first
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
         ):
             init(
                 MagicMock(),
@@ -58,7 +58,7 @@ class TestInitCommand:
         with (
             pytest.raises(typer.Exit) as exc_info,
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
         ):
             init(
                 MagicMock(),
@@ -74,7 +74,7 @@ class TestInitCommand:
     def test_force_overwrites_existing_profile(self, tmp_path: Path) -> None:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
         ):
             init(
                 MagicMock(),
@@ -100,7 +100,7 @@ class TestInitCommand:
     def test_default_name_equals_type(self, tmp_path: Path) -> None:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
         ):
             init(
                 MagicMock(),
@@ -121,7 +121,7 @@ class TestInitCommand:
             pytest.raises(typer.Exit) as exc_info,
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init.find_workspace_root",
+                "sdd_cli.commands.init._find_parent_workspace_with_profile",
                 return_value=parent_sdd.parent,
             ),
         ):

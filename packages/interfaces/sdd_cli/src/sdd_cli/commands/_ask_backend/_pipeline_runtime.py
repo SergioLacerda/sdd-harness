@@ -174,6 +174,10 @@ def _sync_ask_runtime(
                 "measurement_quality": record.measurement_quality,
                 "observed_by": record.observed_by,
                 "failed": record.failed,
+                # Phase events inherit drift_detected from the parent
+                # invocation; without the classification they surface as
+                # missing_drift_type rows in audit drift tables.
+                "drift_type": drift_type,
             },
         )
     _backend._write_runtime_cache(

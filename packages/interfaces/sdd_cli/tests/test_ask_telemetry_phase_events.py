@@ -26,6 +26,7 @@ def _run_ask_capture_events(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     query: str = "hello",
+    drift_detected: bool = False,
 ) -> list[RuntimeEvent]:
     """Invoke ask_cmd with surrounding helpers mocked; return real RuntimeEvents."""
     from sdd_cli.commands._ask_backend import ask_cmd
@@ -85,7 +86,7 @@ def _run_ask_capture_events(
                 "degraded": False,
                 "degrade_reason": "",
                 "trust_source": "canonical",
-                "drift_detected": False,
+                "drift_detected": drift_detected,
                 "root_seed_drift_detected": False,
                 "learning_signals": {},
                 "learning_recommendation": None,
@@ -178,6 +179,37 @@ def test_llm_exchange_phase_present_when_adapter_reports_timing(
     llm_phase = llm_phases[0]
     assert llm_phase.duration_ms == 42
     assert llm_phase.details["measurement_quality"] == "adapter_reported"
+
+
+def test_phase_events_carry_parent_drift_type_when_drift_detected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Phase sub-events must carry the parent's drift classification.
+
+    Regression for `missing_drift_type` dominance in `sdd audit summary`:
+    phase events inherit `drift_detected=True` from the parent invocation but
+    previously omitted `drift_type`, so one real drift rendered as ~6
+    unclassified drift rows.
+    """
+    captured = _run_ask_capture_events(tmp_path, monkeypatch, drift_detected=True)
+    parent = next(e for e in captured if e.event == "governance.ask")
+    phases = [e for e in captured if e.event == "governance.ask.phase"]
+
+    assert parent.details.get("drift_type") == "fingerprint_drift"
+    assert len(phases) > 0
+    for phase in phases:
+        assert phase.details.get("drift_type") == "fingerprint_drift"
+
+
+def test_phase_events_carry_drift_type_none_without_drift(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured = _run_ask_capture_events(tmp_path, monkeypatch)
+    phases = [e for e in captured if e.event == "governance.ask.phase"]
+
+    assert len(phases) > 0
+    for phase in phases:
+        assert phase.details.get("drift_type") == "none"
 
 
 def test_parent_governance_ask_still_emits_current_payload(

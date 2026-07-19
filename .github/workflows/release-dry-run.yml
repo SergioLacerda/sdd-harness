@@ -277,8 +277,12 @@ jobs:
         run: |
           set -euo pipefail
           export PATH="$HOME/.local/bin:$PATH"
-          mkdir -p git-smoke-project
-          cd git-smoke-project
+          # The checked-out repo is itself an SDD workspace (.sdd/ is committed),
+          # so the client smoke project must live outside it to avoid the
+          # nested-workspace guard in `sdd init`.
+          SMOKE_DIR="$RUNNER_TEMP/git-smoke-project"
+          mkdir -p "$SMOKE_DIR"
+          cd "$SMOKE_DIR"
           sdd install --wizard --non-interactive
           sdd init --default  # sdd-ci-policy: allow-client-smoke
           sdd governance validate  # sdd-ci-policy: allow-client-smoke

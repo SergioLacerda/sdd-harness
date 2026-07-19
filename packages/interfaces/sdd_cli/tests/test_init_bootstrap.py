@@ -21,7 +21,7 @@ def _invoke_init(tmp_path: Path, extra_args: list[str], step_side_effect=None):
 
     patches: list = [
         patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
-        patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+        patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
         patch("sdd_cli.commands.init.write_profile", return_value=mock_profile_ctx),
     ]
 
@@ -33,7 +33,7 @@ def _invoke_init(tmp_path: Path, extra_args: list[str], step_side_effect=None):
     with (
         patch.multiple(
             "sdd_cli.commands.init",
-            find_workspace_root=MagicMock(return_value=None),
+            _find_parent_workspace_with_profile=MagicMock(return_value=None),
             write_profile=MagicMock(return_value=mock_profile_ctx),
         ),
         patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
@@ -70,7 +70,7 @@ class TestInitFullBootstrap:
 
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
             patch("sdd_cli.commands.init.OnboardingOrchestrator") as MockOrch,
         ):
@@ -216,7 +216,7 @@ class TestInitDefaultFlag:
 
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
             patch(
                 "sdd_cli.commands.init.write_profile",
                 return_value=mock_ctx,

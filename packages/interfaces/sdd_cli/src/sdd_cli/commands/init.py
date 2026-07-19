@@ -18,7 +18,6 @@ from sdd_cli.utils.operational_errors import (
 from sdd_core.utils.environment import (
     ProfileContext,
     SddProfile,
-    find_workspace_root,
     write_profile,
 )
 
@@ -111,8 +110,21 @@ def _find_project_boundary(cwd: Path) -> Path | None:
     return None
 
 
+def _find_parent_workspace_with_profile(start: Path) -> Path | None:
+    """Nearest ancestor that is a real workspace (`.sdd/profile` present).
+
+    A bare `.sdd/` directory without a profile — e.g. the `~/.sdd/bin`
+    compiler-binary cache — is not a workspace and must not block `sdd init`.
+    """
+    current = start.resolve()
+    for candidate in [current, *current.parents]:
+        if (candidate / ".sdd" / "profile").is_file():
+            return candidate
+    return None
+
+
 def _find_blocking_parent_workspace(cwd: Path) -> Path | None:
-    parent_workspace = find_workspace_root(cwd.parent)
+    parent_workspace = _find_parent_workspace_with_profile(cwd.parent)
     if parent_workspace is None:
         return None
     project_boundary = _find_project_boundary(cwd)

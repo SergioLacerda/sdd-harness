@@ -64,19 +64,45 @@ class TestInitEdgeCases:
 
         runner = CliRunner()
         parent_root = tmp_path / "parent"
+        (parent_root / ".sdd").mkdir(parents=True)
+        (parent_root / ".sdd" / "profile").write_text(
+            "[sdd]\ntype = client\nname = parent\n", encoding="utf-8"
+        )
+        child = parent_root / "child"
+        child.mkdir()
 
         def _fake_cwd():
-            return tmp_path / "parent" / "child"
+            return child
 
-        with (
-            patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
-            patch(
-                "sdd_cli.commands.init.find_workspace_root", return_value=parent_root
-            ),
-        ):
+        with patch("sdd_cli.commands.init.Path.cwd", _fake_cwd):
             result = runner.invoke(app, [])
         assert result.exit_code == 1
         assert "already exists" in result.output
+
+    def test_cache_only_sdd_dir_in_ancestor_does_not_block(
+        self, tmp_path: Path
+    ) -> None:
+        """A bare `.sdd/` ancestor without a profile — e.g. the `~/.sdd/bin`
+        compiler-binary cache — is not a workspace and must not block init in
+        a marker-less project directory (the documented client bootstrap)."""
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+
+        runner = CliRunner()
+        home = tmp_path / "home"
+        (home / ".sdd" / "bin").mkdir(parents=True)
+        project = home / "my-project"
+        project.mkdir()
+
+        def _fake_cwd():
+            return project
+
+        with patch("sdd_cli.commands.init.Path.cwd", _fake_cwd):
+            result = runner.invoke(app, ["--default", "--no-bootstrap"])
+
+        assert result.exit_code == 0, result.output
+        assert (project / ".sdd" / "profile").exists()
 
     def test_allows_project_workspace_when_home_workspace_exists(
         self, tmp_path: Path
@@ -119,7 +145,7 @@ class TestInitEdgeCases:
 
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
         ):
             result = runner.invoke(app, [])
         assert result.exit_code == 1
@@ -138,7 +164,7 @@ class TestInitEdgeCases:
         mock_ctx = MagicMock(type="client", name="client", workspace_id="ws-test")
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
         ):
             result = runner.invoke(app, ["--type", "invalid"])
@@ -163,7 +189,7 @@ class TestInitEdgeCases:
         mock_ctx = MagicMock(type="client", name="client", workspace_id="ws-new")
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
         ):
             result = runner.invoke(app, ["--force", "--no-bootstrap"])
@@ -183,7 +209,7 @@ class TestInitEdgeCases:
         mock_ctx = MagicMock(type="client", name="client", workspace_id="ws-test")
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
             patch(
                 "sdd_runtime.telemetry.TelemetrySink",
@@ -205,7 +231,7 @@ class TestInitEdgeCases:
 
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
             patch(
                 "sdd_cli.commands.init.write_profile",
                 side_effect=PermissionError("denied"),
@@ -232,7 +258,7 @@ class TestInitEdgeCases:
 
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
             patch(
                 "pathlib.Path.touch",
@@ -259,7 +285,7 @@ class TestInitEdgeCases:
 
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init.find_workspace_root", return_value=None),
+            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
             patch("sdd_cli.commands.init.OnboardingOrchestrator") as MockOrch,
         ):
