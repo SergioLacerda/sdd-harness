@@ -28,6 +28,7 @@ from sdd_core.utils.environment import detect_repo_root
 from sdd_core.utils.process import SafeProcessRunner
 
 __all__ = [
+    "EXPECTED_ARTIFACT_METADATA_VERSION",
     "CompilationResult",
     "CompilerRunner",
     "CompilerRunnerError",
@@ -40,6 +41,10 @@ __all__ = [
 
 _RELEASE_REPO = "SergioLacerda/sdd-harness"
 _DOWNLOAD_TIMEOUT_SECONDS = 30
+# Artifact metadata contract: the `version` field the Go compiler writes into
+# metadata-*.json. Bump together with the Go side (generateMetadata) — the
+# compile-time handshake rejects binaries emitting a different contract.
+EXPECTED_ARTIFACT_METADATA_VERSION = "3.0"
 _UNKNOWN_COMMAND_RE = re.compile(r'unknown command "([^"]+)" for')
 _SEMVER_RELEASE_RE = re.compile(r"^(?P<release>\d+\.\d+\.\d+)(?P<suffix>.*)$")
 
@@ -480,7 +485,40 @@ class CompilerRunner:
         if not result.success or not payload.get("ok", False):
             error = payload.get("error") or result.stderr.strip() or "compile failed"
             raise CompilerRunnerError(f"sdd-compile compile failed: {error}")
+        self._verify_artifact_schema(payload)
         return payload  # type: ignore[return-value]
+
+    def _verify_artifact_schema(self, payload: dict[str, Any]) -> None:
+        """Reject compile output whose metadata contract differs from this CLI's.
+
+        The release-lineage handshake (verify_version_handshake) cannot catch a
+        binary of an accepted lineage that emits a different artifact contract
+        (e.g. HEAD code paired with a base-release binary). Compare the emitted
+        metadata `version` against EXPECTED_ARTIFACT_METADATA_VERSION instead of
+        letting the divergence surface as downstream validation noise.
+        """
+        meta_path_str = payload.get("core_metadata")
+        if not meta_path_str:
+            return
+        meta_path = Path(meta_path_str)
+        if not meta_path.exists():
+            return
+        try:
+            emitted = json.loads(meta_path.read_text(encoding="utf-8")).get("version")
+        except (OSError, json.JSONDecodeError):
+            # Unreadable metadata is an artifact-validation concern, not a
+            # contract-handshake one; validate_compilation reports it properly.
+            return
+        if emitted != EXPECTED_ARTIFACT_METADATA_VERSION:
+            raise CompilerRunnerError(
+                f"artifact_schema_skew: sdd-compile at {self._binary} (resolved via "
+                f"rule '{self.resolution_rule}') emitted artifact metadata version "
+                f"{emitted!r}, but this CLI expects "
+                f"{EXPECTED_ARTIFACT_METADATA_VERSION!r}. The binary release lineage "
+                "matches but its artifact contract does not. Fix by clearing the "
+                f"binary cache (rm -rf {_cache_dir()}) or setting SDD_COMPILE_BIN "
+                "to a binary built from the same source tree as this CLI."
+            )
 
     def validate_compilation_detailed(self, output_dir: str | Path) -> ValidationResult:
         """Validate compiled artifacts via the Go binary, returning structured diagnostics."""

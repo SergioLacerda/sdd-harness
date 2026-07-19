@@ -15,9 +15,9 @@ authors = [
 dependencies = [
     "PyYAML>=6.0",
     "questionary>=2.0",
-    "sdd-core",
-    "sdd-adapters",
-    "sdd-integration",
+    "sdd-core>=1.0",
+    "sdd-adapters>=1.0",
+    "sdd-integration>=1.0",
 ]
 
 [project.urls]

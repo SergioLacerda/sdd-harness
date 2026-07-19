@@ -42,13 +42,30 @@ def _(
 
 @app.command()
 @handle_cli_errors(command_name="doctor compiler")
-def compiler() -> None:
-    """Print read-only sdd-compile toolchain diagnostics as stable JSON."""
+def compiler(
+    prune: bool = typer.Option(
+        False,
+        "--prune",
+        help="Remove stale ~/.sdd/bin cache entries (keeps the versions the "
+        "installed CLI resolves and the packaged digest in use).",
+    ),
+) -> None:
+    """Print sdd-compile toolchain diagnostics as stable JSON (read-only by default)."""
     import json
 
-    from sdd_cli.services.doctor_compiler import build_compiler_report
+    from sdd_cli.services.doctor_compiler import (
+        _probe_cache,
+        build_compiler_report,
+        run_prune,
+    )
 
-    typer.echo(json.dumps(build_compiler_report(), indent=2))
+    report = build_compiler_report()
+    if prune:
+        from sdd_core.utils.compiler_runner import _cache_dir
+
+        report["prune"] = run_prune()
+        report["cache"] = _probe_cache(_cache_dir())
+    typer.echo(json.dumps(report, indent=2))
 
 
 @app.command()

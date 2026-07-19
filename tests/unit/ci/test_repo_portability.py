@@ -15,12 +15,19 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 _GIT_SYMLINK_MODE = "120000"
 
 
 def test_repo_tracks_no_git_symlinks() -> None:
+    # The sovereign container's shadow repo has no .git (excluded via
+    # .dockerignore); the policy is still enforced by the host CI jobs
+    # that run on a real checkout.
+    if not (REPO_ROOT / ".git").exists():
+        pytest.skip("not a git checkout (hermetic container shadow repo)")
     result = subprocess.run(
         ["git", "ls-files", "-s"],
         cwd=REPO_ROOT,

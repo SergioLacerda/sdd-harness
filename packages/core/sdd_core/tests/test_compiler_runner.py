@@ -742,6 +742,52 @@ def test_compile_blocked_by_version_skew_before_invoking_compile(
     assert all("compile" not in args for args in invoked)
 
 
+def _compile_runner_with_metadata(tmp_path: Path, metadata: str) -> CompilerRunner:
+    meta_path = tmp_path / "metadata-core.json"
+    write_text_utf8(meta_path, metadata)
+    stdout = (
+        '{"ok": true, "core_metadata": "' + str(meta_path).replace("\\", "\\\\") + '"}'
+    )
+    return _make_runner(SimpleNamespace(success=True, stdout=stdout, stderr=""))
+
+
+def test_compile_accepts_matching_artifact_metadata_version(tmp_path: Path) -> None:
+    runner = _compile_runner_with_metadata(
+        tmp_path,
+        '{"version": "'
+        + compiler_runner.EXPECTED_ARTIFACT_METADATA_VERSION
+        + '", "fingerprint": "abc"}',
+    )
+
+    assert runner.compile("in", "out")["ok"] is True
+
+
+def test_compile_raises_artifact_schema_skew_on_metadata_version_mismatch(
+    tmp_path: Path,
+) -> None:
+    runner = _compile_runner_with_metadata(
+        tmp_path, '{"version": "9.9", "fingerprint": "abc"}'
+    )
+
+    with pytest.raises(CompilerRunnerError, match="artifact_schema_skew") as exc_info:
+        runner.compile("in", "out")
+    message = str(exc_info.value)
+    assert "'9.9'" in message
+    assert compiler_runner.EXPECTED_ARTIFACT_METADATA_VERSION in message
+    assert "SDD_COMPILE_BIN" in message
+
+
+def test_compile_skips_schema_check_when_metadata_missing(tmp_path: Path) -> None:
+    stdout = (
+        '{"ok": true, "core_metadata": "'
+        + str(tmp_path / "nonexistent.json").replace("\\", "\\\\")
+        + '"}'
+    )
+    runner = _make_runner(SimpleNamespace(success=True, stdout=stdout, stderr=""))
+
+    assert runner.compile("in", "out")["ok"] is True
+
+
 def test_keygen_returns_payload_on_success() -> None:
     runner = _make_runner(
         SimpleNamespace(

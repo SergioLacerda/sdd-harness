@@ -149,6 +149,10 @@ jobs:
         shell: bash
         run: python -m tools.release.verify_wheel_native_assets dist
 
+      - name: Verify internal wheel dependencies are version-coupled
+        shell: bash
+        run: python -m tools.release.verify_wheel_dependency_coupling dist
+
       - name: Verify built wheels match the tag version
         if: ${{ inputs.verify-exact-version }}
         shell: bash

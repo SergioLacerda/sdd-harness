@@ -11,6 +11,8 @@ import pytest
 from sdd_cli.services.doctor_compiler import (
     REPORT_SCHEMA_VERSION,
     build_compiler_report,
+    prune_cache,
+    run_prune,
 )
 
 pytestmark = pytest.mark.unit
@@ -81,6 +83,77 @@ def test_report_captures_skew_without_raising(tmp_path: Path) -> None:
 
     assert report["handshake"]["status"] == "skew"
     assert "compiler_version_skew" in report["handshake"]["error"]
+
+
+def _make_cache(tmp_path: Path) -> Path:
+    cache = tmp_path / "bin"
+    for version in ("1.0.0", "1.0.3", "1.0.3.dev5+gabc"):
+        (cache / version).mkdir(parents=True)
+        (cache / version / "sdd-compile-linux-amd64").write_bytes(b"x")
+    for digest in ("digest-current", "digest-stale"):
+        (cache / "packaged" / digest).mkdir(parents=True)
+        (cache / "packaged" / digest / "sdd-compile-linux-amd64").write_bytes(b"x")
+    return cache
+
+
+def test_prune_cache_keeps_current_versions_and_packaged_digest(
+    tmp_path: Path,
+) -> None:
+    cache = _make_cache(tmp_path)
+
+    result = prune_cache(
+        cache,
+        keep_versions=["1.0.3.dev5+gabc", "1.0.3"],
+        keep_packaged_digest="digest-current",
+    )
+
+    assert sorted(result["removed"]) == ["1.0.0", "packaged/digest-stale"]
+    assert not (cache / "1.0.0").exists()
+    assert (cache / "1.0.3").exists()
+    assert (cache / "1.0.3.dev5+gabc").exists()
+    assert (cache / "packaged" / "digest-current").exists()
+    assert not (cache / "packaged" / "digest-stale").exists()
+
+
+def test_prune_cache_leaves_packaged_when_digest_unknown(tmp_path: Path) -> None:
+    cache = _make_cache(tmp_path)
+
+    result = prune_cache(cache, keep_versions=["1.0.3"], keep_packaged_digest=None)
+
+    assert (cache / "packaged" / "digest-stale").exists()
+    assert "packaged/digest-stale" in result["kept"]
+
+
+def test_prune_cache_handles_missing_cache_dir(tmp_path: Path) -> None:
+    result = prune_cache(
+        tmp_path / "nope", keep_versions=["1.0.3"], keep_packaged_digest=None
+    )
+
+    assert result == {"removed": [], "kept": []}
+
+
+def test_run_prune_refuses_when_env_override_active(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SDD_COMPILE_BIN", "/somewhere/sdd-compile")
+
+    result = run_prune()
+
+    assert "SDD_COMPILE_BIN" in result["skipped"]
+
+
+def test_run_prune_refuses_when_cli_version_unknown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
+    monkeypatch.setattr(
+        "sdd_cli.services.doctor_compiler._probe_cli_version",
+        lambda: (None, "not installed"),
+    )
+
+    result = run_prune()
+
+    assert "cannot determine" in result["skipped"]
 
 
 def test_report_runs_dry_validate_when_compiled_dir_exists(tmp_path: Path) -> None:

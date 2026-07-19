@@ -211,3 +211,74 @@ jobs:
           mkdir -p .release-smoke/project
           cd .release-smoke/project
           "$OLDPWD/$SDD_BIN" install --wizard --non-interactive --only-template
+
+  release-git-install-smoke:
+    name: Release Git Install Smoke (${{ matrix.os }})
+    needs: dry-run-build
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    env:
+      SDD_ENFORCE_PIPELINE_CORRECT: "1"
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      # Mirrors release.yml's git-install smoke: exercises the documented client
+      # channel (git subdirectory install) with real git checkout semantics on
+      # Windows, pinned to the pushed commit instead of a tag.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: "latest"
+
+      - name: Download dry-run artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: release-dry-run-dist
+          path: dist/
+
+      - name: Point compiler at the built release binary (hermetic)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            BIN="$(cygpath -m "$PWD/dist/sdd-compile-windows-amd64.exe")"
+          else
+            BIN="$PWD/dist/sdd-compile-linux-amd64"
+            chmod +x "$BIN"
+          fi
+          echo "SDD_COMPILE_BIN=$BIN" >> "$GITHUB_ENV"
+
+      - name: Install sdd-cli via commit-pinned git (documented client channel)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            WS="$(cygpath -m "$GITHUB_WORKSPACE")"
+          else
+            WS="$GITHUB_WORKSPACE"
+          fi
+          uv tool install "git+file:///${WS#/}@${GITHUB_SHA}#subdirectory=packages/interfaces/sdd_cli"
+
+      - name: Run client bootstrap from the git install
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.local/bin:$PATH"
+          mkdir -p git-smoke-project
+          cd git-smoke-project
+          sdd install --wizard --non-interactive
+          sdd init --default
+          sdd governance validate
