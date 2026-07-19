@@ -92,6 +92,93 @@ def test_release_verify_step_checks_every_package_via_built_wheel() -> None:
     assert "packages/interfaces/*" in verify_step
 
 
+def test_release_build_verifies_wheel_bundles_native_binaries() -> None:
+    """Staging assets happens before the wheel build, so only a post-build
+    inspection of the wheel itself proves standalone clients get the bundled
+    compiler binaries (the wheel is what they install)."""
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    build_steps = _jobs(workflow)["build"]["steps"]
+    verify_step = _step_run_block(
+        build_steps, "Verify sdd-core wheel bundles native compiler binaries"
+    )
+
+    assert "tools.release.verify_wheel_native_assets" in verify_step
+
+
+def test_release_build_injects_release_version_into_compiler_binaries() -> None:
+    """The CLI<->binary version handshake needs the release version compiled
+    into the Go binary; without the ldflags injection every release binary
+    reports "dev" and the skew check never fires."""
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    build_steps = _jobs(workflow)["build"]["steps"]
+    compile_step = _step_run_block(
+        build_steps, "Cross-compile sdd-compile release binaries"
+    )
+
+    assert "-X sdd-compile/cmd.version=" in compile_step
+    assert "-ldflags" in compile_step
+
+
+def test_release_build_verifies_wheel_dependency_coupling() -> None:
+    """Internal deps are bare `sdd-*` names; only a post-build METADATA check
+    proves every released wheel's internal dependencies resolve to wheels of
+    the same version in the same dist/ set."""
+    workflow = _load_workflow(REUSABLE_BUILD_WORKFLOW)
+    build_steps = _jobs(workflow)["build"]["steps"]
+    verify_step = _step_run_block(
+        build_steps, "Verify internal wheel dependencies are version-coupled"
+    )
+
+    assert "tools.release.verify_wheel_dependency_coupling" in verify_step
+
+
+def _git_install_smoke_job(workflow_path: Path) -> dict:
+    jobs = _jobs(_load_workflow(workflow_path))
+    assert "release-git-install-smoke" in jobs, (
+        f"{workflow_path.name} must smoke the documented git install channel"
+    )
+    return jobs["release-git-install-smoke"]
+
+
+def test_release_workflows_smoke_the_git_install_channel_on_both_oses() -> None:
+    """The documented client channel (git subdirectory install) must be
+    CI-smoked on Windows and Linux — the symlink-stub incident lived exactly
+    in this blind spot (wheelhouse-only smoke)."""
+    for workflow_path in (RELEASE_WORKFLOW, RELEASE_DRY_RUN_WORKFLOW):
+        job = _git_install_smoke_job(workflow_path)
+        matrix_os = job["strategy"]["matrix"]["os"]
+        assert "windows-latest" in matrix_os
+        assert "ubuntu-latest" in matrix_os
+
+        steps_text = "\n".join(step.get("run", "") for step in job["steps"])
+        assert "uv tool install" in steps_text
+        assert "#subdirectory=packages/interfaces/sdd_cli" in steps_text
+        assert "sdd install --wizard --non-interactive" in steps_text
+        assert "sdd init --default" in steps_text
+        assert "sdd governance validate" in steps_text
+
+
+def test_release_gate_requires_git_install_smoke() -> None:
+    """Publishing must wait for both install channels' smokes."""
+    workflow = _load_workflow(RELEASE_WORKFLOW)
+    release_needs = _jobs(workflow)["release"]["needs"]
+    assert "release-install-smoke" in release_needs
+    assert "release-git-install-smoke" in release_needs
+
+
+def test_release_smoke_asserts_doctor_toolchain_report() -> None:
+    """The wheelhouse smoke must prove ldflags version injection and the
+    CLI<->binary handshake end-to-end via `sdd doctor compiler`."""
+    workflow = _load_workflow(RELEASE_WORKFLOW)
+    smoke_steps = _jobs(workflow)["release-install-smoke"]["steps"]
+    doctor_step = _step_run_block(
+        smoke_steps, "Verify compiler toolchain doctor report matches the tag"
+    )
+
+    assert "doctor compiler" in doctor_step
+    assert 'handshake["status"] == "ok"' in doctor_step
+
+
 def test_release_build_step_does_not_pin_setuptools_scm_version() -> None:
     """There is no in-place pyproject.toml rewrite anymore (sync_versions.py
     was removed), so the working tree stays clean through the build and
@@ -217,7 +304,10 @@ def test_release_workflows_build_cross_platform_runtime_wheelhouse() -> None:
 def test_release_job_depends_on_install_smoke() -> None:
     workflow = _load_workflow(RELEASE_WORKFLOW)
     jobs = _jobs(workflow)
-    assert jobs["release"]["needs"] == "release-install-smoke"
+    assert set(jobs["release"]["needs"]) == {
+        "release-install-smoke",
+        "release-git-install-smoke",
+    }
 
 
 def test_release_dry_run_has_windows_install_smoke_lane() -> None:

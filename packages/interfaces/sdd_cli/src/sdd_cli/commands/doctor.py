@@ -36,8 +36,36 @@ def _(
 ) -> None:
     """Run diagnostics."""
     if list_commands or ctx.invoked_subcommand is None:
-        show_command_group("Doctor", ["run"])
+        show_command_group("Doctor", ["run", "compiler"])
         raise typer.Exit(0)
+
+
+@app.command()
+@handle_cli_errors(command_name="doctor compiler")
+def compiler(
+    prune: bool = typer.Option(
+        False,
+        "--prune",
+        help="Remove stale ~/.sdd/bin cache entries (keeps the versions the "
+        "installed CLI resolves and the packaged digest in use).",
+    ),
+) -> None:
+    """Print sdd-compile toolchain diagnostics as stable JSON (read-only by default)."""
+    import json
+
+    from sdd_cli.services.doctor_compiler import (
+        _probe_cache,
+        build_compiler_report,
+        run_prune,
+    )
+
+    report = build_compiler_report()
+    if prune:
+        from sdd_core.utils.compiler_runner import _cache_dir
+
+        report["prune"] = run_prune()
+        report["cache"] = _probe_cache(_cache_dir())
+    typer.echo(json.dumps(report, indent=2))
 
 
 @app.command()

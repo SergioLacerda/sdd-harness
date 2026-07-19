@@ -22,6 +22,8 @@ SCRIPT_MODULES_AND_ARGS = {
     "resolve_vcs_version": [],
     "stage_packaged_compiler_assets": ["/nonexistent-dist-dir"],
     "validate_release_assets": ["/nonexistent-dist-dir"],
+    "verify_wheel_native_assets": ["/nonexistent-dist-dir"],
+    "verify_wheel_dependency_coupling": ["/nonexistent-dist-dir"],
 }
 
 

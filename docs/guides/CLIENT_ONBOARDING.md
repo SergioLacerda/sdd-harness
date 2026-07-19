@@ -38,19 +38,32 @@ Each step is skipped automatically if it already ran (idempotent re-run); use
 
 ## Step-by-step Setup (Client Project)
 
-> The official, CI-proven install channel is the GitHub Release wheelhouse
-> (`dist/` assets attached to a tagged
-> [GitHub Release](https://github.com/SergioLacerda/sdd-harness/releases),
-> installed with `pip install --no-index --find-links <dist-dir> sdd-cli`).
-> `.github/workflows/release.yml` verifies this exact install on
-> `windows-latest` and `ubuntu-latest` before publishing. The
-> `uv tool install` command below is a source/development install path that
-> tracks branch code rather than a released version.
+**Step 1 — Install the SDD CLI from a released version.** Two supported channels,
+both pinned to a tag:
 
 ```bash
-# 1. Install SDD CLI (cross-platform: Linux/macOS/Windows, no clone required)
-uv tool install "git+https://github.com/SergioLacerda/sdd-harness#subdirectory=packages/interfaces/sdd_cli"
+# 1a. (Preferred) GitHub Release wheelhouse — the official, CI-proven channel.
+#     Download the dist/ assets attached to the tagged release
+#     (https://github.com/SergioLacerda/sdd-harness/releases), then:
+pip install --no-index --find-links <dist-dir> sdd-cli
 
+# 1b. (Alternative) Tag-pinned git install — no asset download, needs git + network.
+#     Replace vX.Y.Z with the latest release tag from the releases page:
+uv tool install "git+https://github.com/SergioLacerda/sdd-harness@vX.Y.Z#subdirectory=packages/interfaces/sdd_cli"
+```
+
+`.github/workflows/release.yml` verifies the wheelhouse install on `windows-latest`
+and `ubuntu-latest` before publishing. The wheelhouse wheel bundles the native
+`sdd-compile` binaries (`sdd_core/_native/`), so no runtime download is needed;
+the git channel resolves the binary from the release assets at first use.
+
+> **Development installs only:** installing without a tag
+> (`git+https://...#subdirectory=...`) builds the **default branch HEAD** — an
+> unreleased version. Use it only for developing sdd-harness itself, never for
+> client onboarding: HEAD code paired with release binaries is exactly the skew
+> class the version handshake exists to reject.
+
+```bash
 # 2. Enter your project and run the wizard
 cd <your-project>
 sdd install --wizard
@@ -68,7 +81,16 @@ sdd skills --full-bootstrap --regenerate-seeds
 # 6. Verify runtime/governance health
 sdd runtime status
 sdd governance validate
+
+# 7. Verify the compiler toolchain (read-only JSON report)
+sdd doctor compiler
 ```
+
+A healthy `sdd doctor compiler` report shows `binary.resolution_rule` as `packaged`
+(wheelhouse install) or `download` (git install), `handshake.status: "ok"` (or
+`skipped_dev_binary` on dev builds), and `validate.ok: true` once governance has been
+generated. Anything else — see the
+[Windows standalone troubleshooting guide](windows-standalone-troubleshooting.md).
 
 ### Windows signing troubleshooting
 

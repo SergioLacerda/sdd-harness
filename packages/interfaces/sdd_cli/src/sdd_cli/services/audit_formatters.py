@@ -76,7 +76,11 @@ def render_audit_text(
     typer.echo(f"- input tokens: {tc['total_input_tokens']}")
     typer.echo(f"- output tokens: {tc['total_output_tokens']}")
     typer.echo(f"- output/input ratio: {tc['output_input_ratio']}")
-    typer.echo(f"- events without tokens: {tc['events_missing_tokens']}")
+    typer.echo(
+        f"- ask invocations without tokens: {tc['events_missing_tokens']} "
+        f"(of {tc['ask_invocations']})"
+    )
+    typer.echo(f"- non-token-bearing events: {tc['non_token_events']}")
     typer.echo("")
     typer.echo("Correlation Windows (7/14/30)")
     for row in summary["correlation_windows"]:

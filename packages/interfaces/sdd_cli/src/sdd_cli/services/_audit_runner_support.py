@@ -12,6 +12,7 @@ from sdd_cli.services._audit_window_support import (
 )
 from sdd_cli.services.audit_event_parser import (
     DriftRow,
+    _is_ask_invocation,
     _is_drift_event,
     _token_totals,
 )
@@ -63,7 +64,11 @@ def compute_base_summary(
         key=lambda item: ts_sort_key_fn(item.ts),
         reverse=True,
     )[:top]
-    total_in, total_out, with_tokens = _token_totals(events)
+    # Token metrics are scoped to parent governance.ask invocations: phase
+    # sub-events and non-LLM events never carry tokens, so counting them as
+    # "missing" misreports telemetry coverage.
+    invocations = [event for event in events if _is_ask_invocation(event)]
+    total_in, total_out, with_tokens = _token_totals(invocations)
     ratio = (total_out / total_in) if total_in > 0 else 0.0
     return {
         "drifts": drifts,
@@ -74,8 +79,10 @@ def compute_base_summary(
         "total_in": total_in,
         "total_out": total_out,
         "ratio": ratio,
-        "missing_tokens": len(events) - with_tokens,
+        "ask_invocations": len(invocations),
+        "missing_tokens": len(invocations) - with_tokens,
         "with_tokens": with_tokens,
+        "non_token_events": len(events) - len(invocations),
     }
 
 

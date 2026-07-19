@@ -15,7 +15,7 @@ authors = [
 dependencies = [
     "PyYAML>=6.0",
     "typer>=0.9.0",
-    "sdd-core",
+    "sdd-core>=1.0",
 ]
 
 [project.optional-dependencies]

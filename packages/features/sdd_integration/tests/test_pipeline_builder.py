@@ -344,6 +344,33 @@ class TestPipelineBuilderFilesystem:
         assert result["core_items"][0]["title"] == "Test Mandate"
         assert len(result["client_items"]) == 1
 
+    def test_build_fails_fast_on_zero_parsed_mandates(self, tmp_path: Path) -> None:
+        """A mandate source that parses to zero items must raise, not emit empty artifacts."""
+        # Simulates a git symlink checked out as a plain text stub on Windows:
+        # the file exists but contains only the link target path.
+        (tmp_path / "mandate.spec").write_text(
+            "../../_spec/mandate.spec", encoding="utf-8"
+        )
+        (tmp_path / "guidelines.dsl").write_text(
+            'guideline G001 { title: "G" }', encoding="utf-8"
+        )
+
+        builder = PipelineBuilder(str(tmp_path))
+        with pytest.raises(ValueError, match="Parsed 0 mandates"):
+            builder.build()
+
+    def test_build_fails_fast_on_markdown_without_mandate_headings(
+        self, tmp_path: Path
+    ) -> None:
+        """A mandate.md with no M-id headings must raise with the source path."""
+        (tmp_path / "mandate.md").write_text(
+            "# Overview\nNo mandate headings here.", encoding="utf-8"
+        )
+
+        builder = PipelineBuilder(str(tmp_path))
+        with pytest.raises(ValueError, match="Parsed 0 mandates"):
+            builder.build()
+
     def test_generate_spec_file_preserves_m017_paragraph_fields(
         self, tmp_path: Path
     ) -> None:

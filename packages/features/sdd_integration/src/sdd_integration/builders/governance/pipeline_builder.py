@@ -139,15 +139,19 @@ class PipelineBuilder:
                 }
                 for mid in md_ids
             ]
+            mandate_source = md_mandate
         elif legacy_mandate.exists():
             mandate_content = legacy_mandate.read_text(encoding="utf-8")
             self.core_items = LegacySpecParser.parse_mandates(mandate_content)
+            mandate_source = legacy_mandate
         else:
             abs_path = (spec_root / "mandate.md").resolve()
             raise FileNotFoundError(
                 f"mandate.spec not found at {abs_path}. "
                 "Run 'sdd governance compile' to regenerate governance artifacts."
             )
+
+        self._require_parsed_mandates(mandate_source)
 
         # Guidelines: prefer guidelines.md, fall back to guidelines.dsl
         md_guidelines = spec_root / "guidelines.md"
@@ -238,6 +242,19 @@ class PipelineBuilder:
             "client_items": self.client_items,
         }
         return self.result
+
+    def _require_parsed_mandates(self, mandate_source: Path) -> None:
+        """Fail fast when a mandate source file parses to zero items."""
+        if self.core_items:
+            return
+        raise ValueError(
+            f"Parsed 0 mandates from {mandate_source.resolve()}. The file "
+            "exists but contains no recognizable mandate entries — it may be "
+            "corrupt, empty, or a git symlink checked out as a plain text stub "
+            "(common on Windows clones without symlink support). Reinstall "
+            "from the release wheels or restore the canonical mandate source, "
+            "then re-run 'sdd governance generate'."
+        )
 
     def _merge_spec_content(self) -> None:
         """Merge rich spec fields from .sdd/spec/mandates.json into core_items."""

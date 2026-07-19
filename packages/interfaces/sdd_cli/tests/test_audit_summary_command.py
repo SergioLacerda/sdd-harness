@@ -103,6 +103,57 @@ def test_audit_json_output_uses_canonical_data_payload(
     assert "total_events" not in payload
 
 
+def test_audit_token_metrics_scoped_to_ask_invocations(tmp_path: Path) -> None:
+    """Phase/lifecycle events never carry tokens and must not count as missing."""
+    events = [
+        {
+            "event": "governance.ask",
+            "command": "ask",
+            "start_ts": "2026-05-20T10:00:00Z",
+            "tokens_input": 100,
+            "tokens_output": 50,
+            "details": {},
+        },
+        {
+            "event": "governance.ask.phase",
+            "command": "ask",
+            "start_ts": "2026-05-20T10:00:01Z",
+            "tokens_input": None,
+            "tokens_output": None,
+            "details": {"phase_id": "intake"},
+        },
+        {
+            "event": "runtime.session.start",
+            "command": "runtime status",
+            "start_ts": "2026-05-20T10:00:02Z",
+            "tokens_input": None,
+            "tokens_output": None,
+            "details": {},
+        },
+    ]
+    events_file = tmp_path / "events.jsonl"
+    events_file.parent.mkdir(parents=True, exist_ok=True)
+    with events_file.open("w", encoding="utf-8") as fh:
+        for item in events:
+            fh.write(json.dumps(item) + "\n")
+
+    text_result = runner.invoke(app, ["audit", "--events-file", str(events_file)])
+    assert text_result.exit_code == 0, text_result.output
+    assert "- ask invocations without tokens: 0 (of 1)" in text_result.output
+    assert "- non-token-bearing events: 2" in text_result.output
+
+    json_result = runner.invoke(
+        app, ["--json", "audit", "--events-file", str(events_file)]
+    )
+    assert json_result.exit_code == 0, json_result.output
+    payload = json.loads(json_result.output.strip().splitlines()[-1])
+    tc = payload["data"]["token_comparison"]
+    assert tc["ask_invocations"] == 1
+    assert tc["events_with_tokens"] == 1
+    assert tc["events_missing_tokens"] == 0
+    assert tc["non_token_events"] == 2
+
+
 def test_audit_include_non_drift_flag(tmp_path: Path) -> None:
     events_file = tmp_path / "events.jsonl"
     _write_events(events_file)

@@ -13,7 +13,7 @@ authors = [
 ]
 
 dependencies = [
-    "sdd-skills",
+    "sdd-skills>=1.0",
 ]
 
 [project.optional-dependencies]

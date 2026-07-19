@@ -151,8 +151,10 @@ def build_audit_summary_data(
             "total_input_tokens": computed["total_in"],
             "total_output_tokens": computed["total_out"],
             "output_input_ratio": round(computed["ratio"], 4),
+            "ask_invocations": computed["ask_invocations"],
             "events_with_tokens": computed["with_tokens"],
             "events_missing_tokens": computed["missing_tokens"],
+            "non_token_events": computed["non_token_events"],
         },
         "correlation_windows": correlation_windows,
         "top_drifts": [
