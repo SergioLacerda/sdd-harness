@@ -318,8 +318,16 @@ jobs:
         run: |
           set -euo pipefail
           export PATH="$HOME/.local/bin:$PATH"
-          mkdir -p git-smoke-project
-          cd git-smoke-project
+          # Must live outside $GITHUB_WORKSPACE: the sdd-harness checkout is
+          # itself an SDD workspace (tracked .sdd/), so a scratch project
+          # created inside it trips the nested-workspace guard in `sdd init`.
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            SMOKE_DIR="$(cygpath -m "$RUNNER_TEMP")/git-smoke-project"
+          else
+            SMOKE_DIR="$RUNNER_TEMP/git-smoke-project"
+          fi
+          mkdir -p "$SMOKE_DIR"
+          cd "$SMOKE_DIR"
           sdd install --wizard --non-interactive
           sdd init --default  # sdd-ci-policy: allow-client-smoke
           sdd governance validate  # sdd-ci-policy: allow-client-smoke
