@@ -64,6 +64,12 @@ class TestInitEdgeCases:
 
         runner = CliRunner()
         parent_root = tmp_path / "parent"
+        profile_path = parent_root / ".sdd" / "profile"
+        profile_path.parent.mkdir(parents=True)
+        profile_path.write_text(
+            "[sdd]\ntype = client\nname = client\nworkspace_id = ws-parent\n",
+            encoding="utf-8",
+        )
 
         def _fake_cwd():
             return tmp_path / "parent" / "child"
@@ -77,6 +83,33 @@ class TestInitEdgeCases:
             result = runner.invoke(app, [])
         assert result.exit_code == 1
         assert "already exists" in result.output
+
+    def test_allows_init_when_parent_sdd_dir_has_no_profile(
+        self, tmp_path: Path
+    ) -> None:
+        """A bare `.sdd/` ancestor (e.g. the global CLI toolchain cache under
+        the user's home directory) must not block init — only a real
+        initialized workspace (`.sdd/profile` present) should."""
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+
+        runner = CliRunner()
+        parent_root = tmp_path / "parent"
+        (parent_root / ".sdd" / "bin").mkdir(parents=True)
+
+        def _fake_cwd():
+            return tmp_path / "parent" / "child"
+
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
+            patch(
+                "sdd_cli.commands.init.find_workspace_root", return_value=parent_root
+            ),
+        ):
+            result = runner.invoke(app, ["--default", "--no-bootstrap"])
+        assert result.exit_code == 0, result.output
+        assert (tmp_path / "parent" / "child" / ".sdd" / "profile").exists()
 
     def test_allows_project_workspace_when_home_workspace_exists(
         self, tmp_path: Path
