@@ -116,13 +116,20 @@ class TestInitCommand:
 
     def test_blocks_nested_workspace(self, tmp_path: Path) -> None:
         """init inside an already-initialized workspace parent must fail."""
-        parent_sdd = tmp_path / ".sdd"
+        parent_root = tmp_path / "parent"
+        child = parent_root / "child"
+        profile_path = parent_root / ".sdd" / "profile"
+        profile_path.parent.mkdir(parents=True)
+        profile_path.write_text(
+            "[sdd]\ntype = client\nname = client\nworkspace_id = ws-parent\n",
+            encoding="utf-8",
+        )
         with (
             pytest.raises(typer.Exit) as exc_info,
-            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("sdd_cli.commands.init.Path.cwd", return_value=child),
             patch(
                 "sdd_cli.commands.init.find_workspace_root",
-                return_value=parent_sdd.parent,
+                return_value=parent_root,
             ),
         ):
             # Simulate parent workspace detected
@@ -135,3 +142,30 @@ class TestInitCommand:
                 list_commands=False,
             )
         assert exc_info.value.exit_code == 1
+
+    def test_allows_nested_init_when_parent_sdd_has_no_profile(
+        self, tmp_path: Path
+    ) -> None:
+        """A bare `.sdd/` ancestor with no profile (e.g. the global CLI
+        toolchain cache under the user's home directory) must not block
+        init — only a real initialized workspace should."""
+        parent_root = tmp_path / "parent"
+        child = parent_root / "child"
+        (parent_root / ".sdd" / "bin").mkdir(parents=True)
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", return_value=child),
+            patch(
+                "sdd_cli.commands.init.find_workspace_root",
+                return_value=parent_root,
+            ),
+        ):
+            init(
+                MagicMock(),
+                type="client",
+                name=None,
+                force=False,
+                no_bootstrap=True,
+                default=False,
+                list_commands=False,
+            )
+        assert (child / ".sdd" / "profile").exists()
