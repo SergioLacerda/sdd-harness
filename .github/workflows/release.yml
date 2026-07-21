@@ -320,7 +320,7 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           # Must live outside $GITHUB_WORKSPACE: the sdd-harness checkout is
           # itself an SDD workspace (tracked .sdd/), so a scratch project
-          # created inside it trips the nested-workspace guard in `sdd init`.
+          # created inside it trips the nested-workspace guard in sdd's init command.
           if [ "${{ runner.os }}" = "Windows" ]; then
             SMOKE_DIR="$(cygpath -m "$RUNNER_TEMP")/git-smoke-project"
           else

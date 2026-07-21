@@ -122,7 +122,7 @@ def test_cleanup_post_generation_artifacts_allows_external_build_dir(
         temp_compiled_dirs=(".sdd",),
     )
 
-    assert str(client_build / "docs-meta") in cleaned
-    assert str(wizard_config) in cleaned
-    assert str(client_compiled / ".sdd") in cleaned
+    assert (client_build / "docs-meta").as_posix() in cleaned
+    assert wizard_config.as_posix() in cleaned
+    assert (client_compiled / ".sdd").as_posix() in cleaned
     assert final_template.exists()

@@ -22,6 +22,7 @@ def _run_generator(args: list[str], cwd: Path) -> subprocess.CompletedProcess[st
         [sys.executable, str(GENERATOR_PATH), *args],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=10,
         cwd=cwd,
     )

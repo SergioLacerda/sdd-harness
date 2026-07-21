@@ -170,11 +170,10 @@ def test_run_check_venv_prints_resolved_path(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     make_tasks = _make_tasks_module()
-    with patch.object(
-        make_tasks, "_check_venv", return_value=Path("/repo/.venv/bin/python")
-    ):
+    resolved_path = Path("/repo/.venv/bin/python")
+    with patch.object(make_tasks, "_check_venv", return_value=resolved_path):
         assert make_tasks.run_check_venv() == 0
-    assert capsys.readouterr().out.strip() == "/repo/.venv/bin/python"
+    assert capsys.readouterr().out.strip() == str(resolved_path)
 
 
 def test_run_ci_pr_stops_on_first_failure() -> None:

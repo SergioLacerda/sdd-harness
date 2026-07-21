@@ -141,7 +141,7 @@ class TestBootstrapDefault:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_core.utils.environment.find_workspace_root",
+                "sdd_cli.commands.init.find_workspace_root",
                 side_effect=lambda p=None: None,
             ),
             patch(

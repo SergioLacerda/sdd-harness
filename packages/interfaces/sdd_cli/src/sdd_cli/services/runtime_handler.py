@@ -72,6 +72,8 @@ def _normalize_report(report: Any) -> dict[str, Any]:
     for key, value in data.items():
         if isinstance(value, str | int | float | bool | list | dict) or value is None:
             normalized[key] = value
+        elif isinstance(value, Path):
+            normalized[key] = value.as_posix()
         else:
             normalized[key] = str(value)
     return normalized

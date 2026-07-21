@@ -5,10 +5,19 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import io
 import shutil
 import sys
 from pathlib import Path
 from typing import Any
+
+if sys.platform == "win32":
+    # Windows consoles default to the legacy codepage (e.g. cp1252), which
+    # can't encode the emoji/symbols used in status output below.
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if isinstance(sys.stderr, io.TextIOWrapper):
+        sys.stderr.reconfigure(encoding="utf-8")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "sdd_core" / "src"

@@ -10,8 +10,8 @@ def phase2_instructions_message(
     files = ", ".join(copied_files)
     return (
         "stage...OK\n"
-        f"source: {phase1_path}\n"
-        f"target: {output_path}\n"
+        f"source: {phase1_path.as_posix()}\n"
+        f"target: {output_path.as_posix()}\n"
         f"files...OK ({len(copied_files)}): {files}\n"
     )
 
@@ -97,8 +97,8 @@ def phase4_consolidation_failed_message(source_dir: Path, target_dir: Path) -> s
     """Phase4 Consolidation Failed Message."""
     return (
         "\n❌ Failed to consolidate final template bundle!\n"
-        f"   Source: {source_dir}\n"
-        f"   Target: {target_dir}"
+        f"   Source: {source_dir.as_posix()}\n"
+        f"   Target: {target_dir.as_posix()}"
     )
 
 
@@ -111,5 +111,5 @@ def phase6_seedlings_success_message(output_base: Path) -> str:
         "compliance.seed.json...OK\n"
         "ACTIVATION_GUIDE.md...OK\n"
         "verify.py...OK\n"
-        f"location: {output_base}/.sdd/seedlings/\n"
+        f"location: {output_base.as_posix()}/.sdd/seedlings/\n"
     )

@@ -42,7 +42,7 @@ class TestDeploymentManagerInit:
                 "master_compiled": Path("/default/master/compiled"),
             }
             manager = DeploymentManager(repo_root="/custom/root")
-            assert manager.repo_root == Path("/custom/root")
+            assert manager.repo_root == Path("/custom/root").resolve()
 
     def test_init_with_emit_callback(self) -> None:
         """Should accept optional emit callback for logging."""

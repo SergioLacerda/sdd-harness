@@ -22,6 +22,6 @@ def discover_files(root: Path, config: AnalysisConfig) -> list[Path]:
         path
         for path in discovered
         if path.is_file()
-        and not any(excluded in str(path) for excluded in config.exclude_patterns)
+        and not any(excluded in path.as_posix() for excluded in config.exclude_patterns)
     ]
     return sorted(files)

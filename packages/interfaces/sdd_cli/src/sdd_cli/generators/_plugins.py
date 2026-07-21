@@ -75,6 +75,6 @@ def generate_plugins_registry(
     )
 
     return {
-        "registry_path": str(registry_path),
+        "registry_path": registry_path.as_posix(),
         "plugin_count": len(registry["plugins"]),
     }

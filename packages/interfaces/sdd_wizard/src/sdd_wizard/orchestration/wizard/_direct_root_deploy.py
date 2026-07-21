@@ -103,7 +103,7 @@ def deploy_to_root(
     source_files = sorted(p for p in final_template_dir.rglob("*") if p.is_file())
 
     for source_file in source_files:
-        relative = str(source_file.relative_to(final_template_dir))
+        relative = source_file.relative_to(final_template_dir).as_posix()
         seen_relative.add(relative)
         target_file = target_root / relative
         source_bytes = source_file.read_bytes()

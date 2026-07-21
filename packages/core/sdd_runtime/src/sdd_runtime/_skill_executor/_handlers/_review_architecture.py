@@ -55,6 +55,6 @@ class ReviewArchitectureHandler(Handler):
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         baseline_path = _write_architecture_baseline(project_root, current_baseline)
-        review["baseline_path"] = str(baseline_path.relative_to(project_root))
+        review["baseline_path"] = baseline_path.relative_to(project_root).as_posix()
         review["baseline_updated"] = True
         return PreRunOutcome(artifacts=review)

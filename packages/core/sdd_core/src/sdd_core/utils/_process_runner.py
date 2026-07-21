@@ -90,6 +90,7 @@ class SafeProcessRunner:
             raise
         self._emit_telemetry("start", args, binary_name=binary_name, trace_id=trace_id)
         started = time.perf_counter()
+        text_mode = isinstance(input_data, str) if input_data is not None else True
         try:
             proc = subprocess.run(  # nosec B603
                 args,
@@ -100,7 +101,9 @@ class SafeProcessRunner:
                 check=False,
                 env=env,
                 timeout=timeout,
-                text=isinstance(input_data, str) if input_data is not None else True,
+                text=text_mode,
+                encoding="utf-8" if text_mode else None,
+                errors="replace" if text_mode else None,
             )
         except subprocess.TimeoutExpired:
             logger.error("Process timeout: %s", " ".join(args))
@@ -166,6 +169,8 @@ class SafeProcessRunner:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
             )
             stdout, stderr = proc.communicate(input=stdin_text, timeout=timeout)
         except subprocess.TimeoutExpired:

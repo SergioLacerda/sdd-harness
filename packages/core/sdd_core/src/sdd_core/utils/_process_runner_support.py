@@ -24,6 +24,7 @@ def run_process(
     timeout: float | None,
 ) -> ProcessResult:
     started = time.perf_counter()
+    text_mode = isinstance(input_data, str) if input_data is not None else True
     proc = subprocess.run(  # nosec B603
         args,
         shell=False,
@@ -33,7 +34,9 @@ def run_process(
         check=False,
         env=env,
         timeout=timeout,
-        text=isinstance(input_data, str) if input_data is not None else True,
+        text=text_mode,
+        encoding="utf-8" if text_mode else None,
+        errors="replace" if text_mode else None,
     )
     duration_ms = int((time.perf_counter() - started) * 1000)
     return ProcessResult(
@@ -66,6 +69,8 @@ def run_interactive_process(
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         stdout, stderr = proc.communicate(input=stdin_text, timeout=timeout)
     except subprocess.TimeoutExpired as exc:

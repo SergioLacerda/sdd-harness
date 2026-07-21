@@ -4,7 +4,16 @@
 from __future__ import annotations
 
 import argparse
+import io
 import sys
+
+if sys.platform == "win32":
+    # Windows consoles default to the legacy codepage (e.g. cp1252), which
+    # can't encode the emoji used in status output below.
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if isinstance(sys.stderr, io.TextIOWrapper):
+        sys.stderr.reconfigure(encoding="utf-8")
 
 from _generate_specializations_support import (
     load_config,

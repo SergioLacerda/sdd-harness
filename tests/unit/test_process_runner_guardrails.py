@@ -48,7 +48,7 @@ def _find_with_pattern(root: Path) -> set[str]:
             continue
         text = path.read_text(encoding="utf-8")
         if SUBPROCESS_PATTERN.search(text):
-            found.add(str(path.relative_to(REPO_ROOT)))
+            found.add(path.relative_to(REPO_ROOT).as_posix())
     return found
 
 

@@ -8,12 +8,34 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from sdd_wizard.orchestration.prompt_submit_hooks import (
     CENTRAL_PROMPT_SUBMIT_COMMAND,
     CENTRAL_PROMPT_SUBMIT_HOOK,
     PromptSubmitHookGenerator,
     resolve_prompt_submit_hook_agents,
 )
+
+# Faking a bare `sdd` command that Windows will actually spawn requires a
+# real .exe: `CreateProcess` only auto-appends the .exe suffix when
+# resolving an extensionless command, never .bat/.cmd, so a shebenv script
+# on PATH there is silently skipped in favor of any real `sdd` install.
+# These tests only cover subprocess plumbing already proven correct on
+# Linux CI, so skip the unreliable simulation on Windows rather than fight
+# process-launch semantics in the fixture.
+_SKIP_FAKE_SDD_REASON = (
+    "Windows CreateProcess doesn't resolve bare commands to .bat/.cmd, so a "
+    "fake `sdd` on PATH can't be simulated reliably here; covered on Linux CI."
+)
+
+
+def _write_fake_sdd(bin_dir: Path, body_lines: list[str]) -> None:
+    """Write a fake `sdd` command on PATH that a subprocess can invoke."""
+    script = "\n".join(["#!/usr/bin/env python3", *body_lines]) + "\n"
+    fake_sdd = bin_dir / "sdd"
+    fake_sdd.write_text(script, encoding="utf-8")
+    fake_sdd.chmod(0o755)
 
 
 def test_resolve_prompt_submit_hook_agents_defaults_to_all_supported() -> None:
@@ -115,6 +137,7 @@ def test_phase6_output_validator_imports_stay_in_sync_with_prompt_submit_hooks()
     )
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason=_SKIP_FAKE_SDD_REASON)
 def test_prompt_submit_hook_injects_governance_activation_header(
     tmp_path: Path,
 ) -> None:
@@ -124,20 +147,14 @@ def test_prompt_submit_hook_injects_governance_activation_header(
 
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
-    fake_sdd = bin_dir / "sdd"
-    fake_sdd.write_text(
-        "\n".join(
-            [
-                "#!/usr/bin/env python3",
-                "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
-                "print('intake_mode=none governance_mode=hard execution_gate=allowed')",
-                "print('SDD GOVERNANCE: drift=none | governance=ok | profile=default')",
-            ]
-        )
-        + "\n",
-        encoding="utf-8",
+    _write_fake_sdd(
+        bin_dir,
+        [
+            "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
+            "print('intake_mode=none governance_mode=hard execution_gate=allowed')",
+            "print('SDD GOVERNANCE: drift=none | governance=ok | profile=default')",
+        ],
     )
-    fake_sdd.chmod(0o755)
 
     env = dict(os.environ)
     env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"
@@ -182,21 +199,15 @@ def test_prompt_submit_hook_skips_full_sdd_ask_for_explicit_slash_command(
 
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
-    fake_sdd = bin_dir / "sdd"
     marker_path = tmp_path / "sdd-invoked.marker"
-    fake_sdd.write_text(
-        "\n".join(
-            [
-                "#!/usr/bin/env python3",
-                f"open(r'{marker_path}', 'w').close()",
-                "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
-                "print('execution_gate=allowed')",
-            ]
-        )
-        + "\n",
-        encoding="utf-8",
+    _write_fake_sdd(
+        bin_dir,
+        [
+            f"open(r'{marker_path}', 'w').close()",
+            "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
+            "print('execution_gate=allowed')",
+        ],
     )
-    fake_sdd.chmod(0o755)
 
     env = dict(os.environ)
     env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"
@@ -220,6 +231,7 @@ def test_prompt_submit_hook_skips_full_sdd_ask_for_explicit_slash_command(
     assert "no provider delegation or implementation was executed" in context
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason=_SKIP_FAKE_SDD_REASON)
 def test_prompt_submit_hook_runs_full_path_for_non_slash_prompt(
     tmp_path: Path,
 ) -> None:
@@ -232,22 +244,16 @@ def test_prompt_submit_hook_runs_full_path_for_non_slash_prompt(
 
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
-    fake_sdd = bin_dir / "sdd"
     env_marker_path = tmp_path / "entrypoint-env.marker"
-    fake_sdd.write_text(
-        "\n".join(
-            [
-                "#!/usr/bin/env python3",
-                "import os",
-                f"open(r'{env_marker_path}', 'w').write(os.environ.get('SDD_ASK_ENTRYPOINT', ''))",
-                "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
-                "print('execution_gate=allowed')",
-            ]
-        )
-        + "\n",
-        encoding="utf-8",
+    _write_fake_sdd(
+        bin_dir,
+        [
+            "import os",
+            f"open(r'{env_marker_path}', 'w').write(os.environ.get('SDD_ASK_ENTRYPOINT', ''))",
+            "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
+            "print('execution_gate=allowed')",
+        ],
     )
-    fake_sdd.chmod(0o755)
 
     env = dict(os.environ)
     env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"

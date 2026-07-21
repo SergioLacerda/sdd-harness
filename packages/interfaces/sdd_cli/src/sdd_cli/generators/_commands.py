@@ -111,7 +111,7 @@ def generate_commands_registry(
         )
 
         return {
-            "registry_path": str(registry_path),
+            "registry_path": registry_path.as_posix(),
             "command_count": len(commands),
         }
 

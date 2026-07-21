@@ -6,6 +6,7 @@ import builtins
 import hashlib
 import ssl
 import stat
+import sys
 import urllib.error
 from pathlib import Path
 from types import SimpleNamespace
@@ -331,7 +332,10 @@ def test_download_and_cache_binary_writes_and_marks_executable(
     result = compiler_runner._download_and_cache_binary("1.0.0")
 
     assert result.read_bytes() == payload
-    assert result.stat().st_mode & stat.S_IXUSR
+    if sys.platform != "win32":
+        # NTFS has no POSIX exec bit for stat() to report, even though
+        # chmod() is still called for a non-Windows target asset.
+        assert result.stat().st_mode & stat.S_IXUSR
 
 
 def test_locate_binary_env_override_returns_path(
@@ -405,7 +409,10 @@ def test_materialize_packaged_binary_copies_resource_to_cache(
     assert result is not None
     assert result.exists()
     assert result.name == "sdd-compile-linux-amd64"
-    assert result.stat().st_mode & stat.S_IXUSR
+    if sys.platform != "win32":
+        # NTFS has no POSIX exec bit for stat() to report, even though
+        # chmod() is still called for a non-Windows target asset.
+        assert result.stat().st_mode & stat.S_IXUSR
 
 
 def test_locate_binary_raises_when_nothing_found_and_download_disabled(
@@ -530,7 +537,8 @@ def test_locate_binary_finds_repo_built_binary(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
-    built_path = tmp_path / "tools" / "sdd-compile" / "bin" / "sdd-compile"
+    binary_name = "sdd-compile.exe" if sys.platform == "win32" else "sdd-compile"
+    built_path = tmp_path / "tools" / "sdd-compile" / "bin" / binary_name
     built_path.parent.mkdir(parents=True)
     write_text_utf8(built_path, "x")
 
