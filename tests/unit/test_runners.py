@@ -315,7 +315,7 @@ class TestRunCommandExec:
         # Python command to write to stderr
         python_exe = sys.executable.replace("\\", "/")
         inputs = make_command_exec_inputs(
-            {"command": f"\"{python_exe}\" -c \"import sys; sys.stderr.write('err')\""}
+            {"command": f'"{python_exe}" -c "import sys; sys.stderr.write(\'err\')"'}
         )
         run_command_exec(inputs, context, tmp_path)
         assert "last_stderr" in context
