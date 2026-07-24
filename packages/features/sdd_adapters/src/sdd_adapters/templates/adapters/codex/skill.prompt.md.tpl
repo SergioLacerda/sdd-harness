@@ -32,6 +32,8 @@ mode: agent
 - See `.sdd/skills/{{ skill.name }}/SKILL.md` for complete non-compliance rules
 {% endif %}
 
+{% include "_governance_contract.md" %}
+
 ## SDD GOVERNANCE
 
 `SDD GOVERNANCE: drift=${status} | governance=${status} | profile={{ skill.name }}`

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+
+import yaml
 
 from sdd_adapters.adapter_generator import AdapterGenerator, AdapterResult
 
@@ -72,6 +75,114 @@ def test_generate_for_target_writes_skills_and_filtered_commands(
     assert any("allowed-claude" in path for path in result.files_written)
     assert all("blocked-claude" not in path for path in result.files_written)
     assert (tmp_path / ".claude" / "commands").exists()
+
+
+def test_generate_for_antigravity_writes_targeted_command_surface(
+    tmp_path: Path, monkeypatch
+) -> None:
+    generator = AdapterGenerator()
+    monkeypatch.setattr(generator.skill_loader, "load_skills", lambda _sdd_dir: [])
+    monkeypatch.setattr(
+        generator.skill_loader,
+        "load_commands",
+        lambda _sdd_dir: [
+            {
+                "id": "sdd-organize",
+                "adapter_targets": ["antigravity"],
+                "routes_to": {"type": "cli", "command": "sdd organize"},
+            }
+        ],
+    )
+
+    result = generator._generate_for_target("antigravity", tmp_path)
+
+    assert result.success is True
+    target = (
+        tmp_path / ".gemini" / "antigravity" / "skills" / "sdd-organize" / "SKILL.md"
+    )
+    assert str(target) in result.files_written
+    content = target.read_text(encoding="utf-8")
+    assert "name: sdd-organize" in content
+    assert ".sdd/commands/sdd-organize/command.yaml" in content
+    assert "`sdd organize`" in content
+    assert "intake_index_mode: none" in content
+
+
+def test_generate_for_antigravity_keeps_registry_command_targets_truthful(
+    tmp_path: Path,
+) -> None:
+    sdd_dir = tmp_path / ".sdd"
+    commands_dir = sdd_dir / "commands" / "sdd-organize"
+    skills_dir = sdd_dir / "skills" / "sdd-ask"
+    commands_dir.mkdir(parents=True)
+    skills_dir.mkdir(parents=True)
+    (sdd_dir / "commands" / "registry.json").write_text(
+        json.dumps(
+            {
+                "commands": [
+                    {
+                        "id": "sdd-organize",
+                        "slash": "/sdd-organize",
+                        "routes_to": {"type": "cli", "command": "sdd organize"},
+                        "adapter_targets": ["antigravity"],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    (commands_dir / "command.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "id": "sdd-organize",
+                "slash": "/sdd-organize",
+                "routes_to": {"type": "cli", "command": "sdd organize"},
+                "adapter_targets": ["antigravity"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (sdd_dir / "skills" / "registry.json").write_text(
+        json.dumps(
+            {
+                "skills": [
+                    {
+                        "name": "sdd-ask",
+                        "description": "Ask governance.",
+                        "risk_score": "controlled",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    (skills_dir / "skill.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "name": "sdd-ask",
+                "description": "Ask governance.",
+                "when_to_use": ["governance query"],
+                "allowed_tools": ["sdd ask"],
+                "risk_score": "controlled",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = AdapterGenerator()._generate_for_target("antigravity", tmp_path)
+
+    command_surface = (
+        tmp_path / ".gemini" / "antigravity" / "skills" / "sdd-organize" / "SKILL.md"
+    )
+    skill_surface = (
+        tmp_path / ".gemini" / "antigravity" / "skills" / "sdd-ask" / "SKILL.md"
+    )
+    assert result.success is True
+    assert command_surface.exists()
+    assert skill_surface.exists()
+    assert ".sdd/commands/sdd-organize/command.yaml" in command_surface.read_text(
+        encoding="utf-8"
+    )
 
 
 def test_generate_for_target_marks_skill_render_error(

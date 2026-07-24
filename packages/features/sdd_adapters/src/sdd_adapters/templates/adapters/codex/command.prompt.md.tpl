@@ -26,6 +26,8 @@ mode: agent
 {{ command.routes_to.note }}
 {% endif %}
 
+{% include "_governance_contract.md" %}
+
 ## SDD GOVERNANCE
 
 `SDD GOVERNANCE: drift=${status} | governance=${status} | profile={{ command.id }}`

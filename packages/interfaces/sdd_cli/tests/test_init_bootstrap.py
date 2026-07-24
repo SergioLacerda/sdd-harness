@@ -147,11 +147,11 @@ class TestBootstrapDefault:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init.find_workspace_root",
-                side_effect=lambda p=None: None,
+                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                return_value=None,
             ),
             patch(
-                "sdd_core.utils.environment.write_profile",
+                "sdd_cli.commands.init.write_profile",
                 return_value=mock_ctx,
             ),
             patch("sdd_cli.commands.init.OnboardingOrchestrator") as MockOrch,

@@ -248,6 +248,30 @@ config-driven decision gates.
 - [ADR-013-pipeline-composition.md](ADR-013-pipeline-composition.md)
 - `docs/guides/PIPELINE_ORCHESTRATION.md`
 
+---
+
+### ADR-016: CLI Envelope Schema Is Manually Maintained (2026-07-24)
+
+**Decision:** Keep `CommandResult` and `CommandError` as frozen dataclasses and
+publish a manually maintained JSON Schema validated by contract tests.
+
+**Links:**
+
+- [ADR-016-cli-envelope-schema-manual.md](ADR-016-cli-envelope-schema-manual.md)
+- Schema: `tests/contract/schemas/cli_command_envelope.schema.json`
+
+---
+
+### ADR-017: Governance Signing KMS Is Deferred (2026-07-24)
+
+**Decision:** Keep local Ed25519 signing and trusted keyring validation as the
+supported model. Defer KMS provider integration to a separate scoped demand.
+
+**Links:**
+
+- [ADR-017-governance-signing-kms-deferred.md](ADR-017-governance-signing-kms-deferred.md)
+- Implementation reference: `packages/core/sdd_core/src/sdd_core/utils/compiler_runner.py`
+
 ## 🧾 Operational Appendices
 
 These artifacts support governance operations but are not ADRs:

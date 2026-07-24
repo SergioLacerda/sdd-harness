@@ -94,6 +94,18 @@ def _is_ask_invocation(event: dict[str, Any]) -> bool:
     return str(event.get("event", "")).strip() == "governance.ask"
 
 
+def _is_ask_phase_event(event: dict[str, Any]) -> bool:
+    """True only for ``governance.ask.phase`` sub-events.
+
+    A single drifted ``sdd ask`` invocation inherits ``drift_detected`` from its
+    parent onto every phase sub-event (~6 per invocation), inflating drift
+    *counts* ~7x if phase events are counted alongside their parent. Drift-rate
+    numerators must exclude these; drift-rate denominators keep counting them
+    (via ``_is_ask_event``), matching the windowed correlation shape.
+    """
+    return str(event.get("event", "")).strip() == "governance.ask.phase"
+
+
 def _is_drift_event(event: dict[str, Any]) -> bool:
     if str(event.get("event", "")).strip() == "runtime.drift.detected":
         return True

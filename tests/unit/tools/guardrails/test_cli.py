@@ -7,7 +7,15 @@ from pathlib import Path
 
 import pytest
 
-from tools.guardrails.cli import DEFAULT_CONFIG_PATH, build_parser, main, run
+from tools.guardrails.checkers.doc_reference_checker import DocReferenceChecker
+from tools.guardrails.cli import (
+    ANALYZERS,
+    DEFAULT_CONFIG_PATH,
+    _config_for,
+    build_parser,
+    main,
+    run,
+)
 from tools.guardrails.core.config import AnalysisConfig
 from tools.guardrails.core.patterns import PatternRegistry
 
@@ -40,6 +48,25 @@ class TestBuildParser:
     def test_invalid_analyzer_rejected(self) -> None:
         with pytest.raises(SystemExit):
             build_parser().parse_args(["--analyzer", "bogus"])
+
+    def test_doc_references_is_a_valid_analyzer_choice(self) -> None:
+        args = build_parser().parse_args(["--analyzer", "doc_references"])
+        assert args.analyzer == "doc_references"
+
+
+class TestAnalyzerRegistry:
+    """doc_references is wired into ANALYZERS with a Markdown config override."""
+
+    def test_doc_references_registered(self) -> None:
+        assert ANALYZERS["doc_references"] is DocReferenceChecker
+
+    def test_config_override_applies_markdown_glob(self) -> None:
+        config = _config_for("doc_references", AnalysisConfig())
+        assert config.include_patterns == ["**/*.md"]
+
+    def test_config_override_is_noop_for_other_analyzers(self) -> None:
+        config = AnalysisConfig()
+        assert _config_for("runtime", config) is config
 
 
 @pytest.fixture

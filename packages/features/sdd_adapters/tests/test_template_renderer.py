@@ -59,6 +59,9 @@ class TestTemplateRenderer:
         assert "sdd organize" in content  # analysis category triggers pre-step
         assert "SDD GOVERNANCE" in content
         assert "Non-compliance" in content  # SKILL.md enrichment present
+        assert "execution_gate" in content
+        assert "intake_index_mode: none" in content
+        assert "delegation_executed" in content
 
     def test_render_copilot_skill(self) -> None:
         renderer = TemplateRenderer()
@@ -67,6 +70,8 @@ class TestTemplateRenderer:
         assert "diagnose" in content
         assert "sdd doctor run" in content
         assert "SKILL.md" in content  # references SKILL.md when present
+        assert "execution_gate" in content
+        assert "intake_index_mode: none" in content
 
     def test_render_codex_command_skill_route(self) -> None:
         renderer = TemplateRenderer()
@@ -74,6 +79,8 @@ class TestTemplateRenderer:
             "codex", "command.prompt.md", command=SAMPLE_COMMAND_SKILL
         )
         assert "sdd skills run sdd-diagnose" in content
+        assert "execution_gate" in content
+        assert "intake_index_mode: none" in content
 
     def test_render_codex_command_cli_route(self) -> None:
         renderer = TemplateRenderer()
@@ -81,6 +88,8 @@ class TestTemplateRenderer:
             "codex", "command.prompt.md", command=SAMPLE_COMMAND_CLI
         )
         assert "`sdd ask`" in content
+        assert "execution_gate" in content
+        assert "intake_index_mode: none" in content
 
     def test_render_claude_command_cli_route_omits_note_block_by_default(self) -> None:
         """Spike follow-up (20260714-sdd-ask-single-entrypoint-spike): the
@@ -125,6 +134,8 @@ class TestTemplateRenderer:
             "copilot", "command.prompt.md", command=SAMPLE_COMMAND_SKILL
         )
         assert "sdd skills run sdd-diagnose" in content
+        assert "execution_gate" in content
+        assert "intake_index_mode: none" in content
 
     def test_render_antigravity_skill(self) -> None:
         renderer = TemplateRenderer()
@@ -134,6 +145,18 @@ class TestTemplateRenderer:
         assert "failing checks" in content
         assert "sdd doctor run" in content
         assert "SKILL.md" in content  # references SKILL.md when present
+        assert "execution_gate" in content
+        assert "intake_index_mode: none" in content
+
+    def test_render_antigravity_command_cli_route(self) -> None:
+        renderer = TemplateRenderer()
+        content = renderer.render("antigravity", "skill.md", skill=SAMPLE_COMMAND_CLI)
+
+        assert "name: sdd-ask" in content
+        assert ".sdd/commands/sdd-ask/command.yaml" in content
+        assert "`sdd ask`" in content
+        assert "execution_gate" in content
+        assert "intake_index_mode: none" in content
 
     def test_render_missing_template_raises(self) -> None:
         from jinja2 import TemplateNotFound

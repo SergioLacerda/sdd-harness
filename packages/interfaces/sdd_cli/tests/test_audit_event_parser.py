@@ -14,6 +14,7 @@ from sdd_cli.services.audit_event_parser import (
     _event_ts,
     _has_quality_signals,
     _is_ask_invocation,
+    _is_ask_phase_event,
     _is_drift_event,
     _load_events,
     _parse_int,
@@ -119,6 +120,20 @@ class TestIsAskInvocation:
     def test_false_for_missing_event_name(self) -> None:
         assert _is_ask_invocation({"command": "ask"}) is False
         assert _is_ask_invocation({}) is False
+
+
+class TestIsAskPhaseEvent:
+    def test_true_for_phase_sub_event(self) -> None:
+        event = {"event": "governance.ask.phase", "command": "ask"}
+        assert _is_ask_phase_event(event) is True
+
+    def test_false_for_parent_ask_event(self) -> None:
+        event = {"event": "governance.ask", "command": "ask"}
+        assert _is_ask_phase_event(event) is False
+
+    def test_false_for_non_ask_events(self) -> None:
+        assert _is_ask_phase_event({"event": "governance.compile.complete"}) is False
+        assert _is_ask_phase_event({}) is False
 
 
 class TestIsDriftEvent:

@@ -12,7 +12,9 @@ from sdd_cli.services._audit_window_support import (
 )
 from sdd_cli.services.audit_event_parser import (
     DriftRow,
+    _is_ask_event,
     _is_ask_invocation,
+    _is_ask_phase_event,
     _is_drift_event,
     _token_totals,
 )
@@ -35,7 +37,17 @@ def compute_base_summary(
     event_ts_fn: Any,
     ts_sort_key_fn: Any,
 ) -> dict[str, Any]:
-    drifts = [event for event in events if _is_drift_event(event)]
+    # governance.ask.phase sub-events inherit drift_detected from their parent
+    # governance.ask invocation (~6 phases per invocation); counting them as
+    # separate drifts inflates the numerator ~7x. Excluded here; drift-rate
+    # denominators keep counting them (see ask_events below), matching the
+    # windowed correlation shape in window_correlation().
+    drifts = [
+        event
+        for event in events
+        if _is_drift_event(event) and not _is_ask_phase_event(event)
+    ]
+    ask_events = [event for event in events if _is_ask_event(event)]
     events_by_command: dict[str, int] = {}
     drift_by_type: dict[str, int] = {}
     unclassified_drifts = 0
@@ -80,6 +92,7 @@ def compute_base_summary(
         "total_out": total_out,
         "ratio": ratio,
         "ask_invocations": len(invocations),
+        "ask_events": len(ask_events),
         "missing_tokens": len(invocations) - with_tokens,
         "with_tokens": with_tokens,
         "non_token_events": len(events) - len(invocations),

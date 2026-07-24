@@ -11,6 +11,7 @@ from sdd_cli.services.audit_runner import (
     _window_classification,
     _window_confidence,
     _window_correlation,
+    build_audit_summary_data,
 )
 
 
@@ -241,6 +242,129 @@ class TestWindowCorrelationTokenCoverage:
         assert result["tokens"]["coverage"] == 0.5
         assert result["tokens"]["input"] == 100
         assert result["tokens"]["output"] == 50
+
+
+def _drifted_ask_invocation_with_phases(
+    base_ts: str, phase_count: int = 6
+) -> list[dict]:
+    """One drifted governance.ask invocation plus N phase sub-events that
+    inherit drift_detected from their parent (real production shape)."""
+    events = [
+        {
+            "event": "governance.ask",
+            "command": "ask",
+            "start_ts": base_ts,
+            "details": {"drift_detected": True, "drift_type": "fingerprint_drift"},
+        }
+    ]
+    for _ in range(phase_count):
+        events.append(
+            {
+                "event": "governance.ask.phase",
+                "command": "ask",
+                "start_ts": base_ts,
+                "details": {"drift_detected": True, "drift_type": "fingerprint_drift"},
+            }
+        )
+    return events
+
+
+class TestComputeBaseSummaryDriftScope:
+    """OS-4: governance.ask.phase sub-events must not inflate the drift count."""
+
+    def test_excludes_phase_events_from_drift_numerator(self) -> None:
+        events = _drifted_ask_invocation_with_phases(
+            "2026-05-20T10:00:00Z", phase_count=6
+        )
+        result = _compute_base_summary(events, top=10)
+
+        assert len(result["drifts"]) == 1
+        assert result["ask_events"] == 7
+
+    def test_non_ask_drift_events_still_counted(self) -> None:
+        events = [
+            {
+                "event": "runtime.drift.detected",
+                "command": "governance compile",
+                "start_ts": "2026-05-20T10:00:00Z",
+                "details": {"drift_detected": True, "drift_type": "fingerprint_drift"},
+            }
+        ]
+        result = _compute_base_summary(events, top=10)
+
+        assert len(result["drifts"]) == 1
+        assert result["ask_events"] == 0
+
+
+class TestWindowCorrelationDriftScope:
+    """OS-4: the windowed drift_rate_pct numerator excludes phase sub-events;
+    the denominator (ask_events) keeps counting them."""
+
+    def test_excludes_phase_events_from_drift_rate_numerator(self) -> None:
+        from datetime import datetime, timedelta, timezone
+
+        now = datetime.now(timezone.utc)
+        ts = (now - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        events = _drifted_ask_invocation_with_phases(ts, phase_count=6)
+
+        result = _window_correlation(events, days=7, now_utc=now)
+
+        assert result["ask_events"] == 7
+        assert result["drift_events"] == 1
+        assert result["drift_rate_pct"] == round(1 * 100.0 / 7, 2)
+
+
+class TestBuildAuditSummaryDriftRateDenominator:
+    """OS-4: the headline drift_rate_pct denominator is ask-events-only, not
+    the entire raw event stream (which would dilute with non-ask events on
+    top of the phase-fan-out inflation)."""
+
+    def test_headline_drift_rate_uses_ask_events_denominator(self) -> None:
+        from datetime import datetime, timezone
+
+        events = _drifted_ask_invocation_with_phases(
+            "2026-05-20T10:00:00Z", phase_count=6
+        )
+        events.append(
+            {
+                "event": "governance.compile.complete",
+                "command": "governance compile",
+                "start_ts": "2026-05-20T10:00:00Z",
+                "details": {},
+            }
+        )
+
+        data = build_audit_summary_data(
+            events,
+            top=10,
+            now_utc=datetime.now(timezone.utc),
+            include_non_drift=False,
+        )
+
+        assert data["total_events"] == 8
+        assert data["total_drifts"] == 1
+        assert data["drift_rate_pct"] == round(1 * 100.0 / 7, 2)
+
+    def test_zero_ask_events_yields_zero_drift_rate(self) -> None:
+        from datetime import datetime, timezone
+
+        events = [
+            {
+                "event": "governance.compile.complete",
+                "command": "governance compile",
+                "start_ts": "2026-05-20T10:00:00Z",
+                "details": {},
+            }
+        ]
+
+        data = build_audit_summary_data(
+            events,
+            top=10,
+            now_utc=datetime.now(timezone.utc),
+            include_non_drift=False,
+        )
+
+        assert data["drift_rate_pct"] == 0.0
 
 
 class TestDefaultEventsPath:
