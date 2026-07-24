@@ -23,7 +23,7 @@ COPY . /app
 ARG SETUPTOOLS_SCM_PRETEND_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=$SETUPTOOLS_SCM_PRETEND_VERSION
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.9 /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /usr/local/bin/uv
 ENV PATH="/usr/local/bin:${PATH}"
 
 # Install all workspace packages + test extras into /app/.venv in a single locked pass.
@@ -58,7 +58,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy uv for the `uv run` fallback path in the Makefile.
-COPY --from=ghcr.io/astral-sh/uv:0.11.9 /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /usr/local/bin/uv
 
 RUN groupadd -g 1000 sdd && \
     useradd -u 1000 -g sdd -m -s /bin/bash sdd
