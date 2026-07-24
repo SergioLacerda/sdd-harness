@@ -2,7 +2,7 @@ name: Container Release
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     tags: ["v*"]
   workflow_dispatch:
     inputs:
