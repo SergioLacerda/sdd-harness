@@ -82,8 +82,14 @@ class TestVenvPaths:
 class TestFindWorkspaceRoot:
     """Test workspace root discovery."""
 
-    def test_find_workspace_root_returns_none_when_no_sdd_dir(self, tmp_path):
+    def test_find_workspace_root_returns_none_when_no_sdd_dir(
+        self, tmp_path, monkeypatch
+    ):
         """Verify find_workspace_root returns None when no .sdd/ is found up the tree."""
+        # A real ancestor of tmp_path (e.g. a cached ~/.sdd/bin compiler
+        # download) could otherwise leak in and make this test flaky, since
+        # find_workspace_root walks all the way up to the filesystem root.
+        monkeypatch.setattr(Path, "parents", property(lambda self: ()))
         result = find_workspace_root(tmp_path)
 
         assert result is None

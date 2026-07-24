@@ -8,7 +8,7 @@ import types
 from pathlib import Path
 from typing import Any, cast
 
-_tomllib_mod: types.ModuleType | None = None
+_tomllib_mod: types.ModuleType | None
 if sys.version_info >= (3, 11):
     import tomllib as _tomllib_mod
 else:
@@ -16,7 +16,7 @@ else:
         import tomli as _tomllib_mod
     except ImportError:
         _tomllib_mod = None
-tomllib = _tomllib_mod
+tomllib: types.ModuleType | None = _tomllib_mod
 
 
 def is_repo_root(path: Path) -> bool:

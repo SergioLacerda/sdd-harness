@@ -66,8 +66,14 @@ class TestCLIMain:
         result = runner.invoke(app, ["test", "--help"])
         assert result.exit_code == 0
 
-    def test_init_runs_without_existing_workspace(self) -> None:
+    def test_init_runs_without_existing_workspace(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Init must bootstrap clean directories without requiring .sdd/profile."""
+        # A real ancestor of the isolated cwd (e.g. a cached ~/.sdd/bin
+        # compiler download) could otherwise trip the nested-workspace guard,
+        # since it walks all the way up to the filesystem root.
+        monkeypatch.setattr(Path, "parents", property(lambda self: ()))
         with runner.isolated_filesystem():
             result = runner.invoke(app, ["init", "--type", "master", "--force"])
             assert result.exit_code == 0, result.output

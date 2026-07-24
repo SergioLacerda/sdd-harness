@@ -21,7 +21,10 @@ def _invoke_init(tmp_path: Path, extra_args: list[str], step_side_effect=None):
 
     patches: list = [
         patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
-        patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
+        patch(
+            "sdd_cli.commands.init._find_parent_workspace_with_profile",
+            return_value=None,
+        ),
         patch("sdd_cli.commands.init.write_profile", return_value=mock_profile_ctx),
     ]
 
@@ -70,7 +73,10 @@ class TestInitFullBootstrap:
 
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
-            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
+            patch(
+                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                return_value=None,
+            ),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
             patch("sdd_cli.commands.init.OnboardingOrchestrator") as MockOrch,
         ):
@@ -141,7 +147,7 @@ class TestBootstrapDefault:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_core.utils.environment.find_workspace_root",
+                "sdd_cli.commands.init._find_parent_workspace_with_profile",
                 side_effect=lambda p=None: None,
             ),
             patch(
@@ -216,7 +222,10 @@ class TestInitDefaultFlag:
 
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
-            patch("sdd_cli.commands.init._find_parent_workspace_with_profile", return_value=None),
+            patch(
+                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                return_value=None,
+            ),
             patch(
                 "sdd_cli.commands.init.write_profile",
                 return_value=mock_ctx,

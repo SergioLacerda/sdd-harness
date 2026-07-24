@@ -26,20 +26,7 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
-### Changed
-- **`sdd audit` token metrics are now scoped to `governance.ask` invocations.**
-  Previously `token_comparison.events_missing_tokens` (and the "events without
-  tokens" summary line) counted every event in the compliance log, including
-  `governance.ask.phase` latency sub-events and compile/lifecycle events that
-  never carry token telemetry — reporting ~87% "missing" on healthy data. The
-  denominator is now parent `governance.ask` events only; the JSON payload
-  gains `token_comparison.ask_invocations` and
-  `token_comparison.non_token_events`, and the text summary reads
-  "ask invocations without tokens: N (of M)". The correlation windows'
-  `token_coverage` uses the same scoped denominator, so windows are no longer
-  structurally pinned to `INCONCLUSIVO`/`LOW` confidence by the token-coverage
-  gate. Consumers of `events_missing_tokens` should expect the value to drop
-  accordingly (semantics change, same field name).
+## [1.0.3] — 2026-07-20
 
 ### Fixed
 - Fixed standalone `sdd governance compile`/`sdd governance generate` failing
@@ -53,10 +40,14 @@ Before tagging a new release, verify:
   now use the `no-guess-dev` version scheme, so dev builds report a version
   derived from the real last tag (e.g. `1.0.3.post1.dev0+g...`), which the
   existing fallback logic already resolves correctly.
-
-## [1.0.3] — 2026-07-17
-
-### Fixed
+- Fixed the `v1.0.2` `sdd-compile` release binaries reporting a hardcoded
+  `0.2.0` placeholder version (a leftover from before release builds injected
+  the real version via `-ldflags`), which broke the CLI↔binary version
+  handshake for every fresh install that falls back to downloading a release
+  binary — including the documented `uv tool install git+https://...`
+  onboarding flow from an unpinned branch ref, on every platform. `v1.0.2` was
+  never fixable in place (release assets are immutable); this release
+  supersedes it as the version the dev-build fallback resolves to.
 - Fixed standalone `sdd governance generate` for wizard/client installs that use
   a development `sdd-cli` version without matching GitHub release assets by
   staging native `sdd-compile` binaries into the `sdd-core` wheel during the
@@ -80,6 +71,19 @@ Before tagging a new release, verify:
   input (default `true`) that the dry-run explicitly disables.
 
 ### Changed
+- **`sdd audit` token metrics are now scoped to `governance.ask` invocations.**
+  Previously `token_comparison.events_missing_tokens` (and the "events without
+  tokens" summary line) counted every event in the compliance log, including
+  `governance.ask.phase` latency sub-events and compile/lifecycle events that
+  never carry token telemetry — reporting ~87% "missing" on healthy data. The
+  denominator is now parent `governance.ask` events only; the JSON payload
+  gains `token_comparison.ask_invocations` and
+  `token_comparison.non_token_events`, and the text summary reads
+  "ask invocations without tokens: N (of M)". The correlation windows'
+  `token_coverage` uses the same scoped denominator, so windows are no longer
+  structurally pinned to `INCONCLUSIVO`/`LOW` confidence by the token-coverage
+  gate. Consumers of `events_missing_tokens` should expect the value to drop
+  accordingly (semantics change, same field name).
 - Migrated all 9 workspace packages to `hatch-vcs` dynamic versioning
   (previously only `sdd-cli` used it; the other 8 had a static `version =
   "..."` rewritten in place by `tools/release/sync_versions.py`, which is now

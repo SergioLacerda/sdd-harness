@@ -42,7 +42,7 @@ def _archive_context_candidates(
             json.dumps(payload, indent=2, ensure_ascii=True), encoding="utf-8"
         )
         archived_items.append(
-            {"key": key, "path": str(target.relative_to(project_root))}
+            {"key": key, "path": target.relative_to(project_root).as_posix()}
         )
 
     ledger_summary = {
@@ -55,7 +55,7 @@ def _archive_context_candidates(
         json.dumps(ledger_summary, indent=2, ensure_ascii=True), encoding="utf-8"
     )
     return {
-        "archive_dir": str(archive_dir.relative_to(project_root)),
-        "summary_path": str(summary_path.relative_to(project_root)),
+        "archive_dir": archive_dir.relative_to(project_root).as_posix(),
+        "summary_path": summary_path.relative_to(project_root).as_posix(),
         "archived_items": archived_items,
     }

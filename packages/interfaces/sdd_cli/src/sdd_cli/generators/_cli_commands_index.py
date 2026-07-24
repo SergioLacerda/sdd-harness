@@ -118,7 +118,7 @@ def generate_cli_commands_index(
         )
 
         return {
-            "index_path": str(index_path),
+            "index_path": index_path.as_posix(),
             "command_count": len(commands),
             "commands": [cmd["name"] for cmd in commands],
         }

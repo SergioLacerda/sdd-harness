@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -201,8 +202,14 @@ class TestRunCommandExec:
 
         def mock_run(self, args, **kwargs):
             """Allow test binaries by delegating to real subprocess.run directly."""
-            # For test binaries like 'echo' and 'false', bypass SafeProcessRunner checks
-            if args and args[0] in ("echo", "false", "python3"):
+            # For test binaries like 'echo', 'false', and the current Python
+            # interpreter (used as a portable echo/false stand-in on Windows,
+            # where standalone echo/false executables don't exist), bypass
+            # SafeProcessRunner checks.
+            is_python_stand_in = bool(args) and Path(args[0]).stem.lower().startswith(
+                "python"
+            )
+            if args and (args[0] in ("echo", "false", "python3") or is_python_stand_in):
                 proc = subprocess.run(
                     args,
                     shell=False,
@@ -261,7 +268,13 @@ class TestRunCommandExec:
         from sdd_integration.runners.command_runner import run_command_exec
 
         context: dict[str, Any] = {"working_dir": tmp_path}
-        inputs = make_command_exec_inputs({"command": "echo hello"})
+        # Use the current interpreter as a portable stand-in for `echo`:
+        # standalone echo/false executables don't exist on Windows outside
+        # Git's usr/bin, so shell=False subprocess calls to them can 404.
+        python_exe = sys.executable.replace("\\", "/")
+        inputs = make_command_exec_inputs(
+            {"command": f'"{python_exe}" -c "print(\'hello\')"'}
+        )
         run_command_exec(inputs, context, tmp_path)
         assert context["last_exit_code"] == 0
         assert "hello" in context["last_stdout"]
@@ -270,8 +283,10 @@ class TestRunCommandExec:
         from sdd_integration.runners.command_runner import run_command_exec
 
         context: dict[str, Any] = {"working_dir": tmp_path}
-        # 'false' is a standard POSIX command that always returns exit code 1
-        inputs = make_command_exec_inputs({"command": "false"})
+        python_exe = sys.executable.replace("\\", "/")
+        inputs = make_command_exec_inputs(
+            {"command": f'"{python_exe}" -c "import sys; sys.exit(1)"'}
+        )
         run_command_exec(inputs, context, tmp_path)
         assert context["last_exit_code"] != 0
 
@@ -298,8 +313,9 @@ class TestRunCommandExec:
 
         context: dict[str, Any] = {"working_dir": tmp_path}
         # Python command to write to stderr
+        python_exe = sys.executable.replace("\\", "/")
         inputs = make_command_exec_inputs(
-            {"command": "python3 -c \"import sys; sys.stderr.write('err')\""}
+            {"command": f'"{python_exe}" -c "import sys; sys.stderr.write(\'err\')"'}
         )
         run_command_exec(inputs, context, tmp_path)
         assert "last_stderr" in context

@@ -127,6 +127,10 @@ def _find_blocking_parent_workspace(cwd: Path) -> Path | None:
     parent_workspace = _find_parent_workspace_with_profile(cwd.parent)
     if parent_workspace is None:
         return None
+    if not (parent_workspace / ".sdd" / "profile").exists():
+        # A bare `.sdd/` with no profile is a global CLI cache (toolchain
+        # binaries, runtime state), not an initialized project workspace.
+        return None
     project_boundary = _find_project_boundary(cwd)
     if project_boundary is not None and not _is_relative_to(
         parent_workspace, project_boundary

@@ -54,7 +54,7 @@ def compute_base_metrics(path: Path, content: str) -> FileMetrics:
     imports = [n for n in ast.walk(tree) if isinstance(n, ast.Import | ast.ImportFrom)]
     return FileMetrics(
         name=path.name,
-        path=str(path),
+        path=path.as_posix(),
         lines=len(content.splitlines()),
         classes=len(classes),
         functions=len(functions),

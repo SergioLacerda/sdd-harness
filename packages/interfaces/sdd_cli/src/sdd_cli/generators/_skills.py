@@ -96,7 +96,7 @@ def generate_skills_registry(output_dir: str, config: dict[str, Any]) -> dict[st
         skills_md_path.write_text(skills_md, encoding="utf-8")
 
         return {
-            "registry_path": str(registry_path),
+            "registry_path": registry_path.as_posix(),
             "skill_count": len(skills_list),
             "skill_dirs": skill_dirs,
         }

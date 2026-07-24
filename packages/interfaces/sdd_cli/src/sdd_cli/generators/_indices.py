@@ -70,7 +70,7 @@ def generate_skill_index(output_dir: str, config: dict[str, Any]) -> dict[str, A
         ]
 
         return {
-            "index_path": str(index_path),
+            "index_path": index_path.as_posix(),
             "skill_count": len(indexed_skills),
             "indexed_skills": indexed_skills,
         }

@@ -30,7 +30,13 @@ pytestmark = pytest.mark.unit
 class TestFindWorkspaceRoot:
     """Tests for find_workspace_root (merged from tests/unit/test_environment.py)."""
 
-    def test_returns_none_when_no_sdd_dir(self, tmp_path: Path) -> None:
+    def test_returns_none_when_no_sdd_dir(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # A real ancestor of tmp_path (e.g. a cached ~/.sdd/bin compiler
+        # download) could otherwise leak in and make this test flaky, since
+        # find_workspace_root walks all the way up to the filesystem root.
+        monkeypatch.setattr(Path, "parents", property(lambda self: ()))
         result = find_workspace_root(start=tmp_path)
         assert result is None
 

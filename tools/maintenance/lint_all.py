@@ -5,8 +5,17 @@
 """Lint all SDD packages and tools across the monorepo."""
 
 import argparse
+import io
 import sys
 from pathlib import Path
+
+if sys.platform == "win32":
+    # Windows consoles default to the legacy codepage (e.g. cp1252), which
+    # can't encode the emoji used in status output below.
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if isinstance(sys.stderr, io.TextIOWrapper):
+        sys.stderr.reconfigure(encoding="utf-8")
 
 # Repo root is two levels up from tools/maintenance/
 REPO_ROOT = Path(__file__).resolve().parents[2]
