@@ -44,6 +44,12 @@ theme:
 
 plugins:
   - search
+  # Note: mkdocs-static-i18n replicates the page tree per locale (docs/pt/...)
+  # but does not replicate MkDocs's root-only special files into each locale
+  # subtree — docs/pt/sitemap.xml (and sitemap.xml.gz) will not exist; only
+  # docs/sitemap.xml (default locale) is generated. This is expected upstream
+  # plugin behavior, not a bug: no in-repo consumer requires a per-locale
+  # sitemap today.
   - i18n:
       docs_structure: suffix
       fallback_to_default: true
@@ -101,6 +107,7 @@ nav:
     - C4 Context (L1): architecture/c4-context.md
     - C4 Containers (L2): architecture/c4-containers.md
     - C4 Components — Runtime (L3): architecture/c4-components-runtime.md
+    - C4 Components — CLI (L3): architecture/c4-components-cli.md
   - Runtime:
     - Agent Entrypoint: runtime/protocols/AGENT_ENTRYPOINT.md
     - Agent Runtime Protocol: runtime/protocols/AGENT_RUNTIME_PROTOCOL.md

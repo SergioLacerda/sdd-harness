@@ -14,3 +14,5 @@ Steps:
 Allowed: {% for cmd in skill.allowed_tools %}`{{ cmd }}` {% endfor %}
 
 Risk: `{{ skill.risk_score }}`
+
+{% include "_governance_contract.md" %}

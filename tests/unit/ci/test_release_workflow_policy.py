@@ -156,6 +156,10 @@ def test_release_workflows_smoke_the_git_install_channel_on_both_oses() -> None:
         assert "sdd install --wizard --non-interactive" in steps_text
         assert "sdd init --default" in steps_text
         assert "sdd governance validate" in steps_text
+        # The checkout is itself an SDD workspace (.sdd/ is committed): running
+        # the client bootstrap inside it trips the nested-workspace guard in
+        # `sdd init`, so the smoke project must live outside the checkout.
+        assert 'SMOKE_DIR="$RUNNER_TEMP/git-smoke-project"' in steps_text
 
 
 def test_release_gate_requires_git_install_smoke() -> None:

@@ -48,11 +48,18 @@ def resolve_tokens(query: str, output_text: str) -> tuple[int | None, int | None
     try:
         t_in = os.environ.get("SDD_TOKENS_INPUT", "").strip()
         t_out = os.environ.get("SDD_TOKENS_OUTPUT", "").strip()
+        # Estimated counts floor at 1 for non-empty text: texts shorter than
+        # 4 chars would estimate 0, which downstream telemetry cannot
+        # distinguish from "no measurement" (null).
         tokens_in: int | None = (
-            int(t_in) if t_in.isdigit() else (len(query) // 4 or None)
+            int(t_in)
+            if t_in.isdigit()
+            else (max(1, len(query) // 4) if query else None)
         )
         tokens_out: int | None = (
-            int(t_out) if t_out.isdigit() else (len(output_text) // 4 or None)
+            int(t_out)
+            if t_out.isdigit()
+            else (max(1, len(output_text) // 4) if output_text else None)
         )
         source = "env" if t_in.isdigit() or t_out.isdigit() else "estimated"
         return tokens_in, tokens_out, source

@@ -246,6 +246,7 @@ class TestAISeedsGeneratorCodex:
         assert seed["agent"] == "codex"
         assert seed["commands_ref"] == ".codex/commands.md"
         assert ".codex/commands.md" in seed["required_context"]
+        assert ".codex/skills/" not in seed["required_context"]
 
     def test_generate_codex_seed_handles_write_error(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]

@@ -10,6 +10,7 @@ from typing import Any
 from sdd_cli.generators._prompt_commands_builders import (
     _AUDIT_JSON_NOTE,
     _COMMANDS_TABLE,
+    _HARD_MODE_FIELD_CONTRACT,
     _RUNTIME_STATUS_NOTE,
     _SOFT_GOVERNANCE_CHECK,
     _prompt_spec_for_command,
@@ -55,6 +56,7 @@ def _write_cursor_commands(cursor_rules_dir: Path) -> tuple[str, Path]:
     )
     cursor_commands.write_text(
         cursor_commands.read_text(encoding="utf-8")
+        + _HARD_MODE_FIELD_CONTRACT
         + _SOFT_GOVERNANCE_CHECK
         + _AUDIT_JSON_NOTE,
         encoding="utf-8",
@@ -78,6 +80,7 @@ def _write_gemini_files(gemini_dir: Path) -> list[tuple[str, Path]]:
     )
     gemini_commands.write_text(
         gemini_commands.read_text(encoding="utf-8")
+        + _HARD_MODE_FIELD_CONTRACT
         + _SOFT_GOVERNANCE_CHECK
         + _AUDIT_JSON_NOTE,
         encoding="utf-8",
@@ -120,8 +123,58 @@ def _write_codex_commands(
     )
     codex_commands.write_text(
         codex_commands.read_text(encoding="utf-8")
+        + _codex_alias_validation_note(codex_dir, aliases)
+        + _HARD_MODE_FIELD_CONTRACT
         + _SOFT_GOVERNANCE_CHECK
         + _AUDIT_JSON_NOTE,
         encoding="utf-8",
     )
     return ("Codex/commands.md", codex_commands)
+
+
+def _missing_codex_alias_targets(
+    codex_dir: Path, aliases: list[tuple[str, str]]
+) -> list[str]:
+    """Return alias target prompt files missing from an existing Codex skills dir."""
+    skills_dir = codex_dir / "skills"
+    if not skills_dir.exists():
+        return []
+    missing: list[str] = []
+    for _slash, cmd_id in aliases:
+        target = skills_dir / f"{cmd_id}.prompt.md"
+        if not target.exists():
+            missing.append(target.as_posix())
+    return missing
+
+
+def _codex_alias_validation_note(
+    codex_dir: Path, aliases: list[tuple[str, str]]
+) -> str:
+    """Render Codex alias validation status without requiring skills in seed context."""
+    skills_dir = codex_dir / "skills"
+    if not skills_dir.exists():
+        return (
+            "\nCodex alias validation:\n"
+            "- `.codex/skills/` is not present; generated-file parity is checked when "
+            "adapter prompt files exist.\n"
+            "- This validates generated-file parity separately from Codex seed required "
+            "context.\n"
+        )
+    missing = _missing_codex_alias_targets(codex_dir, aliases)
+    if not missing:
+        return (
+            "\nCodex alias validation:\n"
+            "- `.codex/commands.md` aliases point to generated "
+            "`.codex/skills/*.prompt.md` files.\n"
+            "- This validates generated-file parity separately from Codex seed required "
+            "context.\n"
+        )
+    lines = [
+        "\nCodex alias validation:",
+        "- Missing generated prompt target(s):",
+    ]
+    lines.extend(f"  - `{path}`" for path in missing)
+    lines.append(
+        "- This validates generated-file parity separately from Codex seed required context."
+    )
+    return "\n".join(lines) + "\n"

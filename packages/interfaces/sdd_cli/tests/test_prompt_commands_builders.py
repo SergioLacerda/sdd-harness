@@ -125,6 +125,9 @@ def test_prompt_spec_for_sdd_ask() -> None:
     assert mode == "agent"
     assert 'sdd ask --full "$QUERY"' in body
     assert "API Error: 5xx" in body
+    assert "execution_gate" in body
+    assert "intake_index_mode: none" in body
+    assert "delegation_executed" in body
 
 
 def test_prompt_spec_for_sdd_organize() -> None:
@@ -135,6 +138,8 @@ def test_prompt_spec_for_sdd_organize() -> None:
     assert mode == "agent"
     assert "sdd organize" in body
     assert ".sdd/runtime/ask-intake/" in body
+    assert "execution_gate" in body
+    assert "intake_index_mode: none" in body
 
 
 def test_slash_aliases_markdown_renders_table_rows() -> None:

@@ -133,6 +133,7 @@ def build_audit_summary_data(
     """Build the full audit summary data dict for the main audit command."""
     computed = _compute_base_summary(events, top)
     drifts = computed["drifts"]
+    ask_events_count = computed["ask_events"]
     rows: list[DriftRow] = computed["rows"]
     correlation_windows = [
         _window_correlation(events, days=days, now_utc=now_utc) for days in (7, 14, 30)
@@ -141,8 +142,11 @@ def build_audit_summary_data(
         "exit_code": 0,
         "total_events": len(events),
         "total_drifts": len(drifts),
-        "drift_rate_pct": round((len(drifts) * 100.0 / len(events)), 2)
-        if events
+        # Denominator is ask-events-only (matching window_correlation's shape
+        # in _audit_window_support.py), not the entire raw event stream —
+        # non-ask events (compile, lifecycle) would otherwise dilute the rate.
+        "drift_rate_pct": round((len(drifts) * 100.0 / ask_events_count), 2)
+        if ask_events_count
         else 0.0,
         "events_by_command": computed["events_by_command"],
         "drift_by_type": computed["drift_by_type"],

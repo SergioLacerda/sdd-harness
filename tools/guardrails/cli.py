@@ -3,6 +3,7 @@
 Usage:
     uv run python -m tools.guardrails.cli --analyzer runtime
     uv run python -m tools.guardrails.cli --analyzer telemetry
+    uv run python -m tools.guardrails.cli --analyzer doc_references
     uv run python -m tools.guardrails.cli --analyzer all
 """
 
@@ -11,16 +12,24 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 
 from tools.guardrails.analyzers.runtime import RuntimeAnalyzer
 from tools.guardrails.analyzers.telemetry import TelemetryAnalyzer
+from tools.guardrails.checkers.doc_reference_checker import DocReferenceChecker
 from tools.guardrails.core.analyzer import GuardrailAnalyzer
 from tools.guardrails.core.config import AnalysisConfig
 
 ANALYZERS: dict[str, Callable[..., GuardrailAnalyzer]] = {
     "runtime": RuntimeAnalyzer,
     "telemetry": TelemetryAnalyzer,
+    "doc_references": DocReferenceChecker,
+}
+
+# doc_references scans Markdown, not Python — override the generic **/*.py default.
+_ANALYZER_INCLUDE_PATTERN_OVERRIDES: dict[str, list[str]] = {
+    "doc_references": ["**/*.md"],
 }
 
 DEFAULT_CONFIG_PATH = Path(__file__).parent / "analysis.yaml"
@@ -56,6 +65,14 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _config_for(analyzer_name: str, config: AnalysisConfig) -> AnalysisConfig:
+    """Apply analyzer-specific config overrides (e.g. Markdown vs Python globs)."""
+    include_patterns = _ANALYZER_INCLUDE_PATTERN_OVERRIDES.get(analyzer_name)
+    if not include_patterns:
+        return config
+    return replace(config, include_patterns=include_patterns)
+
+
 def run(
     analyzer_name: str,
     config: AnalysisConfig,
@@ -64,7 +81,10 @@ def run(
 ) -> None:
     """Run a single analyzer and print a one-line summary."""
     analyzer_cls = ANALYZERS[analyzer_name]
-    analyzer = analyzer_cls(config, output_dir=output_dir, target_dir=target_dir)
+    analyzer_config = _config_for(analyzer_name, config)
+    analyzer = analyzer_cls(
+        analyzer_config, output_dir=output_dir, target_dir=target_dir
+    )
     result = analyzer.analyze_all()
     print(
         f"{analyzer_name}: analyzed {result.summary['total_files']} file(s) "

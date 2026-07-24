@@ -17,3 +17,5 @@ Steps:
    `echo "Invalid command routes_to configuration"`
 {% endif %}
 5. Return `policy_result` and `next_actions`
+
+{% include "_governance_contract.md" %}

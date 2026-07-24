@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from sdd_cli.services import doctor_compiler
 from sdd_cli.services.doctor_compiler import (
     REPORT_SCHEMA_VERSION,
+    _current_packaged_digest,
     build_compiler_report,
     prune_cache,
     run_prune,
@@ -170,3 +173,197 @@ def test_report_runs_dry_validate_when_compiled_dir_exists(tmp_path: Path) -> No
     assert report["validate"]["ran"] is True
     assert report["validate"]["ok"] is False
     assert report["validate"]["errors"] == ["file not found: x.msgpack"]
+
+
+def test_report_lists_existing_cache_entries(tmp_path: Path) -> None:
+    cache = tmp_path / "cache"
+    (cache / "1.0.3").mkdir(parents=True)
+    (cache / "1.0.3" / "sdd-compile-linux-amd64").write_bytes(b"x")
+    (cache / "packaged" / "digest").mkdir(parents=True)
+    (cache / "packaged" / "digest" / "sdd-compile-linux-amd64").write_bytes(b"y")
+
+    with (
+        patch("sdd_core.utils.compiler_runner._cache_dir", return_value=cache),
+        patch(
+            "sdd_core.utils.compiler_runner.CompilerRunner",
+            return_value=_mock_runner(tmp_path),
+        ),
+    ):
+        report = build_compiler_report(workspace_root=tmp_path)
+
+    assert report["cache"] == {
+        "dir": str(cache),
+        "entries": [
+            "1.0.3/sdd-compile-linux-amd64",
+            "packaged/digest/sdd-compile-linux-amd64",
+        ],
+    }
+
+
+def test_report_captures_cli_version_error(tmp_path: Path) -> None:
+    with (
+        patch(
+            "sdd_cli.services.doctor_compiler._probe_cli_version",
+            return_value=(None, "package metadata missing"),
+        ),
+        patch(
+            "sdd_core.utils.compiler_runner.CompilerRunner",
+            return_value=_mock_runner(tmp_path),
+        ),
+    ):
+        report = build_compiler_report(workspace_root=tmp_path)
+
+    assert report["cli_version"] is None
+    assert report["cli_version_error"] == "package metadata missing"
+
+
+def test_report_captures_binary_version_error(tmp_path: Path) -> None:
+    runner = _mock_runner(tmp_path)
+    runner.version.side_effect = RuntimeError("version failed")
+
+    with patch("sdd_core.utils.compiler_runner.CompilerRunner", return_value=runner):
+        report = build_compiler_report(workspace_root=tmp_path)
+
+    assert report["binary"]["version_error"] == "version failed"
+
+
+def test_report_captures_validate_error(tmp_path: Path) -> None:
+    (tmp_path / ".sdd" / "compiled").mkdir(parents=True)
+    runner = _mock_runner(tmp_path)
+    runner.validate_compilation_detailed.side_effect = RuntimeError("bad compiled")
+
+    with patch("sdd_core.utils.compiler_runner.CompilerRunner", return_value=runner):
+        report = build_compiler_report(workspace_root=tmp_path)
+
+    assert report["validate"]["ran"] is True
+    assert report["validate"]["error"] == "bad compiled"
+
+
+def test_packaged_native_probe_reports_assets(tmp_path: Path) -> None:
+    native = tmp_path / "_native"
+    native.mkdir()
+    (native / "sdd-compile-linux-amd64").write_bytes(b"x")
+    (native / "README.txt").write_text("doc", encoding="utf-8")
+
+    with patch(
+        "sdd_cli.services.doctor_compiler.resources.files", return_value=tmp_path
+    ):
+        report = doctor_compiler._probe_packaged_native()
+
+    assert report == {
+        "present": True,
+        "assets": ["README.txt", "sdd-compile-linux-amd64"],
+    }
+
+
+def test_packaged_native_probe_reports_resource_errors() -> None:
+    with patch(
+        "sdd_cli.services.doctor_compiler.resources.files",
+        side_effect=RuntimeError("resource failure"),
+    ):
+        report = doctor_compiler._probe_packaged_native()
+
+    assert report == {
+        "present": False,
+        "assets": [],
+        "error": "resource failure",
+    }
+
+
+def test_current_packaged_digest_hashes_platform_asset(tmp_path: Path) -> None:
+    native = tmp_path / "_native"
+    native.mkdir()
+    asset = native / "sdd-compile-linux-amd64"
+    asset.write_bytes(b"native-binary")
+
+    with (
+        patch(
+            "sdd_core.utils.compiler_runner._asset_platform",
+            return_value=("linux", "amd64", ""),
+        ),
+        patch(
+            "sdd_cli.services.doctor_compiler.resources.files", return_value=tmp_path
+        ),
+    ):
+        digest = _current_packaged_digest()
+
+    assert digest == hashlib.sha256(b"native-binary").hexdigest()
+
+
+def test_current_packaged_digest_returns_none_when_asset_missing(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "_native").mkdir()
+
+    with (
+        patch(
+            "sdd_core.utils.compiler_runner._asset_platform",
+            return_value=("linux", "amd64", ""),
+        ),
+        patch(
+            "sdd_cli.services.doctor_compiler.resources.files", return_value=tmp_path
+        ),
+    ):
+        assert _current_packaged_digest() is None
+
+
+def test_prune_cache_keeps_regular_files(tmp_path: Path) -> None:
+    cache = _make_cache(tmp_path)
+    (cache / "README.txt").write_text("manual entry", encoding="utf-8")
+
+    result = prune_cache(
+        cache,
+        keep_versions=["1.0.3"],
+        keep_packaged_digest="digest-current",
+    )
+
+    assert "README.txt" in result["kept"]
+    assert (cache / "README.txt").exists()
+
+
+def test_run_prune_uses_resolved_keep_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
+    cache_dir = Path("/tmp/sdd-cache")
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        "sdd_cli.services.doctor_compiler._probe_cli_version",
+        lambda: ("1.0.3", None),
+    )
+    monkeypatch.setattr(
+        "sdd_core.utils.compiler_runner._cache_dir",
+        lambda: cache_dir,
+    )
+    monkeypatch.setattr(
+        "sdd_core.utils.compiler_runner._release_version_candidates",
+        lambda version: [version, f"{version}.dev1+gabc"],
+    )
+    monkeypatch.setattr(
+        "sdd_cli.services.doctor_compiler._current_packaged_digest",
+        lambda: "digest-current",
+    )
+
+    def fake_prune_cache(
+        cache_dir_arg: Path,
+        *,
+        keep_versions: list[str],
+        keep_packaged_digest: str | None,
+    ) -> dict[str, object]:
+        captured["cache_dir"] = cache_dir_arg
+        captured["keep_versions"] = keep_versions
+        captured["keep_packaged_digest"] = keep_packaged_digest
+        return {"removed": ["old"], "kept": ["1.0.3"]}
+
+    monkeypatch.setattr(
+        "sdd_cli.services.doctor_compiler.prune_cache",
+        fake_prune_cache,
+    )
+
+    result = run_prune()
+
+    assert result == {"removed": ["old"], "kept": ["1.0.3"]}
+    assert captured == {
+        "cache_dir": cache_dir,
+        "keep_versions": ["1.0.3", "1.0.3.dev1+gabc"],
+        "keep_packaged_digest": "digest-current",
+    }

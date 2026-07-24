@@ -8,6 +8,7 @@ from typing import Any
 from sdd_cli.services.audit_event_parser import (
     _is_ask_event,
     _is_ask_invocation,
+    _is_ask_phase_event,
     _is_drift_event,
     _quality_score,
     _token_totals,
@@ -74,8 +75,20 @@ def window_correlation(
     )
     asks = [event for event in window if _is_ask_event(event)]
     prev_asks = [event for event in previous_window if _is_ask_event(event)]
-    drifts = [event for event in asks if _is_drift_event(event)]
-    prev_drifts = [event for event in prev_asks if _is_drift_event(event)]
+    # governance.ask.phase sub-events inherit drift_detected from their parent
+    # invocation; excluded from the drift-rate numerator to avoid ~7x inflation
+    # (one parent + ~6 phase events per drifted invocation). The denominator
+    # (asks/prev_asks) intentionally keeps counting phase events.
+    drifts = [
+        event
+        for event in asks
+        if _is_drift_event(event) and not _is_ask_phase_event(event)
+    ]
+    prev_drifts = [
+        event
+        for event in prev_asks
+        if _is_drift_event(event) and not _is_ask_phase_event(event)
+    ]
     # Token coverage is measured over parent governance.ask invocations only;
     # phase sub-events never carry tokens and would pin coverage below the
     # confidence gate no matter how healthy the telemetry is.

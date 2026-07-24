@@ -179,7 +179,7 @@ lock:
 
 docs-build: build-web
 	$(PYTHON) -m mkdocs build --strict
-	$(PYTHON) -m sdd_wizard.orchestration.wizard.selector_compiler --output-dir build/site/selector
+	$(PYTHON) -m sdd_wizard.orchestration.wizard.selector_compiler_cli --output-dir build/site/selector
 
 docs-serve: docs-build
 	@# The Astro landing app is built with base: '/sdd-harness/' (astro.config.mjs)
@@ -187,6 +187,12 @@ docs-serve: docs-build
 	@# prefixed with /sdd-harness/. Serving build/site directly at the server
 	@# root breaks those references (unstyled CSS, /sdd-harness/selector/ 404s).
 	@# Mount build/site under that same prefix locally so it matches production.
+	@# Guard against a partial build/site/ (e.g. a selector-compiler regression)
+	@# being served silently — fail loudly instead of a confusing 404 at runtime.
+	@test -f build/site/selector/index.html || { \
+		echo "ERROR: build/site/selector/index.html missing — selector compiler did not run. Run 'make docs-build' and check its output."; \
+		exit 1; \
+	}
 	@mkdir -p build/serve-root
 	@ln -sfn ../site build/serve-root/sdd-harness
 	@echo "Serving at http://localhost:8000/sdd-harness/"

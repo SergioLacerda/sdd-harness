@@ -29,6 +29,19 @@ _SOFT_GOVERNANCE_CHECK = (
     "  `SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`\n"
 )
 
+_HARD_MODE_FIELD_CONTRACT = (
+    "\nHard-mode governance fields:\n"
+    "- Preserve and report `execution_gate`, `gate_reason`, `intake_index_mode`,\n"
+    "  `intake_chunks`, and `governance_mode` when command output includes them.\n"
+    "- Preserve delegation/provider-binding signals such as `delegation_status`,\n"
+    "  `delegation_executed`, and `provider_bound` when present.\n"
+    "- If `execution_gate: blocked`, stop and report `gate_reason`.\n"
+    "- If `execution_gate: allowed`, continue only within the command or skill contract.\n"
+    "- `intake_index_mode: none` is independent from `execution_gate`; surface it\n"
+    "  by name and value, and do not describe it as a blocked gate unless\n"
+    "  `execution_gate: blocked` is also present.\n"
+)
+
 _AUDIT_JSON_NOTE = (
     "\nAudit JSON policy:\n"
     "- `.sdd/compiled/audit/*.json` is human/audit oriented.\n"
@@ -39,6 +52,7 @@ _AUDIT_JSON_NOTE = (
 __all__ = [
     "_AUDIT_JSON_NOTE",
     "_COMMANDS_TABLE",
+    "_HARD_MODE_FIELD_CONTRACT",
     "_RUNTIME_STATUS_NOTE",
     "_SOFT_GOVERNANCE_CHECK",
 ]
@@ -85,6 +99,8 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
             "- If preflight fails, do not continue; return governance-blocked status.\n"
             "- Only continue to `sdd ask --full` when preflight is healthy.\n"
             '- For large/noisy input, run `sdd organize "$QUERY"` first and consume indexed chunks only.\n\n'
+            + _HARD_MODE_FIELD_CONTRACT
+            + "\n\n"
             "Response contract:\n"
             "- Show `fingerprint`, `context_source`, and `mandates_loaded` from runtime output.\n"
             "- Treat `.sdd` runtime artifacts as source of truth for these fields.\n"
@@ -98,7 +114,8 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
             "agent",
             "Prepare large/noisy input before diagnosis or ask.\n\n"
             'Execute in the terminal:\n```bash\nsdd organize "$QUERY"\n```\n\n'
-            "Use `.sdd/runtime/ask-intake/` artifacts for selective retrieval.",
+            "Use `.sdd/runtime/ask-intake/` artifacts for selective retrieval.\n"
+            + _HARD_MODE_FIELD_CONTRACT,
         )
 
     if route_type == "cli" and isinstance(route, dict):
@@ -108,7 +125,8 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
             f"Run {cli_command}",
             "agent",
             "Run the mapped SDD CLI command.\n\n"
-            f"Execute in the terminal:\n```bash\n{cli_command}\n```\n",
+            f"Execute in the terminal:\n```bash\n{cli_command}\n```\n"
+            + _HARD_MODE_FIELD_CONTRACT,
         )
 
     if route_type == "skill" and isinstance(route, dict):
@@ -118,12 +136,14 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
             f"Run governed skill {skill_id}",
             "agent",
             "Run the mapped governed skill through the runtime engine.\n\n"
-            f"Execute in the terminal:\n```bash\nsdd skills run {skill_id}\n```\n",
+            f"Execute in the terminal:\n```bash\nsdd skills run {skill_id}\n```\n"
+            + _HARD_MODE_FIELD_CONTRACT,
         )
 
     return (
         slug,
         f"Run {slug}",
         "agent",
-        "Run the mapped governed operation for this command as defined in `.sdd/commands/registry.json`.",
+        "Run the mapped governed operation for this command as defined in "
+        "`.sdd/commands/registry.json`." + _HARD_MODE_FIELD_CONTRACT,
     )
