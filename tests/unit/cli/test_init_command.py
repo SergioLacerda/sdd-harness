@@ -143,7 +143,7 @@ class TestInitCommand:
             pytest.raises(typer.Exit) as exc_info,
             patch("sdd_cli.commands.init.Path.cwd", return_value=child),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init.find_workspace_root",
                 return_value=parent_root,
             ),
         ):
@@ -170,7 +170,7 @@ class TestInitCommand:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=child),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init.find_workspace_root",
                 return_value=parent_root,
             ),
         ):

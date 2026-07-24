@@ -72,12 +72,18 @@ class TestInitEdgeCases:
         )
 
         def _fake_cwd():
-            return parent_root / "child"
+            return tmp_path / "parent" / "child"
 
-        with patch("sdd_cli.commands.init.Path.cwd", _fake_cwd):
-            result = runner.invoke(app, [])
-        assert result.exit_code == 1
-        assert "already exists" in result.output
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
+            patch(
+                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                return_value=parent_root,
+            ),
+        ):
+            result = runner.invoke(app, ["--default", "--no-bootstrap"])
+        assert result.exit_code == 0, result.output
+        assert (tmp_path / "parent" / "child" / ".sdd" / "profile").exists()
 
     def test_allows_init_when_parent_sdd_dir_has_no_profile(
         self, tmp_path: Path
@@ -99,8 +105,7 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
-                return_value=parent_root,
+                "sdd_cli.commands.init.find_workspace_root", return_value=parent_root
             ),
         ):
             result = runner.invoke(app, ["--default", "--no-bootstrap"])

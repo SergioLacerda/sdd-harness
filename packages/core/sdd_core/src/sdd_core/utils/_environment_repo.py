@@ -8,7 +8,6 @@ import types
 from pathlib import Path
 from typing import Any, cast
 
-_tomllib_mod: types.ModuleType | None
 if sys.version_info >= (3, 11):
     import tomllib as _tomllib_mod
 else:
