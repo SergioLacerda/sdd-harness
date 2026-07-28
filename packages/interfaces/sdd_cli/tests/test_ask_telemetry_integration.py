@@ -42,7 +42,12 @@ def test_ask_runtime_cache_uses_effective_degraded_reason(
     def _fake_emit(_event_name: str, **kwargs: object) -> None:
         captured_emit.append(kwargs)
 
-    def _fake_cache(_workspace_root: Path, last_ask: dict[str, object]) -> None:
+    def _fake_cache(
+        _workspace_root: Path,
+        last_ask: dict[str, object],
+        *_args: object,
+        **_kwargs: object,
+    ) -> None:
         captured_cache.append(last_ask)
 
     fake_profile = MagicMock()
@@ -71,7 +76,10 @@ def test_ask_runtime_cache_uses_effective_degraded_reason(
         ),
         patch("sdd_cli.commands._ask_backend._guard_budget_breach"),
         patch("sdd_cli.commands._ask_backend._guard_handshake"),
-        patch("sdd_cli.commands._ask_backend._write_runtime_cache", _fake_cache),
+        patch(
+            "sdd_cli.commands._ask_backend._write_runtime_cache_and_routing_decision",
+            _fake_cache,
+        ),
         patch("sdd_cli.commands._ask_backend._upsert_ask_session"),
         patch("sdd_cli.commands._ask_backend._emit_state_warnings"),
         patch(
@@ -95,7 +103,7 @@ def test_ask_runtime_cache_uses_effective_degraded_reason(
         ),
         patch(
             "sdd_cli.commands._ask_backend._run_organize_intake",
-            return_value=(False, "light_input", None, 0, "indexed_only"),
+            return_value=(False, "light_input", None, 0, "indexed_only", None),
         ),
         patch(
             "sdd_cli.commands._ask_backend._governance_footer_for_state",
@@ -154,6 +162,7 @@ def test_ask_telemetry_emits_token_source_estimated(
         patch("sdd_cli.commands._ask_backend._guard_budget_breach"),
         patch("sdd_cli.commands._ask_backend._guard_handshake"),
         patch("sdd_cli.commands._ask_backend._write_runtime_cache"),
+        patch("sdd_cli.commands._ask_backend._store_routing_decision"),
         patch("sdd_cli.commands._ask_backend._upsert_ask_session"),
         patch("sdd_cli.commands._ask_backend._emit_state_warnings"),
         patch(
@@ -175,7 +184,7 @@ def test_ask_telemetry_emits_token_source_estimated(
         ),
         patch(
             "sdd_cli.commands._ask_backend._run_organize_intake",
-            return_value=(False, "light_input", None, 0, "indexed_only"),
+            return_value=(False, "light_input", None, 0, "indexed_only", None),
         ),
         patch(
             "sdd_cli.commands._ask_backend._governance_footer_for_state",
@@ -238,6 +247,7 @@ def test_ask_json_context_prefers_summary_full_when_env_enabled(
         patch("sdd_cli.commands._ask_backend._guard_budget_breach"),
         patch("sdd_cli.commands._ask_backend._guard_handshake"),
         patch("sdd_cli.commands._ask_backend._write_runtime_cache"),
+        patch("sdd_cli.commands._ask_backend._store_routing_decision"),
         patch("sdd_cli.commands._ask_backend._upsert_ask_session"),
         patch("sdd_cli.commands._ask_backend._emit_state_warnings"),
         patch("sdd_cli.commands._ask_backend._emit_ask_telemetry"),
@@ -260,7 +270,7 @@ def test_ask_json_context_prefers_summary_full_when_env_enabled(
         ),
         patch(
             "sdd_cli.commands._ask_backend._run_organize_intake",
-            return_value=(False, "light_input", None, 0, "indexed_only"),
+            return_value=(False, "light_input", None, 0, "indexed_only", None),
         ),
         patch(
             "sdd_cli.commands._ask_backend._governance_footer_for_state",

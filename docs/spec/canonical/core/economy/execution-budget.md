@@ -69,6 +69,31 @@ Rule 3 ("MUST NOT load additional context once BREACH is reached") is enforced a
 
 ---
 
+## 🏷️ `path_id` Namespace — Two Separate Concepts
+
+`path_id` appears in two unrelated places in this codebase — do not conflate them:
+
+- **Canonical PATH A–F** (this document + `cognition/context-loading/path-routing.md`)
+  — a task-complexity classification for the *agent's current working session*
+  (bug fix, feature, complex feature, multi-thread, incident, structural cleanup).
+  Carried via the `SDD_PATH_ID` environment variable and consulted by
+  `_PATH_BUDGET_BYTES` for budget-ceiling lookups. `BudgetBreachError.path_id`
+  (see Programmatic Enforcement above) reflects this taxonomy only when a caller
+  explicitly passes it.
+- **Tool-internal routing labels** — some CLI commands emit their own `path_id`-shaped
+  telemetry label for unrelated per-call routing decisions (e.g. `sdd ask` uses
+  `PATH_A`/`PATH_B` to record whether a query triggered heavy `sdd-organize` intake).
+  These labels answer a different question than the canonical PATH classification
+  above and must never be mapped onto it — doing so would misclassify the agent's
+  task budget based on an unrelated signal.
+
+**Current state:** as of this writing, no component in this codebase sets
+`SDD_PATH_ID` in production — the canonical PATH A–F circuit breaker described above
+has no live producer feeding it a real classification. `BudgetBreachError.path_id`
+is `None`/unset unless a caller supplies it explicitly.
+
+---
+
 ## 💾 Context Cache Interaction
 
 The `ContextCache` (LRU, 128 entries, 5-min TTL) has important economy implications:

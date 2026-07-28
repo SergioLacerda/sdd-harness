@@ -46,6 +46,7 @@ def _session(*, phase_timer: PhaseTimer) -> _AskSessionContext:
         organize_artifact_path="",
         organize_chunks=0,
         organize_retrieval="indexed_only",
+        cached_handbook_task_type=None,
         profile="master",
         state="GREEN",
         agent_id="agent-1",

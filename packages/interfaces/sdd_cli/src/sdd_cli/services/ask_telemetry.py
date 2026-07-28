@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from sdd_runtime import (
     OtelBridge,
@@ -30,12 +30,44 @@ from sdd_cli.services.ask_telemetry_worker import (
 from sdd_cli.utils.telemetry_paths import resolve_compliance_events_path
 
 __all__ = [
+    "build_ask_telemetry_sink",
     "emit_ask_telemetry",
     "enqueue_flush",
     "resolve_tokens",
     "route_canonical_event",
     "upsert_ask_session",
 ]
+
+
+def build_ask_telemetry_sink(
+    workspace_root: Path,
+    *,
+    telemetry_sink_cls: type[TelemetrySink] = TelemetrySink,
+    otel_bridge_cls: type[OtelBridge] = OtelBridge,
+    otlp_exporter_cls: type[OtlpHttpExporter] = OtlpHttpExporter,
+) -> _EventSink:
+    """Build one telemetry sink to be reused across every event in a single
+    `sdd ask` call.
+
+    Each `emit_ask_telemetry` call previously built (and flushed) its own
+    sink — up to 6-7 per call (one parent + one per recorded phase), each
+    triggering its own background flush. Building one sink up front and
+    passing it into every `emit_ask_telemetry` call (with `flush=False`),
+    then flushing once at the end, collapses that into a single flush per
+    call without changing event content (design.md D4).
+    """
+    events_path = resolve_compliance_events_path(workspace_root=workspace_root)
+    otel_endpoint = get_otel_endpoint()
+    return cast(
+        _EventSink,
+        build_sink(
+            otel_endpoint=otel_endpoint,
+            events_path=events_path,
+            telemetry_sink_cls=telemetry_sink_cls,
+            otel_bridge_cls=otel_bridge_cls,
+            otlp_exporter_cls=otlp_exporter_cls,
+        ),
+    )
 
 
 def resolve_tokens(query: str, output_text: str) -> tuple[int | None, int | None, str]:
@@ -93,6 +125,8 @@ def emit_ask_telemetry(
     extra_details: dict[str, Any] | None = None,
     parent_event_id: str = "",
     logger: Any | None = None,
+    sink: _EventSink | None = None,
+    flush: bool = True,
     telemetry_sink_cls: type[TelemetrySink] = TelemetrySink,
     otel_bridge_cls: type[OtelBridge] = OtelBridge,
     otlp_exporter_cls: type[OtlpHttpExporter] = OtlpHttpExporter,
@@ -102,9 +136,14 @@ def emit_ask_telemetry(
     Returns the constructed `RuntimeEvent` (with its auto-generated
     `span_id`) so callers can link child events via `parent_event_id`.
     Returns `None` if emission failed (best-effort, never raises).
+
+    Pass `sink` (from `build_ask_telemetry_sink`) to reuse one sink across
+    several calls in the same `sdd ask` invocation, and `flush=False` on all
+    but the last call so the background flush happens once, not once per
+    event (design.md D4). Defaults preserve prior behavior: build a fresh
+    sink and flush immediately.
     """
     try:
-        events_path = resolve_compliance_events_path(workspace_root=workspace_root)
         workspace_id = resolve_workspace_id(
             workspace_root=workspace_root, logger=logger
         )
@@ -118,14 +157,16 @@ def emit_ask_telemetry(
             extra_details=extra_details,
         )
         status = resolve_status(state)
-        otel_endpoint = get_otel_endpoint()
-        sink: _EventSink = build_sink(
-            otel_endpoint=otel_endpoint,
-            events_path=events_path,
-            telemetry_sink_cls=telemetry_sink_cls,
-            otel_bridge_cls=otel_bridge_cls,
-            otlp_exporter_cls=otlp_exporter_cls,
-        )
+        if sink is None:
+            events_path = resolve_compliance_events_path(workspace_root=workspace_root)
+            otel_endpoint = get_otel_endpoint()
+            sink = build_sink(
+                otel_endpoint=otel_endpoint,
+                events_path=events_path,
+                telemetry_sink_cls=telemetry_sink_cls,
+                otel_bridge_cls=otel_bridge_cls,
+                otlp_exporter_cls=otlp_exporter_cls,
+            )
         event = RuntimeEvent(
             event=event_name,
             command=command,
@@ -148,7 +189,8 @@ def emit_ask_telemetry(
             details=details,
         )
         sink.emit(event)
-        enqueue_flush(sink)
+        if flush:
+            enqueue_flush(sink)
         return event
     except Exception as exc:
         if logger is not None:

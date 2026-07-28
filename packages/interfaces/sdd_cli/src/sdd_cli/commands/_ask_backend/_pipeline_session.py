@@ -19,12 +19,29 @@ logger = logging.getLogger(__name__)
 
 
 def _run_organize_intake(
-    workspace_root: Any, query: str
-) -> tuple[bool, str, str, int, str]:
-    """Run sdd-organize intake and return (used, reason, artifact_path, chunks, retrieval)."""
+    workspace_root: Any, query: str, skill: str | None
+) -> tuple[bool, str, str, int, str, str | None]:
+    """Run sdd-organize intake.
+
+    Returns (used, reason, artifact_path, chunks, retrieval,
+    cached_handbook_task_type). On a routing-decision cache hit (same
+    normalized query + skill + last-known governance fingerprint), the
+    `should_use_organize` heuristic is skipped in favor of the cached
+    decision; `cached_handbook_task_type` is then non-None so
+    `_infer_handbook_task_type` can be skipped downstream too.
+    """
     from sdd_cli.commands import _ask_backend as _backend
 
-    organize_used, organize_reason = _backend._should_use_organize(query)
+    cached_decision = _backend._resolve_routing_decision(workspace_root, query, skill)
+    cached_handbook_task_type: str | None = None
+    if cached_decision is not None:
+        organize_used = bool(cached_decision.get("organize_used", False))
+        organize_reason = str(
+            cached_decision.get("organize_reason") or "cached_routing_decision"
+        )
+        cached_handbook_task_type = cached_decision.get("handbook_task_type") or None
+    else:
+        organize_used, organize_reason = _backend._should_use_organize(query)
     organize_artifact_path = ""
     organize_chunks = 0
     organize_retrieval = "indexed_only"
@@ -50,6 +67,7 @@ def _run_organize_intake(
         organize_artifact_path,
         organize_chunks,
         organize_retrieval,
+        cached_handbook_task_type,
     )
 
 
@@ -69,7 +87,7 @@ def _emit_state_warnings(state: str) -> None:
         )
 
 
-def _start_ask_session(query: str) -> _AskSessionContext:
+def _start_ask_session(query: str, skill: str | None) -> _AskSessionContext:
     from sdd_cli.commands import _ask_backend as _backend
 
     start_mono = time.monotonic()
@@ -89,7 +107,8 @@ def _start_ask_session(query: str) -> _AskSessionContext:
             organize_artifact_path,
             organize_chunks,
             organize_retrieval,
-        ) = _backend._run_organize_intake(workspace_root, query)
+            cached_handbook_task_type,
+        ) = _backend._run_organize_intake(workspace_root, query, skill)
 
     with timer.phase("ask.handshake.guard", latency_domain="governance"):
         _backend._guard_handshake(workspace_root)
@@ -105,6 +124,7 @@ def _start_ask_session(query: str) -> _AskSessionContext:
         organize_artifact_path=organize_artifact_path,
         organize_chunks=organize_chunks,
         organize_retrieval=organize_retrieval,
+        cached_handbook_task_type=cached_handbook_task_type,
         profile=profile,
         state=state,
         agent_id=os.environ.get("SDD_AGENT_ID", "unknown"),
@@ -130,6 +150,7 @@ def _load_ask_snapshot(
                 organize_used=session.organize_used,
                 workspace_root=session.workspace_root,
                 require_handshake=True,
+                cached_handbook_task_type=session.cached_handbook_task_type,
             )
     except PermissionError as exc:
         typer.echo(f"BLOCK [ask]: {exc}", err=True)

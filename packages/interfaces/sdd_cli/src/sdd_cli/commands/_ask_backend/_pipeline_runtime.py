@@ -113,6 +113,10 @@ def _sync_ask_runtime(
     effective_degraded_reason = _resolve_ask_degraded_reason(
         degraded=degraded, degrade_reason=degrade_reason, authenticated=authenticated
     )
+    # One sink shared across every telemetry event this call emits (parent +
+    # all phases), flushed once at the end instead of once per event
+    # (design.md D4 — was up to 6-7 separate flushes per `sdd ask` call).
+    telemetry_sink = _backend._build_ask_telemetry_sink(session.workspace_root)
     parent_event = _backend._emit_ask_telemetry(
         "governance.ask",
         command="ask",
@@ -147,6 +151,8 @@ def _sync_ask_runtime(
             if isinstance(handbook_lookup, dict)
             else None,
         ),
+        sink=telemetry_sink,
+        flush=False,
     )
     parent_span_id = getattr(parent_event, "span_id", "") or ""
     _maybe_record_llm_exchange_phase(session.phase_timer)
@@ -179,8 +185,11 @@ def _sync_ask_runtime(
                 # missing_drift_type rows in audit drift tables.
                 "drift_type": drift_type,
             },
+            sink=telemetry_sink,
+            flush=False,
         )
-    _backend._write_runtime_cache(
+    _backend._enqueue_flush(telemetry_sink)
+    _backend._write_runtime_cache_and_routing_decision(
         session.workspace_root,
         {
             "ts": _now(),
@@ -192,6 +201,14 @@ def _sync_ask_runtime(
             "degraded": degraded,
             "degraded_reason": effective_degraded_reason,
             "trust_source": trust_source,
+        },
+        inputs.query,
+        inputs.skill,
+        fingerprint,
+        {
+            "organize_used": session.organize_used,
+            "organize_reason": session.organize_reason,
+            "handbook_task_type": ask_snapshot.get("handbook_task_type", ""),
         },
     )
     _backend._upsert_ask_session(
@@ -236,7 +253,7 @@ def _ask_cmd_impl(
     )
     from sdd_cli.commands import _ask_backend as _backend
 
-    session = _start_ask_session(inputs.query)
+    session = _start_ask_session(inputs.query, inputs.skill)
     if intake_only:
         # Cheap hook-mode profile (spike: 20260714-sdd-ask-single-entrypoint-
         # spike, I-005). Deliberately skips build_governed_ask_snapshot

@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import typer
+from sdd_runtime.cache import get_context_cache
 
 from sdd_cli.commands._ask_backend import app
 from sdd_cli.services.ask_organize import run_sdd_organize as run_sdd_organize
@@ -17,6 +19,36 @@ from ._helpers import (
     _collect_learning_signals,
     _signature_mode,
 )
+
+_HANDBOOK_LOOKUP_LIMIT = 5
+
+
+def _cached_handbook_lookup(
+    root: Path, *, query: str, task_type: str, operation_phase: str
+) -> Any:
+    """Look up runtime handbook entries via the shared `ContextLoader` cache.
+
+    The default `sdd ask` snapshot path re-read and re-matched
+    `index.yaml` on every call with zero caching benefit, unlike `--dossier`
+    (which already uses this same in-memory LRU cache, 128 entries/5-min TTL,
+    via `ContextLoader`). Reusing that cache here — keyed on the query plus
+    task_type/operation_phase — avoids re-parsing the handbook index for a
+    repeated/near-identical query within the TTL window.
+    """
+    from sdd_cli.services.governance_docs_sources import lookup_runtime_handbook
+
+    cache = get_context_cache()
+    artifact_id = f"handbook:{root.resolve()}"
+    item_types = [task_type, f"phase:{operation_phase}"]
+    cached = cache.get(artifact_id, query, _HANDBOOK_LOOKUP_LIMIT, item_types)
+    if cached is not None:
+        return cached
+    result = lookup_runtime_handbook(
+        root, task_type=task_type, operation_phase=operation_phase
+    )
+    cache.set(artifact_id, query, _HANDBOOK_LOOKUP_LIMIT, item_types, result)
+    return result
+
 
 __all__ = [
     "_should_use_organize",
@@ -47,6 +79,7 @@ def build_governed_ask_snapshot(
     organize_used: bool,
     workspace_root: Any | None = None,
     require_handshake: bool = True,
+    cached_handbook_task_type: str | None = None,
 ) -> dict[str, Any]:
     """Build a governed ask snapshot with envelope + learning context."""
     from sdd_cli.commands import _ask_backend as _backend
@@ -68,11 +101,15 @@ def build_governed_ask_snapshot(
     drift_detected = _backend._runtime_drift_check(root, fingerprint)
     root_seed_drift_detected = _backend._root_seed_drift_check(root)
     learning_signals = _collect_learning_signals(workspace_root=root)
-    from sdd_cli.services.governance_docs_sources import lookup_runtime_handbook
-
-    handbook_lookup = lookup_runtime_handbook(
+    handbook_task_type = (
+        cached_handbook_task_type
+        if cached_handbook_task_type is not None
+        else _infer_handbook_task_type(query, skill)
+    )
+    handbook_lookup = _cached_handbook_lookup(
         root,
-        task_type=_infer_handbook_task_type(query, skill),
+        query=query,
+        task_type=handbook_task_type,
         operation_phase="context_loading",
     )
     return {
@@ -87,6 +124,7 @@ def build_governed_ask_snapshot(
         "drift_detected": drift_detected,
         "root_seed_drift_detected": root_seed_drift_detected,
         "learning_signals": learning_signals,
+        "handbook_task_type": handbook_task_type,
         "handbook_lookup": {
             "status": handbook_lookup.status,
             "diagnostic": handbook_lookup.diagnostic,

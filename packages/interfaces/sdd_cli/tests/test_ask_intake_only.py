@@ -58,7 +58,7 @@ def _patch_cheap_session(tmp_path: Path, *, organize_used: bool, organize_reason
         patch("sdd_cli.commands._ask_backend._guard_handshake"),
         patch(
             "sdd_cli.commands._ask_backend._run_organize_intake",
-            return_value=(organize_used, organize_reason, "", 0, "indexed_only"),
+            return_value=(organize_used, organize_reason, "", 0, "indexed_only", None),
         ),
     )
 
@@ -194,6 +194,7 @@ def test_default_ask_without_intake_only_flag_still_loads_full_snapshot(
         ) as mock_snapshot,
         patch("sdd_cli.commands._ask_backend._emit_ask_telemetry") as mock_telemetry,
         patch("sdd_cli.commands._ask_backend._write_runtime_cache"),
+        patch("sdd_cli.commands._ask_backend._store_routing_decision"),
         patch("sdd_cli.commands._ask_backend._upsert_ask_session"),
     ):
         result = runner.invoke(app, ["--json", "ask", "status?"])

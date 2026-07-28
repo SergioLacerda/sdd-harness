@@ -73,6 +73,7 @@ def _run_ask_capture_events(
         patch("sdd_cli.commands._ask_backend._guard_budget_breach"),
         patch("sdd_cli.commands._ask_backend._guard_handshake"),
         patch("sdd_cli.commands._ask_backend._write_runtime_cache"),
+        patch("sdd_cli.commands._ask_backend._store_routing_decision"),
         patch("sdd_cli.commands._ask_backend._upsert_ask_session"),
         patch("sdd_cli.commands._ask_backend._emit_state_warnings"),
         patch(
@@ -96,7 +97,7 @@ def _run_ask_capture_events(
         ),
         patch(
             "sdd_cli.commands._ask_backend._run_organize_intake",
-            return_value=(False, "light_input", None, 0, "indexed_only"),
+            return_value=(False, "light_input", None, 0, "indexed_only", None),
         ),
         patch(
             "sdd_cli.commands._ask_backend._governance_footer_for_state",
