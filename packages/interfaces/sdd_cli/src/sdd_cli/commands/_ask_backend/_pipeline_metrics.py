@@ -3,34 +3,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
-from sdd_cli.commands._ask_backend._pipeline_runtime_support import (
-    check_budget_zone_and_compress as _support_check_budget_zone_and_compress,
-)
 from sdd_cli.services.ask_types import _AskInputs
 
-from ._helpers import _prefer_full_summary
 from ._telemetry import _capture_effective_tokens_with_source
 
 logger = logging.getLogger(__name__)
-
-
-def _check_budget_zone_and_compress(
-    query: str,
-    estimated_context_bytes: int,
-    mandates_count: int,
-    *,
-    prefer_full_summary_fn: Any = _prefer_full_summary,
-    logger: logging.Logger = logger,
-) -> tuple[int, float | None]:
-    return _support_check_budget_zone_and_compress(
-        query,
-        estimated_context_bytes,
-        mandates_count,
-        prefer_full_summary_fn=prefer_full_summary_fn,
-        logger=logger,
-    )
 
 
 def _resolve_runtime_token_metrics(

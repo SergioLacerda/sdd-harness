@@ -30,7 +30,6 @@ __all__ = [
     "_hash_query",
     "_load_compiled_governance",
     "_check_fingerprint_drift",
-    "_check_budget_zone_and_compress",
     "_write_runtime_cache",
     "_upsert_ask_session",
     "_emit_state_warnings",
@@ -74,7 +73,6 @@ from ._pipeline import (  # noqa: E402
     build_governed_ask_snapshot,
     run_sdd_organize,
 )
-from ._pipeline_metrics import _check_budget_zone_and_compress  # noqa: E402
 from ._pipeline_runtime import _ask_cmd_impl as _ask_cmd_impl  # noqa: E402
 from ._pipeline_session import (  # noqa: E402
     _emit_state_warnings,

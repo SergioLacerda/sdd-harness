@@ -9,5 +9,4 @@ def test_governance_ask_phase_is_mandatory():
 
 def test_existing_mandatory_events_unchanged():
     assert "governance.ask" in _MANDATORY_EVENTS
-    assert "governance.ask.full" in _MANDATORY_EVENTS
     assert "governance.violation" in _MANDATORY_EVENTS

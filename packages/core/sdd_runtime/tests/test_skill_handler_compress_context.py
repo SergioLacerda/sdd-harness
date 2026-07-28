@@ -70,7 +70,7 @@ def test_compress_context_handler_archives_candidates(tmp_path: Path) -> None:
     )
 
     report = outcome.artifacts["compression_report"]
-    assert report["archive_dir"].startswith(".analysis/archive/")
+    assert report["archive_dir"].startswith(".sdd/runtime/context-archive/")
     assert report["summary_path"].endswith("compression-summary.json")
     summary_path = tmp_path / report["summary_path"]
     assert summary_path.exists()

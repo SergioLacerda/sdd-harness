@@ -13,7 +13,6 @@ from typer.testing import CliRunner
 
 from sdd_cli.commands._ask_backend import (
     _capture_effective_tokens,
-    _check_budget_zone_and_compress,
     _check_fingerprint_drift,
     _get_profile_state,
     _hash_query,
@@ -820,11 +819,3 @@ class TestAuxHelpers:
         tokens_in, tokens_out = _capture_effective_tokens(10, 20)
         assert tokens_in == 10
         assert tokens_out == 20
-
-    def test_check_budget_zone_returns_original_when_no_path_id(self) -> None:
-        with patch.dict("os.environ", {}, clear=True):
-            result_bytes, ratio = _check_budget_zone_and_compress(
-                "query", estimated_context_bytes=321, mandates_count=2
-            )
-        assert result_bytes == 321
-        assert ratio is None

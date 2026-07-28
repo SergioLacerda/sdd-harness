@@ -18,7 +18,7 @@ class CompressContextHandler(Handler):
 
     Example:
         Long chat logs or large collections are summarized in memory and
-        archived under `.analysis/archive/<timestamp>/`.
+        archived under `.sdd/runtime/context-archive/<timestamp>/`.
     """
 
     def pre_run(

@@ -26,7 +26,7 @@ def _archive_context_candidates(
     context: dict[str, Any],
     archival_candidates: list[str],
 ) -> dict[str, Any]:
-    archive_root = project_root / ".analysis" / "archive"
+    archive_root = project_root / ".sdd" / "runtime" / "context-archive"
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     archive_dir = archive_root / timestamp
     archive_dir.mkdir(parents=True, exist_ok=True)

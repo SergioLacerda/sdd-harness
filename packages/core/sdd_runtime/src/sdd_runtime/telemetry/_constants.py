@@ -47,7 +47,6 @@ _MANDATORY_EVENTS = frozenset(
         "policy.validation.fail",
         "runtime.session.start",
         "governance.ask",
-        "governance.ask.full",
         "governance.ask.phase",
         ECONOMY_BUDGET_BREACH,
     }

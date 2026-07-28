@@ -51,10 +51,12 @@ def _build_architecture_review(context: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _baseline_path(project_root: Path) -> Path:
+    return project_root / ".sdd" / "runtime" / "architecture-baseline.json"
+
+
 def _load_architecture_baseline(project_root: Path) -> dict[str, Any]:
-    baseline_path = (
-        project_root / ".analysis" / "archive" / "architecture-baseline.json"
-    )
+    baseline_path = _baseline_path(project_root)
     if not baseline_path.exists():
         return {}
     try:
@@ -65,9 +67,7 @@ def _load_architecture_baseline(project_root: Path) -> dict[str, Any]:
 
 
 def _write_architecture_baseline(project_root: Path, payload: dict[str, Any]) -> Path:
-    baseline_path = (
-        project_root / ".analysis" / "archive" / "architecture-baseline.json"
-    )
+    baseline_path = _baseline_path(project_root)
     baseline_path.parent.mkdir(parents=True, exist_ok=True)
     baseline_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=True), encoding="utf-8"
