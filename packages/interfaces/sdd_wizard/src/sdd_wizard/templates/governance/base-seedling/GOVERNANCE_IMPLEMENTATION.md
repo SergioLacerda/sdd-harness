@@ -176,7 +176,9 @@ def _check_policy_compliance(self):
 ```python
 if not ahp.validate().passed:
     print("❌ Governance not adopted")
-    print("Run: python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py")
+    print(
+        "Run: python packages/interfaces/sdd_wizard/src/sdd_wizard/SCRIPTS/phase-0-agent-onboarding.py"
+    )
     sys.exit(1)
 ```
 
@@ -197,7 +199,7 @@ python script.py --force --skip-checks
 ### Method 3: Phase Gate
 
 ```python
-current_phase = governance.get('phases', {}).get('current', 0)
+current_phase = governance.get("phases", {}).get("current", 0)
 required_phase = 1
 
 if current_phase < required_phase:

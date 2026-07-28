@@ -43,10 +43,10 @@ class IntelligenceProvider(Protocol):
     """All providers implement this interface."""
 
     @property
-    def name(self) -> str: ...         # e.g., "tfidf", "http-external", "local"
+    def name(self) -> str: ...  # e.g., "tfidf", "http-external", "local"
 
     @property
-    def available(self) -> bool: ...   # e.g., check env var, network health
+    def available(self) -> bool: ...  # e.g., check env var, network health
 
     def analyze_task(task: TaskContext) -> AnalysisResult: ...
     def compress_context(bundle: ContextBundle) -> CompressedContext: ...
@@ -136,13 +136,18 @@ class MySemanticProvider:
         # Ensure: compression_ratio = compressed_bytes / original_bytes
         ...
 
+
 # Register
-loader = ContextLoader(registry=ProviderRegistry([
-    MySemanticProvider(),  # Try first
-    HttpProvider(),        # Fallback to HTTP
-    AstProvider(),         # Fallback to AST
-    TfidfProvider(),       # Fallback to TF-IDF
-]))
+loader = ContextLoader(
+    registry=ProviderRegistry(
+        [
+            MySemanticProvider(),  # Try first
+            HttpProvider(),  # Fallback to HTTP
+            AstProvider(),  # Fallback to AST
+            TfidfProvider(),  # Fallback to TF-IDF
+        ]
+    )
+)
 ```
 
 ---
@@ -177,8 +182,10 @@ Avoids the "classic" ABC overhead when duck-typing is sufficient.
 
 ```python
 def create_provider(name: str) -> IntelligenceProvider:
-    if name == "tfidf": return TfidfProvider()
-    elif name == "http": return HttpProvider()
+    if name == "tfidf":
+        return TfidfProvider()
+    elif name == "http":
+        return HttpProvider()
     ...
 ```
 

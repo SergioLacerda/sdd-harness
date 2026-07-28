@@ -392,6 +392,7 @@ import os
 # Load encryption key from environment
 ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")  # 32 bytes for AES-256
 
+
 def encrypt_data(plaintext: str) -> str:
     """Encrypt sensitive data"""
     iv = os.urandom(12)  # 96-bit IV for GCM
@@ -400,12 +401,15 @@ def encrypt_data(plaintext: str) -> str:
 
     # Store: iv + ciphertext (both base64)
     import base64
+
     encrypted = base64.b64encode(iv + ciphertext).decode()
     return encrypted
+
 
 def decrypt_data(encrypted: str) -> str:
     """Decrypt sensitive data"""
     import base64
+
     data = base64.b64decode(encrypted)
     iv = data[:12]
     ciphertext = data[12:]
@@ -527,6 +531,7 @@ async def cleanup_old_data():
    ```python
    from pydantic import BaseModel, Field, validator
 
+
    class CreateCampaignRequest(BaseModel):
        name: str = Field(..., min_length=1, max_length=100)
        description: str = Field(max_length=1000)
@@ -574,6 +579,7 @@ from slowapi.util import get_remote_address
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
+
 
 @app.post("/campaigns")
 @limiter.limit("50/minute")
@@ -665,12 +671,8 @@ async def list_campaigns_v1():
     # Add deprecation header
     response = Response()
     response.headers["Deprecation"] = "true"
-    response.headers["Sunset"] = (
-        "Fri, 31 Dec 2026 23:59:59 GMT"  # End date
-    )
-    response.headers["Link"] = (
-        '</api/v2/campaigns>; rel="successor-version"'
-    )
+    response.headers["Sunset"] = "Fri, 31 Dec 2026 23:59:59 GMT"  # End date
+    response.headers["Link"] = '</api/v2/campaigns>; rel="successor-version"'
     return response
 ```
 

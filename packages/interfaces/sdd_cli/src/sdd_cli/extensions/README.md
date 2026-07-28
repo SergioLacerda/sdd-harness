@@ -27,6 +27,7 @@ from extensions.framework import (
     Category,
 )
 
+
 class MyExtension(BaseExtension):
     metadata = ExtensionMetadata(
         name="My Domain Extension",
@@ -320,7 +321,7 @@ CustomGuideline(
     examples=[
         "PlayerMoved event with coordinates",
         "NPCSpawned event with properties",
-    ]
+    ],
 )
 ```
 
@@ -335,9 +336,11 @@ from extensions.framework.plugin_loader import load_all_plugins
 app = FastAPI()
 registry, stats = load_all_plugins()
 
+
 @app.get("/api/extensions")
 async def list_extensions():
     return registry.get_stats()
+
 
 @app.get("/api/extensions/{domain}")
 async def get_extension(domain: str):

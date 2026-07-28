@@ -11,8 +11,9 @@
 ```python
 # ❌ The most common Python hack
 import sys
-sys.path.insert(0, '../')
-sys.path.append('/absolute/path/to/project')
+
+sys.path.insert(0, "../")
+sys.path.append("/absolute/path/to/project")
 
 from my_module import something
 ```
@@ -26,7 +27,8 @@ from my_module import something
 ```python
 # ❌ Setting environment variable inside the code
 import os
-os.environ['PYTHONPATH'] = '/path/to/my/libs'
+
+os.environ["PYTHONPATH"] = "/path/to/my/libs"
 ```
 
 **Why:** Same root cause — the package isn't declared, so env vars are used as a workaround.
@@ -38,6 +40,7 @@ os.environ['PYTHONPATH'] = '/path/to/my/libs'
 ```python
 # ❌ Dynamically loading modules from arbitrary paths
 import importlib.util
+
 spec = importlib.util.spec_from_file_location(
     "my_module", "/some/random/path/my_module.py"
 )

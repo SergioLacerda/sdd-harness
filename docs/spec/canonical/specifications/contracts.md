@@ -18,15 +18,13 @@ All contracts MUST comply with:
 ```python
 from typing import Protocol
 
+
 class EntityRepositoryPort(Protocol):
-    async def save(self, entity: "Entity") -> None:
-        ...
+    async def save(self, entity: "Entity") -> None: ...
 
-    async def load(self, entity_id: str) -> "Entity | None":
-        ...
+    async def load(self, entity_id: str) -> "Entity | None": ...
 
-    async def delete(self, entity_id: str) -> None:
-        ...
+    async def delete(self, entity_id: str) -> None: ...
 ```
 
 ---

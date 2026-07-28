@@ -175,7 +175,7 @@ event = RuntimeEvent(
     agent_id="agent-v1",
     artifact_fingerprint="fp-abc",
     decision_source_refs=["sdd-governance-context"],
-    details={"items_matched": 5}
+    details={"items_matched": 5},
 )
 
 sink.emit(event)

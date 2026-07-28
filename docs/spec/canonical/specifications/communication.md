@@ -165,6 +165,7 @@ Consequence:
 - Queries must handle temporal dimension
 """
 
+
 class AppendOnlyLog:
     def append(self, entry: Entry) -> None:
         # Implementation follows ADR-006 patterns
@@ -195,6 +196,7 @@ class AppendOnlyLog:
 # - Old data may be served for 30 min
 # Tracked in: issue #456
 # Fix timeline: Q2 optimization phase
+
 
 def get_cached_narrative(campaign_id: str) -> str:
     # Implementation
@@ -232,6 +234,7 @@ Constraints:
 Trade-offs:
 - More files (cost) for flexibility (benefit)
 """
+
 
 class DomainService:
     def __init__(self, storage_port: StoragePort):
@@ -314,6 +317,7 @@ Your communication is excellent when someone reading it 6 months later:
 # without a real database
 
 from src.domain.ports import StoragePort
+
 
 class NarrativeService:
     """

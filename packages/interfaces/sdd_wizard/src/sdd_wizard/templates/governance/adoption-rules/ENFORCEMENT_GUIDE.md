@@ -110,10 +110,12 @@ def _layer_4_governance_health(self) -> bool:
 
     return True
 
+
 def _get_enforcement_level(self) -> str:
     """Get enforcement level from metadata.json"""
     governance = self._load_governance_config()
-    return governance.get('policies', {}).get('enforcement', 'standard')
+    return governance.get("policies", {}).get("enforcement", "standard")
+
 
 def _check_policy_compliance(self) -> list:
     """Returns list of policy violations"""
@@ -121,23 +123,24 @@ def _check_policy_compliance(self) -> list:
     governance = self._load_governance_config()
 
     # Check mandatory patterns
-    mandatory = governance.get('seedlings', {}).get('active', [])
+    mandatory = governance.get("seedlings", {}).get("active", [])
     if not mandatory:
         violations.append("No active seedlings defined")
 
     # Check authority
-    authority = governance.get('authority', {})
-    if not authority.get('architect'):
+    authority = governance.get("authority", {})
+    if not authority.get("architect"):
         violations.append("Architect role not assigned")
 
     return violations
 
+
 def _check_phase_progression(self) -> bool:
     """Verify user has completed phases in order"""
     governance = self._load_governance_config()
-    phases = governance.get('phases', {})
-    current = phases.get('current', 0)
-    completed = phases.get('completed', [])
+    phases = governance.get("phases", {})
+    current = phases.get("current", 0)
+    completed = phases.get("completed", [])
 
     # Check sequential completion
     for i in range(current):
@@ -147,12 +150,13 @@ def _check_phase_progression(self) -> bool:
 
     return True
 
+
 def _check_authority_valid(self) -> bool:
     """Verify authority roles are properly assigned"""
     governance = self._load_governance_config()
-    authority = governance.get('authority', {})
+    authority = governance.get("authority", {})
 
-    required_roles = ['architect', 'governance', 'operations']
+    required_roles = ["architect", "governance", "operations"]
     for role in required_roles:
         if not authority.get(role):
             self.actions.append(f"Assign {role} role in metadata.json")
@@ -164,19 +168,21 @@ def _check_authority_valid(self) -> bool:
 ### 2. Add Manual Override Block
 
 ```python
-def validate(self, output_mode='silent', force_recheck=False, force_skip_checks=False) -> AgentHandshakeResult:
+def validate(
+    self, output_mode="silent", force_recheck=False, force_skip_checks=False
+) -> AgentHandshakeResult:
     """Main validation method"""
 
     # Check if manual bypass is disabled
     enforcement = self._get_enforcement_level()
-    if enforcement in ['strict', 'standard']:
+    if enforcement in ["strict", "standard"]:
         if force_skip_checks:
             # Log violation
             self._log_bypass_attempt()
             print("❌ Manual bypass is disabled in governance policies")
             print("   Enforcement level: " + enforcement)
             print("   To enable: Set manual_bypass_allowed=true in .sdd/metadata.json")
-            return self.AgentHandshakeResult(state='NOT_CONNECTED', confidence=0)
+            return self.AgentHandshakeResult(state="NOT_CONNECTED", confidence=0)
 
     # Continue with normal validation...
 ```
@@ -329,13 +335,14 @@ To add custom governance rules:
 ```python
 # In packages/custom_governance.py
 
+
 def check_custom_rule_domain_naming(domain_name: str) -> tuple[bool, str]:
     """
     Rule: Domain names must follow pattern
     Pattern: {adjective}-{noun}
     Examples: redis-cache, user-service, data-pipeline
     """
-    parts = domain_name.split('-')
+    parts = domain_name.split("-")
 
     if len(parts) < 2:
         return False, "Domain must have format: {adjective}-{noun}"
@@ -344,10 +351,11 @@ def check_custom_rule_domain_naming(domain_name: str) -> tuple[bool, str]:
 
     return True, "Domain name valid"
 
+
 # Register in agent_handshake.py Layer 4:
 def _check_custom_rules(self) -> bool:
     governance = self._load_governance_config()
-    domain = governance.get('domain')
+    domain = governance.get("domain")
 
     valid, msg = check_custom_rule_domain_naming(domain)
     if not valid:
@@ -367,15 +375,15 @@ When enforcement is violated, log it:
 def _log_policy_violation(self, violation_type: str, details: dict):
     """Log all governance violations for audit"""
     log_entry = {
-        'timestamp': datetime.now().isoformat(),
-        'violation_type': violation_type,
-        'user': os.getenv('USER'),
-        'details': details,
-        'action_taken': 'BLOCKED'
+        "timestamp": datetime.now().isoformat(),
+        "violation_type": violation_type,
+        "user": os.getenv("USER"),
+        "details": details,
+        "action_taken": "BLOCKED",
     }
 
-    with open('.sdd/.audit-log.json', 'a') as f:
-        f.write(json.dumps(log_entry) + '\n')
+    with open(".sdd/.audit-log.json", "a") as f:
+        f.write(json.dumps(log_entry) + "\n")
 ```
 
 ---

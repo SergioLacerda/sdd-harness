@@ -84,6 +84,7 @@ class Narrative:
 # ✅ Protocol (abstract interface)
 from typing import Protocol
 
+
 class NarrativeRepositoryPort(Protocol):
     async def get(self, id: str) -> Narrative: ...
     async def save(self, narrative: Narrative) -> None: ...
@@ -108,9 +109,11 @@ class NarrativeRepositoryPort(Protocol):
 ```python
 # ✅ UseCase - orchestration only
 class RetrieveNarrativeUseCase:
-    def __init__(self,
-                 repository_port: NarrativeRepositoryPort,    # Port!
-                 llm_port: LLMServicePort):                    # Port!
+    def __init__(
+        self,
+        repository_port: NarrativeRepositoryPort,  # Port!
+        llm_port: LLMServicePort,
+    ):  # Port!
         self.repository = repository_port
         self.llm = llm_port
 
@@ -186,10 +189,13 @@ Domain (Explicit domain exceptions)
 # ✅ Domain errors - represent business failures
 class NarrativeNotFoundError(Exception):
     """Thrown when narrative doesn't exist."""
+
     pass
+
 
 class InvalidNarrativeError(Exception):
     """Thrown when narrative violates business rules."""
+
     pass
 ```
 
@@ -298,13 +304,10 @@ class JsonNarrativeAdapter:
 # ✅ FastAPI route
 router = APIRouter(prefix="/narratives")
 
+
 @router.get("/{id}")
-async def get_narrative(id: str,
-                       executor: ExecutorService = Depends()):
-    result = await executor.execute(
-        RetrieveNarrativeUseCase,
-        {"id": id}
-    )
+async def get_narrative(id: str, executor: ExecutorService = Depends()):
+    result = await executor.execute(RetrieveNarrativeUseCase, {"id": id})
     return NarrativeSchema.from_domain(result)
 ```
 
@@ -326,10 +329,7 @@ async def on_message(message):
         return
 
     executor = app.resolve(ExecutorService)
-    result = await executor.execute(
-        RetrieveNarrativeUseCase,
-        {"id": message.author.id}
-    )
+    result = await executor.execute(RetrieveNarrativeUseCase, {"id": message.author.id})
 ```
 
 **Checklist:**
@@ -509,12 +509,14 @@ def test_narrative_is_valid():
     narrative = Narrative(id="1", content="Story")
     assert narrative.is_valid()
 
+
 # ✅ Test usecase (mock port)
 async def test_retrieve_narrative():
     mock_port = MockNarrativeRepository()
     usecase = RetrieveNarrativeUseCase(mock_port)
     result = await usecase.execute("1")
     assert result.id == "1"
+
 
 # ✅ Test adapter (real backend or stub)
 async def test_json_adapter_saves():

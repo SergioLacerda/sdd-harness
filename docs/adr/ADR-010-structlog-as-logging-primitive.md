@@ -26,6 +26,7 @@ module in `sdd_core` is the only place structlog is configured.**
 # packages/core/sdd_core/src/sdd_core/logging.py
 import structlog
 
+
 def configure_logging(level: str = "INFO") -> None:
     """Called once at process startup (CLI entrypoint or __main__)."""
     ...
@@ -35,6 +36,7 @@ All packages obtain a logger via:
 
 ```python
 import structlog
+
 logger = structlog.get_logger(__name__)
 ```
 

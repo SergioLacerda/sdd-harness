@@ -36,10 +36,17 @@ class SkillEngine:
         self._registry = SkillRegistry(_REGISTRY, root)
         self._executor = SkillExecutor(self._registry, sink)
 
-    def list_skills(self):     return self._registry.list_skills()
-    def get_skill(self, name): return self._registry.get_skill(name)
-    def export_skills_payload(self, fmt): return self._registry.export_skills_payload(fmt)
-    def run_skill(self, name, **kw): return self._executor.run_skill(name, **kw)
+    def list_skills(self):
+        return self._registry.list_skills()
+
+    def get_skill(self, name):
+        return self._registry.get_skill(name)
+
+    def export_skills_payload(self, fmt):
+        return self._registry.export_skills_payload(fmt)
+
+    def run_skill(self, name, **kw):
+        return self._executor.run_skill(name, **kw)
 ```
 
 ---

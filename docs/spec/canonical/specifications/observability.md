@@ -186,21 +186,25 @@ logger.info(f"User {user.email} logged in with password {password}")
 
 # ✅ RIGHT - Anonymized and safe
 import hashlib
+
 user_hash = hashlib.sha256(user.id.encode()).hexdigest()[:8]
-logger.info(f"User authentication successful", extra={
-    "user_hash": user_hash,
-    "auth_method": "jwt"
-})
+logger.info(
+    f"User authentication successful",
+    extra={"user_hash": user_hash, "auth_method": "jwt"},
+)
 
 # ❌ WRONG - Logs full request
 logger.error(f"Request failed: {request.json()}")
 
 # ✅ RIGHT - Summarizes without sensitive data
-logger.error(f"Request validation failed", extra={
-    "request_type": "create_campaign",
-    "error": "name too long",
-    "provided_length": len(request.name)
-})
+logger.error(
+    f"Request validation failed",
+    extra={
+        "request_type": "create_campaign",
+        "error": "name too long",
+        "provided_length": len(request.name),
+    },
+)
 ```
 
 ---
@@ -226,11 +230,7 @@ async def cleanup_old_logs():
     log_manager.delete_before(days=30)
 
     # Archive audit logs (keep 90 days)
-    log_manager.archive_old(
-        type="audit",
-        older_than_days=30,
-        keep_until_days=90
-    )
+    log_manager.archive_old(type="audit", older_than_days=30, keep_until_days=90)
 
     logger.info("Log cleanup complete")
 ```
@@ -300,6 +300,7 @@ tracestate: vendor-data
 from opentelemetry.trace import get_tracer
 
 tracer = get_tracer(__name__)
+
 
 async def execute_action(action_request: ActionRequest):
     with tracer.start_as_current_span("execute_action") as span:
@@ -374,9 +375,9 @@ sampler = ProbabilitySampler(rate=0.1)  # 10% of requests
 if ENVIRONMENT == "production":
     sample_rate = 0.05  # 5% of requests in production
 elif ENVIRONMENT == "staging":
-    sample_rate = 0.5   # 50% in staging
+    sample_rate = 0.5  # 50% in staging
 else:
-    sample_rate = 1.0   # 100% in development
+    sample_rate = 1.0  # 100% in development
 
 sampler = ProbabilitySampler(rate=sample_rate)
 ```
@@ -427,23 +428,17 @@ meter = metrics.get_meter(__name__)
 
 # Latency histogram
 latency_histogram = meter.create_histogram(
-    name="http_request_duration_ms",
-    description="HTTP request latency",
-    unit="ms"
+    name="http_request_duration_ms", description="HTTP request latency", unit="ms"
 )
 
 # Traffic counter
 traffic_counter = meter.create_counter(
-    name="http_requests_total",
-    description="Total HTTP requests",
-    unit="1"
+    name="http_requests_total", description="Total HTTP requests", unit="1"
 )
 
 # Error counter
 error_counter = meter.create_counter(
-    name="http_errors_total",
-    description="Total HTTP errors",
-    unit="1"
+    name="http_errors_total", description="Total HTTP errors", unit="1"
 )
 
 # Saturation gauge
@@ -451,7 +446,7 @@ queue_gauge = meter.create_observable_gauge(
     name="request_queue_depth",
     description="Number of queued requests",
     unit="1",
-    callbacks=[lambda: get_queue_depth()]
+    callbacks=[lambda: get_queue_depth()],
 )
 ```
 
@@ -459,6 +454,7 @@ queue_gauge = meter.create_observable_gauge(
 
 ```python
 import time
+
 
 async def http_middleware(request, call_next):
     start = time.perf_counter()
@@ -474,25 +470,17 @@ async def http_middleware(request, call_next):
         attributes={
             "endpoint": request.url.path,
             "method": request.method,
-            "status": response.status_code
-        }
+            "status": response.status_code,
+        },
     )
 
     traffic_counter.add(
-        1,
-        attributes={
-            "endpoint": request.url.path,
-            "status": response.status_code
-        }
+        1, attributes={"endpoint": request.url.path, "status": response.status_code}
     )
 
     if response.status_code >= 400:
         error_counter.add(
-            1,
-            attributes={
-                "endpoint": request.url.path,
-                "status": response.status_code
-            }
+            1, attributes={"endpoint": request.url.path, "status": response.status_code}
         )
 
     return response

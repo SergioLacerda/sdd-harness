@@ -333,7 +333,7 @@ import tempfile
 import pathlib
 
 with tempfile.TemporaryDirectory() as tmpdir:
-    path = pathlib.Path(tmpdir) / '.github'
+    path = pathlib.Path(tmpdir) / ".github"
     path.mkdir()
 ```
 
