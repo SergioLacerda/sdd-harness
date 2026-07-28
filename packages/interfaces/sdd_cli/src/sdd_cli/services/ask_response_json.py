@@ -6,6 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from sdd_cli.services.ask_dossier import estimate_budget_utilization_pct
 from sdd_cli.services.ask_payload import build_ask_json_data
 from sdd_cli.services.ask_response import (
     _hash_query,
@@ -36,15 +37,31 @@ def build_json_dossier_lines(
         from sdd_runtime.context import ContextLoader, ContextRequest
 
         dossier_budget = resolve_dossier_budget_fn(inputs.budget)
-        budget_utilization_pct = 50.0
         artifact = load_dossier_artifact_fn(session.workspace_root)
-        context_result = ContextLoader().load_result(
+        prefer_full_summary = prefer_full_summary_fn()
+        loader = ContextLoader()
+        # Probe pass at 0% utilization: measures real bytes_loaded without
+        # triggering compression or breach (see ask_dossier.build_and_output_dossier
+        # for the text-mode twin of this logic).
+        probe_result = loader.load_result(
+            ContextRequest(
+                query=inputs.query,
+                artifact=artifact,
+                max_items=mandates_count,
+                budget_utilization_pct=0.0,
+                prefer_full_summary=prefer_full_summary,
+            )
+        )
+        budget_utilization_pct = estimate_budget_utilization_pct(
+            probe_result.bytes_loaded, dossier_budget
+        )
+        context_result = loader.load_result(
             ContextRequest(
                 query=inputs.query,
                 artifact=artifact,
                 max_items=mandates_count,
                 budget_utilization_pct=budget_utilization_pct,
-                prefer_full_summary=prefer_full_summary_fn(),
+                prefer_full_summary=prefer_full_summary,
             )
         )
         return build_dossier_lines_fn(

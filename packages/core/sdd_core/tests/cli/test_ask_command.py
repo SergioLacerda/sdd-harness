@@ -489,6 +489,7 @@ class TestAskCommand:
                         "matched": 1,
                         "items": ["M001"],
                         "compression_ratio": None,
+                        "bytes_loaded": 0,
                     },
                 )(),
             ),
