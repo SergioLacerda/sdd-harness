@@ -21,7 +21,7 @@ jobs:
       SDD_ENFORCE_PIPELINE_CORRECT: "1"
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           # Full history so the TDD diff-coverage gate can diff against the
           # PR base ref (default checkout is shallow, depth 1).
@@ -33,7 +33,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990  # v5
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v5
         with:
           version: "latest"
           cache: true
