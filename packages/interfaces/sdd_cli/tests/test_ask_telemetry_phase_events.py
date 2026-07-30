@@ -73,6 +73,7 @@ def _run_ask_capture_events(
         patch("sdd_cli.commands._ask_backend._guard_budget_breach"),
         patch("sdd_cli.commands._ask_backend._guard_handshake"),
         patch("sdd_cli.commands._ask_backend._write_runtime_cache"),
+        patch("sdd_cli.commands._ask_backend._store_routing_decision"),
         patch("sdd_cli.commands._ask_backend._upsert_ask_session"),
         patch("sdd_cli.commands._ask_backend._emit_state_warnings"),
         patch(
@@ -96,7 +97,7 @@ def _run_ask_capture_events(
         ),
         patch(
             "sdd_cli.commands._ask_backend._run_organize_intake",
-            return_value=(False, "light_input", None, 0, "indexed_only"),
+            return_value=(False, "light_input", None, 0, "indexed_only", None),
         ),
         patch(
             "sdd_cli.commands._ask_backend._governance_footer_for_state",
@@ -145,6 +146,7 @@ def test_phase_events_cover_expected_phase_ids(
 
     phase_ids = {phase.details.get("phase_id") for phase in phases}
     assert phase_ids == {
+        "ask.cli.entry",
         "ask.budget.guard",
         "ask.workspace.resolve",
         "ask.organize.intake",
@@ -152,6 +154,13 @@ def test_phase_events_cover_expected_phase_ids(
         "ask.profile.resolve",
         "ask.governance.snapshot",
     }
+    # ask.runtime.handbook is absent here because this test mocks
+    # build_governed_ask_snapshot entirely (see module docstring) — the real
+    # function is what records that phase. ask.response.render and
+    # ask.telemetry.emit are absent for a structural reason: telemetry
+    # emission (which produces these captured events) necessarily runs
+    # before rendering, and cannot emit an event for its own still-running
+    # phase — see _pipeline_runtime.py's _sync_ask_runtime/_ask_cmd_impl.
 
 
 def test_llm_exchange_phase_absent_when_not_observable(

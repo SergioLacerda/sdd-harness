@@ -8,6 +8,23 @@ from typing import Any
 
 from sdd_cli.shared.constants import TRUE_VALUES as _TRUE_VALUES
 
+# Matches the `len(text)//4` convention already used for token estimation in
+# `ask_telemetry.resolve_tokens` — kept consistent so the budget percentage
+# and the token counts shown elsewhere in `sdd ask` agree on the same ratio.
+_BYTES_PER_TOKEN_ESTIMATE = 4
+
+
+def estimate_budget_utilization_pct(bytes_loaded: int, budget_tokens: int) -> float:
+    """Estimate real budget utilization from measured bytes vs. the token budget.
+
+    Converts the token budget to a byte budget using the same chars-per-token
+    ratio already used for token estimation elsewhere in `sdd ask`, then
+    expresses ``bytes_loaded`` as a percentage of it. Capped at 100.0 so a
+    breach is always exactly reachable, never silently exceeded.
+    """
+    budget_bytes = max(1, budget_tokens * _BYTES_PER_TOKEN_ESTIMATE)
+    return min((bytes_loaded / budget_bytes) * 100.0, 100.0)
+
 
 def handle_dossier_error(exc: Exception, *, logger: Any, typer_module: Any) -> None:
     """Handle errors during dossier generation."""
@@ -120,24 +137,40 @@ def build_and_output_dossier(
         from sdd_runtime.context import ContextLoader, ContextRequest
 
         resolved_budget = resolve_dossier_budget(budget)
-        budget_utilization_pct = 50.0
         workspace = workspace_root or resolve_workspace_root_fn()
         artifact = load_dossier_artifact(
             workspace,
             compiled_active_dir_fn=compiled_active_dir_fn,
         )
-        context_result = ContextLoader().load_result(
+        prefer_full_summary = (
+            str(os.environ.get("SDD_ASK_PREFER_FULL_SUMMARY", "")).strip().lower()
+            in _TRUE_VALUES
+        )
+        loader = ContextLoader()
+        # Probe pass at 0% utilization: measures real bytes_loaded without
+        # triggering compression or breach, since both depend on the
+        # percentage we're trying to compute from this same call's output.
+        probe_result = loader.load_result(
+            ContextRequest(
+                query=query,
+                artifact=artifact,
+                max_items=mandates_count,
+                budget_utilization_pct=0.0,
+                prefer_full_summary=prefer_full_summary,
+            )
+        )
+        budget_utilization_pct = estimate_budget_utilization_pct(
+            probe_result.bytes_loaded, resolved_budget
+        )
+        # Real pass with the computed percentage so YELLOW-zone compression
+        # and BudgetBreachError (>=100%) actually engage when warranted.
+        context_result = loader.load_result(
             ContextRequest(
                 query=query,
                 artifact=artifact,
                 max_items=mandates_count,
                 budget_utilization_pct=budget_utilization_pct,
-                prefer_full_summary=(
-                    str(os.environ.get("SDD_ASK_PREFER_FULL_SUMMARY", ""))
-                    .strip()
-                    .lower()
-                    in _TRUE_VALUES
-                ),
+                prefer_full_summary=prefer_full_summary,
             )
         )
         typer_module.echo(

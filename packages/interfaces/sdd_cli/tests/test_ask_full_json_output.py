@@ -66,13 +66,18 @@ def test_ask_full_mode_json_output_uses_canonical_envelope(
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._run_organize_intake",
-        lambda workspace_root, query: (
+        lambda workspace_root, query, skill: (
             True,
             "heavy",
             "/tmp/intake.json",
             2,
             "indexed_only",
+            None,
         ),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._store_routing_decision",
+        lambda workspace_root, query, skill, fingerprint, decision: None,
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._get_profile_state",
@@ -152,13 +157,18 @@ def test_ask_full_mode_global_json_flag_uses_canonical_envelope(
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._run_organize_intake",
-        lambda workspace_root, query: (
+        lambda workspace_root, query, skill: (
             True,
             "heavy",
             "/tmp/intake.json",
             1,
             "indexed_only",
+            None,
         ),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._store_routing_decision",
+        lambda workspace_root, query, skill, fingerprint, decision: None,
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._get_profile_state",
@@ -223,7 +233,18 @@ def test_ask_full_mode_json_uses_canonical_data_payload(monkeypatch, tmp_path) -
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._run_organize_intake",
-        lambda workspace_root, query: (False, "light", "", 0, "indexed_only"),
+        lambda workspace_root, query, skill: (
+            False,
+            "light",
+            "",
+            0,
+            "indexed_only",
+            None,
+        ),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._store_routing_decision",
+        lambda workspace_root, query, skill, fingerprint, decision: None,
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._get_profile_state",
@@ -295,7 +316,18 @@ def test_ask_json_response_includes_additive_intake_contract_fields(
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._run_organize_intake",
-        lambda workspace_root, query: (False, "light_input", "", 0, "indexed_only"),
+        lambda workspace_root, query, skill: (
+            False,
+            "light_input",
+            "",
+            0,
+            "indexed_only",
+            None,
+        ),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._store_routing_decision",
+        lambda workspace_root, query, skill, fingerprint, decision: None,
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._get_profile_state",
@@ -374,7 +406,18 @@ def test_ask_json_response_entrypoint_reflects_hook_env_marker(
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._run_organize_intake",
-        lambda workspace_root, query: (False, "light_input", "", 0, "indexed_only"),
+        lambda workspace_root, query, skill: (
+            False,
+            "light_input",
+            "",
+            0,
+            "indexed_only",
+            None,
+        ),
+    )
+    monkeypatch.setattr(
+        "sdd_cli.commands._ask_backend._store_routing_decision",
+        lambda workspace_root, query, skill, fingerprint, decision: None,
     )
     monkeypatch.setattr(
         "sdd_cli.commands._ask_backend._get_profile_state",

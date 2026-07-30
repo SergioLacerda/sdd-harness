@@ -72,11 +72,11 @@ provider = TfidfProvider()
 bundle = ContextBundle(
     items=[
         "class DataProcessor: def process(data): ...",  # 300 bytes
-        "class Logger: def log(msg): ...",              # 280 bytes
-        "class Config: def load(): ...",                # 250 bytes
+        "class Logger: def log(msg): ...",  # 280 bytes
+        "class Config: def load(): ...",  # 250 bytes
     ],
     query="data processing algorithm",
-    budget_bytes=400
+    budget_bytes=400,
 )
 result = provider.compress_context(bundle)
 print(f"Compressed: {result.compression_ratio:.2f}")  # e.g., 0.67 → 67% reduction
@@ -106,12 +106,12 @@ from sdd_runtime.intelligence import ContextBundle
 provider = AstProvider()
 bundle = ContextBundle(
     items=[
-        "def process(x): return x * 2",    # 30 bytes
-        "def process(x): return x * 2",    # 30 bytes (duplicate)
+        "def process(x): return x * 2",  # 30 bytes
+        "def process(x): return x * 2",  # 30 bytes (duplicate)
         "def transform(y): return y + 1",  # 32 bytes
     ],
     query="function definitions",
-    budget_bytes=50
+    budget_bytes=50,
 )
 result = provider.compress_context(bundle)
 # After dedup + truncate: 2 items (removed duplicate + last item)
@@ -144,7 +144,7 @@ provider = LocalIntelligenceProvider()
 bundle = ContextBundle(
     items=["config.py"] * 3 + ["utils.py"],  # 3 duplicates + 1 unique
     query="module context",
-    budget_bytes=20
+    budget_bytes=20,
 )
 result = provider.compress_context(bundle)
 print(f"Items after dedup: {len(result.items)}")  # 2: ["config.py", "utils.py"]
@@ -244,6 +244,7 @@ from sdd_runtime.intelligence import (
     BudgetEstimate,
 )
 
+
 class MyCustomProvider:
     """Example custom compression provider."""
 
@@ -287,7 +288,9 @@ class MyCustomProvider:
             items=compressed_items,
             original_bytes=original_bytes,
             compressed_bytes=compressed_bytes,
-            compression_ratio=compressed_bytes / original_bytes if original_bytes > 0 else 1.0,
+            compression_ratio=compressed_bytes / original_bytes
+            if original_bytes > 0
+            else 1.0,
             provider=self.name,
         )
 
@@ -310,12 +313,14 @@ from sdd_runtime.intelligence import ProviderRegistry
 from sdd_runtime.providers import AstProvider, TfidfProvider
 
 # Create registry with your provider first (highest priority)
-registry = ProviderRegistry([
-    MyCustomProvider(),      # Your provider — tried first
-    AstProvider(),           # Fallback to AST
-    TfidfProvider(),         # Fallback to TF-IDF
-    # LocalIntelligenceProvider is automatic (always last)
-])
+registry = ProviderRegistry(
+    [
+        MyCustomProvider(),  # Your provider — tried first
+        AstProvider(),  # Fallback to AST
+        TfidfProvider(),  # Fallback to TF-IDF
+        # LocalIntelligenceProvider is automatic (always last)
+    ]
+)
 
 # Use it
 loader = ContextLoader(registry=registry)

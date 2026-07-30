@@ -120,6 +120,7 @@ class TaskContext:
     query: str
     agent_role: str = ""
 
+
 @dataclass
 class AnalysisResult:
     provider: str
@@ -128,11 +129,13 @@ class AnalysisResult:
     suggested_path_id: str  # "A" | "B" | "C" | "D"
     keywords: list[str]
 
+
 @dataclass
 class ContextBundle:
     items: list[str]
     query: str
     budget_bytes: int
+
 
 @dataclass
 class CompressedContext:
@@ -141,6 +144,7 @@ class CompressedContext:
     compressed_bytes: int
     compression_ratio: float  # compressed_bytes / original_bytes (< 1.0 = reduced)
     provider: str
+
 
 @dataclass
 class BudgetEstimate:

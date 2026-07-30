@@ -82,8 +82,9 @@ python3 -c "import json; json.load(open('.sdd/metadata.json'))" && echo "✓ Pol
 **Verification**:
 ```python
 import json
-config = json.load(open('.sdd/metadata.json'))
-active_seedlings = config.get('seedlings', {}).get('active', [])
+
+config = json.load(open(".sdd/metadata.json"))
+active_seedlings = config.get("seedlings", {}).get("active", [])
 assert len(active_seedlings) >= 1, "No active seedlings"
 print("✓ Policy 3 met")
 ```
@@ -121,10 +122,10 @@ print("✓ Policy 3 met")
 
 **Verification**:
 ```python
-config = json.load(open('.sdd/metadata.json'))
-authority = config.get('authority', {})
+config = json.load(open(".sdd/metadata.json"))
+authority = config.get("authority", {})
 
-for role in ['architect', 'governance', 'operations']:
+for role in ["architect", "governance", "operations"]:
     assert authority.get(role), f"{role} not assigned"
 
 print("✓ Policy 4 met")
@@ -161,9 +162,9 @@ print("✓ Policy 4 met")
 
 **Verification**:
 ```python
-config = json.load(open('.sdd/metadata.json'))
-enforcement = config.get('policies', {}).get('enforcement')
-assert enforcement in ['strict', 'standard', 'permissive'], f"Invalid: {enforcement}"
+config = json.load(open(".sdd/metadata.json"))
+enforcement = config.get("policies", {}).get("enforcement")
+assert enforcement in ["strict", "standard", "permissive"], f"Invalid: {enforcement}"
 print("✓ Policy 5 met")
 ```
 
@@ -196,8 +197,8 @@ After running wizard, it auto-updates this.
 
 **Verification**:
 ```python
-config = json.load(open('.sdd/metadata.json'))
-completed = config.get('phases', {}).get('completed', [])
+config = json.load(open(".sdd/metadata.json"))
+completed = config.get("phases", {}).get("completed", [])
 assert 0 in completed, "PHASE 0 not completed"
 print("✓ Policy 6 met")
 ```
@@ -230,12 +231,13 @@ Confidence: 85%
 **Verification**:
 ```python
 import sys
-sys.path.insert(0, 'packages')
+
+sys.path.insert(0, "packages")
 from agent_handshake import AgentHandshakeProtocol
 
 ahp = AgentHandshakeProtocol()
-result = ahp.validate(output_mode='silent')
-assert result.state == 'HEALTHY', f"Health check failed: {result.state}"
+result = ahp.validate(output_mode="silent")
+assert result.state == "HEALTHY", f"Health check failed: {result.state}"
 print("✓ Policy 7 met")
 ```
 

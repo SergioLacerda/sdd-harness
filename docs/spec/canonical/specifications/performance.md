@@ -299,27 +299,21 @@ assert peak < 50_000_000  # 50MB limit
 ```python
 # Latency histogram
 latency_histogram = metrics.create_histogram(
-    "request_latency_ms",
-    buckets=[5, 10, 50, 100, 200, 500, 1000, 5000]
+    "request_latency_ms", buckets=[5, 10, 50, 100, 200, 500, 1000, 5000]
 )
 
 # Throughput counter
 request_counter = metrics.create_counter(
-    "requests_total",
-    attributes=["endpoint", "status"]
+    "requests_total", attributes=["endpoint", "status"]
 )
 
 # Error counter
 error_counter = metrics.create_counter(
-    "errors_total",
-    attributes=["error_type", "endpoint"]
+    "errors_total", attributes=["error_type", "endpoint"]
 )
 
 # Resource utilization gauge
-memory_gauge = metrics.create_gauge(
-    "memory_usage_bytes",
-    attributes=["campaign_id"]
-)
+memory_gauge = metrics.create_gauge("memory_usage_bytes", attributes=["campaign_id"])
 ```
 
 ### Alert Rules

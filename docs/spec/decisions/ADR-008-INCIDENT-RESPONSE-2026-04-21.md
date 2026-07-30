@@ -213,10 +213,7 @@ def test_agent_cannot_commit_to_main():
     import subprocess
 
     # Try to commit on main
-    result = subprocess.run(
-        ["git", "checkout", "main"],
-        capture_output=True
-    )
+    result = subprocess.run(["git", "checkout", "main"], capture_output=True)
 
     # Pre-commit hook should warn/block
     # If hook is installed, commit will fail with proper message

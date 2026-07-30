@@ -200,19 +200,23 @@ def emit_ask_text_response(
             f"{phase_timer.unattributed_ms(session_duration_ms=duration_ms)}"
         )
         for record in phase_records:
+            slow_marker = " SLOW" if record.phase_slow else ""
             typer.echo(
                 f"  {record.phase_id}={record.duration_ms}ms "
-                f"{record.latency_domain} {record.measurement_quality}"
+                f"{record.latency_domain} {record.measurement_quality}{slow_marker}"
             )
 
 
 def emit_ask_intake_only_text_response(
-    inputs: _AskInputs, session: _AskSessionContext
+    inputs: _AskInputs,
+    session: _AskSessionContext,
+    *,
+    runtime_handbook_hint: dict[str, Any] | None = None,
 ) -> None:
     """Cheap hook-mode text response: gate + structured intent only.
 
     Deliberately omits fingerprint, mandates count, degraded/drift status,
-    handbook lookup, and dossier/timing output — those require the full
+    full handbook payloads, and dossier/timing output — those require the full
     governance snapshot this profile exists to avoid loading (spike:
     20260714-sdd-ask-single-entrypoint-spike, A-005/I-005).
     """
@@ -237,3 +241,17 @@ def emit_ask_intake_only_text_response(
         f"delegation_executed : false\n"
         f"provider_bound    : false"
     )
+    if runtime_handbook_hint:
+        runtime_doc = runtime_handbook_hint.get("runtime_doc")
+        if runtime_doc:
+            typer.echo(
+                f"runtime_handbook : {runtime_handbook_hint.get('id', '')} -> "
+                f"{runtime_doc}\n"
+                f"runbook_reason   : "
+                f"{runtime_handbook_hint.get('relevance_reason', '')}"
+            )
+        else:
+            typer.echo(
+                f"runtime_handbook : {runtime_handbook_hint.get('status', 'unknown')}"
+                f" ({runtime_handbook_hint.get('diagnostic', '')})"
+            )

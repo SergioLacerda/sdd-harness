@@ -18,15 +18,30 @@ from sdd_cli.services.ask_context import (
 from sdd_cli.services.ask_context import (
     check_root_seed_drift as _check_root_seed_drift,
 )
+from sdd_cli.services.ask_context import (
+    get_cached_governance_snapshot as _get_cached_governance_snapshot,
+)
+from sdd_cli.services.ask_context import (
+    get_last_known_fingerprint as _get_last_known_fingerprint,
+)
 from sdd_cli.services.ask_context import get_profile_state as _get_profile_state_impl
 from sdd_cli.services.ask_context import (
     load_compiled_governance as _load_compiled_governance,
 )
 from sdd_cli.services.ask_context import (
+    resolve_routing_decision as _resolve_routing_decision,
+)
+from sdd_cli.services.ask_context import (
     resolve_workspace_root as _resolve_workspace_root,
 )
 from sdd_cli.services.ask_context import (
+    store_routing_decision as _store_routing_decision,
+)
+from sdd_cli.services.ask_context import (
     write_runtime_cache as _write_runtime_cache,
+)
+from sdd_cli.services.ask_context import (
+    write_runtime_cache_and_routing_decision as _write_runtime_cache_and_routing_decision,
 )
 from sdd_cli.services.ask_filter import (
     collect_learning_signals as _collect_learning_signals_impl,
@@ -50,9 +65,14 @@ from sdd_cli.utils.output import is_json_mode
 
 __all__ = [
     "_check_fingerprint_drift",
+    "_get_cached_governance_snapshot",
+    "_get_last_known_fingerprint",
     "_load_compiled_governance",
+    "_resolve_routing_decision",
     "_resolve_workspace_root",
+    "_store_routing_decision",
     "_write_runtime_cache",
+    "_write_runtime_cache_and_routing_decision",
 ]
 
 logger = logging.getLogger(__name__)

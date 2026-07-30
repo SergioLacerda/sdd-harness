@@ -6,6 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from sdd_cli.services.ask_dossier import estimate_budget_utilization_pct
 from sdd_cli.services.ask_payload import build_ask_json_data
 from sdd_cli.services.ask_response import (
     _hash_query,
@@ -36,15 +37,31 @@ def build_json_dossier_lines(
         from sdd_runtime.context import ContextLoader, ContextRequest
 
         dossier_budget = resolve_dossier_budget_fn(inputs.budget)
-        budget_utilization_pct = 50.0
         artifact = load_dossier_artifact_fn(session.workspace_root)
-        context_result = ContextLoader().load_result(
+        prefer_full_summary = prefer_full_summary_fn()
+        loader = ContextLoader()
+        # Probe pass at 0% utilization: measures real bytes_loaded without
+        # triggering compression or breach (see ask_dossier.build_and_output_dossier
+        # for the text-mode twin of this logic).
+        probe_result = loader.load_result(
+            ContextRequest(
+                query=inputs.query,
+                artifact=artifact,
+                max_items=mandates_count,
+                budget_utilization_pct=0.0,
+                prefer_full_summary=prefer_full_summary,
+            )
+        )
+        budget_utilization_pct = estimate_budget_utilization_pct(
+            probe_result.bytes_loaded, dossier_budget
+        )
+        context_result = loader.load_result(
             ContextRequest(
                 query=inputs.query,
                 artifact=artifact,
                 max_items=mandates_count,
                 budget_utilization_pct=budget_utilization_pct,
-                prefer_full_summary=prefer_full_summary_fn(),
+                prefer_full_summary=prefer_full_summary,
             )
         )
         return build_dossier_lines_fn(
@@ -118,6 +135,7 @@ def emit_ask_json_response(
                     "duration_ms": record.duration_ms,
                     "latency_domain": record.latency_domain,
                     "measurement_quality": record.measurement_quality,
+                    "phase_slow": record.phase_slow,
                 }
                 for record in phase_records
             ],
@@ -200,14 +218,19 @@ def emit_ask_json_response(
 
 
 def emit_ask_intake_only_json_response(
-    inputs: _AskInputs, session: _AskSessionContext
+    inputs: _AskInputs,
+    session: _AskSessionContext,
+    *,
+    runtime_handbook_hint: dict[str, Any] | None = None,
 ) -> None:
     """Cheap hook-mode JSON response: gate + structured intent only.
 
     Deliberately omits fingerprint, mandates_loaded, degraded/drift status,
-    trust_source, and runtime_handbook — those require the full governance
-    snapshot this profile exists to avoid loading (spike:
-    20260714-sdd-ask-single-entrypoint-spike, A-005/I-005).
+    trust_source, and full runtime_handbook payloads — those require the full
+    governance snapshot this profile exists to avoid loading (spike:
+    20260714-sdd-ask-single-entrypoint-spike, A-005/I-005). A compact
+    runtime_handbook_hint may be present when a runtime-only lookup finds an
+    opportunistic runbook signal.
     """
     execution_gate = resolve_execution_gate(
         organize_used=session.organize_used,
@@ -228,6 +251,8 @@ def emit_ask_intake_only_json_response(
         "intake_profile": "cheap",
         **intake_contract,
     }
+    if runtime_handbook_hint:
+        data["runtime_handbook_hint"] = runtime_handbook_hint
     emit_json(
         {
             "status": "ok",

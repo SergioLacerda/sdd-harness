@@ -53,7 +53,6 @@ See [python-dependency-direction.md](../../guides/architecture/examples/python-d
 ### Bare Except
 
 ```python
-
 # VIOLATION
 try:
     process()
@@ -70,10 +69,10 @@ except SpecificError as exc:
 ### Any-Driven Development
 
 ```python
-
 # VIOLATION
 def process(data: Any) -> Any:
     return data["key"]
+
 
 # OK
 def process(data: UserRequest) -> UserResponse:
@@ -87,10 +86,11 @@ Monkeypatching is for test doubles at real boundaries, not a substitute for depe
 ### Import-Time Side Effects
 
 ```python
-
 # VIOLATION — connects to DB at import time
 import psycopg2
+
 conn = psycopg2.connect(os.environ["DB_URL"])  # runs on import
+
 
 # OK — explicit initialization
 def create_connection(url: str) -> Connection:

@@ -36,7 +36,7 @@ def test_ask_run_json_snapshot(tmp_path) -> None:
         ),
         patch(
             "sdd_cli.commands._ask_backend._run_organize_intake",
-            return_value=(False, "light", "", 0, "indexed_only"),
+            return_value=(False, "light", "", 0, "indexed_only", None),
         ),
         patch(
             "sdd_cli.commands._ask_backend._get_profile_state",
@@ -44,6 +44,9 @@ def test_ask_run_json_snapshot(tmp_path) -> None:
         ),
         patch("sdd_cli.commands._ask_backend._emit_ask_telemetry", return_value=None),
         patch("sdd_cli.commands._ask_backend._write_runtime_cache", return_value=None),
+        patch(
+            "sdd_cli.commands._ask_backend._store_routing_decision", return_value=None
+        ),
         patch("sdd_cli.commands._ask_backend._upsert_ask_session", return_value=None),
         patch(
             "sdd_cli.commands._ask_backend.build_governed_ask_snapshot",
@@ -83,7 +86,7 @@ def test_ask_run_json_with_learning_snapshot(tmp_path) -> None:
         ),
         patch(
             "sdd_cli.commands._ask_backend._run_organize_intake",
-            return_value=(False, "light", "", 0, "indexed_only"),
+            return_value=(False, "light", "", 0, "indexed_only", None),
         ),
         patch(
             "sdd_cli.commands._ask_backend._get_profile_state",
@@ -91,6 +94,9 @@ def test_ask_run_json_with_learning_snapshot(tmp_path) -> None:
         ),
         patch("sdd_cli.commands._ask_backend._emit_ask_telemetry", return_value=None),
         patch("sdd_cli.commands._ask_backend._write_runtime_cache", return_value=None),
+        patch(
+            "sdd_cli.commands._ask_backend._store_routing_decision", return_value=None
+        ),
         patch("sdd_cli.commands._ask_backend._upsert_ask_session", return_value=None),
         patch(
             "sdd_cli.commands._ask_backend.build_governed_ask_snapshot",

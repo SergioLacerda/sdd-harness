@@ -46,6 +46,7 @@ class _AskSessionContext:
     organize_artifact_path: str
     organize_chunks: int
     organize_retrieval: str
+    cached_handbook_task_type: str | None
     profile: str
     state: str
     agent_id: str

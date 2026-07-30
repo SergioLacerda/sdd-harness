@@ -3,6 +3,9 @@ name: Reusable Security
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   bootstrap-fingerprint-check:
     name: Bootstrap Fingerprint Drift Check
@@ -33,7 +36,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v5
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
         with:
           version: "latest"
           cache: true
@@ -56,7 +59,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v5
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
         with:
           version: "latest"
           cache: true
@@ -66,18 +69,7 @@ jobs:
           uv run python tools/ci/environment_gates.py trusted-keyring-precedence-check --context security --mode warn
           uv run python tools/ci/environment_gates.py signature-mode-policy-check --context security --mode warn
       - name: Initialize UV workspace (retry)
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in 1 2 3; do
-            if uv sync --all-groups; then
-              exit 0
-            fi
-            if [[ "${attempt}" -lt 3 ]]; then
-              sleep $((attempt * 10))
-            fi
-          done
-          exit 1
+        uses: ./.github/actions/uv-sync-retry
       - name: Audit Dependencies
         run: |
           uv run --with pip-audit pip-audit --desc \
@@ -146,7 +138,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v5
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
         with:
           version: "latest"
           cache: true
@@ -179,4 +171,11 @@ jobs:
         with:
           image-ref: sdd-framework:scan
           format: table
+          vuln-type: os,library
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+
+      - name: Clean up staged .dockerignore
+        if: always()
+        run: rm -f .dockerignore

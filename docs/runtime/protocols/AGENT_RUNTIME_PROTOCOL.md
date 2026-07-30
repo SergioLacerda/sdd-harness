@@ -68,9 +68,12 @@ sdd runtime status --verbose    # Final workspace state
 |------|---------------|-----------|
 | Planning | `docs/cognition/decision-models/` | Assess risk and confidence |
 | Execution | `docs/cognition/decision-models/TASK_CLASSIFICATION.md` | Select the appropriate PATH (A-F) |
+| Operational failure or diagnosis | `docs/runbooks/README.md` -> one selected runbook leaf | Reuse a known procedure without loading all runbooks |
 | Validation | `docs/spec/canonical/specifications/definition_of_done.md` | Quality criteria |
 
 > Never load the entire documentation. Always use path-based context loading via the Master Index.
+> Runbooks are selected from authored `docs/` sources and compiled into runtime
+> handbook output. Do not edit `.sdd/` directly to change runbook behavior.
 
 ## References
 

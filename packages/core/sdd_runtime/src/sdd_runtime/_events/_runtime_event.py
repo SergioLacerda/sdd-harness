@@ -77,6 +77,23 @@ class RuntimeEvent:
     reflection_count: int | None = None
     path_id: str = ""
 
+    # Adapter/provider-facing timing (§ trace_time.txt review, mission
+    # 20260730-sdd-ask-telemetry-critique). All three are populated only by
+    # an external adapter/IDE report (e.g. `ask.external.llm_exchange`) —
+    # sdd_cli commands do not call an LLM in-process, so these stay None
+    # unless an adapter explicitly reports them.
+    time_to_first_token_ms: int | None = None
+    provider_wait_ms: int | None = None
+    llm_call_count: int | None = None
+
+    # In-process tool/subprocess timing, summed from phases tagged with a
+    # "tool" latency_domain. None when a command has no such phases.
+    tool_execution_ms: int | None = None
+
+    # Soft-watchdog marker: True when this phase's duration exceeded its
+    # configured threshold. See `_ask_backend._phase_timer.PhaseTimer`.
+    phase_slow: bool = False
+
     # Payload
     details: dict[str, Any] = field(default_factory=dict)
 

@@ -201,6 +201,10 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
+      - name: Clean up staged .dockerignore
+        if: always()
+        run: rm -f .dockerignore
+
       - name: Release summary
         env:
           IMAGE_REF: ${{ steps.meta.outputs.image_ref }}

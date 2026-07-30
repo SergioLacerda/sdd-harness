@@ -46,6 +46,7 @@ def _session(*, phase_timer: PhaseTimer) -> _AskSessionContext:
         organize_artifact_path="",
         organize_chunks=0,
         organize_retrieval="indexed_only",
+        cached_handbook_task_type=None,
         profile="master",
         state="GREEN",
         agent_id="agent-1",
@@ -100,6 +101,7 @@ def test_json_full_mode_includes_timing_block(capsys) -> None:
             "duration_ms": record.duration_ms,
             "latency_domain": record.latency_domain,
             "measurement_quality": record.measurement_quality,
+            "phase_slow": record.phase_slow,
         }
         for record in records
     ]

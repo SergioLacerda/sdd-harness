@@ -52,8 +52,12 @@ updates:
       production-major:
         dependency-type: "production"
         update-types: ["major"]
-      dev-dependencies:
+      dev-dependencies-minor-patch:
         dependency-type: "development"
+        update-types: ["minor", "patch"]
+      dev-dependencies-major:
+        dependency-type: "development"
+        update-types: ["major"]
 
   # Go dependencies (tools/sdd-compile)
   - package-ecosystem: "gomod"

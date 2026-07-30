@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import logging
-import os
 from typing import Any
 
 from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
@@ -132,42 +130,3 @@ def emit_ask_response(
         duration_ms=duration_ms,
         build_and_output_dossier_fn=build_and_output_dossier_fn,
     )
-
-
-def check_budget_zone_and_compress(
-    query: str,
-    estimated_context_bytes: int,
-    mandates_count: int,
-    *,
-    prefer_full_summary_fn: Any,
-    logger: logging.Logger,
-) -> tuple[int, float | None]:
-    compression_ratio: float | None = None
-    path_id = os.environ.get("SDD_PATH_ID", "")
-    result_bytes = estimated_context_bytes
-    try:
-        from sdd_runtime.telemetry import _PATH_BUDGET_BYTES
-
-        if path_id in _PATH_BUDGET_BYTES:
-            budget_bytes = _PATH_BUDGET_BYTES[path_id]
-            utilization_pct = (estimated_context_bytes / budget_bytes) * 100
-            if 70.0 <= utilization_pct < 100.0:
-                try:
-                    from sdd_runtime.context import ContextLoader, ContextRequest
-
-                    result = ContextLoader().load_result(
-                        ContextRequest(
-                            query=query,
-                            max_items=mandates_count,
-                            budget_utilization_pct=utilization_pct,
-                            prefer_full_summary=prefer_full_summary_fn(),
-                        )
-                    )
-                    if result.compression_ratio is not None:
-                        compression_ratio = result.compression_ratio
-                        result_bytes = result.bytes_loaded
-                except Exception as exc:
-                    logger.debug("Compression attempt at YELLOW zone failed: %s", exc)
-    except Exception as exc:
-        logger.debug("Budget zone check failed: %s", exc)
-    return result_bytes, compression_ratio

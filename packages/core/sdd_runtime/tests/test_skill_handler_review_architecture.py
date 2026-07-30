@@ -72,10 +72,9 @@ def test_review_architecture_handler_persists_baseline(tmp_path: Path) -> None:
         footer_fn=lambda d, g: "",
     )
 
-    baseline_path = tmp_path / ".analysis" / "archive" / "architecture-baseline.json"
+    baseline_path = tmp_path / ".sdd" / "runtime" / "architecture-baseline.json"
     assert baseline_path.exists()
     assert (
-        outcome.artifacts["baseline_path"]
-        == ".analysis/archive/architecture-baseline.json"
+        outcome.artifacts["baseline_path"] == ".sdd/runtime/architecture-baseline.json"
     )
     assert outcome.artifacts["baseline_updated"] is True

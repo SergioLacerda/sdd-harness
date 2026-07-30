@@ -236,6 +236,7 @@ class TestAskDossierCoverage:
             matched = 2
             compression_ratio = 1.5
             items = ["- item 1", "- item 2"]
+            bytes_loaded = 0
 
         lines = ask_dossier_mod.build_dossier_lines(
             query="q",

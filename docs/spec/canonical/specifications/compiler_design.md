@@ -265,6 +265,7 @@ class DSLCompiler:
             Compiled MessagePack binary
         """
         import time
+
         start = time.time()
 
         # Metrics
@@ -306,7 +307,7 @@ class DSLCompiler:
         # In production: use proper lexer/parser
 
         # Extract mandates
-        mandate_pattern = r'mandate\s+(M\d+)\s*\{([^}]+)\}'
+        mandate_pattern = r"mandate\s+(M\d+)\s*\{([^}]+)\}"
         for match in re.finditer(mandate_pattern, dsl_text, re.DOTALL):
             mandate_id = match.group(1)
             mandate_body = match.group(2)
@@ -314,7 +315,7 @@ class DSLCompiler:
             mandates.append(mandate)
 
         # Extract guidelines
-        guideline_pattern = r'guideline\s+(G\d+)\s*\{([^}]+)\}'
+        guideline_pattern = r"guideline\s+(G\d+)\s*\{([^}]+)\}"
         for match in re.finditer(guideline_pattern, dsl_text, re.DOTALL):
             guideline_id = match.group(1)
             guideline_body = match.group(2)
@@ -356,39 +357,32 @@ class DSLCompiler:
 
     def _extract_validation(self, text: str) -> Optional[Dict]:
         """Extract validation block"""
-        pattern = r'validation\s*:\s*\{([^}]+)\}'
+        pattern = r"validation\s*:\s*\{([^}]+)\}"
         match = re.search(pattern, text, re.DOTALL)
         if not match:
             return None
 
         validation_body = match.group(1)
         # Extract commands array
-        commands_pattern = r'commands\s*:\s*\[([^\]]*)\]'
+        commands_pattern = r"commands\s*:\s*\[([^\]]*)\]"
         commands_match = re.search(commands_pattern, validation_body)
         if not commands_match:
             return None
 
         commands_text = commands_match.group(1)
-        commands = [
-            c.strip().strip('"')
-            for c in commands_text.split(',')
-        ]
+        commands = [c.strip().strip('"') for c in commands_text.split(",")]
 
         return {"commands": commands}
 
     def _extract_examples(self, text: str) -> Optional[List[str]]:
         """Extract examples array"""
-        pattern = r'examples\s*:\s*\[([^\]]*)\]'
+        pattern = r"examples\s*:\s*\[([^\]]*)\]"
         match = re.search(pattern, text)
         if not match:
             return None
 
         examples_text = match.group(1)
-        examples = [
-            e.strip().strip('"')
-            for e in examples_text.split(',')
-            if e.strip()
-        ]
+        examples = [e.strip().strip('"') for e in examples_text.split(",") if e.strip()]
 
         return examples
 
@@ -437,13 +431,13 @@ class DSLCompiler:
 # CLI interface
 def compile_file(input_path: str, output_path: str) -> CompilationMetrics:
     """Compile DSL file to binary"""
-    with open(input_path, 'r') as f:
+    with open(input_path, "r") as f:
         dsl_text = f.read()
 
     compiler = DSLCompiler()
     binary = compiler.compile(dsl_text)
 
-    with open(output_path, 'wb') as f:
+    with open(output_path, "wb") as f:
         f.write(binary)
 
     return compiler.metrics
@@ -465,7 +459,7 @@ if __name__ == "__main__":
     print(f"  Input:  {metrics.input_size} bytes")
     print(f"  Output: {metrics.output_size} bytes")
     print(f"  Compression: {metrics.compression_ratio:.1%}")
-    print(f"  Time: {metrics.compilation_time*1000:.1f} ms")
+    print(f"  Time: {metrics.compilation_time * 1000:.1f} ms")
     print(f"  Mandates: {metrics.mandates_compiled}")
     print(f"  Guidelines: {metrics.guidelines_compiled}")
     print(f"  String Pool: {metrics.string_pool_size} unique strings")
@@ -477,6 +471,7 @@ if __name__ == "__main__":
 
 ```python
 # test_compiler.py
+
 
 def test_mandate_compilation():
     """Test mandate parsing and compilation"""
@@ -495,6 +490,7 @@ def test_mandate_compilation():
     assert compiler.metrics.mandates_compiled == 1
     assert compiler.metrics.compression_ratio > 0.5
 
+
 def test_string_deduplication():
     """Test string pool deduplication"""
     dsl = """
@@ -507,6 +503,7 @@ def test_string_deduplication():
 
     # String pool should have 1 entry for "Common String"
     assert compiler.metrics.string_pool_size == 3  # "Common String" counted once
+
 
 def test_compression_ratio():
     """Test compression achieves target"""
@@ -540,14 +537,14 @@ def validate_before_compilation(dsl_text: str) -> List[str]:
     errors = []
 
     # Check mandate IDs are sequential
-    mandates = re.findall(r'mandate (M\d+)', dsl_text)
+    mandates = re.findall(r"mandate (M\d+)", dsl_text)
     if mandates:
         ids = [int(m[1:]) for m in mandates]
         if ids != list(range(1, len(ids) + 1)):
             errors.append("Mandate IDs not sequential")
 
     # Check required fields present
-    for mandate in re.finditer(r'mandate M\d+ \{([^}]+)\}', dsl_text, re.DOTALL):
+    for mandate in re.finditer(r"mandate M\d+ \{([^}]+)\}", dsl_text, re.DOTALL):
         body = mandate.group(1)
         required = ["type", "title", "description"]
         for req in required:

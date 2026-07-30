@@ -30,9 +30,10 @@ class ProductionService:
         # Production behavior
         return real_data()
 
+
 # ❌ NEVER: Skip validations in test mode
 def validate(data):
-    if os.getenv('TEST_MODE'):
+    if os.getenv("TEST_MODE"):
         return True  # Skip validation
     return check_integrity(data)
 ```
@@ -82,14 +83,13 @@ def test_campaign_add_event():
 # ✅ UseCase test with port mocks
 from unittest.mock import AsyncMock
 
+
 async def test_retrieve_narrative_usecase():
     # Mock PORTS (abstract interfaces)
     mock_repository = AsyncMock(spec=NarrativeRepositoryPort)
     mock_repository.get.return_value = Campaign(id="c1")
 
-    usecase = RetrieveNarrativeUseCase(
-        repository_port=mock_repository
-    )
+    usecase = RetrieveNarrativeUseCase(repository_port=mock_repository)
 
     result = await usecase.execute("c1")
 
@@ -111,10 +111,12 @@ async def test_retrieve_narrative_usecase():
 # ❌ NEVER: Mock adapters directly
 mock_adapter = AsyncMock(spec=JsonNarrativeAdapter)  # Wrong!
 
+
 # ❌ NEVER: Use real infrastructure
 def test_something():
     adapter = JsonNarrativeAdapter("/real/file.json")  # Wrong!
     usecase = SomeUseCase(repository_port=adapter)
+
 
 # ❌ NEVER: Add test fixtures to production code
 class NarrativeRepositoryPort:
@@ -134,7 +136,7 @@ class NarrativeRepositoryPort:
 async def test_json_narrative_adapter(tmp_path):
     # Use temp file for isolation
     test_file = tmp_path / "test_campaigns.json"
-    test_file.write_text('{}')
+    test_file.write_text("{}")
 
     adapter = JsonNarrativeAdapter(str(test_file))
     campaign = Campaign(id="c1", name="Test")
@@ -215,9 +217,7 @@ async def test_usecase_calls_vector_index():
         RetrievalResult(id="doc1", score=0.95),
     ]
 
-    usecase = RetrieveContextUseCase(
-        vector_port=mock_index
-    )
+    usecase = RetrieveContextUseCase(vector_port=mock_index)
 
     results = await usecase.execute("query")
 
@@ -248,6 +248,7 @@ class FakeNarrativeRepository(NarrativeRepositoryPort):
     async def save(self, campaign: Campaign) -> None:
         self.store[campaign.id] = campaign
 
+
 # Use it:
 async def test_something():
     fake_repo = FakeNarrativeRepository()
@@ -271,9 +272,12 @@ async def test_something():
 @pytest.fixture
 def campaign_factory():
     """Factory for creating test campaigns."""
+
     def _create(id: str = "c1", name: str = "Test") -> Campaign:
         return Campaign(id=id, name=name)
+
     return _create
+
 
 async def test_retrieve(campaign_factory):
     campaign = campaign_factory(id="my-id")
@@ -286,10 +290,13 @@ async def test_retrieve(campaign_factory):
 
 ```python
 # ✅ Test multiple scenarios efficiently
-@pytest.mark.parametrize("campaign_id,expected", [
-    ("c1", Campaign(id="c1")),
-    ("c2", Campaign(id="c2")),
-])
+@pytest.mark.parametrize(
+    "campaign_id,expected",
+    [
+        ("c1", Campaign(id="c1")),
+        ("c2", Campaign(id="c2")),
+    ],
+)
 async def test_retrieve_campaigns(campaign_id, expected):
     usecase = RetrieveUseCase(repository_port=...)
     result = await usecase.execute(campaign_id)
@@ -310,6 +317,7 @@ async def test_retrieve_campaigns(campaign_id, expected):
 
 from typing import Protocol, Async
 
+
 class MemoryServicePort(Protocol):
     """Abstract interface for memory retrieval."""
 
@@ -329,6 +337,7 @@ class MemoryServicePort(Protocol):
 ```python
 # Location: infrastructure/adapters/<technology>_<entity>_adapter.py
 # Example: infrastructure/adapters/json_memory_adapter.py
+
 
 class JsonMemoryAdapter(MemoryServicePort):
     """Implements MemoryServicePort using JSON files."""
@@ -354,6 +363,7 @@ class JsonMemoryAdapter(MemoryServicePort):
 ```python
 # Location: tests/config/fakes/<layer>/<entity>_fake.py
 # Example: tests/config/fakes/infrastructure/memory/fake_memory_service.py
+
 
 class FakeMemoryService(MemoryServicePort):
     """Fake implementation for testing (in-memory, no I/O)."""
@@ -397,6 +407,7 @@ async def test_usecase():
 
     mock_repo.load_context.assert_called()
 
+
 # ✅ USE FAKE for Integration tests
 async def test_integration():
     fake_repo = FakeMemoryService()
@@ -406,6 +417,7 @@ async def test_integration():
     result = await service.get_full_context("c1")
 
     assert "event1" in result  # Tests actual behavior, not mocked
+
 
 # ✅ USE REAL ADAPTER for Adapter tests (with temp files)
 async def test_adapter(tmp_path):
@@ -489,6 +501,7 @@ Am I in tests/unit/?
 from unittest.mock import AsyncMock
 from application.ports.memory_port import MemoryServicePort
 
+
 async def test_usecase_with_memory():
     # spec= ensures mock ONLY has MemoryServicePort methods
     mock_memory = AsyncMock(spec=MemoryServicePort)
@@ -542,21 +555,13 @@ from application.ports.memory_port import MemoryServicePort
 mock_memory = AsyncMock(spec=MemoryServicePort)
 
 # Extract Port methods
-port_methods = {
-    m for m in dir(MemoryServicePort)
-    if not m.startswith('_')
-}
+port_methods = {m for m in dir(MemoryServicePort) if not m.startswith("_")}
 
 # Extract mock methods
-mock_methods = {
-    m for m in dir(mock_memory)
-    if not m.startswith('_')
-}
+mock_methods = {m for m in dir(mock_memory) if not m.startswith("_")}
 
 # They should match
-assert port_methods == mock_methods, (
-    f"Mismatch: {port_methods ^ mock_methods}"
-)
+assert port_methods == mock_methods, f"Mismatch: {port_methods ^ mock_methods}"
 
 print("✅ Mock correctly implements Port contract")
 ```
@@ -626,6 +631,7 @@ class SomeService:
     @classmethod
     def _set_test_mode(cls):
         pass  # Hidden test interface
+
 
 # ✅ Use ports instead:
 class SomeService:

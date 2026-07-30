@@ -66,6 +66,7 @@ Or programmatically:
 
 ```python
 from sdd_runtime.skills import SkillEngine
+
 engine = SkillEngine()
-result = engine.run_skill('diagnose', execute=True)
+result = engine.run_skill("diagnose", execute=True)
 ```

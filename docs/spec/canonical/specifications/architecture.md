@@ -245,6 +245,7 @@ class RetrieveContextUseCase:
         results = await self.vector_reader.retrieve(query)
         return results
 
+
 # ✅ CORRECT - Initialization via factory pattern
 from bootstrap.vector.factory import VectorIndexFactory
 
@@ -255,6 +256,7 @@ container.register(VectorWriterPort, writer)
 
 # ❌ WRONG - Direct backend coupling (VIOLATES ARCH)
 from infrastructure.adapters.vector.chroma_adapter import ChromaVectorDB
+
 db = ChromaVectorDB()  # VIOLATES: Tightly coupled to ChromaDB
 results = db.query(query)
 
@@ -580,6 +582,7 @@ def nested_scopes(world_id: str, genre_id: str, campaign_id: str):
         with GenreScope(genre_id):
             with CampaignScope(campaign_id):
                 yield  # Full hierarchy accessible
+
 
 # Usage
 with nested_scopes("cyberpunk_2087", "cyberpunk", "campaign_123"):

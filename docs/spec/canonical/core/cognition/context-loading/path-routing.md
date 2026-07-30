@@ -6,7 +6,11 @@
 
 ## Routing Rules
 
-- Active production incident -> PATH E.
+- Active production incident -> PATH E with the matching incident or runbook
+  leaf.
+- Known operational failure, repeated failure, release recovery, runtime drift,
+  or context-budget breach -> load `docs/runbooks/README.md` as selector before
+  choosing a leaf.
 - Isolated regression -> PATH A.
 - Bounded feature with stable contracts -> PATH B.
 - Multi-layer or architectural impact -> PATH C.
@@ -15,11 +19,13 @@
 
 ## Per-PATH Load Strategy
 
-- PATH A: affected layer + direct tests.
+- PATH A: affected layer + direct tests; add one matching runbook leaf when the
+  regression matches a known operational procedure.
 - PATH B: target modules + relevant guides.
 - PATH C: canonical core + relevant decisions + integration tests.
 - PATH D: isolated context per stream.
-- PATH E: minimal failure surface and incident runbook.
+- PATH E: minimal failure surface + one matching runbook leaf; fall back to the
+  incident playbook when no runbook matches.
 - PATH F: scoped modules + pre/post behavior validation assets.
 
 ## Decision Heuristics
@@ -33,6 +39,7 @@
 - Path selected.
 - Reason for path.
 - Estimated context budget.
+- Selected runbook path, or `none`.
 - Reclassification trigger conditions.
 
 ## Related

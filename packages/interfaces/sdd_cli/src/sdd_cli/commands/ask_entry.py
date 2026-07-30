@@ -53,8 +53,9 @@ def ask(
         "--intake-only",
         help=(
             "Cheap hook-mode profile: emit execution_gate/intake_index_mode/"
-            "intent only. Skips compiled-governance load, signature "
-            "verification, handbook lookup, and telemetry emission."
+            "intent plus compact runtime handbook hints. Skips "
+            "compiled-governance load, signature verification, full handbook "
+            "payloads, and telemetry emission."
         ),
     ),
 ) -> None:

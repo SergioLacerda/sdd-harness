@@ -70,6 +70,65 @@ def test_duration_and_timestamps_passed_to_event(
     assert _event_path_id(ev) == "PATH_A"
 
 
+def test_phase_slow_flag_passed_through_to_runtime_event(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sdd_cli.commands._ask_backend import _emit_ask_telemetry
+
+    monkeypatch.delenv("SDD_OTEL_ENDPOINT", raising=False)
+    (tmp_path / ".sdd" / "runtime").mkdir(parents=True)
+    (tmp_path / ".sdd" / "profile").write_text(
+        "[sdd]\nworkspace_id=test-ws\n", encoding="utf-8"
+    )
+
+    captured: list = []
+
+    class _FakeSink:
+        def __init__(self, **_):
+            pass
+
+        def emit(self, event):
+            captured.append(event)
+
+    with patch("sdd_cli.commands._ask_backend.TelemetrySink", _FakeSink):
+        _emit_ask_telemetry(
+            "governance.ask.phase",
+            **_make_emit_kwargs(workspace_root=tmp_path),
+            phase_slow=True,
+        )
+
+    assert captured[0].phase_slow is True
+
+
+def test_phase_slow_flag_defaults_to_false(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sdd_cli.commands._ask_backend import _emit_ask_telemetry
+
+    monkeypatch.delenv("SDD_OTEL_ENDPOINT", raising=False)
+    (tmp_path / ".sdd" / "runtime").mkdir(parents=True)
+    (tmp_path / ".sdd" / "profile").write_text(
+        "[sdd]\nworkspace_id=test-ws\n", encoding="utf-8"
+    )
+
+    captured: list = []
+
+    class _FakeSink:
+        def __init__(self, **_):
+            pass
+
+        def emit(self, event):
+            captured.append(event)
+
+    with patch("sdd_cli.commands._ask_backend.TelemetrySink", _FakeSink):
+        _emit_ask_telemetry(
+            "governance.ask.phase",
+            **_make_emit_kwargs(workspace_root=tmp_path),
+        )
+
+    assert captured[0].phase_slow is False
+
+
 def test_otel_bridge_used_when_endpoint_set(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -20,7 +20,7 @@ class ReviewArchitectureHandler(Handler):
 
     Example:
         A lower governance score or new violations produces remediation
-        proposals and updates `.analysis/archive/architecture-baseline.json`.
+        proposals and updates `.sdd/runtime/architecture-baseline.json`.
     """
 
     def pre_run(

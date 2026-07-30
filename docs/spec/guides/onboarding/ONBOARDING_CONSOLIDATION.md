@@ -493,17 +493,24 @@ After user's first PR:
 ```python
 # docs/ia/SCRIPTS/setup-wizard.py (updated)
 
+
 def main():
     print_header()
 
     # NEW: Require AGENT_HARNESS completion first
-    print("\n" + Colors.BOLD + Colors.BLUE + "Step 0: AGENT_HARNESS Verification" + Colors.END)
+    print(
+        "\n"
+        + Colors.BOLD
+        + Colors.BLUE
+        + "Step 0: AGENT_HARNESS Verification"
+        + Colors.END
+    )
     print("\nBefore using this wizard, you MUST complete AGENT_HARNESS.")
     print("Link: docs/spec/guides/onboarding/AGENT_HARNESS.md")
 
     response = ask_question(
         "Have you completed AGENT_HARNESS (read constitution + ia-rules + passed quiz)?",
-        ["Yes, I completed it", "No, show me where to go"]
+        ["Yes, I completed it", "No, show me where to go"],
     )
 
     if response == "No, show me where to go":

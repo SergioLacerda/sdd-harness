@@ -26,19 +26,26 @@ from sdd_cli.services.ask_dossier import (
     resolve_dossier_budget as _resolve_dossier_budget,
 )
 from sdd_cli.services.ask_telemetry import (
+    build_ask_telemetry_sink as _build_ask_telemetry_sink_impl,
+)
+from sdd_cli.services.ask_telemetry import (
     emit_ask_telemetry as _emit_ask_telemetry_impl,
 )
+from sdd_cli.services.ask_telemetry import enqueue_flush as _enqueue_flush
 from sdd_cli.services.ask_telemetry import resolve_tokens as _resolve_tokens
 from sdd_cli.services.ask_telemetry import (
     upsert_ask_session as _upsert_ask_session_impl,
 )
+from sdd_cli.services.ask_telemetry_worker import _EventSink
 from sdd_cli.utils.sdd_authority import compiled_active_dir
 
 __all__ = [
     "OtelBridge",
     "OtlpHttpExporter",
     "TelemetrySink",
+    "_build_ask_telemetry_sink",
     "_build_dossier_lines",
+    "_enqueue_flush",
     "_resolve_dossier_budget",
     "_resolve_tokens",
 ]
@@ -69,8 +76,11 @@ def _emit_ask_telemetry(
     tokens_output: int | None = None,
     retry_count: int | None = None,
     compression_ratio: float | None = None,
+    phase_slow: bool = False,
     extra_details: dict[str, Any] | None = None,
     parent_event_id: str = "",
+    sink: _EventSink | None = None,
+    flush: bool = True,
 ) -> RuntimeEvent | None:
     from sdd_cli.commands import _ask_backend as _backend
 
@@ -96,9 +106,23 @@ def _emit_ask_telemetry(
         tokens_output=tokens_output,
         retry_count=retry_count,
         compression_ratio=compression_ratio,
+        phase_slow=phase_slow,
         extra_details=extra_details,
         parent_event_id=parent_event_id,
         logger=logger,
+        sink=sink,
+        flush=flush,
+        telemetry_sink_cls=_backend.TelemetrySink,
+        otel_bridge_cls=_backend.OtelBridge,
+        otlp_exporter_cls=_backend.OtlpHttpExporter,
+    )
+
+
+def _build_ask_telemetry_sink(workspace_root: Path) -> _EventSink:
+    from sdd_cli.commands import _ask_backend as _backend
+
+    return _build_ask_telemetry_sink_impl(
+        workspace_root,
         telemetry_sink_cls=_backend.TelemetrySink,
         otel_bridge_cls=_backend.OtelBridge,
         otlp_exporter_cls=_backend.OtlpHttpExporter,

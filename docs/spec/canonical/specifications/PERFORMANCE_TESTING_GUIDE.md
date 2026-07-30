@@ -145,20 +145,22 @@ def test_my_layer_latency(slo_validator):
     # 2. Measure latency
     latencies = slo_validator.measure_latency(
         my_operation,
-        iterations=100  # Run 100 times
+        iterations=100,  # Run 100 times
     )
 
     # 3. Validate against SLO
     passed, message = slo_validator.validate_latency_slo(
         "application",  # or your layer
-        latencies["p99"]
+        latencies["p99"],
     )
 
     # 4. Report and assert
     print(f"\n{message}")
-    print(f"  P50={latencies['p50']:.1f}ms, "
-          f"P95={latencies['p95']:.1f}ms, "
-          f"P99={latencies['p99']:.1f}ms")
+    print(
+        f"  P50={latencies['p50']:.1f}ms, "
+        f"P95={latencies['p95']:.1f}ms, "
+        f"P99={latencies['p99']:.1f}ms"
+    )
 
     assert passed, message
 ```
@@ -207,12 +209,11 @@ def usecase_execute(request):
     results = [process(item) for item in request.items]
     return results
 
+
 # AFTER: Takes 40ms (parallel execution)
 async def usecase_execute(request):
     # Process items concurrently
-    results = await asyncio.gather(
-        *[process_async(item) for item in request.items]
-    )
+    results = await asyncio.gather(*[process_async(item) for item in request.items])
     return results
 ```
 
