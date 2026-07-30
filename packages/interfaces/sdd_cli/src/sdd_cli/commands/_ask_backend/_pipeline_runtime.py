@@ -303,13 +303,24 @@ def _ask_cmd_impl(
         # Cheap hook-mode profile (spike: 20260714-sdd-ask-single-entrypoint-
         # spike, I-005). Deliberately skips build_governed_ask_snapshot
         # (compiled-governance load, signature verification, drift checks,
-        # handbook lookup) and telemetry/runtime-cache writes — those are the
-        # stages the spike identified as unnecessary for every hook-fired
-        # prompt. Full `sdd ask` behavior (no --intake-only) is unchanged.
+        # full handbook payload) and telemetry/runtime-cache writes — those are
+        # the stages the spike identified as unnecessary for every hook-fired
+        # prompt. A compact runtime handbook hint is still allowed because it
+        # reads only `.sdd/source/handbook/**` and stays opportunistic.
+        handbook_hint = _backend.build_runtime_handbook_hint(
+            root=session.workspace_root,
+            query=inputs.query,
+            skill=inputs.skill,
+            cached_handbook_task_type=session.cached_handbook_task_type,
+        )
         if _json_mode():
-            _emit_ask_intake_only_json_response(inputs, session)
+            _emit_ask_intake_only_json_response(
+                inputs, session, runtime_handbook_hint=handbook_hint
+            )
         else:
-            _emit_ask_intake_only_text_response(inputs, session)
+            _emit_ask_intake_only_text_response(
+                inputs, session, runtime_handbook_hint=handbook_hint
+            )
         return
     ask_snapshot = _load_ask_snapshot(inputs, session)
     output_text, governance_footer, duration_ms = _sync_ask_runtime(

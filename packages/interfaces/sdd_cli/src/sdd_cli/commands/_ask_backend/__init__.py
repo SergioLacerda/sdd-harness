@@ -16,6 +16,7 @@ __all__ = [
     "app",
     "_JSON_MODE_OVERRIDE",
     "ask_cmd",
+    "build_runtime_handbook_hint",
     "build_governed_ask_snapshot",
     "run_sdd_organize",
     "_should_use_organize",
@@ -83,6 +84,7 @@ from ._pipeline import (  # noqa: E402
     _should_use_organize,
     ask_cmd,
     build_governed_ask_snapshot,
+    build_runtime_handbook_hint,
     run_sdd_organize,
 )
 from ._pipeline_runtime import _ask_cmd_impl as _ask_cmd_impl  # noqa: E402

@@ -218,14 +218,19 @@ def emit_ask_json_response(
 
 
 def emit_ask_intake_only_json_response(
-    inputs: _AskInputs, session: _AskSessionContext
+    inputs: _AskInputs,
+    session: _AskSessionContext,
+    *,
+    runtime_handbook_hint: dict[str, Any] | None = None,
 ) -> None:
     """Cheap hook-mode JSON response: gate + structured intent only.
 
     Deliberately omits fingerprint, mandates_loaded, degraded/drift status,
-    trust_source, and runtime_handbook — those require the full governance
-    snapshot this profile exists to avoid loading (spike:
-    20260714-sdd-ask-single-entrypoint-spike, A-005/I-005).
+    trust_source, and full runtime_handbook payloads — those require the full
+    governance snapshot this profile exists to avoid loading (spike:
+    20260714-sdd-ask-single-entrypoint-spike, A-005/I-005). A compact
+    runtime_handbook_hint may be present when a runtime-only lookup finds an
+    opportunistic runbook signal.
     """
     execution_gate = resolve_execution_gate(
         organize_used=session.organize_used,
@@ -246,6 +251,8 @@ def emit_ask_intake_only_json_response(
         "intake_profile": "cheap",
         **intake_contract,
     }
+    if runtime_handbook_hint:
+        data["runtime_handbook_hint"] = runtime_handbook_hint
     emit_json(
         {
             "status": "ok",
