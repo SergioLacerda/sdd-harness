@@ -32,6 +32,8 @@ __all__ = [
     "_hash_query",
     "_load_compiled_governance",
     "_check_fingerprint_drift",
+    "_get_cached_governance_snapshot",
+    "_get_last_known_fingerprint",
     "_write_runtime_cache",
     "_write_runtime_cache_and_routing_decision",
     "_resolve_routing_decision",
@@ -60,6 +62,8 @@ _JSON_MODE_OVERRIDE: ContextVar[bool | None] = ContextVar(
 from ._budget import _guard_budget_breach, _guard_handshake  # noqa: E402
 from ._helpers import (  # noqa: E402
     _check_fingerprint_drift,
+    _get_cached_governance_snapshot,
+    _get_last_known_fingerprint,
     _get_profile_state,
     _governance_footer_for_state,
     _hash_query,

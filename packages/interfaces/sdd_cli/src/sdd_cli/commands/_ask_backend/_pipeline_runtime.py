@@ -210,6 +210,7 @@ def _sync_ask_runtime(
             "organize_reason": session.organize_reason,
             "handbook_task_type": ask_snapshot.get("handbook_task_type", ""),
         },
+        ask_snapshot.get("_governance_snapshot_to_persist"),
     )
     _backend._upsert_ask_session(
         session.workspace_root, session.agent_id, "ask", fingerprint

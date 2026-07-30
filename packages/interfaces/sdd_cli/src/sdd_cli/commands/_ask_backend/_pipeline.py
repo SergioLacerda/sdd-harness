@@ -87,15 +87,44 @@ def build_governed_ask_snapshot(
     root = workspace_root or _backend._resolve_workspace_root()
     if require_handshake:
         _backend._guard_handshake(root)
-    (
-        context_source,
-        fingerprint,
-        mandates_count,
-        authenticated,
-        degraded,
-        degrade_reason,
-        trust_source,
-    ) = _backend._load_compiled_governance(root)
+    last_known_fingerprint = _backend._get_last_known_fingerprint(root)
+    cached_snapshot = (
+        _backend._get_cached_governance_snapshot(root, last_known_fingerprint)
+        if last_known_fingerprint
+        else None
+    )
+    if cached_snapshot is not None:
+        context_source = cached_snapshot["context_source"]
+        fingerprint = cached_snapshot["fingerprint"]
+        mandates_count = cached_snapshot["mandates_count"]
+        authenticated = cached_snapshot["authenticated"]
+        degraded = cached_snapshot["degraded"]
+        degrade_reason = cached_snapshot["degrade_reason"]
+        trust_source = cached_snapshot["trust_source"]
+        governance_snapshot_to_persist = None
+    else:
+        (
+            context_source,
+            fingerprint,
+            mandates_count,
+            authenticated,
+            degraded,
+            degrade_reason,
+            trust_source,
+        ) = _backend._load_compiled_governance(root)
+        # Only a fresh (cache-miss) load is worth persisting — re-persisting on
+        # a hit would slide `computed_at` forward without ever re-verifying
+        # against the real compiled state, defeating the TTL bound that keeps
+        # a post-recompile cache hit self-healing (design.md D-A).
+        governance_snapshot_to_persist = {
+            "context_source": context_source,
+            "fingerprint": fingerprint,
+            "mandates_count": mandates_count,
+            "authenticated": authenticated,
+            "degraded": degraded,
+            "degrade_reason": degrade_reason,
+            "trust_source": trust_source,
+        }
     if _signature_mode() == "strict" and not authenticated:
         raise PermissionError(degrade_reason)
     drift_detected = _backend._runtime_drift_check(root, fingerprint)
@@ -130,6 +159,11 @@ def build_governed_ask_snapshot(
             "diagnostic": handbook_lookup.diagnostic,
             "matches": handbook_lookup.matches,
         },
+        # Internal plumbing for the end-of-call write site (design.md D-A) —
+        # None on a cache hit (nothing new to persist), the fresh compiled-
+        # governance fields on a miss. Never surfaced in text/JSON output;
+        # downstream consumers only read known top-level fields by name.
+        "_governance_snapshot_to_persist": governance_snapshot_to_persist,
     }
 
 

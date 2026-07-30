@@ -18,6 +18,12 @@ from sdd_cli.services.ask_context import (
 from sdd_cli.services.ask_context import (
     check_root_seed_drift as _check_root_seed_drift,
 )
+from sdd_cli.services.ask_context import (
+    get_cached_governance_snapshot as _get_cached_governance_snapshot,
+)
+from sdd_cli.services.ask_context import (
+    get_last_known_fingerprint as _get_last_known_fingerprint,
+)
 from sdd_cli.services.ask_context import get_profile_state as _get_profile_state_impl
 from sdd_cli.services.ask_context import (
     load_compiled_governance as _load_compiled_governance,
@@ -59,6 +65,8 @@ from sdd_cli.utils.output import is_json_mode
 
 __all__ = [
     "_check_fingerprint_drift",
+    "_get_cached_governance_snapshot",
+    "_get_last_known_fingerprint",
     "_load_compiled_governance",
     "_resolve_routing_decision",
     "_resolve_workspace_root",

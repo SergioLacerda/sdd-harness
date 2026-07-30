@@ -229,6 +229,82 @@ def get_last_known_fingerprint(workspace_root: Path) -> str:
     return str(last_ask.get("compiled_fingerprint_used", "")).strip()
 
 
+_SNAPSHOT_CACHE_MAX_ENTRIES = 20
+_SNAPSHOT_CACHE_TTL_SECONDS = 300
+
+
+def get_cached_governance_snapshot(
+    workspace_root: Path, fingerprint: str
+) -> dict[str, Any] | None:
+    """Return a cached compiled-governance snapshot for `fingerprint`, if still fresh.
+
+    Keyed by fingerprint only — the cached fields (`context_source`,
+    `mandates_count`, `authenticated`, `degraded`, `degrade_reason`,
+    `trust_source`) are a pure function of the compiled governance state for a
+    given fingerprint, mirroring the in-process `_GOV_CACHE` but persisted to
+    disk so it survives across separate `sdd ask` processes (design.md D-A).
+
+    Bounded by a TTL (mirroring `ContextLoader`'s own 5-minute TTL) rather than
+    relying on fingerprint match alone: the lookup fingerprint here is the
+    *last-known* one recorded in `governance-state.json`, not a freshly
+    reloaded one — skipping the real compiled-governance load on every hit
+    means a recompile would otherwise never be detected. The TTL bounds how
+    long a cache hit can go without forcing a fresh load, so staleness after a
+    recompile is capped at `_SNAPSHOT_CACHE_TTL_SECONDS`, not unbounded.
+    """
+    if not fingerprint:
+        return None
+    entry = (
+        _load_governance_state(workspace_root)
+        .get("snapshot_cache", {})
+        .get(fingerprint)
+    )
+    if not isinstance(entry, dict):
+        return None
+    computed_at = entry.get("computed_at")
+    if not computed_at:
+        return None
+    try:
+        computed_dt = datetime.fromisoformat(str(computed_at).replace("Z", "+00:00"))
+        age_seconds = (datetime.now(timezone.utc) - computed_dt).total_seconds()
+    except (ValueError, TypeError):
+        return None
+    if age_seconds > _SNAPSHOT_CACHE_TTL_SECONDS:
+        return None
+    snapshot = entry.get("snapshot")
+    return snapshot if isinstance(snapshot, dict) else None
+
+
+def store_governance_snapshot(
+    workspace_root: Path, fingerprint: str, snapshot: dict[str, Any]
+) -> None:
+    """Persist a compiled-governance snapshot, capped to the most recent entries."""
+    if not fingerprint:
+        return
+    try:
+        data = _load_governance_state(workspace_root)
+        entries = data.get("snapshot_cache")
+        if not isinstance(entries, dict):
+            entries = {}
+        entries[fingerprint] = {
+            "snapshot": snapshot,
+            "computed_at": datetime.now(timezone.utc)
+            .isoformat(timespec="seconds")
+            .replace("+00:00", "Z"),
+        }
+        if len(entries) > _SNAPSHOT_CACHE_MAX_ENTRIES:
+            ordered = sorted(
+                entries.items(),
+                key=lambda item: item[1].get("computed_at", ""),
+                reverse=True,
+            )
+            entries = dict(ordered[:_SNAPSHOT_CACHE_MAX_ENTRIES])
+        data["snapshot_cache"] = entries
+        _store_governance_state(workspace_root, data)
+    except Exception as exc:
+        logger.debug("Failed to update governance snapshot cache: %s", exc)
+
+
 def get_cached_routing_decision(
     workspace_root: Path, signature: str
 ) -> dict[str, Any] | None:
@@ -311,8 +387,9 @@ def write_runtime_cache_and_routing_decision(
     skill: str | None,
     fingerprint: str,
     routing_decision: dict[str, Any],
+    governance_snapshot: dict[str, Any] | None = None,
 ) -> None:
-    """Persist `last_ask` and a routing decision in a single read-modify-write.
+    """Persist `last_ask`, a routing decision, and a governance snapshot in one write.
 
     `write_runtime_cache` + `store_routing_decision` always run back-to-back
     at the end of a `sdd ask` call and each independently reads/writes
@@ -323,6 +400,10 @@ def write_runtime_cache_and_routing_decision(
     per-process `_load_governance_state`/`_store_governance_state` cache
     (design.md D-01), so calling them elsewhere in the same process no
     longer reintroduces a redundant disk read either.
+
+    `governance_snapshot`, when supplied, is persisted under `snapshot_cache`
+    the same way `store_governance_snapshot` does standalone (design.md D-A) —
+    folded into this same write rather than opening a third read/write path.
     """
     try:
         data = _load_governance_state(workspace_root)
@@ -346,6 +427,24 @@ def write_runtime_cache_and_routing_decision(
                 )
                 decisions = dict(ordered[:_ROUTING_CACHE_MAX_ENTRIES])
             data["last_routing_decisions"] = decisions
+            if governance_snapshot is not None:
+                snapshots = data.get("snapshot_cache")
+                if not isinstance(snapshots, dict):
+                    snapshots = {}
+                snapshots[fingerprint] = {
+                    "snapshot": governance_snapshot,
+                    "computed_at": datetime.now(timezone.utc)
+                    .isoformat(timespec="seconds")
+                    .replace("+00:00", "Z"),
+                }
+                if len(snapshots) > _SNAPSHOT_CACHE_MAX_ENTRIES:
+                    ordered_snapshots = sorted(
+                        snapshots.items(),
+                        key=lambda item: item[1].get("computed_at", ""),
+                        reverse=True,
+                    )
+                    snapshots = dict(ordered_snapshots[:_SNAPSHOT_CACHE_MAX_ENTRIES])
+                data["snapshot_cache"] = snapshots
         _store_governance_state(workspace_root, data)
     except Exception as exc:
         logger.debug("Failed to update runtime cache/routing decision: %s", exc)
