@@ -148,7 +148,7 @@ jobs:
           uv run python tools/ci/environment_gates.py trusted-keyring-precedence-check --context security --mode warn
           uv run python tools/ci/environment_gates.py signature-mode-policy-check --context security --mode warn
       - name: Log in to Docker Hub
-        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7  # v4.5.1
+        uses: docker/login-action@371161bbe7024a29a25c5e19bfcbc0804fe9ad2c  # v4.5.2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
