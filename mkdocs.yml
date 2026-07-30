@@ -111,6 +111,16 @@ nav:
   - Runtime:
     - Agent Entrypoint: runtime/protocols/AGENT_ENTRYPOINT.md
     - Agent Runtime Protocol: runtime/protocols/AGENT_RUNTIME_PROTOCOL.md
+  - Runbooks:
+    - Overview: runbooks/README.md
+    - Authoring Standard: runbooks/authoring-standard.md
+    - Governance Runtime Drift: runbooks/governance-runtime-drift.md
+    - Client Bootstrap PATH Shadowing: runbooks/client-bootstrap-path-shadowing.md
+    - Windows Standalone Compiler Skew: runbooks/windows-standalone-compiler-skew.md
+    - Docs Site Selector Publish: runbooks/docs-site-selector-publish.md
+    - Docs Link Rot Strict MkDocs: runbooks/docs-link-rot-strict-mkdocs.md
+    - Release Asset Recovery: runbooks/release-asset-recovery.md
+    - Context Budget Breach: runbooks/context-budget-breach.md
   - Governance:
     - Source And Runtime Model: governance-runtime-model.md
     - Mandatory Human Review: spec/canonical/core/policies/P003_MANDATORY_HUMAN_REVIEW.md

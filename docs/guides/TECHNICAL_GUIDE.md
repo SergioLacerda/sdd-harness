@@ -29,6 +29,7 @@ tools/             # Sovereign Factory: maintenance utilities (PEP 723)
 | Pipeline orchestration | [docs/guides/PIPELINE_ORCHESTRATION.md](./PIPELINE_ORCHESTRATION.md) |
 | Learning integration | [docs/guides/LEARNING_INTEGRATION.md](./LEARNING_INTEGRATION.md) |
 | Robustness patterns | [docs/guides/ROBUSTNESS_PATTERNS.md](./ROBUSTNESS_PATTERNS.md) |
+| Operational runbooks | [docs/runbooks/README.md](../runbooks/README.md) |
 | Agent Runtime Protocol | [docs/runtime/protocols/AGENT_RUNTIME_PROTOCOL.md](../runtime/protocols/AGENT_RUNTIME_PROTOCOL.md) |
 | Security policy | [docs/spec/reference/SECURITY.md](../spec/reference/SECURITY.md) |
 | CLI reference | [docs/spec/reference/commands/cli.md](../spec/reference/commands/cli.md) |
@@ -66,6 +67,7 @@ Publishing is gated by repository variable `ENABLE_GITHUB_PAGES`:
 Operational checklist:
 
 - [docs/guides/GITHUB_PAGES_PUBLISH_CHECKLIST.md](./GITHUB_PAGES_PUBLISH_CHECKLIST.md)
+- [docs/runbooks/docs-site-selector-publish.md](../runbooks/docs-site-selector-publish.md)
 
 ## Governance Artifacts
 

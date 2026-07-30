@@ -238,6 +238,21 @@ sources:
     outputs:
       - .sdd/source/handbook/context-loading/context-flow.yaml
 
+  - id: HBK-RUNBOOK-CONSULTATION
+    type: handbook
+    kind: decision_model
+    status: active
+    path: docs/runbooks/README.md
+    refs: [M003, M005]
+    task_types: [planning, implementation, diagnosis]
+    operation_phases: [context_loading, planning]
+    load_policy:
+      mode: selective
+      max_tokens: 900
+      require_relevance_reason: true
+    outputs:
+      - .sdd/source/handbook/runbooks/index.yaml
+
   - id: ADR-INDEX
     type: docs_only
     status: reference

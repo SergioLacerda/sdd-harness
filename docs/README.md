@@ -14,6 +14,7 @@ deeper docs tree.
 | understand governance source vs runtime output | [`governance-runtime-model.md`](./governance-runtime-model.md) |
 | inspect CLI commands and contracts | [`spec/reference/commands/cli.md`](./spec/reference/commands/cli.md) |
 | understand runtime agent entrypoints | [`runtime/protocols/AGENT_ENTRYPOINT.md`](./runtime/protocols/AGENT_ENTRYPOINT.md) |
+| recover from known operational failures | [`runbooks/README.md`](./runbooks/README.md) |
 | navigate the broader docs corpus | [`guides/TECHNICAL_GUIDE.md`](./guides/TECHNICAL_GUIDE.md) |
 
 ## Documentation Map
@@ -30,6 +31,12 @@ deeper docs tree.
 - `guides/FRONTEND_SELECTOR.md`
 - `guides/SDD_FOLDER_REFERENCE.md`
 
+### Runbooks
+
+- `runbooks/README.md` — reusable operational procedures
+- `incidents/PLAYBOOKS.md` — incident-response playbooks
+- `maintenance/landing-site-runbook.md` — site publication and selector maintenance
+
 ### Reference
 
 - `spec/reference/commands/cli.md`
@@ -44,10 +51,6 @@ deeper docs tree.
 - `runtime/protocols/AGENT_ENTRYPOINT.md`
 - `runtime/protocols/AGENT_RUNTIME_PROTOCOL.md`
 - `adr/INDEX.md`
-
-### Maintenance
-
-- `maintenance/landing-site-runbook.md` — landing/docs/selector architecture, build & deploy pipeline, and common maintenance tasks
 
 ## Reading Strategy
 
@@ -66,5 +69,7 @@ For agents:
 
 - This docs surface is intentionally route-oriented; canonical technical content
   remains in `docs/spec/`, `docs/runtime/`, `docs/architecture/`, and `docs/adr/`
+- `docs/runbooks/` is the reusable operational procedure surface; `docs/guides/`
+  remains a mixed guide/reference area
 - Multi-version docs and generated API reference are deferred follow-up tracks,
   not part of this intro-surface cleanup

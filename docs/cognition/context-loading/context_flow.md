@@ -26,6 +26,7 @@ flowchart TD
     DEV[🟢 DEVELOPMENT\nActive work]
     AICTX[🧠 .sdd/context-aware\nSummaries / tasks]
     RUNTIME[⚡ .sdd/runtime\nIndexes / keywords]
+    RUNBOOKS[📖 RUNBOOKS\nOperational procedures]
 
     %% Query
     QUERY[🎯 Task Query\n"What am I doing?"]
@@ -39,6 +40,7 @@ flowchart TD
     DEV --> ROUTER
     AICTX --> ROUTER
     RUNTIME --> ROUTER
+    RUNBOOKS --> ROUTER
 
     %% Optimization
     ROUTER --> PRUNE[✂️ Pruning Engine\nRemove irrelevant content]
@@ -58,3 +60,14 @@ flowchart TD
     OUTPUT --> CI[⚖️ CI/CD Validation]
     CI --> CANON
 ```
+
+## Runbook Consultation
+
+Use `docs/runbooks/README.md` as a selective index when a task involves
+operational failure, diagnosis, hotfix, repeated failure, release recovery,
+generated-runtime drift, or context-budget breach.
+
+The context router must load at most one matching runbook leaf unless the task
+explicitly requires cross-runbook comparison. Record why the selected runbook is
+relevant before loading it. If no runbook matches an active incident, use
+`docs/incidents/PLAYBOOKS.md` as the fallback operational procedure.
