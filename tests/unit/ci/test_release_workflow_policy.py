@@ -171,10 +171,10 @@ def test_release_git_install_url_avoids_windows_file_url_ref_suffix() -> None:
         job = _git_install_smoke_job(workflow_path)
         steps_text = "\n".join(step.get("run", "") for step in job["steps"])
 
-        assert 'git+file:///${WS#/}#subdirectory=packages/interfaces/sdd_cli' in (
+        assert "git+file:///${WS#/}#subdirectory=packages/interfaces/sdd_cli" in (
             steps_text
         )
-        assert 'git+file:///${WS#/}@' not in steps_text
+        assert "git+file:///${WS#/}@" not in steps_text
 
 
 def test_release_gate_requires_git_install_smoke() -> None:
