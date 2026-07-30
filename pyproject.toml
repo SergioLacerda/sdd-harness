@@ -29,7 +29,7 @@ test = [
     "rich>=15.0.0",
     "python-dotenv>=1.2.2",
     "pydantic>=2.13.4",
-    "hypothesis>=6.161.7",
+    "hypothesis>=6.161.8",
     "httpx>=0.28.1",
 ]
 lint = [
