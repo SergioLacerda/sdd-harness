@@ -26,6 +26,34 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
+## [1.0.4] — YYYY-MM-DD
+
+### Fixed
+- Fixed `sdd audit` drift-rate calculations inflating detected-drift counts
+  by roughly 7x: `governance.ask.phase` sub-events (each `sdd ask`
+  invocation emits ~6) inherit `drift_detected` from their parent
+  `governance.ask` event, and were being counted as independent drifts in
+  both the base summary and the windowed correlation calculation. A new
+  `_is_ask_phase_event()` predicate excludes phase sub-events from the
+  drift-rate numerator in both calculations, while the denominators
+  (ask-event totals) keep counting them — the same scoping principle
+  applied to the `token_comparison` denominator fix in `[1.0.3]`, now
+  applied to drift *counts*.
+- Fixed the release smoke test creating its client project
+  (`git-smoke-project`) inside the checked-out repository, which is itself
+  an SDD workspace (`.sdd/` is committed) — `sdd init`'s nested-workspace
+  guard could treat the checkout as a blocking parent workspace. Both
+  `release.yml` and `release-dry-run.yml` now create the smoke project
+  under `$RUNNER_TEMP` instead. Also fixed two related regressions
+  surfaced by the same investigation: `sdd init`'s parent-workspace guard
+  now requires `.sdd/profile` to exist before treating a directory as a
+  blocking workspace (a bare `.sdd/`, such as the compiler-binary cache at
+  `~/.sdd/bin`, no longer falsely blocks `sdd init`), and
+  `ask_telemetry`'s fallback token estimator no longer returns `0` — which
+  downstream telemetry cannot distinguish from "no measurement" — for
+  non-empty query/output text shorter than 4 characters; it now floors at
+  `1`.
+
 ## [1.0.3] — 2026-07-20
 
 ### Fixed
@@ -198,7 +226,8 @@ Initial stable release of the multi-package workspace structure.
 - `sdd lint spec`, `sdd governance compile`, `sdd governance generate`, `sdd doctor run`
 - MkDocs documentation site
 
-[Unreleased]: https://github.com/SergioLacerda/sdd-harness/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/SergioLacerda/sdd-harness/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v1.0.4
 [1.0.3]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v1.0.3
 [1.0.2]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v1.0.2
 [1.0.1]: https://github.com/SergioLacerda/sdd-harness/releases/tag/v1.0.1

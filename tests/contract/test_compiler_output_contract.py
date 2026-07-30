@@ -2,7 +2,8 @@
 
 These tests run against the current Python GovernanceCompiler output and will
 continue to run against Go sdd-compile binary output after Phase 7 deletion.
-All tests verify format and structural contracts defined in contracts/compiler-io.md.
+All tests verify format and structural contracts defined in
+docs/spec/canonical/specifications/compiler_io_contract.md.
 
 To run:
     uv run python -m pytest tests/contract/test_compiler_output_contract.py -v

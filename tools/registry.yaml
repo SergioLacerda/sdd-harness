@@ -1,0 +1,152 @@
+schema_version: "1"
+tools:
+  - id: maintenance/lint_all
+    path: tools/maintenance/lint_all.py
+    visibility: public
+    status: active
+    runner: uv-python
+    description: Orchestrated monorepo linting.
+    category: maintenance
+    tags: [lint, quality]
+    docs_refs:
+      - tools/README.md
+    ci_consumers:
+      - make lint
+    allow_direct_run: true
+
+  - id: testing/run-all-tests
+    path: tools/testing/run-all-tests.py
+    visibility: public
+    status: active
+    runner: uv-python
+    description: Parallelized multi-layer pytest runner.
+    category: testing
+    tags: [pytest, coverage]
+    docs_refs:
+      - tools/README.md
+    ci_consumers:
+      - make test
+    allow_direct_run: true
+
+  - id: testing/diagnostics
+    path: tools/testing/diagnostics.py
+    visibility: public
+    status: active
+    runner: uv-python
+    description: Diagnostic suite for local test and runtime checks.
+    category: testing
+    tags: [diagnostics]
+    docs_refs:
+      - tools/README.md
+    allow_direct_run: true
+
+  - id: testing/update-golden-snapshots
+    path: tools/testing/update-golden-snapshots.py
+    visibility: public
+    status: active
+    runner: uv-python
+    description: Updates contract and governance golden snapshots.
+    category: testing
+    tags: [snapshots, golden]
+    docs_refs:
+      - tools/README.md
+      - docs/spec/guides/golden-files.md
+    allow_direct_run: true
+
+  - id: health/health_check
+    path: tools/health/health_check.py
+    visibility: public
+    status: active
+    runner: uv-python
+    description: Portable health engine for local and CI checks.
+    category: health
+    tags: [health, ci]
+    docs_refs:
+      - tools/README.md
+    allow_direct_run: true
+
+  - id: governance/compliance
+    path: tools/governance/compliance.py
+    visibility: public
+    status: active
+    runner: uv-python
+    description: Ed25519 source governance compliance validator.
+    category: governance
+    tags: [governance, signatures]
+    docs_refs:
+      - tools/README.md
+    allow_direct_run: true
+
+  - id: docs/check_links
+    path: tools/docs/check_links.py
+    visibility: public
+    status: active
+    runner: uv-python
+    description: MkDocs and Markdown link checker.
+    category: docs
+    tags: [docs, links]
+    docs_refs:
+      - tools/README.md
+    allow_direct_run: true
+
+  - id: release/validate_release_assets
+    path: tools/release/validate_release_assets.py
+    visibility: public
+    status: active
+    runner: uv-python
+    description: Release asset contract validator.
+    category: release
+    tags: [release, artifacts]
+    docs_refs:
+      - tools/README.md
+      - docs/guides/release/STANDALONE_COMPILER_ASSETS.md
+    allow_direct_run: true
+
+  - id: guardrails/cli
+    path: tools/guardrails/cli.py
+    visibility: internal
+    status: active
+    runner: python-module
+    description: Guardrails framework module entry point.
+    category: guardrails
+    tags: [guardrails]
+    module: tools.guardrails.cli
+    docs_refs:
+      - tools/README.md
+    allow_direct_run: true
+
+  - id: compiler/project
+    path: tools/sdd-compile
+    visibility: project
+    status: active
+    runner: go-project
+    description: Self-contained Go compiler tool project.
+    category: compiler
+    tags: [compiler, go]
+    docs_refs:
+      - tools/README.md
+      - docs/spec/decisions/ADR-015-go-compiler-migration-performance.md
+
+  - id: analysis/deprecated/analyze_sdd_runtime
+    path: tools/analysis/deprecated/analyze_sdd_runtime.py
+    visibility: deprecated
+    status: deprecated
+    runner: uv-python
+    description: Deprecated runtime analysis helper retained for compatibility context.
+    category: analysis
+    tags: [analysis, deprecated]
+    replacement: tools/guardrails/cli
+    docs_refs:
+      - tools/README.md
+
+  - id: analysis/deprecated/analyze_sdd_telemetry
+    path: tools/analysis/deprecated/analyze_sdd_telemetry.py
+    visibility: deprecated
+    status: deprecated
+    runner: uv-python
+    description: Deprecated telemetry analysis helper retained for compatibility context.
+    category: analysis
+    tags: [analysis, deprecated]
+    replacement: tools/guardrails/cli
+    docs_refs:
+      - tools/README.md

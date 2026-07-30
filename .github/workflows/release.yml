@@ -64,6 +64,7 @@ jobs:
             packages/core/sdd_core
             packages/core/sdd_telemetry
             packages/features/sdd_integration
+            packages/features/sdd_pages
             packages/interfaces/sdd_wizard
             packages/interfaces/sdd_cli
 

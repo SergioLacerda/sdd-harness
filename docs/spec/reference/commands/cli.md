@@ -93,8 +93,17 @@ sdd test run --cov-fail-under 80
 
 ### Maintenance and Tooling
 
-- sdd tools list: Lists available maintenance tools in `tools/`.
-- sdd tools run <category>/<name>: Executes a tool with automatic environment isolation (uv-powered).
+- `sdd tools list`: Lists public active tools from `tools/registry.yaml` when present.
+- `sdd tools list --all`: Includes public, internal, deprecated, and project registry entries.
+- `sdd tools list --include-internal`: Includes internal entries in addition to public active tools.
+- `sdd tools list --include-deprecated`: Includes deprecated entries and replacement guidance when available.
+- `sdd tools list --include-projects`: Includes self-contained tool projects.
+- `sdd tools list --json`: Emits machine-readable registry output.
+- `sdd tools run <tool-id>`: Executes a runnable manifest entry with automatic environment isolation.
+- `sdd tools run <category>/<script>.py`: Executes a legacy path relative to `tools/`; this remains supported during manifest migration.
+
+If `tools/registry.yaml` is absent, `sdd tools list` falls back to recursive Python
+script discovery under `tools/` for compatibility.
 
 ### Governance Query (Ask)
 
