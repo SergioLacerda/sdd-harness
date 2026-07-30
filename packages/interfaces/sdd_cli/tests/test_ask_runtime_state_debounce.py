@@ -117,6 +117,43 @@ def test_write_runtime_cache_and_routing_decision_silently_handles_write_error(
         )
 
 
+def test_check_fingerprint_drift_and_end_of_call_write_share_one_read(
+    tmp_path: Path,
+) -> None:
+    """T-04a: `check_fingerprint_drift` (start of call) and
+    `write_runtime_cache_and_routing_decision` (end of call) must share the
+    per-process `_load_governance_state` cache instead of each independently
+    reading `governance-state.json` — collapsing 2 reads + 1 write per `sdd
+    ask` call into 1 read + 1 write (design.md D-01)."""
+    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path.parent.mkdir(parents=True)
+    state_path.write_text(
+        json.dumps({"last_ask": {"compiled_fingerprint_used": "fp1"}}),
+        encoding="utf-8",
+    )
+
+    real_read_text = Path.read_text
+    read_calls = {"count": 0}
+
+    def _spy_read_text(self: Path, *args: object, **kwargs: object) -> str:
+        if self == state_path:
+            read_calls["count"] += 1
+        return real_read_text(self, *args, **kwargs)
+
+    with patch.object(Path, "read_text", _spy_read_text):
+        ask_context_mod.check_fingerprint_drift(tmp_path, "fp1")
+        ask_context_mod.write_runtime_cache_and_routing_decision(
+            tmp_path,
+            {"compiled_fingerprint_used": "fp1"},
+            "query",
+            None,
+            "fp1",
+            {"organize_used": False},
+        )
+
+    assert read_calls["count"] == 1
+
+
 def test_emit_ask_telemetry_reuses_shared_sink_and_skips_flush() -> None:
     """`sink=`/`flush=False` must reuse the caller's sink and not enqueue a
     flush — the caller batches all events onto one sink and flushes once."""

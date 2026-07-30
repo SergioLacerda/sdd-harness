@@ -30,6 +30,42 @@ logger = logging.getLogger(__name__)
 
 _GOV_CACHE: dict[str, GovResult] = {}
 
+_STATE_CACHE: dict[str, dict[str, Any]] = {}
+
+
+def _load_governance_state(workspace_root: Path) -> dict[str, Any]:
+    """Read+parse `governance-state.json` at most once per process per workspace.
+
+    `check_fingerprint_drift`, `write_runtime_cache`, `_read_runtime_state`,
+    `store_routing_decision`, and `write_runtime_cache_and_routing_decision`
+    all share this cache so a single `sdd ask` call does one disk read of
+    this file instead of one per call site (design.md D-01). Only a
+    successful write via `_store_governance_state` may refresh a cache entry.
+    """
+    key = str(workspace_root.resolve())
+    cached = _STATE_CACHE.get(key)
+    if cached is not None:
+        return cached
+    state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
+    data: dict[str, Any] = {}
+    if state_path.exists():
+        try:
+            data = json.loads(state_path.read_text(encoding="utf-8"))
+        except Exception:
+            data = {}
+    _STATE_CACHE[key] = data
+    return data
+
+
+def _store_governance_state(workspace_root: Path, data: dict[str, Any]) -> None:
+    """Write `governance-state.json` and refresh the shared in-process cache."""
+    state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    _STATE_CACHE[str(workspace_root.resolve())] = data
+
 
 @dataclass(frozen=True)
 class AskContext:
@@ -138,10 +174,9 @@ def check_fingerprint_drift(workspace_root: Path, loaded_fingerprint: str) -> bo
     if not loaded_fingerprint:
         return False
     try:
-        state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
-        if not state_path.exists():
+        data = _load_governance_state(workspace_root)
+        if not data:
             return False
-        data = json.loads(state_path.read_text(encoding="utf-8"))
         # Prefer last_ask.compiled_fingerprint_used — same kind of hash as loaded_fingerprint.
         # spec_fingerprint is a hash of source files, not compiled output, so comparing
         # loaded_fingerprint against it produces a permanent false-positive.
@@ -159,18 +194,9 @@ def check_fingerprint_drift(workspace_root: Path, loaded_fingerprint: str) -> bo
 def write_runtime_cache(workspace_root: Path, last_ask: dict[str, Any]) -> None:
     """Persist last-ask metadata to the runtime governance-state cache."""
     try:
-        state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
-        data: dict[str, Any] = {}
-        if state_path.exists():
-            try:
-                data = json.loads(state_path.read_text(encoding="utf-8"))
-            except Exception:
-                data = {}
+        data = _load_governance_state(workspace_root)
         data["last_ask"] = last_ask
-        state_path.parent.mkdir(parents=True, exist_ok=True)
-        state_path.write_text(
-            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
-        )
+        _store_governance_state(workspace_root, data)
     except Exception as exc:
         logger.debug("Failed to update runtime cache: %s", exc)
 
@@ -179,14 +205,7 @@ _ROUTING_CACHE_MAX_ENTRIES = 20
 
 
 def _read_runtime_state(workspace_root: Path) -> dict[str, Any]:
-    state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
-    if not state_path.exists():
-        return {}
-    try:
-        data: dict[str, Any] = json.loads(state_path.read_text(encoding="utf-8"))
-        return data
-    except Exception:
-        return {}
+    return _load_governance_state(workspace_root)
 
 
 def compute_routing_signature(query: str, skill: str | None, fingerprint: str) -> str:
@@ -262,8 +281,7 @@ def store_routing_decision(
         return
     signature = compute_routing_signature(query, skill, fingerprint)
     try:
-        state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
-        data = _read_runtime_state(workspace_root)
+        data = _load_governance_state(workspace_root)
         decisions = data.get("last_routing_decisions")
         if not isinstance(decisions, dict):
             decisions = {}
@@ -281,10 +299,7 @@ def store_routing_decision(
             )
             decisions = dict(ordered[:_ROUTING_CACHE_MAX_ENTRIES])
         data["last_routing_decisions"] = decisions
-        state_path.parent.mkdir(parents=True, exist_ok=True)
-        state_path.write_text(
-            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
-        )
+        _store_governance_state(workspace_root, data)
     except Exception as exc:
         logger.debug("Failed to update routing decision cache: %s", exc)
 
@@ -304,11 +319,13 @@ def write_runtime_cache_and_routing_decision(
     `governance-state.json` — two reads and two writes for state that is
     always updated together. This combines them into one read + one write
     (design.md D4). `write_runtime_cache` and `store_routing_decision` are
-    kept as-is for other callers/tests; this is an additive fast path for the
-    hot end-of-call site only.
+    kept as-is for other callers/tests — they now share the same
+    per-process `_load_governance_state`/`_store_governance_state` cache
+    (design.md D-01), so calling them elsewhere in the same process no
+    longer reintroduces a redundant disk read either.
     """
     try:
-        data = _read_runtime_state(workspace_root)
+        data = _load_governance_state(workspace_root)
         data["last_ask"] = last_ask
         if fingerprint:
             signature = compute_routing_signature(query, skill, fingerprint)
@@ -329,11 +346,7 @@ def write_runtime_cache_and_routing_decision(
                 )
                 decisions = dict(ordered[:_ROUTING_CACHE_MAX_ENTRIES])
             data["last_routing_decisions"] = decisions
-        state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
-        state_path.parent.mkdir(parents=True, exist_ok=True)
-        state_path.write_text(
-            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
-        )
+        _store_governance_state(workspace_root, data)
     except Exception as exc:
         logger.debug("Failed to update runtime cache/routing decision: %s", exc)
 
