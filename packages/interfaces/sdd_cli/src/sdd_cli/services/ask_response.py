@@ -200,9 +200,10 @@ def emit_ask_text_response(
             f"{phase_timer.unattributed_ms(session_duration_ms=duration_ms)}"
         )
         for record in phase_records:
+            slow_marker = " SLOW" if record.phase_slow else ""
             typer.echo(
                 f"  {record.phase_id}={record.duration_ms}ms "
-                f"{record.latency_domain} {record.measurement_quality}"
+                f"{record.latency_domain} {record.measurement_quality}{slow_marker}"
             )
 
 

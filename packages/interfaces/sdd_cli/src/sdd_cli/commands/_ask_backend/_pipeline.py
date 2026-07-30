@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import typer
 from sdd_runtime.cache import get_context_cache
@@ -19,6 +20,9 @@ from ._helpers import (
     _collect_learning_signals,
     _signature_mode,
 )
+
+if TYPE_CHECKING:
+    from ._phase_timer import PhaseTimer
 
 _HANDBOOK_LOOKUP_LIMIT = 5
 
@@ -80,8 +84,21 @@ def build_governed_ask_snapshot(
     workspace_root: Any | None = None,
     require_handshake: bool = True,
     cached_handbook_task_type: str | None = None,
+    phase_timer: PhaseTimer | None = None,
 ) -> dict[str, Any]:
-    """Build a governed ask snapshot with envelope + learning context."""
+    """Build a governed ask snapshot with envelope + learning context.
+
+    Callers that measure `ask.governance.snapshot` (e.g. `_load_ask_snapshot`)
+    own that outer span themselves, wrapping the whole call — this keeps
+    that phase observable even when this function is replaced by a test
+    double. When `phase_timer` is supplied, the handbook lookup is
+    additionally measured as its own `ask.runtime.handbook` phase. Because
+    that phase is typically nested inside a caller's own
+    `ask.governance.snapshot` span, its duration is counted in both —
+    a known, documented limitation of `PhaseTimer.phase_total_ms()` /
+    `unattributed_ms()` not being nesting-aware. The handbook lookup is a
+    small fraction of the overall snapshot build, so the effect is minor.
+    """
     from sdd_cli.commands import _ask_backend as _backend
 
     root = workspace_root or _backend._resolve_workspace_root()
@@ -135,12 +152,19 @@ def build_governed_ask_snapshot(
         if cached_handbook_task_type is not None
         else _infer_handbook_task_type(query, skill)
     )
-    handbook_lookup = _cached_handbook_lookup(
-        root,
-        query=query,
-        task_type=handbook_task_type,
-        operation_phase="context_loading",
+
+    handbook_phase = (
+        phase_timer.phase("ask.runtime.handbook", latency_domain="governance")
+        if phase_timer is not None
+        else nullcontext()
     )
+    with handbook_phase:
+        handbook_lookup = _cached_handbook_lookup(
+            root,
+            query=query,
+            task_type=handbook_task_type,
+            operation_phase="context_loading",
+        )
     return {
         "workspace_root": root,
         "context_source": context_source,

@@ -31,13 +31,34 @@ class PhaseRecord:
     measurement_quality: str = "measured"
     observed_by: str = "sdd_cli"
     failed: bool = False
+    # Soft-watchdog marker: True when duration_ms exceeded this phase's
+    # configured threshold. Never affects control flow — see PhaseTimer.
+    phase_slow: bool = False
 
 
 @dataclass
 class PhaseTimer:
-    """Collects `PhaseRecord`s for the phases of one `sdd ask` invocation."""
+    """Collects `PhaseRecord`s for the phases of one `sdd ask` invocation.
+
+    `thresholds_ms` / `default_threshold_ms` configure an optional,
+    non-blocking watchdog (design.md §3): a phase whose measured
+    `duration_ms` exceeds its threshold is marked `phase_slow=True` on its
+    `PhaseRecord` — this never raises, never fails the command, and never
+    changes timing behavior. Absent config (the default) disables the
+    watchdog entirely; every record's `phase_slow` stays `False`.
+    """
 
     _records: list[PhaseRecord] = field(default_factory=list)
+    thresholds_ms: dict[str, int] = field(default_factory=dict)
+    default_threshold_ms: int | None = None
+
+    def threshold_for(self, phase_id: str) -> int | None:
+        """The configured watchdog threshold for `phase_id`, if any."""
+        return self.thresholds_ms.get(phase_id, self.default_threshold_ms)
+
+    def _is_slow(self, phase_id: str, duration_ms: int) -> bool:
+        threshold = self.threshold_for(phase_id)
+        return threshold is not None and duration_ms > threshold
 
     @contextmanager
     def phase(
@@ -69,6 +90,7 @@ class PhaseTimer:
                     measurement_quality=measurement_quality,
                     observed_by=observed_by,
                     failed=failed,
+                    phase_slow=self._is_slow(phase_id, duration_ms),
                 )
             )
 
@@ -98,11 +120,16 @@ class PhaseTimer:
                 measurement_quality=measurement_quality,
                 observed_by=observed_by,
                 failed=False,
+                phase_slow=self._is_slow(phase_id, duration_ms),
             )
         )
 
     def records(self) -> list[PhaseRecord]:
         return list(self._records)
+
+    def slow_records(self) -> list[PhaseRecord]:
+        """Records whose duration exceeded their configured threshold."""
+        return [r for r in self._records if r.phase_slow]
 
     def phase_total_ms(self) -> int:
         return sum(r.duration_ms for r in self._records)

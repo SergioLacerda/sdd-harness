@@ -15,6 +15,7 @@ from sdd_cli.utils.operational_errors import (
     operational_error_from_exception,
     render_operational_error,
 )
+from sdd_cli.utils.sdd_console import format_sdd_line
 from sdd_core.utils.environment import (
     ProfileContext,
     SddProfile,
@@ -232,7 +233,7 @@ def init(  # noqa: C901
         profile_type=profile_type,
     )
 
-    typer.echo(f"[SDD] Workspace initialized at '{cwd}'")
+    typer.echo(format_sdd_line(f"Workspace initialized at '{cwd}'"))
     typer.echo(f"  type:         {profile_ctx.type}")
     typer.echo(f"  name:         {profile_ctx.name}")
     typer.echo(f"  workspace_id: {profile_ctx.workspace_id}")

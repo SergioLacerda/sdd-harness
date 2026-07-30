@@ -101,6 +101,7 @@ def test_json_full_mode_includes_timing_block(capsys) -> None:
             "duration_ms": record.duration_ms,
             "latency_domain": record.latency_domain,
             "measurement_quality": record.measurement_quality,
+            "phase_slow": record.phase_slow,
         }
         for record in records
     ]

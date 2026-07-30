@@ -1,0 +1,55 @@
+# SDD Harness — Attribution and Professional Services Notice
+
+This file supplements the MIT License (`LICENSE`) with non-binding guidance
+and information about professional services related to the SDD Harness. It
+does not modify the terms of the MIT License.
+
+## Attribution
+
+The SDD Harness may be freely used, modified, incorporated into other
+solutions, and redistributed under the terms of the MIT License.
+
+When the Software, or a substantial portion of it, is incorporated into
+another project or product, the copyright notice and the MIT License text in
+`LICENSE` must be preserved.
+
+Suggested attribution:
+
+> This product includes or is based on the SDD Harness, created by Sérgio
+> Lacerda Vieira.
+
+Project attribution may also include a link to the official SDD Harness
+repository.
+
+The suggested public attribution is appreciated. The legally required
+attribution is the preservation of the copyright and permission notice as
+defined by the MIT License.
+
+## Professional Services
+
+The open-source license does not include guaranteed support, maintenance,
+consulting, implementation, or customization services.
+
+Professional services may be provided according to each project's needs,
+including:
+
+- installation and onboarding;
+- project-specific governance;
+- custom mandates, policies, guardrails, and templates;
+- integrations with AI agents, IDEs, CI/CD pipelines, and internal tools;
+- private plugins and adapters;
+- architecture and governance reviews;
+- training and technical guidance;
+- maintenance and support arrangements.
+
+For customization, integration, consulting, or support, please contact the
+author. Scope, delivery format, availability, and commercial terms will be
+defined according to the specific need.
+
+## No Official Endorsement
+
+Use of the SDD Harness source code does not imply endorsement, certification,
+partnership, or official support by the author.
+
+Modified versions and third-party distributions should not be presented as
+official releases of the SDD Harness unless explicitly authorized.

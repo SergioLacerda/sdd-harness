@@ -122,6 +122,7 @@ def emit_ask_telemetry(
     tokens_output: int | None = None,
     retry_count: int | None = None,
     compression_ratio: float | None = None,
+    phase_slow: bool = False,
     extra_details: dict[str, Any] | None = None,
     parent_event_id: str = "",
     logger: Any | None = None,
@@ -185,6 +186,7 @@ def emit_ask_telemetry(
             tokens_output=tokens_output,
             retry_count=retry_count,
             compression_ratio=compression_ratio,
+            phase_slow=phase_slow,
             parent_event_id=parent_event_id,
             details=details,
         )

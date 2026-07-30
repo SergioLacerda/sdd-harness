@@ -15,7 +15,7 @@ systems.
 |:---:|:---:|:---:|
 | [![Health](https://github.com/SergioLacerda/sdd-harness/actions/workflows/health.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/health.yml) | [![CodeQL](https://github.com/SergioLacerda/sdd-harness/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/codeql.yml) | [![Built with uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv) |
 | [![Validation](https://github.com/SergioLacerda/sdd-harness/actions/workflows/sdd-validation.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/sdd-validation.yml) | [![Release](https://github.com/SergioLacerda/sdd-harness/actions/workflows/release.yml/badge.svg)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/release.yml) | [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/) |
-| [![Docs](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml) | [![Governance: SDD](https://img.shields.io/badge/governance-SDD-blueviolet)](docs/spec/canonical/core/) | [![License: CC BY-NC 4.0](https://img.shields.io/badge/license-CC%20BY--NC%204.0-lightgrey)](LICENSE) |
+| [![Docs](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/SergioLacerda/sdd-harness/actions/workflows/docs.yml) | [![Governance: SDD](https://img.shields.io/badge/governance-SDD-blueviolet)](docs/spec/canonical/core/) | [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE) |
 | | [![Coverage](https://codecov.io/gh/SergioLacerda/sdd-harness/branch/main/graph/badge.svg)](https://codecov.io/gh/SergioLacerda/sdd-harness) | |
 
 **[Documentation](https://sergiolacerda.github.io/sdd-harness/)** •
@@ -263,8 +263,9 @@ set in `docs/spec/canonical/core/`.
 
 ## License
 
-This project is licensed under **CC BY-NC 4.0**.
+This project is licensed under the **MIT License**.
 
 - Repository: <https://github.com/SergioLacerda/sdd-harness>
 - Published docs: <https://sergiolacerda.github.io/sdd-harness/>
 - License text: `LICENSE`
+- Attribution and professional services notice: `NOTICE.md`

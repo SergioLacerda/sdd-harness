@@ -13,6 +13,7 @@ import typer
 from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
 
 from ._helpers import _json_mode, _now
+from ._phase_timeouts import DEFAULT_ASK_PHASE_TIMEOUTS_MS, DEFAULT_ASK_TIMEOUT_MS
 from ._phase_timer import PhaseTimer
 
 logger = logging.getLogger(__name__)
@@ -87,12 +88,30 @@ def _emit_state_warnings(state: str) -> None:
         )
 
 
-def _start_ask_session(query: str, skill: str | None) -> _AskSessionContext:
+def _start_ask_session(
+    query: str, skill: str | None, *, entry_mono: float | None = None
+) -> _AskSessionContext:
     from sdd_cli.commands import _ask_backend as _backend
 
     start_mono = time.monotonic()
     start_ts = _now()
-    timer = PhaseTimer()
+    timer = PhaseTimer(
+        thresholds_ms=dict(DEFAULT_ASK_PHASE_TIMEOUTS_MS),
+        default_threshold_ms=DEFAULT_ASK_TIMEOUT_MS,
+    )
+
+    if entry_mono is not None:
+        # Measured locally (not adapter-reported) — record_external is used
+        # here only because the timer did not exist yet at the true CLI
+        # entry point (_ask_cmd_impl's first line), so phase() (a context
+        # manager) could not wrap it.
+        timer.record_external(
+            "ask.cli.entry",
+            latency_domain="local_cli",
+            duration_ms=int((start_mono - entry_mono) * 1000),
+            measurement_quality="measured",
+            observed_by="sdd_cli",
+        )
 
     with timer.phase("ask.budget.guard", latency_domain="governance"):
         _backend._guard_budget_breach()
@@ -141,6 +160,17 @@ def _load_ask_snapshot(
     from sdd_cli.commands import _ask_backend as _backend
 
     try:
+        # ask.governance.snapshot is measured here (caller side) as a
+        # black-box span around the whole call — tests that mock
+        # build_governed_ask_snapshot entirely still get a correctly-timed
+        # governance.snapshot phase this way. build_governed_ask_snapshot
+        # additionally records its own nested ask.runtime.handbook phase
+        # (only when it actually runs, i.e. not when mocked) for the
+        # handbook-lookup sub-step; that nested span's duration is included
+        # a second time in this phase's own duration, a known, documented
+        # limitation of PhaseTimer.phase_total_ms()/unattributed_ms() not
+        # being nesting-aware. Handbook lookup is a small fraction of this
+        # phase's total, so the effect on unattributed_ms() is minor.
         with session.phase_timer.phase(
             "ask.governance.snapshot", latency_domain="governance"
         ):
@@ -151,6 +181,7 @@ def _load_ask_snapshot(
                 workspace_root=session.workspace_root,
                 require_handshake=True,
                 cached_handbook_task_type=session.cached_handbook_task_type,
+                phase_timer=session.phase_timer,
             )
     except PermissionError as exc:
         typer.echo(f"BLOCK [ask]: {exc}", err=True)

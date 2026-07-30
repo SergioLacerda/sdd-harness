@@ -258,6 +258,53 @@ class TestRuntimeEventSchemaEvolution:
 
 
 # ---------------------------------------------------------------------------
+# 3b. RuntimeEvent schema evolution — trace_time.txt telemetry review fields
+# ---------------------------------------------------------------------------
+
+
+class TestRuntimeEventTelemetryReviewFields:
+    """New optional fields added for mission 20260730-sdd-ask-telemetry-critique.
+
+    All must default safely so every existing RuntimeEvent construction site
+    (across every command, not just `ask`) keeps working unchanged.
+    """
+
+    def test_new_optional_fields_default_safely(self) -> None:
+        evt = RuntimeEvent(event="x", command="y", status="ok", trace_id="t1")
+        assert evt.time_to_first_token_ms is None
+        assert evt.provider_wait_ms is None
+        assert evt.llm_call_count is None
+        assert evt.tool_execution_ms is None
+        assert evt.phase_slow is False
+
+    def test_new_fields_round_trip_via_json(self) -> None:
+        evt = RuntimeEvent(
+            event="x",
+            command="y",
+            status="ok",
+            trace_id="t1",
+            time_to_first_token_ms=120,
+            provider_wait_ms=30,
+            llm_call_count=1,
+            tool_execution_ms=15,
+            phase_slow=True,
+        )
+        data = json.loads(evt.to_json())
+        assert data["time_to_first_token_ms"] == 120
+        assert data["provider_wait_ms"] == 30
+        assert data["llm_call_count"] == 1
+        assert data["tool_execution_ms"] == 15
+        assert data["phase_slow"] is True
+
+    def test_event_without_new_fields_in_json_still_valid(self) -> None:
+        """A JSONL record written before these fields existed must still be
+        accepted by SchemaValidator — same compatibility contract as span_id."""
+        evt = RuntimeEvent(event="x", command="y", status="ok", trace_id="t1")
+        result = SchemaValidator().validate_event(evt)
+        assert result.compatible is True
+
+
+# ---------------------------------------------------------------------------
 # 4. Gate B integration: full pipeline
 # ---------------------------------------------------------------------------
 

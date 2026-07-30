@@ -146,6 +146,7 @@ def test_phase_events_cover_expected_phase_ids(
 
     phase_ids = {phase.details.get("phase_id") for phase in phases}
     assert phase_ids == {
+        "ask.cli.entry",
         "ask.budget.guard",
         "ask.workspace.resolve",
         "ask.organize.intake",
@@ -153,6 +154,13 @@ def test_phase_events_cover_expected_phase_ids(
         "ask.profile.resolve",
         "ask.governance.snapshot",
     }
+    # ask.runtime.handbook is absent here because this test mocks
+    # build_governed_ask_snapshot entirely (see module docstring) — the real
+    # function is what records that phase. ask.response.render and
+    # ask.telemetry.emit are absent for a structural reason: telemetry
+    # emission (which produces these captured events) necessarily runs
+    # before rendering, and cannot emit an event for its own still-running
+    # phase — see _pipeline_runtime.py's _sync_ask_runtime/_ask_cmd_impl.
 
 
 def test_llm_exchange_phase_absent_when_not_observable(

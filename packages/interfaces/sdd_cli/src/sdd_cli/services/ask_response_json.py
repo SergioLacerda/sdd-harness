@@ -135,6 +135,7 @@ def emit_ask_json_response(
                     "duration_ms": record.duration_ms,
                     "latency_domain": record.latency_domain,
                     "measurement_quality": record.measurement_quality,
+                    "phase_slow": record.phase_slow,
                 }
                 for record in phase_records
             ],
