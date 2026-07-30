@@ -58,6 +58,9 @@ updates:
       dev-dependencies-major:
         dependency-type: "development"
         update-types: ["major"]
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   # Go dependencies (tools/sdd-compile)
   - package-ecosystem: "gomod"
