@@ -36,7 +36,9 @@ def _find_repo_root() -> Path:
 
 @app.command("list")
 def list_tools(
-    include_all: bool = typer.Option(False, "--all", help="Include every manifest entry."),
+    include_all: bool = typer.Option(
+        False, "--all", help="Include every manifest entry."
+    ),
     include_internal: bool = typer.Option(
         False, "--include-internal", help="Include internal tools."
     ),

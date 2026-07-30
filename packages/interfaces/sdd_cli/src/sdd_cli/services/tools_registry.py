@@ -97,7 +97,10 @@ def load_tools_registry(repo_root: Path) -> ToolsRegistry | None:
         raise ToolsRegistryError("registry root must be a mapping")
 
     schema_version = raw.get("schema_version")
-    if not isinstance(schema_version, str) or schema_version not in SUPPORTED_SCHEMA_VERSIONS:
+    if (
+        not isinstance(schema_version, str)
+        or schema_version not in SUPPORTED_SCHEMA_VERSIONS
+    ):
         raise ToolsRegistryError("unsupported or missing schema_version")
 
     raw_tools = raw.get("tools")

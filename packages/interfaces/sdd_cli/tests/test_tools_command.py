@@ -68,7 +68,9 @@ class TestToolsList:
         assert result.exit_code == 0
         assert "check.py" in result.output
 
-    def test_manifest_default_lists_only_public_active_tools(self, tmp_path: Path) -> None:
+    def test_manifest_default_lists_only_public_active_tools(
+        self, tmp_path: Path
+    ) -> None:
         tools_dir = _make_tools_dir(tmp_path)
         (tools_dir / "public.py").write_text("", encoding="utf-8")
         (tools_dir / "internal.py").write_text("", encoding="utf-8")
