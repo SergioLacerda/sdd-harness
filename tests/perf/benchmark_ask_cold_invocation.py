@@ -49,7 +49,11 @@ _QUERIES: list[dict[str, Any]] = [
     },
     {
         "label": "dossier_query",
-        "args": ["ask", "benchmark dossier query for cold invocation timing", "--dossier"],
+        "args": [
+            "ask",
+            "benchmark dossier query for cold invocation timing",
+            "--dossier",
+        ],
     },
 ]
 
