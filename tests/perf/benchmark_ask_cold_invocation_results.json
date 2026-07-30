@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-07-30T13:18:40.799073Z",
+  "iterations": 10,
+  "baseline_import_ms": {
+    "min_ms": 15.803,
+    "p50_ms": 21.62,
+    "p95_ms": 30.257,
+    "max_ms": 30.257,
+    "mean_ms": 22.476
+  },
+  "queries": [
+    {
+      "label": "repeated_query",
+      "full_call_ms": {
+        "min_ms": 460.366,
+        "p50_ms": 479.179,
+        "p95_ms": 502.395,
+        "max_ms": 502.395,
+        "mean_ms": 480.23
+      },
+      "estimated_assembly_ms": {
+        "min_ms": 438.746,
+        "p50_ms": 457.559,
+        "p95_ms": 480.775,
+        "max_ms": 480.775,
+        "mean_ms": 458.61
+      }
+    },
+    {
+      "label": "novel_query",
+      "full_call_ms": {
+        "min_ms": 470.864,
+        "p50_ms": 485.757,
+        "p95_ms": 548.647,
+        "max_ms": 548.647,
+        "mean_ms": 494.797
+      },
+      "estimated_assembly_ms": {
+        "min_ms": 449.244,
+        "p50_ms": 464.137,
+        "p95_ms": 527.027,
+        "max_ms": 527.027,
+        "mean_ms": 473.177
+      }
+    },
+    {
+      "label": "dossier_query",
+      "full_call_ms": {
+        "min_ms": 474.566,
+        "p50_ms": 493.778,
+        "p95_ms": 649.042,
+        "max_ms": 649.042,
+        "mean_ms": 511.227
+      },
+      "estimated_assembly_ms": {
+        "min_ms": 452.946,
+        "p50_ms": 472.158,
+        "p95_ms": 627.422,
+        "max_ms": 627.422,
+        "mean_ms": 489.607
+      }
+    }
+  ]
+}
