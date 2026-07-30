@@ -1,13 +1,16 @@
 # Cross-platform note: on Windows use Git Bash or WSL to run make targets.
 # All shell commands are POSIX-compatible within a bash/sh context.
 #
+# No implicit suffix rules are used in this Makefile.
+MAKEFLAGS += --no-builtin-rules --no-builtin-variables
+#
 # Use uv run if uv is available; fall back to direct execution (e.g. inside Docker)
 VENV_PYTHON := $(firstword $(wildcard .venv/bin/python .venv/Scripts/python.exe))
 UV := $(shell command -v uv 2>/dev/null)
 
 ifeq ($(strip $(VENV_PYTHON)),)
   ifeq ($(strip $(UV)),)
-    PYTHON := $(shell echo 'ERROR: no .venv found and uv is not installed. Run `make install` first.' >&2; echo false)
+    PYTHON = $(error no .venv found and uv is not installed. Run `make install` first)
   else
     PYTHON := uv run python
   endif
@@ -15,7 +18,7 @@ else
   PYTHON := $(VENV_PYTHON)
 endif
 
-.PHONY: check ci-pr ci-pr-full test test-fast test-perf lint pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff signoff-draft core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check build-compiler test-compiler-go lint-go install-web build-web lint-web test-web cover-web
+.PHONY: check ci-pr ci-pr-full test test-fast test-perf lint lint-fix pre-delivery lock clean coverage coverage-strict docs-build docs-serve docs-link-check docs-link-fix docker-build release-dry-run install install-docs update-golden-snapshots generate-schemas hooks-install governance-bootstrap help golden-status golden-policy-check golden-policy-check-strict enforcement-ladder-consistency enforcement-ladder-digest enforcement-threshold-signoff signoff-draft core-compiler-runtime-contract observability-contract-check release-readiness-v1-check runbook-hardening-check build-compiler test-compiler-go lint-go install-web build-web lint-web test-web cover-web
 
 help:
 	@echo "SDD Architecture Development"
@@ -50,6 +53,19 @@ help:
 	@echo "lint-web        - Run landing app diagnostics (astro check)"
 	@echo "test-web        - Run landing app tests (vitest)"
 	@echo "cover-web       - Run landing app coverage (vitest, 70% gate on src/lib)"
+	@echo "build-compiler  - Build the sdd-compile Go binary"
+	@echo "test-compiler-go - Run sdd-compile Go tests"
+	@echo "lint-go         - Run golangci-lint on tools/sdd-compile"
+	@echo "golden-policy-check         - Check golden-file policy compliance"
+	@echo "golden-policy-check-strict  - Check golden-file policy compliance (strict)"
+	@echo "enforcement-ladder-consistency - Verify enforcement ladder consistency"
+	@echo "enforcement-ladder-digest   - Print enforcement ladder digest"
+	@echo "enforcement-threshold-signoff - Run enforcement threshold signoff"
+	@echo "signoff-draft   - Draft signoff document"
+	@echo "core-compiler-runtime-contract - Check core/compiler runtime contract"
+	@echo "observability-contract-check - Check observability contract"
+	@echo "release-readiness-v1-check  - Run release readiness v1 check"
+	@echo "runbook-hardening-check     - Run runbook hardening check"
 
 build-compiler:
 	go build -C tools/sdd-compile -o "bin/sdd-compile$$(go env GOEXE)" .
@@ -85,44 +101,25 @@ install: build-compiler
 install-docs:
 	uv sync --group docs
 
-check: golden-status
-	$(PYTHON) tools/maintenance/make_tasks.py check
+# Targets that are pure `make_tasks.py <name>` pass-throughs share one recipe.
+# `test` is excluded (forwards $(ARGS)); `check` supplies its recipe here but
+# keeps its `golden-status` prerequisite declared separately below.
+MAKE_TASKS := ci-pr golden-policy-check golden-policy-check-strict \
+  enforcement-ladder-consistency enforcement-ladder-digest \
+  enforcement-threshold-signoff signoff-draft core-compiler-runtime-contract \
+  observability-contract-check release-readiness-v1-check runbook-hardening-check \
+  test-fast test-perf coverage coverage-strict update-golden-snapshots \
+  generate-schemas lint lint-fix governance-bootstrap docs-link-check \
+  docs-link-fix release-dry-run clean check
 
-ci-pr:
-	$(PYTHON) tools/maintenance/make_tasks.py ci-pr
+.PHONY: $(MAKE_TASKS)
+$(MAKE_TASKS):
+	$(PYTHON) tools/maintenance/make_tasks.py $@
+
+check: golden-status
 
 ci-pr-full: ci-pr
 	$(MAKE) coverage-strict
-
-golden-policy-check:
-	$(PYTHON) tools/maintenance/make_tasks.py golden-policy-check
-
-golden-policy-check-strict:
-	$(PYTHON) tools/maintenance/make_tasks.py golden-policy-check-strict
-
-enforcement-ladder-consistency:
-	$(PYTHON) tools/maintenance/make_tasks.py enforcement-ladder-consistency
-
-enforcement-ladder-digest:
-	$(PYTHON) tools/maintenance/make_tasks.py enforcement-ladder-digest
-
-enforcement-threshold-signoff:
-	$(PYTHON) tools/maintenance/make_tasks.py enforcement-threshold-signoff
-
-signoff-draft:
-	$(PYTHON) tools/maintenance/make_tasks.py signoff-draft
-
-core-compiler-runtime-contract:
-	$(PYTHON) tools/maintenance/make_tasks.py core-compiler-runtime-contract
-
-observability-contract-check:
-	$(PYTHON) tools/maintenance/make_tasks.py observability-contract-check
-
-release-readiness-v1-check:
-	$(PYTHON) tools/maintenance/make_tasks.py release-readiness-v1-check
-
-runbook-hardening-check:
-	$(PYTHON) tools/maintenance/make_tasks.py runbook-hardening-check
 
 golden-status:
 	@echo "🔍 Checking golden file status..."
@@ -139,35 +136,8 @@ golden-status:
 test:
 	$(PYTHON) tools/maintenance/make_tasks.py test $(ARGS)
 
-test-fast:
-	$(PYTHON) tools/maintenance/make_tasks.py test-fast
-
-test-perf:
-	$(PYTHON) tools/maintenance/make_tasks.py test-perf
-
-coverage:
-	$(PYTHON) tools/maintenance/make_tasks.py coverage
-
-coverage-strict:
-	$(PYTHON) tools/maintenance/make_tasks.py coverage-strict
-
-update-golden-snapshots:
-	$(PYTHON) tools/maintenance/make_tasks.py update-golden-snapshots
-
-generate-schemas:
-	$(PYTHON) tools/maintenance/make_tasks.py generate-schemas
-
 hooks-install:
 	bash .github/setup-precommit-hook.sh
-
-governance-bootstrap:
-	$(PYTHON) tools/maintenance/make_tasks.py governance-bootstrap
-
-lint:
-	$(PYTHON) tools/maintenance/make_tasks.py lint
-
-lint-fix:
-	$(PYTHON) tools/maintenance/make_tasks.py lint-fix
 
 # P004 Pre-Delivery Quality Gate — run this before every agent handoff
 # See: docs/spec/canonical/core/policies/P004_PRE_DELIVERY_QUALITY_GATE.md
@@ -198,18 +168,7 @@ docs-serve: docs-build
 	@echo "Serving at http://localhost:8000/sdd-harness/"
 	$(PYTHON) -m http.server 8000 --directory build/serve-root
 
-docs-link-check:
-	$(PYTHON) tools/maintenance/make_tasks.py docs-link-check
-
-docs-link-fix:
-	$(PYTHON) tools/maintenance/make_tasks.py docs-link-fix
-
 docker-build:
 	cp infrastructure/docker/.dockerignore .dockerignore
-	docker build -t sdd-harness -f infrastructure/docker/Dockerfile .
-
-release-dry-run:
-	$(PYTHON) tools/maintenance/make_tasks.py release-dry-run
-
-clean:
-	$(PYTHON) tools/maintenance/make_tasks.py clean
+	docker build -t sdd-harness -f infrastructure/docker/Dockerfile . ; \
+	  status=$$?; rm -f .dockerignore; exit $$status
