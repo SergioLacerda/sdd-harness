@@ -38,7 +38,26 @@ runs:
           fi
         done
         if [ -n "${{ inputs.editable-packages }}" ]; then
+          shopt -s extglob
+          install_editable() {
+            local pkg="$1"
+            for attempt in 1 2 3; do
+              echo "Installing editable package: ${pkg} (attempt ${attempt}/3)"
+              if uv pip install -e "$pkg"; then
+                return 0
+              fi
+              if [[ "${attempt}" -lt 3 ]]; then
+                sleep $((attempt * ${{ inputs.retry-backoff-seconds }}))
+              else
+                echo "ERROR: failed to install editable package after retries: ${pkg}" >&2
+                return 1
+              fi
+            done
+          }
           while IFS= read -r pkg; do
-            [ -n "$pkg" ] && uv pip install -e "$pkg"
+            pkg="${pkg##+([[:space:]])}"
+            pkg="${pkg%%+([[:space:]])}"
+            [ -z "$pkg" ] && continue
+            install_editable "$pkg"
           done <<< "${{ inputs.editable-packages }}"
         fi

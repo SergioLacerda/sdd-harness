@@ -12,9 +12,19 @@ All tools should be executed via **uv** to ensure dependency isolation and cross
 ### 1. Unified CLI (Recommended)
 The SDD CLI provides a discovery layer for all tools:
 ```bash
-sdd tools list                 # List available tools
-sdd tools run <category>/<name> # Execute a tool (e.g. maintenance/lint_all)
+sdd tools list                         # List public active tools
+sdd tools list --all                   # Include internal, deprecated, and project entries
+sdd tools list --include-deprecated    # Include deprecated entries with replacements
+sdd tools list --json                  # Emit machine-readable registry output
+sdd tools run <tool-id>                # Execute by manifest ID (e.g. maintenance/lint_all)
+sdd tools run <category>/<script>.py   # Legacy path execution remains supported
 ```
+
+`sdd tools list` is manifest-driven when `tools/registry.yaml` exists. The
+manifest is a curated discovery contract: it separates public commands from
+internal helpers, deprecated compatibility scripts, and self-contained tool
+projects. If the manifest is absent, the CLI falls back to recursive Python
+script discovery for migration compatibility.
 
 ### 2. Direct Execution (PEP 723)
 Tools can be run directly using `uv`, which will automatically manage the script's dependencies:
@@ -105,6 +115,28 @@ tools/
 │
 └── verify_mkdocs_paths.py        Verify nav paths in mkdocs.yml
 ```
+
+## Tool Registry Contract
+
+`tools/registry.yaml` is the source of truth for the `sdd tools` discovery
+surface.
+
+Required fields per entry:
+
+- `id`: stable CLI-facing identifier.
+- `path`: repository-relative path under `tools/`.
+- `visibility`: `public`, `internal`, `deprecated`, or `project`.
+- `status`: `active`, `experimental`, or `deprecated`.
+- `runner`: `uv-python`, `python-module`, `go-project`, or `external`.
+- `description`: short user-facing summary.
+
+Optional fields include `replacement`, `category`, `tags`, `docs_refs`,
+`ci_consumers`, `module`, and `allow_direct_run`.
+
+Default list output includes only `visibility: public` and `status: active`
+entries. Internal, deprecated, and project entries require explicit list flags.
+Manifest IDs and legacy relative paths are both accepted by `sdd tools run`
+during the migration period.
 
 ### Placement Rules
 

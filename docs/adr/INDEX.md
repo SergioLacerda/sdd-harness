@@ -272,6 +272,25 @@ supported model. Defer KMS provider integration to a separate scoped demand.
 - [ADR-017-governance-signing-kms-deferred.md](ADR-017-governance-signing-kms-deferred.md)
 - Implementation reference: `packages/core/sdd_core/src/sdd_core/utils/compiler_runner.py`
 
+---
+
+### ADR-018: Block Dependabot typescript Major Bumps in apps/landing (2026-07-30)
+
+**Decision:** Ignore Dependabot major-version updates for `typescript` in
+`apps/landing` until the Astro checking toolchain supports the next major.
+
+**Rationale:**
+
+- `@astrojs/check@0.9.10` supports `typescript@"^5.0.0 || ^6.0.0"`, not
+  `typescript@7.x`
+- Dependabot grouping cannot wait for compatible peer-dependency major releases
+- Minor and patch updates remain allowed inside the supported major range
+
+**Links:**
+
+- [ADR-018-dependabot-typescript-major-ignore.md](ADR-018-dependabot-typescript-major-ignore.md)
+- Related config: `.github/dependabot.yml`
+
 ## 🧾 Operational Appendices
 
 These artifacts support governance operations but are not ADRs:

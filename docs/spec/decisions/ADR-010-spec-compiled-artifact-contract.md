@@ -19,6 +19,11 @@ can silently break downstream consumers.
 This ADR records the formal contract: what constitutes a valid input spec, what the pipeline
 guarantees as output, and what invariants the compiled artifacts must satisfy.
 
+The precise Compiler I/O artifact schema and fingerprint/signature invariants are maintained in
+`docs/spec/canonical/specifications/compiler_io_contract.md`. This ADR remains the architectural
+decision record for the compiled artifact pipeline; the canonical specification is the executable
+contract consumed by the focused compiler I/O contract tests.
+
 ---
 
 ## Pipeline Overview
@@ -180,6 +185,7 @@ with the documented update command in the module docstring.
 - `packages/core/sdd_compiler/src/sdd_compiler/governance_compiler.py` — PHASE 2
 - `packages/core/sdd_core/src/sdd_core/governance_orchestrator.py` — PHASE 3 coordinator
 - `tests/contract/test_governance_schema.py` — executable contract tests
+- `docs/spec/canonical/specifications/compiler_io_contract.md` — precise Compiler I/O contract
 - `tests/contract/fixtures/governance_core.golden.json` — golden file
 - `.github/workflows/health.yml` — `Verify Fingerprint Determinism` step
 - ADR-009 — test location convention
