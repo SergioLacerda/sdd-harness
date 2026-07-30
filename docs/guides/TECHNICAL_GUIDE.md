@@ -12,12 +12,17 @@ packages/
 ├── features/      # sdd_integration, sdd_wizard
 └── interfaces/    # sdd_cli, sdd_wizard (UI layer)
 
-tools/             # Sovereign Factory: maintenance utilities (PEP 723)
+tools/             # Sovereign Factory: operational tooling and tool projects
 ```
 
 - **core** — domain logic, governance compiler, compliance event logger
 - **features** — orchestration, wizard flows
 - **interfaces** — CLI entry points, user-facing commands
+- **tools** — repo-local operational support. This includes runnable maintenance
+  scripts, CI and documentation validators, governance helpers, release tooling,
+  the isolated `tools/guardrails/` analysis framework, and the self-contained
+  `tools/sdd-compile/` Go compiler project. These tools support the workspace but
+  do not replace the product ownership boundaries in `packages/`.
 
 ## Key References
 
