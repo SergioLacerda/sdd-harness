@@ -20,8 +20,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
         with:
-          version: "latest"
-          cache: true
+          version: "0.11.9"
+          enable-cache: true
       - name: Initialize UV workspace (retry)
         uses: ./.github/actions/uv-sync-retry
       - name: Run ruff check
