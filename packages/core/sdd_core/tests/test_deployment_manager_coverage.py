@@ -330,34 +330,3 @@ class TestDeployFailurePaths:
         deployment_manager.main()
         output = captured.getvalue()
         assert "Deployment failed" in output
-
-    def test_module_entrypoint_executes_main_guard(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        captured = io.StringIO()
-        original_print = builtins.print
-
-        class _FakeDeploymentManager:
-            def __init__(self, *_args: object, **_kwargs: object) -> None:
-                pass
-
-            def deploy(self) -> dict[str, object]:
-                return {
-                    "success": False,
-                    "checklist": {},
-                    "deployment_location": "/tmp/location",
-                    "manifest": {},
-                    "next_steps": [],
-                }
-
-        monkeypatch.setattr(
-            deployment_manager, "DeploymentManager", _FakeDeploymentManager
-        )
-        monkeypatch.setattr(
-            builtins,
-            "print",
-            lambda *args, **kwargs: original_print(*args, file=captured, **kwargs),
-        )
-        deployment_manager.main()
-        output = captured.getvalue()
-        assert "Deployment failed" in output

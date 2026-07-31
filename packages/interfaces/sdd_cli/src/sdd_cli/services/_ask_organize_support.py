@@ -9,15 +9,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from sdd_cli.services.ask_hash import _hash_query
+
 
 def _now() -> str:
     return (
         datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     )
-
-
-def _hash_query(query: str) -> str:
-    return hashlib.sha256(query.encode()).hexdigest()[:8]
 
 
 def split_into_chunks(text: str, *, max_lines: int = 40) -> list[dict[str, Any]]:

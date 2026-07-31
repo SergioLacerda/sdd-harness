@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from sdd_cli.services.ask_renderer import (
-    _hash_query,
     build_ask_json_payload,
     render_ask_text_output,
     render_context_header,
@@ -14,17 +13,6 @@ from sdd_cli.services.ask_renderer import (
 )
 
 pytestmark = pytest.mark.unit
-
-
-class TestHashQuery:
-    def test_returns_8_chars(self) -> None:
-        assert len(_hash_query("hello")) == 8
-
-    def test_deterministic(self) -> None:
-        assert _hash_query("test") == _hash_query("test")
-
-    def test_different_inputs_differ(self) -> None:
-        assert _hash_query("a") != _hash_query("b")
 
 
 class TestRenderContextHeader:

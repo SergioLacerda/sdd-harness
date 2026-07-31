@@ -263,7 +263,7 @@ jobs:
           else
             WS="$GITHUB_WORKSPACE"
           fi
-          uv tool install "git+file:///${WS#/}@${GITHUB_SHA}#subdirectory=packages/interfaces/sdd_cli"
+          uv tool install "git+file:///${WS#/}#subdirectory=packages/interfaces/sdd_cli"
 
       - name: Run client bootstrap from the git install
         shell: bash

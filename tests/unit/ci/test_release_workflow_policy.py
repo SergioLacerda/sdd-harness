@@ -162,6 +162,21 @@ def test_release_workflows_smoke_the_git_install_channel_on_both_oses() -> None:
         assert 'SMOKE_DIR="$RUNNER_TEMP/git-smoke-project"' in steps_text
 
 
+def test_release_git_install_url_avoids_windows_file_url_ref_suffix() -> None:
+    """A ref suffix inside a Windows file URL (`git+file:///D:/...@sha`) is
+    parsed by uv as ambiguous URL authority. The Actions checkout is already at
+    the desired commit/tag, so the local git URL must rely on checkout state
+    instead of appending `@<ref>` to the path."""
+    for workflow_path in (RELEASE_WORKFLOW, RELEASE_DRY_RUN_WORKFLOW):
+        job = _git_install_smoke_job(workflow_path)
+        steps_text = "\n".join(step.get("run", "") for step in job["steps"])
+
+        assert "git+file:///${WS#/}#subdirectory=packages/interfaces/sdd_cli" in (
+            steps_text
+        )
+        assert "git+file:///${WS#/}@" not in steps_text
+
+
 def test_release_gate_requires_git_install_smoke() -> None:
     """Publishing must wait for both install channels' smokes."""
     workflow = _load_workflow(RELEASE_WORKFLOW)

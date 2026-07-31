@@ -6,7 +6,6 @@ owned by `commands/_ask_backend.py`.
 
 from __future__ import annotations
 
-import hashlib
 import os
 from collections.abc import Callable
 from datetime import datetime, timezone
@@ -14,6 +13,7 @@ from typing import Any
 
 import typer
 
+from sdd_cli.services.ask_hash import _hash_query as _hash_query
 from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
 
 # Env var set by the prompt-submit hook when it invokes `sdd ask` on the
@@ -26,10 +26,6 @@ def _now() -> str:
     return (
         datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     )
-
-
-def _hash_query(query: str) -> str:
-    return hashlib.sha256(query.encode()).hexdigest()[:8]
 
 
 def _looks_like_implementation_intent(query: str) -> bool:

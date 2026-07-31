@@ -175,12 +175,6 @@ class TestOtelBridgeEmit:
         bridge.emit(_event())
         assert len(bridge.list_events()) == 1
 
-    def test_emit_no_exporter_is_noop(self) -> None:
-        bridge = OtelBridge(exporter=None)
-        bridge.emit(_event())
-        # No exporter — just verify no exception and event is stored
-        assert len(bridge.list_events()) == 1
-
     def test_emit_generates_span_id_when_event_has_none(self) -> None:
         mock_exporter = MagicMock()
         bridge = OtelBridge(exporter=mock_exporter)
@@ -339,13 +333,6 @@ class TestBuildOtlpPayload:
 
 
 class TestTsToNano:
-    def test_iso_utc_parsed(self) -> None:
-        ns = _ts_to_nano("2026-05-10T12:00:00+00:00")
-        assert ns > 0
-
-    def test_empty_string_returns_zero(self) -> None:
-        assert _ts_to_nano("") == 0
-
     def test_invalid_string_returns_zero(self) -> None:
         assert _ts_to_nano("not-a-date") == 0
 

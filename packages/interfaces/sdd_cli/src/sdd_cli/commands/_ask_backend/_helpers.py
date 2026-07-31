@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 from datetime import datetime, timezone
@@ -53,6 +52,7 @@ from sdd_cli.services.ask_governance import signature_mode as _signature_mode_im
 from sdd_cli.services.ask_governance import (
     try_sdd_compiled_dir as _try_sdd_compiled_dir_impl,
 )
+from sdd_cli.services.ask_hash import _hash_query as _hash_query
 from sdd_cli.services.ask_renderer import (
     render_context_header as _render_context_header,
 )
@@ -82,10 +82,6 @@ def _now() -> str:
     return (
         datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     )
-
-
-def _hash_query(query: str) -> str:
-    return hashlib.sha256(query.encode()).hexdigest()[:8]
 
 
 def _normalize_typer_value(value: Any, default: Any) -> Any:
