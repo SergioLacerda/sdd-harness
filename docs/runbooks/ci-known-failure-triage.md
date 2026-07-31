@@ -17,8 +17,9 @@ matrix below first.
   in the `astral-sh/setup-uv@v9` step with `Unexpected input(s) 'cache'` or a
   timeout resolving `uv.ndjson` for `version: "latest"`.
 - `Release Git Install Smoke (windows-latest)` fails with an "ambiguous
-  user/pass authority" (or similar URL-parsing) error against a
-  `git+file:///D:/...@<sha>` local install URL.
+  user/pass authority" URL-parsing error against a `git+file:///D:/...@<sha>`
+  local install URL, or with a `uv-resolver` panic after `uv` reports
+  `Updating file:///D:/... (HEAD)`.
 
 ## Diagnosis
 
@@ -39,7 +40,7 @@ matrix below first.
    |---|---|---|---|
    | `ERESOLVE`, `@astrojs/check@0.9.10`, `typescript@7.0.2` | The failing ref still requests TypeScript 7 while `@astrojs/check` only supports `^5 \|\| ^6` | Compare `origin/main`, `origin/develop`, and local `apps/landing/package.json` | Keep TypeScript pinned to `^6.0.3` in `apps/landing`; keep the Dependabot semver-major ignore rule (see [ADR-018](../adr/ADR-018-dependabot-typescript-major-ignore.md)) until Astro tooling supports TypeScript 7 |
    | `Unexpected input(s) 'cache'`, `uv.ndjson` timeout | `astral-sh/setup-uv@v9` received the obsolete `cache` input and resolved `version: "latest"` through a live manifest fetch | Scan the workflow's `setup-uv` step block for `cache:` and `version: "latest"` | Pin `version` to a known-good release (e.g. `0.11.9`) and use `enable-cache: true` instead of `cache:` |
-   | "ambiguous user/pass authority", `git+file:///D:/...@sha` | On Windows, a local `git+file:///D:/...@<ref>` URL is parsed with the `@<ref>` suffix as URL authority, not a git ref | Inspect the release git-install smoke step for a `git+file://` URL containing `@<ref>` | Rely on the Actions checkout state instead of an explicit ref; drop the `@<ref>` suffix from the local file URL while keeping `#subdirectory=...` |
+   | "ambiguous user/pass authority", `uv-resolver` panic, `git+file:///D:/...@sha` | On Windows, `uv` can re-parse local `git+file:///D:/...` installs with a resolved `@<sha>` as URL authority instead of a git ref | Inspect the release source-install smoke step for any `git+file://` URL | Install from checkout paths directly with `uv tool install ./packages/interfaces/sdd_cli --with-editable ...`; do not use local `git+file://` URLs in this smoke |
 
    If the error text does not match any row, do not assume one of these
    fixes applies — follow [Escalation](#escalation).
@@ -69,12 +70,25 @@ matrix below first.
    python3 -c 'import pathlib, yaml; [yaml.safe_load(p.read_text()) for p in pathlib.Path(".github/workflows").glob("*.yml")]; print("workflow yaml ok")'
    ```
 
-### Windows git-file install URL
+### Windows local source-install URL
 
-1. Locate the `git+file:///D:/...@<ref>#subdirectory=...` construction in the
-   release workflow's Windows smoke step.
-2. Remove the `@<ref>` suffix; keep `#subdirectory=packages/interfaces/sdd_cli`
-   and rely on the checkout already being at the right ref.
+1. Locate the release workflow's source-install smoke step.
+2. Remove any local `git+file://` URL from that step. Even without an explicit
+   `@<ref>` suffix, `uv` may resolve `HEAD` and re-parse the Windows drive-letter
+   URL with an ambiguous authority.
+3. Install from checkout paths directly and include local workspace packages as
+   editable dependencies:
+
+   ```bash
+   uv tool install ./packages/interfaces/sdd_cli \
+     --with-editable ./packages/core/sdd_core \
+     --with-editable ./packages/features/sdd_adapters \
+     --with-editable ./packages/features/sdd_integration \
+     --with-editable ./packages/features/sdd_skills \
+     --with-editable ./packages/core/sdd_runtime \
+     --with-editable ./packages/interfaces/sdd_wizard
+   ```
+
 3. Re-run the targeted policy test:
 
    ```bash

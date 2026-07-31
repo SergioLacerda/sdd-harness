@@ -256,11 +256,12 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
-      # Full checkout: git+file:// installs clone from this working copy, so the
-      # tag ref must exist locally. This lane exercises the documented client
-      # channel (git subdirectory install) end-to-end — including real git
-      # checkout semantics on Windows (core.symlinks=false), the failure class
-      # that shipped undetected when only the wheelhouse channel was smoked.
+      # Full checkout: install from this working copy. This lane exercises the
+      # documented source-install channel end-to-end — including real checkout
+      # semantics on Windows (core.symlinks=false), the failure class that shipped
+      # undetected when only the wheelhouse channel was smoked. Avoid git+file://
+      # here: uv's Windows parser treats drive-letter file URLs with resolved
+      # git refs as ambiguous authority.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
@@ -295,18 +296,19 @@ jobs:
           fi
           echo "SDD_COMPILE_BIN=$BIN" >> "$GITHUB_ENV"
 
-      - name: Install sdd-cli via tag-pinned git (documented client channel)
+      - name: Install sdd-cli from checkout source (documented client channel)
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            WS="$(cygpath -m "$GITHUB_WORKSPACE")"
-          else
-            WS="$GITHUB_WORKSPACE"
-          fi
-          uv tool install "git+file:///${WS#/}#subdirectory=packages/interfaces/sdd_cli"
+          uv tool install ./packages/interfaces/sdd_cli \
+            --with-editable ./packages/core/sdd_core \
+            --with-editable ./packages/features/sdd_adapters \
+            --with-editable ./packages/features/sdd_integration \
+            --with-editable ./packages/features/sdd_skills \
+            --with-editable ./packages/core/sdd_runtime \
+            --with-editable ./packages/interfaces/sdd_wizard
 
-      - name: Run client bootstrap from the git install
+      - name: Run client bootstrap from the source install
         shell: bash
         run: |
           set -euo pipefail
