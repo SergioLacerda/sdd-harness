@@ -153,12 +153,7 @@ def test_release_workflows_smoke_the_git_install_channel_on_both_oses() -> None:
         steps_text = "\n".join(step.get("run", "") for step in job["steps"])
         assert "uv tool install" in steps_text
         assert "./packages/interfaces/sdd_cli" in steps_text
-        assert "--with-editable ./packages/core/sdd_core" in steps_text
-        assert "--with-editable ./packages/features/sdd_adapters" in steps_text
-        assert "--with-editable ./packages/features/sdd_integration" in steps_text
-        assert "--with-editable ./packages/features/sdd_skills" in steps_text
-        assert "--with-editable ./packages/core/sdd_runtime" in steps_text
-        assert "--with-editable ./packages/interfaces/sdd_wizard" in steps_text
+        assert "--with-editable" not in steps_text
         assert "sdd install --wizard --non-interactive" in steps_text
         assert "sdd init --default" in steps_text
         assert "sdd governance validate" in steps_text
@@ -170,8 +165,8 @@ def test_release_workflows_smoke_the_git_install_channel_on_both_oses() -> None:
 
 def test_release_source_install_smoke_avoids_windows_git_file_urls() -> None:
     """Windows git+file URLs can be re-parsed by uv with the resolved ref as an
-    ambiguous authority. The local smoke should install from checkout paths
-    instead of any git+file URL."""
+    ambiguous authority. The local smoke should install the package path directly
+    and let uv resolve workspace-local sibling packages once."""
     for workflow_path in (RELEASE_WORKFLOW, RELEASE_DRY_RUN_WORKFLOW):
         job = _git_install_smoke_job(workflow_path)
         steps_text = "\n".join(step.get("run", "") for step in job["steps"])

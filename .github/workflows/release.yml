@@ -300,13 +300,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv tool install ./packages/interfaces/sdd_cli \
-            --with-editable ./packages/core/sdd_core \
-            --with-editable ./packages/features/sdd_adapters \
-            --with-editable ./packages/features/sdd_integration \
-            --with-editable ./packages/features/sdd_skills \
-            --with-editable ./packages/core/sdd_runtime \
-            --with-editable ./packages/interfaces/sdd_wizard
+          uv tool install ./packages/interfaces/sdd_cli
 
       - name: Run client bootstrap from the source install
         shell: bash
