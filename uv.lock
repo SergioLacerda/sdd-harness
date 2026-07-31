@@ -5147,7 +5147,7 @@ requires-dist = [
     { name = "hatch-vcs", marker = "extra == 'dev'", specifier = ">=0.5.0" },
     { name = "hatchling", marker = "extra == 'dev'", specifier = ">=1.31.0" },
     { name = "httpx", marker = "extra == 'test'", specifier = ">=0.28.1" },
-    { name = "hypothesis", marker = "extra == 'test'", specifier = ">=6.161.5" },
+    { name = "hypothesis", marker = "extra == 'test'", specifier = ">=6.161.8" },
     { name = "langchain-core", marker = "extra == 'examples-langgraph'", specifier = ">=1.5.1" },
     { name = "langgraph", marker = "extra == 'examples-langgraph'", specifier = ">=1.2.9" },
     { name = "msgpack", marker = "extra == 'test'", specifier = ">=1.2.1" },
