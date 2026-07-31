@@ -219,9 +219,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
-      # Mirrors release.yml's git-install smoke: exercises the documented client
-      # channel (git subdirectory install) with real git checkout semantics on
-      # Windows, pinned to the pushed commit instead of a tag.
+      # Mirrors release.yml's source-install smoke: exercises the documented
+      # client channel from the Actions checkout with real git checkout semantics
+      # on Windows. Avoid git+file:// here: uv's Windows parser treats
+      # drive-letter file URLs with resolved git refs as ambiguous authority.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
@@ -254,18 +255,19 @@ jobs:
           fi
           echo "SDD_COMPILE_BIN=$BIN" >> "$GITHUB_ENV"
 
-      - name: Install sdd-cli via commit-pinned git (documented client channel)
+      - name: Install sdd-cli from checkout source (documented client channel)
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            WS="$(cygpath -m "$GITHUB_WORKSPACE")"
-          else
-            WS="$GITHUB_WORKSPACE"
-          fi
-          uv tool install "git+file:///${WS#/}#subdirectory=packages/interfaces/sdd_cli"
+          uv tool install ./packages/interfaces/sdd_cli \
+            --with-editable ./packages/core/sdd_core \
+            --with-editable ./packages/features/sdd_adapters \
+            --with-editable ./packages/features/sdd_integration \
+            --with-editable ./packages/features/sdd_skills \
+            --with-editable ./packages/core/sdd_runtime \
+            --with-editable ./packages/interfaces/sdd_wizard
 
-      - name: Run client bootstrap from the git install
+      - name: Run client bootstrap from the source install
         shell: bash
         run: |
           set -euo pipefail
