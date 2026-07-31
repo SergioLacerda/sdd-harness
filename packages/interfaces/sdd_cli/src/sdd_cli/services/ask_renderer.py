@@ -6,13 +6,10 @@ The caller (ask_dispatcher) is responsible for I/O.
 
 from __future__ import annotations
 
-import hashlib
 from datetime import datetime, timezone
 from typing import Any
 
-
-def _hash_query(query: str) -> str:
-    return hashlib.sha256(query.encode()).hexdigest()[:8]
+from sdd_cli.services.ask_hash import _hash_query
 
 
 def _now() -> str:

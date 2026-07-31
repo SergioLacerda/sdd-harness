@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from sdd_cli.services.ask_dossier import estimate_budget_utilization_pct
+from sdd_cli.services.ask_hash import _hash_query
 from sdd_cli.services.ask_payload import build_ask_json_data
 from sdd_cli.services.ask_response import (
-    _hash_query,
     _looks_like_implementation_intent,
     _now,
     build_intake_contract_fields,

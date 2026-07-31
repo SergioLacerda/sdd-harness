@@ -40,6 +40,7 @@ it.
 | Strict MkDocs build fails on stale links | [Docs Link Rot Strict MkDocs](docs-link-rot-strict-mkdocs.md) |
 | Standalone compiler release assets are missing | [Release Asset Recovery](release-asset-recovery.md) |
 | Context budget is breached or near breach | [Context Budget Breach](context-budget-breach.md) |
+| A GitHub Actions job fails and the failure looks familiar | [CI Known Failure Triage](ci-known-failure-triage.md) |
 
 ## Existing Operational References
 

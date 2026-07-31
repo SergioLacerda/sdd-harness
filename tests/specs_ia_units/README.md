@@ -41,16 +41,17 @@ These tests ensure:
 ## Running Tests
 
 ```bash
-# All SDD compliance tests
+# Copy templates into a client project before running them
+cp tests/specs_ia_units/_template_layer_isolation.py tests/unit/specs_ia_units/test_layer_isolation.py
 pytest tests/unit/specs_ia_units/ -v
 
 # Specific test category
 pytest tests/unit/specs_ia_units/test_layer_isolation.py -v
 
-# With coverage
+# With coverage, after adapting templates to the client project
 pytest tests/unit/specs_ia_units/ --cov=src --cov-report=html
 
-# Before commit (must pass)
+# Before commit in the client project (must pass)
 pytest tests/unit/specs_ia_units/ -v --tb=short
 ```
 
@@ -66,7 +67,7 @@ Before your PR can merge:
 - [ ] Coverage >= 80% for domain layer
 - [ ] No infrastructure imports in domain
 
-Run this command to verify:
+After copying and adapting the templates in the client project, run this command to verify:
 ```bash
 pytest tests/unit/specs_ia_units/ -v && echo "✅ All SDD tests passed"
 ```
@@ -77,7 +78,7 @@ If you discover a new architectural requirement:
 
 1. **Identify category:** isolation / contracts / compliance / threads?
 2. **Add test:** In appropriate file (or create new one)
-3. **Run:** `pytest tests/unit/specs_ia_units/ -v`
+3. **Run:** `pytest tests/unit/specs_ia_units/ -v` in the client project
 4. **Include in PR:** Add test + feature together
 
 Example:
@@ -104,7 +105,7 @@ def test_runtime_layer_respects_ports(self):
 
 ## Integration with CI/CD
 
-These tests should run in GitHub Actions before merge:
+Adapted client-project tests should run in GitHub Actions before merge:
 
 ```yaml
 # In .github/workflows/ci.yml
@@ -118,7 +119,7 @@ These tests should run in GitHub Actions before merge:
 Each month, review architecture compliance:
 
 ```bash
-# Run with coverage report
+# Run with coverage report in the client project
 pytest tests/unit/specs_ia_units/ -v --cov=src --cov-report=html
 
 # Check report
@@ -138,7 +139,7 @@ open htmlcov/index.html
 
 ## Standard Test Files
 
-New projects should have:
+New projects should copy and adapt these templates as collected tests:
 
 - `test_layer_isolation.py` — Domain/App/Infrastructure boundaries
 - `test_port_contracts.py` — Port implementations validated

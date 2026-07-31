@@ -35,15 +35,6 @@ class TestSourceSpecBootstrapperInit:
 class TestHasSourceSpecs:
     """Tests for has_source_specs() method."""
 
-    def test_has_source_specs_detects_mandate_spec(self, tmp_path: Path) -> None:
-        """Should detect mandate.md file."""
-        spec_dir = tmp_path / "spec"
-        spec_dir.mkdir()
-        (spec_dir / "mandate.md").write_text("test", encoding="utf-8")
-
-        bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
-        assert bootstrapper.has_source_specs() is True
-
     def test_has_source_specs_detects_mandate_md(self, tmp_path: Path) -> None:
         """Should detect mandate.md file."""
         spec_dir = tmp_path / "spec"

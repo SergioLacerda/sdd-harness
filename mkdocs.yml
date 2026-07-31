@@ -121,6 +121,7 @@ nav:
     - Docs Link Rot Strict MkDocs: runbooks/docs-link-rot-strict-mkdocs.md
     - Release Asset Recovery: runbooks/release-asset-recovery.md
     - Context Budget Breach: runbooks/context-budget-breach.md
+    - CI Known Failure Triage: runbooks/ci-known-failure-triage.md
   - Governance:
     - Source And Runtime Model: governance-runtime-model.md
     - Mandatory Human Review: spec/canonical/core/policies/P003_MANDATORY_HUMAN_REVIEW.md
