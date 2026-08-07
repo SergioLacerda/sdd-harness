@@ -96,3 +96,81 @@ def test_allowlist_windows_separator_is_normalized(tmp_path: Path) -> None:
     allowlist = validate_class_size._load_allowlist(repo)
     report = validate_class_size._scan_classes(repo, 400, allowlist)
     assert report["ok"] is True
+
+
+def _write_module(repo: Path, rel: str, line_count: int) -> None:
+    path = repo / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "\n".join(f"x{i} = 1" for i in range(line_count)) + "\n", encoding="utf-8"
+    )
+
+
+def test_module_above_limit_fails(tmp_path: Path) -> None:
+    """ADR-019: module-size violations are blocking, unlike the pre-ADR-019 warn-only behavior."""
+    validate_class_size = _load_module()
+    repo = _mk_repo(tmp_path)
+    _write_module(repo, "packages/core/sdd_core/src/sdd_core/too_big_module.py", 500)
+    report = validate_class_size._scan_modules(repo, 400, {})
+    assert report["ok"] is False
+    assert report["warnings_count"] == 1
+
+
+def test_module_allowlist_grandfathers_violation(tmp_path: Path) -> None:
+    validate_class_size = _load_module()
+    repo = _mk_repo(tmp_path)
+    rel = "packages/core/sdd_core/src/sdd_core/grandfathered_module.py"
+    _write_module(repo, rel, 500)
+    allowlist_path = repo / "tools" / "architecture" / "module_size_allowlist.json"
+    allowlist_path.parent.mkdir(parents=True, exist_ok=True)
+    allowlist_path.write_text(
+        json.dumps({"allowlist": {rel: "ADR-019 grandfathered"}}),
+        encoding="utf-8",
+    )
+    allowlist = validate_class_size._load_module_allowlist(repo)
+    report = validate_class_size._scan_modules(repo, 400, allowlist)
+    assert report["ok"] is True
+    assert report["warnings"] == []
+
+
+def test_build_directory_excluded_from_module_scan(tmp_path: Path) -> None:
+    """Regression: gitignored build/ output must not be scanned as source (ADR-019)."""
+    validate_class_size = _load_module()
+    repo = _mk_repo(tmp_path)
+    _write_module(
+        repo,
+        "packages/interfaces/sdd_cli/build/lib/sdd_cli/commands/docs.py",
+        500,
+    )
+    report = validate_class_size._scan_modules(repo, 400, {})
+    assert report["ok"] is True
+    assert report["warnings"] == []
+
+
+def test_build_directory_excluded_from_class_scan(tmp_path: Path) -> None:
+    validate_class_size = _load_module()
+    repo = _mk_repo(tmp_path)
+    _write_class(
+        repo,
+        "packages/interfaces/sdd_cli/build/lib/sdd_cli/commands/governance.py",
+        "TooBigInBuild",
+        400,
+    )
+    report = validate_class_size._scan_classes(repo, 400, {})
+    assert report["ok"] is True
+    assert report["violations_count"] == 0
+
+
+def test_builders_directory_is_not_excluded(tmp_path: Path) -> None:
+    """The 'build' exclusion is an exact path-segment match, not a substring —
+    a real source path like .../builders/pipeline_builder.py must still be scanned."""
+    validate_class_size = _load_module()
+    repo = _mk_repo(tmp_path)
+    _write_module(
+        repo,
+        "packages/features/sdd_integration/src/sdd_integration/builders/governance/pipeline_builder.py",
+        500,
+    )
+    report = validate_class_size._scan_modules(repo, 400, {})
+    assert report["ok"] is False
+    assert report["warnings_count"] == 1

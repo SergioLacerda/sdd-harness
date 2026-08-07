@@ -176,6 +176,7 @@ vs Go compiler comparison.
 
 - [ADR-009-progressive-enforcement-ladder.md](ADR-009-progressive-enforcement-ladder.md)
 - [ADR-009-threshold-signoff.md](ADR-009-threshold-signoff.md)
+- [ADR-009-ci-fail-closed-matrix.md](ADR-009-ci-fail-closed-matrix.md) — companion matrix mapping CI controls onto the warn/block/strict phases
 - Related: M010 (Governance Hardening)
 
 ---
@@ -290,6 +291,30 @@ supported model. Defer KMS provider integration to a separate scoped demand.
 
 - [ADR-018-dependabot-typescript-major-ignore.md](ADR-018-dependabot-typescript-major-ignore.md)
 - Related config: `.github/dependabot.yml`
+
+---
+
+### ADR-019: Guardrail Complexity Budget (2026-08-07)
+
+**Decision:** Every guardrail addition/promotion is evaluated against an explicit
+cost/benefit budget (violations prevented per control, at what cost, with what
+false-positive rate) instead of policy headcount. First applied decision:
+grandfather the 4 real current module-size violations and make the 400-line module
+check blocking for new violations going forward.
+
+**Rationale:**
+
+- Repeats ADR-009's "evidence-based, not calendar-based" philosophy at the budget
+  level, not just per-rule
+- Grandfathering avoids blocking unrelated work on pre-existing violations while
+  still closing the "warn-only forever" gap
+
+**Links:**
+
+- [ADR-019-guardrail-complexity-budget.md](ADR-019-guardrail-complexity-budget.md)
+- Related: ADR-009 (Progressive Enforcement Ladder)
+- Implementation reference: `tools/architecture/validate_class_size.py`,
+  `packages/interfaces/sdd_wizard/EXCEPTIONS.md` (grandfather-list pattern)
 
 ## 🧾 Operational Appendices
 

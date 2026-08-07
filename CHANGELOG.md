@@ -26,7 +26,7 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
-## [1.0.4] — YYYY-MM-DD
+## [1.0.4] — 2026-07-31
 
 ### Fixed
 - Fixed `sdd audit` drift-rate calculations inflating detected-drift counts

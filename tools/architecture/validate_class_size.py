@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """
-Validate class size guardrail for Python source files.
+Validate class size and module size guardrails for Python source files.
+
+Both checks are blocking (ADR-019, docs/adr/ADR-019-guardrail-complexity-budget.md).
+Pre-existing module-size violations are grandfathered via
+tools/architecture/module_size_allowlist.json; class-size violations via
+tools/architecture/class_size_allowlist.json. New violations of either are not
+allowlisted — split the file instead.
 
 Usage:
     python tools/architecture/validate_class_size.py [--root <path>] [--max-lines 400] [--show-module-warnings] [--module-warning-lines 400] [--json]
@@ -16,7 +22,17 @@ from pathlib import Path
 from typing import Any, cast
 
 SKIP_MARKERS = ("site-packages", ".venv", "__pycache__", ".egg", "generated", "tests")
+# Exact path-segment match, not a substring — "build" as a substring would also
+# hit real source like .../builders/pipeline_builder.py. Excludes gitignored
+# build-output directories (e.g. packages/interfaces/sdd_cli/build/lib/...),
+# never hand-maintained source.
+SKIP_SEGMENTS = ("build",)
 ALLOWLIST_FILE = "tools/architecture/class_size_allowlist.json"
+MODULE_ALLOWLIST_FILE = "tools/architecture/module_size_allowlist.json"
+
+
+def _is_skipped(rel_parts: tuple[str, ...]) -> bool:
+    return any(part in SKIP_SEGMENTS for part in rel_parts)
 
 
 def _path_sort_key(path: str) -> tuple[str, ...]:
@@ -49,6 +65,17 @@ def _load_allowlist(root: Path) -> dict[str, str]:
     return {str(k).replace("\\", "/"): str(v) for k, v in entries.items()}
 
 
+def _load_module_allowlist(root: Path) -> dict[str, str]:
+    path = root / MODULE_ALLOWLIST_FILE
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    entries = payload.get("allowlist", {})
+    if not isinstance(entries, dict):
+        return {}
+    return {str(k).replace("\\", "/"): str(v) for k, v in entries.items()}
+
+
 def _scan_classes(
     root: Path, max_lines: int, allowlist: dict[str, str]
 ) -> dict[str, object]:
@@ -58,12 +85,14 @@ def _scan_classes(
     for file in (root / "packages").rglob("*.py"):
         if any(marker in str(file) for marker in SKIP_MARKERS):
             continue
+        rel = file.relative_to(root).as_posix()
+        if _is_skipped(file.relative_to(root).parts):
+            continue
         try:
             src = file.read_text(encoding="utf-8")
             tree = ast.parse(src, filename=str(file))
         except (UnicodeDecodeError, SyntaxError):
             continue
-        rel = file.relative_to(root).as_posix()
         for node in tree.body:
             if not isinstance(node, ast.ClassDef):
                 continue
@@ -97,12 +126,21 @@ def _scan_classes(
     }
 
 
-def _scan_modules(root: Path, warning_lines: int) -> dict[str, object]:
+def _scan_modules(
+    root: Path, warning_lines: int, allowlist: dict[str, str]
+) -> dict[str, object]:
+    """Module-size scan. `warnings` here are blocking violations (ADR-019) unless
+    the module's path is in `allowlist` — the name is kept for output-shape
+    compatibility with existing callers (`--show-module-warnings` display), not
+    because these are non-blocking anymore.
+    """
     warnings: list[dict[str, object]] = []
     scanned = 0
 
     for file in (root / "packages").rglob("*.py"):
         if any(marker in str(file) for marker in SKIP_MARKERS):
+            continue
+        if _is_skipped(file.relative_to(root).parts):
             continue
         try:
             src = file.read_text(encoding="utf-8")
@@ -110,16 +148,18 @@ def _scan_modules(root: Path, warning_lines: int) -> dict[str, object]:
             continue
         scanned += 1
         line_count = src.count("\n") + (1 if src else 0)
-        if line_count > warning_lines:
-            rel = file.relative_to(root).as_posix()
+        rel = file.relative_to(root).as_posix()
+        if line_count > warning_lines and rel not in allowlist:
             warnings.append({"path": rel, "line_count": line_count})
 
     warnings.sort(key=lambda x: _path_sort_key(str(x["path"])))
     return {
+        "ok": len(warnings) == 0,
         "warning_lines": warning_lines,
         "warnings": warnings,
         "warnings_count": len(warnings),
         "modules_scanned": scanned,
+        "allowlist_count": len(allowlist),
     }
 
 
@@ -133,12 +173,14 @@ def main() -> int:
         "--module-warning-lines",
         type=int,
         default=400,
-        help="Warn when a Python module exceeds this line count (non-blocking)",
+        help="Fail when a Python module exceeds this line count, unless the "
+        f"module's path is listed in {MODULE_ALLOWLIST_FILE} (ADR-019)",
     )
     parser.add_argument(
         "--show-module-warnings",
         action="store_true",
-        help="Show non-blocking module size warnings in text output",
+        help="Show module size violations in text output (they always affect "
+        "the exit code regardless of this flag — see ADR-019)",
     )
     parser.add_argument("--json", action="store_true", help="Emit JSON output")
     args = parser.parse_args()
@@ -152,16 +194,16 @@ def main() -> int:
     allowlist = _load_allowlist(root)
     report = _scan_classes(root, args.max_lines, allowlist)
     violations = cast(list[dict[str, Any]], report.get("violations", []))
-    module_report: dict[str, object] = {}
-    module_warnings: list[dict[str, Any]] = []
-    if args.show_module_warnings or args.json:
-        module_report = _scan_modules(root, args.module_warning_lines)
-        module_warnings = cast(list[dict[str, Any]], module_report.get("warnings", []))
+
+    module_allowlist = _load_module_allowlist(root)
+    module_report = _scan_modules(root, args.module_warning_lines, module_allowlist)
+    module_warnings = cast(list[dict[str, Any]], module_report.get("warnings", []))
 
     if args.json:
-        payload: dict[str, object] = {"class_report": report}
-        if module_report:
-            payload["module_report"] = module_report
+        payload: dict[str, object] = {
+            "class_report": report,
+            "module_report": module_report,
+        }
         print(json.dumps(payload, indent=2))
     elif report["ok"]:
         print(
@@ -179,16 +221,23 @@ def main() -> int:
             f"\nTo allow temporary exceptions, add class ids to {ALLOWLIST_FILE} with a justification."
         )
 
-    if args.show_module_warnings and module_warnings:
+    if not args.json and module_warnings:
         print(
-            f"WARNING: {module_report['warnings_count']} module(s) exceed {module_report['warning_lines']} lines (non-blocking):"
+            f"ERROR: {module_report['warnings_count']} module(s) exceed "
+            f"{module_report['warning_lines']} lines (blocking, ADR-019 — grandfathered "
+            f"paths in {MODULE_ALLOWLIST_FILE} are excluded):"
         )
         for item in module_warnings[:20]:
             print(f"  - {item['path']} lines={item['line_count']}")
         if len(module_warnings) > 20:
             print(f"  ... +{len(module_warnings) - 20} more")
+        print(
+            f"\nTo grandfather a pre-existing violation, add its path to "
+            f"{MODULE_ALLOWLIST_FILE} with a justification (see ADR-019). New "
+            "violations should be split instead of allowlisted."
+        )
 
-    return 0 if report["ok"] else 1
+    return 0 if (report["ok"] and module_report["ok"]) else 1
 
 
 if __name__ == "__main__":

@@ -36,10 +36,21 @@ jobs:
         run: |
           uv run python -m sdd_cli governance compile
 
-      - name: Security Audit (informational)
-        # Non-blocking: signature validation requires the private key to re-sign
-        # artifacts after compile. Key is not available in CI.
-        # Use: uv run python -m sdd_cli governance audit  (local, after signing)
-        continue-on-error: true
+      - name: Security Audit (ephemeral CI key)
+        # Blocking: signs the artifacts compiled above with a job-local ephemeral
+        # Ed25519 key (discarded when the runner terminates — never the
+        # production signing key), then audits against that signature. Same
+        # keygen -> sign -> audit sequence release.yml's own signing smoke test
+        # already proves works (release.yml:184-212).
+        #
+        # `sdd governance audit` WITHOUT --json returns the correct process
+        # exit code (0/1) on pass/fail — verified locally. --json mode always
+        # exits 0 and only encodes pass/fail in the JSON payload (that's why
+        # release.yml's own smoke test greps the JSON with a Python assertion
+        # instead of trusting the shell exit code); using plain-text mode here
+        # avoids needing that extra step.
         run: |
+          set -euo pipefail
+          uv run python -m sdd_cli governance keygen --key-id ci-governance-audit
+          uv run python -m sdd_cli governance sign --key-id ci-governance-audit
           uv run python -m sdd_cli governance audit

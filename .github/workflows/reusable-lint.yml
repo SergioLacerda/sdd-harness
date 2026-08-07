@@ -7,10 +7,13 @@ permissions:
   contents: read
 
 jobs:
-  ruff:
-    name: Ruff Lint & Format
+  lint:
+    name: Lint (ruff + mypy + bandit)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Was 5 when this job only ran global `ruff check`/`ruff format --check`.
+    # tools/maintenance/lint_all.py adds per-layer ruff, mypy over the whole
+    # tree, and bandit — a real increase in wall-clock cost, not just scope.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: Set up Python
@@ -24,12 +27,16 @@ jobs:
           enable-cache: true
       - name: Initialize UV workspace (retry)
         uses: ./.github/actions/uv-sync-retry
-      - name: Run ruff check
-        run: uv run ruff check .
       - name: Analyze text I/O encoding policy (baseline migration)
         run: uv run python tools/ci/check_text_io_encoding.py || true
-      - name: Run ruff format check
-        run: uv run ruff format . --check
+      # Canonical convergence (ADR reference:
+      # .analysis/refined/20260807-ci-mypy-gate-wiring-fix/): this is the same
+      # script `make lint` runs locally — CI and local dev can no longer
+      # silently diverge on what "lint" means. Runs ruff per layer, mypy
+      # (pyproject.toml's declared canonical type-checking gate — previously
+      # never wired into CI), and bandit.
+      - name: Run lint (ruff + mypy + bandit)
+        run: uv run python tools/maintenance/lint_all.py
 
   dockerfile:
     name: Dockerfile Lint

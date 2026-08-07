@@ -115,7 +115,7 @@ jobs:
 
   release-install-smoke:
     name: Release Install Smoke (${{ matrix.os }})
-    needs: build
+    needs: [validate, build]
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -154,6 +154,103 @@ jobs:
           fi
           "$PY" -m pip install --upgrade pip
           "$PY" -m pip install --no-index --find-links dist sdd-cli
+
+      - name: Upgrade/rollback smoke
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXPECTED_NEW_VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            PY=".release-smoke/Scripts/python.exe"
+          else
+            PY=".release-smoke/bin/python"
+          fi
+
+          # The tag this run is building for has no GitHub Release yet (the
+          # `release` job that creates it runs after this one) — so "latest"
+          # is guaranteed to be the previous published version, giving a real
+          # N-1 artifact to upgrade from and roll back to, without hardcoding
+          # a version number here.
+          mkdir -p .release-smoke/prev
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import urllib.request
+
+          url = (
+              "https://api.github.com/repos/"
+              f"{os.environ['GITHUB_REPOSITORY']}/releases/latest"
+          )
+          request = urllib.request.Request(
+              url,
+              headers={
+                  "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+                  "Accept": "application/vnd.github+json",
+              },
+          )
+          with urllib.request.urlopen(request) as response:
+              release = json.load(response)
+
+          wheel = next(
+              (
+                  asset
+                  for asset in release["assets"]
+                  if asset["name"].startswith("sdd_cli-") and asset["name"].endswith(".whl")
+              ),
+              None,
+          )
+          if wheel is None:
+              raise SystemExit(
+                  f"No sdd_cli-*.whl asset found on release {release['tag_name']}"
+              )
+
+          print(f"PREV_TAG={release['tag_name']}")
+          print(f"PREV_WHEEL_NAME={wheel['name']}")
+          print(f"PREV_WHEEL_URL={wheel['browser_download_url']}")
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+              env_file.write(f"PREV_TAG={release['tag_name']}\n")
+              env_file.write(f"PREV_WHEEL_NAME={wheel['name']}\n")
+              env_file.write(f"PREV_WHEEL_URL={wheel['browser_download_url']}\n")
+          PYEOF
+
+          echo "Downloading previous release wheel: $PREV_WHEEL_NAME ($PREV_TAG)"
+          curl -sSL -o ".release-smoke/prev/$PREV_WHEEL_NAME" "$PREV_WHEEL_URL"
+
+          PREV_VERSION="${PREV_TAG#v}"
+          PREV_VERSION="${PREV_VERSION#V}"
+
+          echo "--- Install previous release ($PREV_VERSION) ---"
+          "$PY" -m pip install --no-index --find-links .release-smoke/prev sdd-cli
+          INSTALLED=$("$PY" -m pip show sdd-cli | grep -i '^Version:' | awk '{print $2}')
+          if [ "$INSTALLED" != "$PREV_VERSION" ]; then
+            echo "ERROR: expected previous version $PREV_VERSION, got $INSTALLED"
+            exit 1
+          fi
+          echo "OK: previous version installed ($INSTALLED)"
+
+          echo "--- Upgrade to this release ($EXPECTED_NEW_VERSION) ---"
+          "$PY" -m pip install --no-index --find-links dist --upgrade sdd-cli
+          INSTALLED=$("$PY" -m pip show sdd-cli | grep -i '^Version:' | awk '{print $2}')
+          if [ "$INSTALLED" != "$EXPECTED_NEW_VERSION" ]; then
+            echo "ERROR: expected upgraded version $EXPECTED_NEW_VERSION, got $INSTALLED"
+            exit 1
+          fi
+          echo "OK: upgrade succeeded ($INSTALLED)"
+
+          echo "--- Roll back to previous release ($PREV_VERSION) ---"
+          "$PY" -m pip install --no-index --find-links .release-smoke/prev --force-reinstall sdd-cli
+          INSTALLED=$("$PY" -m pip show sdd-cli | grep -i '^Version:' | awk '{print $2}')
+          if [ "$INSTALLED" != "$PREV_VERSION" ]; then
+            echo "ERROR: expected rolled-back version $PREV_VERSION, got $INSTALLED"
+            exit 1
+          fi
+          echo "OK: rollback succeeded ($INSTALLED)"
+
+          echo "--- Re-upgrade to this release for the remaining smoke steps ---"
+          "$PY" -m pip install --no-index --find-links dist --upgrade sdd-cli
 
       - name: Run CLI smoke commands
         shell: bash
@@ -384,6 +481,7 @@ jobs:
             dist/sdd-compile-darwin-amd64
             dist/sdd-compile-darwin-arm64
             dist/sdd-compile-windows-amd64.exe
+            dist/*.whl
             dist/SHA256SUMS
 
       - name: Create GitHub Release
@@ -470,4 +568,57 @@ jobs:
       - name: Generate build provenance
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32  # v4
         with:
-          subject-path: dist/
+          # Explicit glob (not a bare directory path) so coverage over every
+          # dist/ artifact — compiler binaries and Python wheels alike — is
+          # unambiguous rather than relying on this action's directory-handling
+          # default (previously flagged as an open question, see
+          # .analysis/refined/20260807-install-channel-supply-chain-fix/).
+          subject-path: dist/*
+
+  # --------------------------------------------------------------------------
+  # NOT YET ACTIVE — two manual preconditions outside this repo/CI must be
+  # completed before this job can succeed:
+  #
+  #   1. Register `sdd-cli` as a project on pypi.org and configure a "trusted
+  #      publisher" there for this exact repo + workflow file + job name
+  #      (Settings > Publishing on the PyPI project page). This is a one-time
+  #      manual step on PyPI's side — nothing in this repo can bootstrap it.
+  #   2. `pypa/gh-action-pypi-publish` below is pinned to a moving tag
+  #      (`release/v1`), not a commit SHA, unlike every other action in this
+  #      file — this repo's own convention (confirmed across release.yml,
+  #      reusable-*.yml) is to pin by SHA. Resolve the current release/v1 SHA
+  #      and replace the line below before this job is trusted to run
+  #      unattended; done as a tag reference here only because no network
+  #      access was available to look up and verify the real SHA at the time
+  #      this job was written.
+  # --------------------------------------------------------------------------
+  publish-pypi:
+    name: Publish to PyPI
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # OIDC trusted publishing — no PYPI_TOKEN secret needed
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Remove non-PyPI artifacts from the publish set
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Only wheels are valid PyPI upload artifacts; dist/ also carries the
+          # standalone compiler binaries, SHA256SUMS, SBOM, and compiled
+          # governance JSON, none of which belong on PyPI.
+          mkdir -p pypi-dist
+          cp dist/*.whl pypi-dist/
+
+      # SHA pin intentionally not resolved here — see the NOT YET ACTIVE note
+      # above this job.
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: pypi-dist/
+          skip-existing: true

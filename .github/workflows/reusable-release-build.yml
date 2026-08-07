@@ -128,8 +128,6 @@ jobs:
             echo "Building $out"
             GOOS="$goos" GOARCH="$goarch" go build -C tools/sdd-compile -ldflags "$LDFLAGS" -o "$(pwd)/$out" .
           done
-          (cd dist && sha256sum sdd-compile-* > SHA256SUMS)
-          cat dist/SHA256SUMS
 
       - name: Stage packaged compiler assets for sdd-core wheel
         shell: bash
@@ -147,6 +145,15 @@ jobs:
               python -m build --wheel "$pkg_dir" --outdir dist/
             fi
           done
+
+      - name: Generate SHA256SUMS (compiler binaries + wheels)
+        shell: bash
+        run: |
+          # Generated after both the compiler-binary build and the wheel build so
+          # a single SHA256SUMS covers everything installers actually consume —
+          # previously this ran before wheels existed and silently excluded them.
+          (cd dist && sha256sum sdd-compile-* *.whl > SHA256SUMS)
+          cat dist/SHA256SUMS
 
       - name: Verify sdd-core wheel bundles native compiler binaries
         shell: bash

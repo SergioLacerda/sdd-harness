@@ -102,11 +102,41 @@ python -m venv .sdd-cli
 both `windows-latest` and `ubuntu-latest` before a release is published, so this
 path is proven cross-platform.
 
-The Git-subdirectory install below is a source/development install path — it
-installs the latest `develop`/`main` branch code rather than a released version:
+#### Verifying a Release
+
+Every tagged release publishes `dist/SHA256SUMS` alongside the standalone
+`sdd-compile` binaries, signed with [Sigstore](https://www.sigstore.dev/)
+(keyless signing — no key management on your end). To verify a downloaded
+binary:
 
 ```bash
-uv tool install "git+https://github.com/SergioLacerda/sdd-harness#subdirectory=packages/interfaces/sdd_cli"
+# Checksum
+sha256sum -c SHA256SUMS --ignore-missing
+
+# Sigstore signature (requires the sigstore CLI: pip install sigstore)
+python -m sigstore verify github \
+  --cert-identity "https://github.com/SergioLacerda/sdd-harness/.github/workflows/release.yml@refs/tags/<tag>" \
+  dist/sdd-compile-linux-amd64
+```
+
+Every release also carries a [SLSA build provenance
+attestation](https://slsa.dev/) over the full `dist/` directory, verifiable with
+the GitHub CLI: `gh attestation verify dist/<file> --repo
+SergioLacerda/sdd-harness`.
+
+> **Current scope:** checksums and Sigstore signatures above cover the standalone
+> `sdd-compile` binaries. Python wheel coverage
+> (`sdd_cli-*.whl` and friends) is tracked separately — see the release pipeline's
+> own CI configuration for the latest status before relying on wheel-level
+> verification.
+
+The Git-subdirectory install below is a source/development install path — it
+installs the code at a specific tag rather than a released wheel. Replace `v1.0.4`
+with the tag you want; omitting the `@<tag>` ref (not recommended) installs
+whatever the default branch head currently is:
+
+```bash
+uv tool install "git+https://github.com/SergioLacerda/sdd-harness@v1.0.4#subdirectory=packages/interfaces/sdd_cli"
 cd your-project
 sdd install --wizard
 sdd init --default
