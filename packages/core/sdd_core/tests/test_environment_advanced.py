@@ -174,8 +174,11 @@ class TestGetProjectConfigAdvanced:
     def test_tomllib_import_fallback(self, tmp_path: Path) -> None:
         """Should handle tomllib import variations."""
         with (
-            patch("sdd_core.utils.environment.tomllib", None),
-            patch("sdd_core.utils.environment.detect_repo_root", return_value=tmp_path),
+            patch("sdd_core.utils._environment_repo.tomllib", None),
+            patch(
+                "sdd_core.utils._environment_repo.detect_repo_root",
+                return_value=tmp_path,
+            ),
         ):
             config = get_project_config()
             assert config == {}

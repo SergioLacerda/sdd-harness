@@ -339,6 +339,99 @@ jobs:
           print("doctor toolchain smoke: OK", binary, handshake)
           PYEOF
 
+  release-binary-install-smoke:
+    name: Release Binary Install Smoke (${{ matrix.os }})
+    needs: [validate, build]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          sparse-checkout: |
+            install.sh
+            install.ps1
+          sparse-checkout-cone-mode: false
+
+      - name: Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Serve dist/ locally
+        # install.sh/install.ps1 always download from the real GitHub release,
+        # which doesn't exist yet at smoke time (this job runs before the
+        # `release` job creates it) — SDD_INSTALL_BASE_URL is the override
+        # point both scripts expose for exactly this, same pattern as
+        # CompilerRunner's own SDD_COMPILE_BIN override.
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8934 --directory dist > server.log 2>&1 &
+          echo $! > server.pid
+          for _ in $(seq 1 20); do
+            if curl -sSf "http://127.0.0.1:8934/SHA256SUMS" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 0.5
+          done
+
+      - name: Run install.sh
+        if: runner.os != 'Windows'
+        shell: bash
+        env:
+          SDD_INSTALL_BASE_URL: "http://127.0.0.1:8934"
+          SDD_INSTALL_DIR: ${{ runner.temp }}/sdd-install-smoke
+        run: bash install.sh
+
+      - name: Run install.ps1
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          SDD_INSTALL_BASE_URL: "http://127.0.0.1:8934"
+        run: |
+          ./install.ps1 -InstallDir "${{ runner.temp }}\sdd-install-smoke"
+
+      - name: Stop local server
+        if: always()
+        shell: bash
+        run: |
+          if [ -f server.pid ]; then
+            kill "$(cat server.pid)" 2>/dev/null || true
+          fi
+
+      - name: Run sdd --version from the installed binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            SDD_BIN="${{ runner.temp }}/sdd-install-smoke/sdd.exe"
+          else
+            SDD_BIN="${{ runner.temp }}/sdd-install-smoke/sdd"
+          fi
+          "$SDD_BIN" --version
+
+      - name: Verify the installed binary still resolves sdd-compile via CompilerRunner
+        # Proves the "Do Not touch CompilerRunner" boundary held in practice —
+        # design.md Execution Checklist item 5. No SDD_COMPILE_BIN override
+        # here on purpose: this must go through CompilerRunner's normal
+        # resolution chain, unmodified by this mission.
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            SDD_BIN="${{ runner.temp }}/sdd-install-smoke/sdd.exe"
+          else
+            SDD_BIN="${{ runner.temp }}/sdd-install-smoke/sdd"
+          fi
+          "$SDD_BIN" doctor compiler
+
   release-git-install-smoke:
     name: Release Git Install Smoke (${{ matrix.os }})
     needs: build
@@ -420,7 +513,7 @@ jobs:
 
   release:
     name: Create GitHub Release
-    needs: [release-install-smoke, release-git-install-smoke]
+    needs: [release-install-smoke, release-git-install-smoke, release-binary-install-smoke]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -574,51 +667,3 @@ jobs:
           # default (previously flagged as an open question, see
           # .analysis/refined/20260807-install-channel-supply-chain-fix/).
           subject-path: dist/*
-
-  # --------------------------------------------------------------------------
-  # NOT YET ACTIVE — two manual preconditions outside this repo/CI must be
-  # completed before this job can succeed:
-  #
-  #   1. Register `sdd-cli` as a project on pypi.org and configure a "trusted
-  #      publisher" there for this exact repo + workflow file + job name
-  #      (Settings > Publishing on the PyPI project page). This is a one-time
-  #      manual step on PyPI's side — nothing in this repo can bootstrap it.
-  #   2. `pypa/gh-action-pypi-publish` below is pinned to a moving tag
-  #      (`release/v1`), not a commit SHA, unlike every other action in this
-  #      file — this repo's own convention (confirmed across release.yml,
-  #      reusable-*.yml) is to pin by SHA. Resolve the current release/v1 SHA
-  #      and replace the line below before this job is trusted to run
-  #      unattended; done as a tag reference here only because no network
-  #      access was available to look up and verify the real SHA at the time
-  #      this job was written.
-  # --------------------------------------------------------------------------
-  publish-pypi:
-    name: Publish to PyPI
-    needs: release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write   # OIDC trusted publishing — no PYPI_TOKEN secret needed
-    steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
-        with:
-          name: dist
-          path: dist/
-
-      - name: Remove non-PyPI artifacts from the publish set
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Only wheels are valid PyPI upload artifacts; dist/ also carries the
-          # standalone compiler binaries, SHA256SUMS, SBOM, and compiled
-          # governance JSON, none of which belong on PyPI.
-          mkdir -p pypi-dist
-          cp dist/*.whl pypi-dist/
-
-      # SHA pin intentionally not resolved here — see the NOT YET ACTIVE note
-      # above this job.
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: pypi-dist/
-          skip-existing: true

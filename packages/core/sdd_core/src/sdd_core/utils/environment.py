@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 from sdd_core.utils._environment_models import (
     ProfileContext,
@@ -12,6 +12,8 @@ from sdd_core.utils._environment_models import (
     WorkspaceNotInitializedError,
 )
 from sdd_core.utils._environment_repo import (
+    detect_repo_root,
+    get_project_config,
     is_repo_root,
     tomllib,
 )
@@ -27,30 +29,6 @@ from sdd_core.utils._environment_workspace import (
     resolve_venv_sdd,
     write_profile,
 )
-
-
-def detect_repo_root() -> Path:
-    """Detect the current repository root."""
-    cwd = Path.cwd().resolve()
-    for candidate in (cwd, *cwd.parents):
-        if is_repo_root(candidate):
-            return candidate
-    if "GITHUB_WORKSPACE" in os.environ:
-        return Path(os.environ["GITHUB_WORKSPACE"]).resolve()
-    raise RuntimeError(
-        "SDD Project root not found. Ensure you are running from within the repository."
-    )
-
-
-def get_project_config() -> dict[str, Any]:
-    """Load the root `pyproject.toml` when available."""
-    if not tomllib:
-        return {}
-    try:
-        with open(detect_repo_root() / "pyproject.toml", "rb") as handle:
-            return cast(dict[str, Any], tomllib.load(handle))
-    except Exception:
-        return {}
 
 
 def _workspace_root_from_env() -> Path | None:

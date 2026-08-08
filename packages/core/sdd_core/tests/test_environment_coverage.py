@@ -234,8 +234,11 @@ class TestTomlImport:
         monkeypatch.chdir(tmp_path)
 
         with (
-            patch("sdd_core.utils.environment.tomllib", None),
-            patch("sdd_core.utils.environment.detect_repo_root", return_value=tmp_path),
+            patch("sdd_core.utils._environment_repo.tomllib", None),
+            patch(
+                "sdd_core.utils._environment_repo.detect_repo_root",
+                return_value=tmp_path,
+            ),
         ):
             result = get_project_config()
 

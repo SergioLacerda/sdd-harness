@@ -233,5 +233,151 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
+          # Intermediate name: merge-release-assets (below) downloads this
+          # plus the per-OS sdd CLI binaries, regenerates SHA256SUMS over the
+          # combined set, and re-uploads under inputs.artifact-name — the
+          # name every downstream job (release.yml, release-dry-run.yml)
+          # actually consumes. Kept distinct so this job's own upload can
+          # never race the merge job's upload of the same name.
+          name: ${{ inputs.artifact-name }}-base
+          path: dist/
+
+  build-cli-binaries:
+    name: Build sdd CLI binary (${{ matrix.os }})
+    # Independent of `build` — installs the workspace packages directly from
+    # source on each native runner (PyInstaller cannot cross-compile the way
+    # `go build` can, so unlike the sdd-compile matrix above, this genuinely
+    # needs one runner per target OS). Wheels built here are thrown away after
+    # the binary is produced; `build`'s own wheels (the ones actually
+    # published) are untouched.
+    #
+    # Coverage gap, accepted (see .analysis/refined/20260807-cli-binary-installer-followup/proposal.md
+    # § 1): GitHub-hosted `macos-latest` is Apple Silicon (arm64) only, so this
+    # matrix produces linux-amd64, darwin-arm64, and windows-amd64 — not the
+    # 5-target parity the sdd-compile Go matrix has (notably no darwin-amd64).
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_name: sdd-linux-amd64
+          - os: macos-latest
+            asset_name: sdd-darwin-arm64
+          - os: windows-latest
+            asset_name: sdd-windows-amd64.exe
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install build pyinstaller
+
+      - name: Build and install workspace packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p cli-dist
+          for pkg_dir in packages/core/sdd_core packages/core/sdd_runtime packages/core/sdd_telemetry packages/features/sdd_adapters packages/features/sdd_integration packages/features/sdd_pages packages/features/sdd_skills packages/interfaces/sdd_wizard packages/interfaces/sdd_cli; do
+            python -m build --wheel "$pkg_dir" --outdir cli-dist
+          done
+          python -m pip install --find-links cli-dist sdd-cli
+
+      - name: Build standalone sdd binary with PyInstaller
+        shell: bash
+        run: |
+          set -euo pipefail
+          # --collect-submodules is required for sdd_cli (lazy command loading
+          # via importlib.import_module in _command_group.py) and sdd_wizard
+          # (same pattern in contracts.py / _phase_runtime_core.py) — neither
+          # is visible to PyInstaller's static import analysis. The rest are
+          # included defensively for the same reason. --copy-metadata sdd-cli
+          # is required separately: CompilerRunner._installed_cli_version()
+          # calls importlib.metadata.version("sdd-cli"), which raises
+          # PackageNotFoundError inside a frozen binary unless the wheel's
+          # dist-info is explicitly bundled — confirmed by a local build
+          # during this task; omitting this flag breaks `sdd doctor compiler`
+          # silently (no build-time error, only a runtime resolution failure).
+          ENTRYPOINT=$(python3 -c "import sdd_cli.main as m; print(m.__file__)")
+          pyinstaller --onefile --name sdd \
+            --collect-submodules sdd_cli \
+            --collect-submodules sdd_wizard \
+            --collect-submodules sdd_core \
+            --collect-submodules sdd_integration \
+            --collect-submodules sdd_pages \
+            --collect-submodules sdd_skills \
+            --collect-submodules sdd_adapters \
+            --collect-submodules sdd_runtime \
+            --collect-submodules sdd_telemetry \
+            --copy-metadata sdd-cli \
+            "$ENTRYPOINT"
+
+      - name: Stage and smoke-test the built binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          # PyInstaller writes ./dist/sdd(.exe) — same relative dist/ this
+          # step also stages the renamed asset into, so rename in place
+          # before staging rather than copying dist onto itself.
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            mv dist/sdd.exe "dist/${{ matrix.asset_name }}"
+          else
+            mv dist/sdd "dist/${{ matrix.asset_name }}"
+            chmod +x "dist/${{ matrix.asset_name }}"
+          fi
+          "./dist/${{ matrix.asset_name }}" --help
+          "./dist/${{ matrix.asset_name }}" version
+          "./dist/${{ matrix.asset_name }}" wizard --list
+
+      - name: Upload CLI binary
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: cli-binary-${{ matrix.os }}
+          path: dist/${{ matrix.asset_name }}
+
+  merge-release-assets:
+    name: Merge release assets and regenerate SHA256SUMS
+    needs: [build, build-cli-binaries]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    steps:
+      - name: Download compiler/wheel assets
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: ${{ inputs.artifact-name }}-base
+          path: dist/
+
+      - name: Download sdd CLI binaries
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          pattern: cli-binary-*
+          path: dist/
+          merge-multiple: true
+
+      - name: Regenerate SHA256SUMS over the combined asset set
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd dist && sha256sum sdd-compile-* sdd-linux-* sdd-darwin-* sdd-windows-* *.whl > SHA256SUMS)
+          cat dist/SHA256SUMS
+
+      - name: Upload merged artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
           name: ${{ inputs.artifact-name }}
           path: dist/
