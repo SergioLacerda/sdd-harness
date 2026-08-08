@@ -19,6 +19,10 @@ def _scan_file(path: Path) -> list[str]:
     for idx, line in enumerate(content.splitlines(), start=1):
         if ALLOW_MARKER in line:
             continue
+        if line.strip().startswith("#"):
+            # YAML comment, not a shell command GitHub Actions would execute
+            # (e.g. prose explaining a `run:` step's behavior in backticks).
+            continue
         for pattern in BLOCKED_PATTERNS:
             if pattern.search(line):
                 violations.append(f"{path}:{idx}: {line.strip()}")

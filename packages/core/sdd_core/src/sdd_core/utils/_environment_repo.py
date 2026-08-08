@@ -3,20 +3,18 @@
 from __future__ import annotations
 
 import os
-import sys
-import types
 from pathlib import Path
 from typing import Any, cast
 
-_tomllib_mod: types.ModuleType | None
-if sys.version_info >= (3, 11):
-    import tomllib as _tomllib_mod
-else:
+try:
+    import tomllib
+except ImportError:
     try:
-        import tomli as _tomllib_mod
+        import tomli as tomllib
     except ImportError:
-        _tomllib_mod = None
-tomllib: types.ModuleType | None = _tomllib_mod
+        tomllib = None
+
+__all__ = ["detect_repo_root", "get_project_config", "is_repo_root", "tomllib"]
 
 
 def is_repo_root(path: Path) -> bool:
