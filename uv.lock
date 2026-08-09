@@ -914,7 +914,7 @@ toml = [
 
 [[package]]
 name = "crewai"
-version = "1.15.9"
+version = "1.15.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -949,14 +949,14 @@ dependencies = [
     { name = "tomli" },
     { name = "tomli-w" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/28/da/66688aaa7b194dadad61e6f11bb425ab0698a6951cd0c0cf8ad12d21ca9d/crewai-1.15.9.tar.gz", hash = "sha256:e498281a5cbfd9e0ef5c45e5825c0624e2b67949a738e943c974f1ebe94256fe", size = 7845191, upload-time = "2026-07-30T05:46:18.786Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fc/36/16c7a0ac273984de87fdd079441eeb074d44cf46bf8ad10a70a177725846/crewai-1.15.12.tar.gz", hash = "sha256:17f3d63ab47ac6614e3561c3dfe2a73a7df917d0155e6ed2b501b0ee4a63d9da", size = 7860720, upload-time = "2026-08-05T22:57:09.135Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3c/3f/8b36732acc744904c4d1ecf32cbd4c7fae2dd2fd9d9139a6a3ef8184e5a7/crewai-1.15.9-py3-none-any.whl", hash = "sha256:ece83a168e0ae369ad1a9ec1309b9da316382f9f555363a736731c8469fad4bd", size = 1105419, upload-time = "2026-07-30T05:46:16.434Z" },
+    { url = "https://files.pythonhosted.org/packages/27/bc/1370468458d19468164c31cbc9a7497dbf736fb2e28e22ab365bba90a3c5/crewai-1.15.12-py3-none-any.whl", hash = "sha256:95cb41912c1d787f1778463c3384809b35564b69c733af527df087c4900ff4d2", size = 1109770, upload-time = "2026-08-05T22:57:06.858Z" },
 ]
 
 [[package]]
 name = "crewai-cli"
-version = "1.15.9"
+version = "1.15.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
@@ -976,14 +976,14 @@ dependencies = [
     { name = "tomli-w" },
     { name = "uv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6e/36/69dc70725788437e1d2062abbbc909b7c3e10f5b240e0885610f99ccb5a2/crewai_cli-1.15.9.tar.gz", hash = "sha256:6f24998a435cb8d8a30e7fc6cc161e8501870daf9f9eabea6d4977e808c829f4", size = 220296, upload-time = "2026-07-30T05:46:22.22Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/94/51/24dd6202dfd28d681162356e42955ad5a43a7617165be6c3d8f5fcbe978d/crewai_cli-1.15.12.tar.gz", hash = "sha256:ff21c43953ee1ae115463e451a97bd33be18756a2019e3d2554d73dbae9f409a", size = 226477, upload-time = "2026-08-05T22:57:11.782Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/79/5543498ead661007378b959e9b7ddc4da82182f271a7e3b7d9d622fcae4b/crewai_cli-1.15.9-py3-none-any.whl", hash = "sha256:c14a9115790359cf6d708f9a47c8c5dcfe4db5b77f4730233dbbea4b8c77ae27", size = 189839, upload-time = "2026-07-30T05:46:20.596Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/26/8a875f6646e63f4be3e031d268137fd8a83cc4e62ccc90d77beb87580331/crewai_cli-1.15.12-py3-none-any.whl", hash = "sha256:34c9ddf91ac4f65529af1f3e168c90d202181024719c07328d0b64c643ebaaa2", size = 194980, upload-time = "2026-08-05T22:57:10.532Z" },
 ]
 
 [[package]]
 name = "crewai-core"
-version = "1.15.9"
+version = "1.15.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
@@ -999,9 +999,9 @@ dependencies = [
     { name = "rich", version = "14.3.4", source = { registry = "https://pypi.org/simple" } },
     { name = "tomli" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7f/a0/d2d4be6cdbe607ff056a6e3954afae4d8a363dc7b888b66d0b45449d75e7/crewai_core-1.15.9.tar.gz", hash = "sha256:84f9045583e751366fe23fb21c921eb34bcdc6c5942ee06a9daedad5e4de1c5d", size = 23438, upload-time = "2026-07-30T05:46:24.564Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/bd/9ae49c379848b347e7f155bd235abdbff4fc83282c524eb73b5c5de7d14e/crewai_core-1.15.12.tar.gz", hash = "sha256:7a9466b534995566c33d72a78e863197b09c33e1cb3bb8a0007cbd2550264250", size = 26771, upload-time = "2026-08-05T22:57:13.725Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/a1/fdc35686ae452891be5d153b249ee1869c9aaf5d0fcc3561a7c752953eb2/crewai_core-1.15.9-py3-none-any.whl", hash = "sha256:345b685433fd84b289b07e8d1c2a279378b9bdda320ce3ffb8ab3d4259ac14d0", size = 30973, upload-time = "2026-07-30T05:46:23.364Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/9d/cc462909f11a12f5433a1910890dc82e8eee713ba92e3c77ed00a09ae0ed/crewai_core-1.15.12-py3-none-any.whl", hash = "sha256:b442ca30c0ccd06eb8ac660ad8f35124bba49b8c0abc0c654360594e25ca268f", size = 34404, upload-time = "2026-08-05T22:57:12.685Z" },
 ]
 
 [[package]]
@@ -5143,11 +5143,11 @@ typing = [
 
 [package.metadata]
 requires-dist = [
-    { name = "crewai", marker = "extra == 'examples-crewai'", specifier = "==1.15.9" },
+    { name = "crewai", marker = "extra == 'examples-crewai'", specifier = "==1.15.12" },
     { name = "hatch-vcs", marker = "extra == 'dev'", specifier = ">=0.5.0" },
     { name = "hatchling", marker = "extra == 'dev'", specifier = ">=1.31.0" },
     { name = "httpx", marker = "extra == 'test'", specifier = ">=0.28.1" },
-    { name = "hypothesis", marker = "extra == 'test'", specifier = ">=6.164.0" },
+    { name = "hypothesis", marker = "extra == 'test'", specifier = ">=6.165.2" },
     { name = "langchain-core", marker = "extra == 'examples-langgraph'", specifier = ">=1.5.3" },
     { name = "langgraph", marker = "extra == 'examples-langgraph'", specifier = ">=1.2.10" },
     { name = "msgpack", marker = "extra == 'test'", specifier = ">=1.2.1" },
@@ -5165,7 +5165,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'lint'", specifier = ">=0.16.1" },
     { name = "setuptools", marker = "extra == 'examples-crewai'", specifier = ">=83.0.0" },
     { name = "structlog", specifier = ">=26.1.0" },
-    { name = "typer", marker = "extra == 'test'", specifier = ">=0.27.0" },
+    { name = "typer", marker = "extra == 'test'", specifier = ">=0.27.1" },
     { name = "types-pyyaml", marker = "extra == 'typing'", specifier = ">=6.0.12.20260724" },
 ]
 provides-extras = ["dev", "examples-crewai", "examples-langgraph", "lint", "test", "typing"]
@@ -5188,7 +5188,7 @@ dev = [
     { name = "rich", specifier = ">=15.0.0" },
     { name = "ruff", specifier = ">=0.16.1" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0.0" },
-    { name = "typer", specifier = ">=0.27.0" },
+    { name = "typer", specifier = ">=0.27.1" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20260724" },
 ]
 docs = [
@@ -5210,7 +5210,7 @@ test = [
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rich", specifier = ">=15.0.0" },
-    { name = "typer", specifier = ">=0.27.0" },
+    { name = "typer", specifier = ">=0.27.1" },
 ]
 typing = [
     { name = "mypy", specifier = ">=2.3.0" },
@@ -5530,7 +5530,7 @@ wheels = [
 
 [[package]]
 name = "typer"
-version = "0.27.0"
+version = "0.27.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -5539,9 +5539,9 @@ dependencies = [
     { name = "rich", version = "15.0.0", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-11-sdd-harness-test' or extra == 'group-11-sdd-harness-dev' or extra == 'group-11-sdd-harness-test' or extra != 'extra-11-sdd-harness-examples-crewai'" },
     { name = "shellingham" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/37/78/fda3361b56efc27944f24225f6ecd13d96d6fcfe37bd0eb34e2f4c63f9fc/typer-0.27.0.tar.gz", hash = "sha256:629bd12ea5d13a17148125d9a264f949eb171fb3f120f9b04d85873cab054fa5", size = 203430, upload-time = "2026-07-15T19:21:07.007Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ae/40/4a3db7990d1f62a53182aa96eaef57aeb2886a27f90a195bc66713565d31/typer-0.27.1.tar.gz", hash = "sha256:a79bef8469a79c45498e7b814ecf8d603cc7644e9acbd9e19cac0334240b18df", size = 203994, upload-time = "2026-08-03T14:41:03.438Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/40/03/26a383c9e58c213199d1aad1c3d353cfc22d4444ec6d2c0bf8ad02523843/typer-0.27.0-py3-none-any.whl", hash = "sha256:6f4b27631e47f077871b7dc30e933ec0131c1390fbe0e387ea5574b5bac9ccf1", size = 122716, upload-time = "2026-07-15T19:21:05.553Z" },
+    { url = "https://files.pythonhosted.org/packages/43/89/9518bc0c3929bee36b3a4a8e3daddd6e03f92f9961c66d4983b837160543/typer-0.27.1-py3-none-any.whl", hash = "sha256:53150287edd11baeb4e4722c8e394fcdf8181c0ae89485cba8d25c778d5edd56", size = 122874, upload-time = "2026-08-03T14:41:04.391Z" },
 ]
 
 [[package]]

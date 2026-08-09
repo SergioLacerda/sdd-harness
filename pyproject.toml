@@ -190,6 +190,11 @@ module = ["crewai", "crewai.*"]
 ignore_missing_imports = true
 disable_error_code = ["import-untyped"]
 
+[[tool.mypy.overrides]]
+module = ["questionary", "questionary.*"]
+ignore_missing_imports = true
+disable_error_code = ["import-untyped"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py310"
