@@ -224,6 +224,26 @@ def test_runtime_image_overlays_locked_venv_after_source_copy() -> None:
     assert source_copy < venv_copy
 
 
+def test_runtime_image_blocks_trivy_reported_python_package_regressions() -> None:
+    """Container builds must fail before Trivy if the runtime venv contains the
+    exact vulnerable Python package versions reported by the security gate."""
+    dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+
+    assert "msgpack==1.2.1" in dockerfile
+    assert "setuptools==83.0.0" in dockerfile
+    assert "--reinstall" in dockerfile
+    assert "Version: (1\\.1\\.2|70\\.3\\.0)" in dockerfile
+    assert "msgpack-*.dist-info/METADATA" in dockerfile
+    assert "setuptools-*.dist-info/METADATA" in dockerfile
+    assert (
+        "--system --break-system-packages --reinstall setuptools==83.0.0" in dockerfile
+    )
+    assert (
+        "/usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA"
+        in dockerfile
+    )
+
+
 def test_release_dry_run_resolves_tag_without_sync_versions() -> None:
     workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
     dry_run_steps = "\n".join(

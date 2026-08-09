@@ -13,7 +13,6 @@ from typing import Any
 
 import typer
 
-from sdd_cli.services.ask_hash import _hash_query as _hash_query
 from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
 
 # Env var set by the prompt-submit hook when it invokes `sdd ask` on the

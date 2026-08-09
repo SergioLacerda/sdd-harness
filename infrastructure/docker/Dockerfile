@@ -30,7 +30,16 @@ ENV PATH="/usr/local/bin:${PATH}"
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv venv /app/.venv && \
     UV_PROJECT_ENVIRONMENT=/app/.venv \
-    uv sync --frozen --no-group docs --all-packages --extra test
+    uv sync --frozen --no-group docs --all-packages --extra test && \
+    uv pip install --python /app/.venv/bin/python --reinstall \
+    msgpack==1.2.1 setuptools==83.0.0 && \
+    grep -R -H -E '^Version: 1\.2\.1$' \
+    /app/.venv/lib/python*/site-packages/msgpack-*.dist-info/METADATA && \
+    grep -R -H -E '^Version: 83\.0\.0$' \
+    /app/.venv/lib/python*/site-packages/setuptools-*.dist-info/METADATA && \
+    ! grep -R -H -E '^Version: (1\.1\.2|70\.3\.0)$' \
+    /app/.venv/lib/python*/site-packages/msgpack-*.dist-info/METADATA \
+    /app/.venv/lib/python*/site-packages/setuptools-*.dist-info/METADATA
 
 # Install sdd-compile Go binary into builder PATH
 COPY --from=go-builder /build/sdd-compile /usr/local/bin/sdd-compile
@@ -59,6 +68,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 # Copy uv for the `uv run` fallback path in the Makefile.
 COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /usr/local/bin/uv
+
+# Trivy scans the full runtime filesystem, including the base image's system
+# site-packages outside /app/.venv.
+RUN uv pip install --system --break-system-packages --reinstall setuptools==83.0.0 && \
+    grep -R -H -E '^Version: 83\.0\.0$' \
+    /usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA && \
+    ! grep -R -H -E '^Version: 70\.3\.0$' \
+    /usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA
 
 RUN groupadd -g 1000 sdd && \
     useradd -u 1000 -g sdd -m -s /bin/bash sdd

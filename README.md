@@ -180,6 +180,16 @@ make pre-delivery
 
 Contributor setup and troubleshooting: `docs/guides/ONBOARDING.md`
 
+#### Building the Docker image locally
+
+`make docker-build` (and `infrastructure/docker/Dockerfile`) requires the
+BuildKit-only `--mount=type=cache` syntax, which needs the `docker buildx` CLI
+plugin. Without it you'll see `the --mount option requires BuildKit`, and then
+`buildx component is missing` if you force `DOCKER_BUILDKIT=1`. Install the
+plugin first (e.g. `sudo pacman -S docker-buildx` on Arch/Manjaro, or
+`sudo apt install docker-buildx-plugin` on Debian/Ubuntu) before running
+`make docker-build`.
+
 ## Core Workflows
 
 ### Governance

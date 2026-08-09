@@ -52,7 +52,6 @@ from sdd_cli.services.ask_governance import signature_mode as _signature_mode_im
 from sdd_cli.services.ask_governance import (
     try_sdd_compiled_dir as _try_sdd_compiled_dir_impl,
 )
-from sdd_cli.services.ask_hash import _hash_query as _hash_query
 from sdd_cli.services.ask_renderer import (
     render_context_header as _render_context_header,
 )
