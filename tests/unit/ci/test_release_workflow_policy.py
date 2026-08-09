@@ -413,7 +413,7 @@ def test_release_signing_uses_real_sigstore_action_with_oidc_permission() -> Non
         for step in release_job["steps"]
         if "sigstore/gh-action-sigstore-python" in step.get("uses", "")
     )
-    assert "@5b79a39c381910c090341a2c9b0bf022c8b387e1" in sign_step["uses"]
+    assert "@790bc6befb9d733738f18d8f895854b453640ec9" in sign_step["uses"]
     assert release_job["permissions"]["id-token"] == "write"
 
 

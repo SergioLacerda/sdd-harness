@@ -52,6 +52,7 @@ from sdd_cli.services.ask_governance import signature_mode as _signature_mode_im
 from sdd_cli.services.ask_governance import (
     try_sdd_compiled_dir as _try_sdd_compiled_dir_impl,
 )
+from sdd_cli.services.ask_hash import _hash_query
 from sdd_cli.services.ask_renderer import (
     render_context_header as _render_context_header,
 )
@@ -66,6 +67,7 @@ __all__ = [
     "_check_fingerprint_drift",
     "_get_cached_governance_snapshot",
     "_get_last_known_fingerprint",
+    "_hash_query",
     "_load_compiled_governance",
     "_resolve_routing_decision",
     "_resolve_workspace_root",

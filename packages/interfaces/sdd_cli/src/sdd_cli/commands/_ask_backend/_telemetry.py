@@ -7,10 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import typer
-from sdd_runtime import OtelBridge as OtelBridge
-from sdd_runtime import RuntimeEvent as RuntimeEvent
-from sdd_runtime import TelemetrySink as TelemetrySink
-from sdd_runtime.otel import OtlpHttpExporter as OtlpHttpExporter
+from sdd_runtime import OtelBridge, RuntimeEvent, TelemetrySink
+from sdd_runtime.otel import OtlpHttpExporter
 
 from sdd_cli.services.ask_dossier import (
     build_and_output_dossier as _build_and_output_dossier_impl,

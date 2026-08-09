@@ -14,30 +14,16 @@ from sdd_cli.services._audit_runner_support import (
     window_correlation,
 )
 from sdd_cli.services.audit_event_parser import (
-    DriftRow as DriftRow,  # noqa: F401 — backward-compat re-export
-)
-from sdd_cli.services.audit_event_parser import (
+    DriftRow,  # noqa: F401 — backward-compat re-export
     _as_score,  # noqa: F401 — backward-compat re-export
+    _drift_cause,  # noqa: F401 — backward-compat re-export
     _drift_type,  # noqa: F401 — backward-compat re-export
+    _event_ts,  # noqa: F401 — backward-compat re-export
     _has_quality_signals,  # noqa: F401 — backward-compat re-export
-)
-from sdd_cli.services.audit_event_parser import (
-    _drift_cause as _drift_cause,  # noqa: F401 — backward-compat re-export
-)
-from sdd_cli.services.audit_event_parser import (
-    _event_ts as _event_ts,  # noqa: F401 — backward-compat re-export
-)
-from sdd_cli.services.audit_event_parser import (
-    _load_events as _load_events,  # noqa: F401 — backward-compat re-export
-)
-from sdd_cli.services.audit_event_parser import (
-    _parse_int as _parse_int,  # noqa: F401 — backward-compat re-export
-)
-from sdd_cli.services.audit_event_parser import (
-    _parse_ts as _parse_ts,  # noqa: F401 — backward-compat re-export
-)
-from sdd_cli.services.audit_event_parser import (
-    _ts_sort_key as _ts_sort_key,  # noqa: F401 — backward-compat re-export
+    _load_events,  # noqa: F401 — backward-compat re-export
+    _parse_int,  # noqa: F401 — backward-compat re-export
+    _parse_ts,  # noqa: F401 — backward-compat re-export
+    _ts_sort_key,  # noqa: F401 — backward-compat re-export
 )
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 

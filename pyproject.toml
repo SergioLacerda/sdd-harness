@@ -197,12 +197,17 @@ exclude = ["generated/", "build/"]
 cache-dir = "build/.ruff_cache"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "W", "C90", "UP", "PT", "SIM", "D1", "T201"]
+select = ["E", "F", "I", "B", "W", "C90", "UP", "PT", "SIM", "D1", "T201", "PLC0414"]
 # E501 is superseded by ruff format's line-length enforcement for code.
 # Comments, docstrings, and template strings cannot be auto-wrapped — ruff format is the line-length gate.
 # D105: magic method docstrings are conventionally omitted.
 # D107: __init__ docstrings belong on the class, not the method.
 ignore = ["B008", "E501", "D105", "D107"]
+# PLC0414 (useless-import-alias) also catches `X as X` self-aliased re-exports —
+# ruff's F401 explicitly exempts that idiom, which let two unused imports slip
+# past `make lint` and only get caught by CodeQL (#206/#207). Promoted to a safe
+# fix (not the global --unsafe-fixes) so `make lint-fix` cleans it up on its own.
+extend-safe-fixes = ["PLC0414"]
 
 [tool.ruff.lint.per-file-ignores]
 "*/tests/*" = ["D1", "T201"]

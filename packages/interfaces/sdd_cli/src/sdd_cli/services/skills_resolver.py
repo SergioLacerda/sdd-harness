@@ -5,10 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from sdd_cli.services.skills_seed_reconciler import (
-    _read_registry_ids as _read_registry_ids,
-)
-from sdd_cli.services.skills_seed_reconciler import (
-    _reconcile_root_seed_artifacts as _reconcile_root_seed_artifacts,
+    _read_registry_ids,
+    _reconcile_root_seed_artifacts,
 )
 
 __all__ = ["_generate_adapters", "_read_registry_ids", "_reconcile_root_seed_artifacts"]

@@ -15,7 +15,7 @@ def build_governed_ask_snapshot(
     require_handshake: bool = True,
 ) -> dict[str, Any]:
     """Compatibility wrapper for governed ask snapshot builder."""
-    from sdd_cli.commands import _ask_backend as _ask_backend
+    from sdd_cli.commands import _ask_backend
 
     return _ask_backend.build_governed_ask_snapshot(
         query=query,
