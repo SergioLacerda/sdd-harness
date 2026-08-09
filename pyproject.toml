@@ -25,11 +25,11 @@ test = [
     "pytest-asyncio>=1.4.0",
     "msgpack>=1.2.1",
     "PyYAML>=6.0.3",
-    "typer>=0.27.0",
+    "typer>=0.27.1",
     "rich>=15.0.0",
     "python-dotenv>=1.2.2",
     "pydantic>=2.13.4",
-    "hypothesis>=6.164.0",
+    "hypothesis>=6.165.2",
     "httpx>=0.28.1",
 ]
 lint = [
@@ -48,7 +48,7 @@ examples-langgraph = [
     "langchain-core>=1.5.3",
 ]
 examples-crewai = [
-    "crewai==1.15.9",
+    "crewai==1.15.12",
     "onnxruntime<1.25",
     "setuptools>=83.0.0",
 ]
@@ -127,7 +127,7 @@ test = [
     "pytest-asyncio>=1.4.0",
     "msgpack>=1.2.1",
     "PyYAML>=6.0.3",
-    "typer>=0.27.0",
+    "typer>=0.27.1",
     "rich>=15.0.0",
     "python-dotenv>=1.2.2",
     "pydantic>=2.13.4",
