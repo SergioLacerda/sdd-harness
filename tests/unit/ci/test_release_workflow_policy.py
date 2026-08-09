@@ -13,6 +13,7 @@ RELEASE_DRY_RUN_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "release-dry-ru
 REUSABLE_BUILD_WORKFLOW = (
     REPO_ROOT / ".github" / "workflows" / "reusable-release-build.yml"
 )
+DOCKERFILE = REPO_ROOT / "infrastructure" / "docker" / "Dockerfile"
 
 
 def _load_workflow(path: Path) -> dict:
@@ -210,6 +211,19 @@ def test_release_build_step_does_not_pin_setuptools_scm_version() -> None:
     assert "SETUPTOOLS_SCM_PRETEND_VERSION" not in env
 
 
+def test_runtime_image_overlays_locked_venv_after_source_copy() -> None:
+    """The runtime stage must not let a host .venv from a direct local Docker
+    build overwrite the locked builder venv. CI stages .dockerignore before
+    building, but the Dockerfile itself should remain safe if someone runs
+    `docker build -f infrastructure/docker/Dockerfile .` locally."""
+    dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+
+    source_copy = dockerfile.index("COPY --chown=sdd:sdd . /app")
+    venv_copy = dockerfile.index("COPY --from=builder /app/.venv /app/.venv")
+
+    assert source_copy < venv_copy
+
+
 def test_release_dry_run_resolves_tag_without_sync_versions() -> None:
     workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
     dry_run_steps = "\n".join(
@@ -325,6 +339,7 @@ def test_release_job_depends_on_install_smoke() -> None:
     assert set(jobs["release"]["needs"]) == {
         "release-install-smoke",
         "release-git-install-smoke",
+        "release-binary-install-smoke",
     }
 
 

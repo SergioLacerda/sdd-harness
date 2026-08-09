@@ -65,9 +65,9 @@ RUN groupadd -g 1000 sdd && \
 
 WORKDIR /app
 
-COPY --from=builder /app/.venv /app/.venv
-COPY --from=go-builder /build/sdd-compile /usr/local/bin/sdd-compile
 COPY --chown=sdd:sdd . /app
+COPY --from=go-builder /build/sdd-compile /usr/local/bin/sdd-compile
+COPY --from=builder /app/.venv /app/.venv
 
 # Overlay pre-compiled governance artifacts from builder (not in git)
 COPY --from=builder --chown=sdd:sdd /app/.sdd/compiled /app/.sdd/compiled
