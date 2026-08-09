@@ -244,6 +244,15 @@ def test_runtime_image_blocks_trivy_reported_python_package_regressions() -> Non
     )
 
 
+def test_runtime_image_satisfies_hadolint_entrypoint_policy() -> None:
+    dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+
+    assert "\nUSER 1000\n" in dockerfile
+    assert "CMD []" not in dockerfile
+    assert 'ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]' in dockerfile
+    assert 'CMD ["sh", "-c", "sdd --help || exit 1"]' in dockerfile
+
+
 def test_release_dry_run_resolves_tag_without_sync_versions() -> None:
     workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
     dry_run_steps = "\n".join(

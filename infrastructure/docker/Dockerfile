@@ -101,8 +101,7 @@ ENV PATH="/app/.venv/bin:/usr/local/bin:${PATH}" \
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-USER sdd
-CMD []
+USER 1000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD sdd --help || exit 1
+    CMD ["sh", "-c", "sdd --help || exit 1"]
