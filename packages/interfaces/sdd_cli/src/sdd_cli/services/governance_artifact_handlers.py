@@ -11,19 +11,11 @@ from rich.panel import Panel
 from rich.table import Table
 
 from sdd_cli.services._governance_artifact_consistency import (
-    _count_items_by_type as _count_items_by_type,
-)
-from sdd_cli.services._governance_artifact_consistency import (
-    _has_malformed_titles as _has_malformed_titles,
-)
-from sdd_cli.services._governance_artifact_consistency import (
-    _load_consistency_artifacts as _load_consistency_artifacts,
-)
-from sdd_cli.services._governance_artifact_consistency import (
-    _safe_json as _safe_json,
-)
-from sdd_cli.services._governance_artifact_consistency import (
-    _validate_payload_vs_metadata as _validate_payload_vs_metadata,
+    _count_items_by_type,
+    _has_malformed_titles,
+    _load_consistency_artifacts,
+    _safe_json,
+    _validate_payload_vs_metadata,
 )
 from sdd_cli.services._governance_artifact_consistency import (
     check_artifact_consistency as _check_artifact_consistency,

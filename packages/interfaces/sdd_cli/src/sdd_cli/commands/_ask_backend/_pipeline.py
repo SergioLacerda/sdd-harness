@@ -10,7 +10,7 @@ import typer
 from sdd_runtime.cache import get_context_cache
 
 from sdd_cli.commands._ask_backend import app
-from sdd_cli.services.ask_organize import run_sdd_organize as run_sdd_organize
+from sdd_cli.services.ask_organize import run_sdd_organize
 from sdd_cli.services.ask_organize import (
     should_use_organize as _should_use_organize,
 )

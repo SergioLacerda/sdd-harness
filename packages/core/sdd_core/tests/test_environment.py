@@ -294,7 +294,7 @@ class TestDetectRepoRoot:
         gh_workspace = "/github/workspace"
         monkeypatch.setenv("GITHUB_WORKSPACE", gh_workspace)
 
-        with patch("sdd_core.utils.environment.is_repo_root", return_value=False):
+        with patch("sdd_core.utils._environment_repo.is_repo_root", return_value=False):
             root = detect_repo_root()
             assert root == Path(gh_workspace).resolve()
 
@@ -303,7 +303,7 @@ class TestDetectRepoRoot:
         monkeypatch.delenv("GITHUB_WORKSPACE", raising=False)
 
         with (
-            patch("sdd_core.utils.environment.is_repo_root", return_value=False),
+            patch("sdd_core.utils._environment_repo.is_repo_root", return_value=False),
             patch("pathlib.Path.parents", []),
             pytest.raises(RuntimeError, match="Project root not found"),
         ):
@@ -374,7 +374,7 @@ class TestGetProjectConfig:
         pyproject.write_text('[project]\nname = "test-project"\n', encoding="utf-8")
 
         with patch(
-            "sdd_core.utils.environment.detect_repo_root", return_value=tmp_path
+            "sdd_core.utils._environment_repo.detect_repo_root", return_value=tmp_path
         ):
             config = get_project_config()
             assert isinstance(config, dict)
@@ -382,7 +382,7 @@ class TestGetProjectConfig:
     def test_returns_empty_dict_when_missing(self, tmp_path: Path) -> None:
         """Should return empty dict when pyproject.toml not found."""
         with patch(
-            "sdd_core.utils.environment.detect_repo_root", return_value=tmp_path
+            "sdd_core.utils._environment_repo.detect_repo_root", return_value=tmp_path
         ):
             config = get_project_config()
             assert config == {}
@@ -393,7 +393,7 @@ class TestGetProjectConfig:
         pyproject.write_text("invalid toml content {{{", encoding="utf-8")
 
         with patch(
-            "sdd_core.utils.environment.detect_repo_root", return_value=tmp_path
+            "sdd_core.utils._environment_repo.detect_repo_root", return_value=tmp_path
         ):
             config = get_project_config()
             assert config == {}

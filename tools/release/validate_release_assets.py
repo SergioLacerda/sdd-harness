@@ -18,8 +18,17 @@ REQUIRED_COMPILER_ASSETS = (
     "sdd-compile-darwin-arm64",
     "sdd-compile-windows-amd64.exe",
 )
+# PyInstaller cannot cross-compile the way `go build` can, so unlike
+# REQUIRED_COMPILER_ASSETS above this is 3 targets, not 5 — no darwin-amd64,
+# since GitHub-hosted macos-latest runners are Apple Silicon (arm64) only.
+# See .analysis/refined/20260807-cli-binary-installer-followup/proposal.md.
+REQUIRED_CLI_ASSETS = (
+    "sdd-linux-amd64",
+    "sdd-darwin-arm64",
+    "sdd-windows-amd64.exe",
+)
 SUMS_FILE = "SHA256SUMS"
-REQUIRED_ASSETS = REQUIRED_COMPILER_ASSETS + (SUMS_FILE,)
+REQUIRED_ASSETS = REQUIRED_COMPILER_ASSETS + REQUIRED_CLI_ASSETS + (SUMS_FILE,)
 
 
 class ReleaseAssetValidationError(ValueError):
@@ -63,7 +72,7 @@ def validate_release_assets(dist_dir: str | Path) -> None:
                 f"{SUMS_FILE} entry must use a bare filename, not a path: {name!r}"
             )
 
-    for asset in REQUIRED_COMPILER_ASSETS:
+    for asset in REQUIRED_COMPILER_ASSETS + REQUIRED_CLI_ASSETS:
         if asset not in listed_names:
             raise ReleaseAssetValidationError(
                 f"{SUMS_FILE} does not list required asset by its bare name: {asset}"

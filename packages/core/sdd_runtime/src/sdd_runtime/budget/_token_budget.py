@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from sdd_runtime.exceptions import TokenBudgetBreachError as TokenBudgetBreachError
+from sdd_runtime.exceptions import TokenBudgetBreachError
 
 from ._token_consumption import TokenConsumption
 

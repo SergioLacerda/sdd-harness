@@ -13,6 +13,13 @@ RELEASE_DRY_RUN_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "release-dry-ru
 REUSABLE_BUILD_WORKFLOW = (
     REPO_ROOT / ".github" / "workflows" / "reusable-release-build.yml"
 )
+REUSABLE_SECURITY_WORKFLOW = (
+    REPO_ROOT / ".github" / "workflows" / "reusable-security.yml"
+)
+REUSABLE_TEST_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "reusable-test.yml"
+DOCKERFILE = REPO_ROOT / "infrastructure" / "docker" / "Dockerfile"
+DOCKERIGNORE = REPO_ROOT / "infrastructure" / "docker" / ".dockerignore"
+MAKEFILE = REPO_ROOT / "Makefile"
 
 
 def _load_workflow(path: Path) -> dict:
@@ -210,6 +217,90 @@ def test_release_build_step_does_not_pin_setuptools_scm_version() -> None:
     assert "SETUPTOOLS_SCM_PRETEND_VERSION" not in env
 
 
+def test_runtime_image_overlays_locked_venv_after_source_copy() -> None:
+    """The runtime stage must not let a host .venv from a direct local Docker
+    build overwrite the locked builder venv. CI stages .dockerignore before
+    building, but the Dockerfile itself should remain safe if someone runs
+    `docker build -f infrastructure/docker/Dockerfile .` locally."""
+    dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+
+    source_copy = dockerfile.index("COPY --chown=sdd:sdd . /app")
+    context_venv_cleanup = dockerfile.index("RUN rm -rf /app/.venv")
+    venv_copy = dockerfile.index("COPY --from=builder /app/.venv /app/.venv")
+
+    assert source_copy < context_venv_cleanup < venv_copy
+
+
+def test_runtime_image_blocks_trivy_reported_python_package_regressions() -> None:
+    """Container builds must fail before Trivy if the runtime venv contains the
+    exact vulnerable Python package versions reported by the security gate."""
+    dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+
+    assert "msgpack==1.2.1" in dockerfile
+    assert "setuptools==83.0.0" in dockerfile
+    assert "uv venv --clear /app/.venv" in dockerfile
+    assert "--reinstall" in dockerfile
+    assert "Version: (1\\.1\\.2|70\\.3\\.0)" in dockerfile
+    assert "msgpack-*.dist-info/METADATA" in dockerfile
+    assert "setuptools-*.dist-info/METADATA" in dockerfile
+    assert (
+        "--system --break-system-packages --reinstall setuptools==83.0.0" in dockerfile
+    )
+    assert (
+        "/usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA"
+        in dockerfile
+    )
+    assert "msgpack-1.1.2.dist-info" in dockerfile
+    assert "setuptools-70.3.0.dist-info" in dockerfile
+    assert "rm -rf /root/.cache/uv" in dockerfile
+    assert "/usr/local/lib/python*/site-packages/pip" in dockerfile
+    assert "pip/_vendor" in dockerfile
+    assert "pkg:pypi/(msgpack@1\\.1\\.2|setuptools@70\\.3\\.0)" in dockerfile
+    assert "find / -path '*dist-info/METADATA'" in dockerfile
+    assert "xargs -0 -r grep" in dockerfile
+
+
+def test_docker_build_context_excludes_local_dependency_artifacts() -> None:
+    dockerignore = DOCKERIGNORE.read_text(encoding="utf-8")
+
+    assert ".venv/" in dockerignore
+    assert "**/node_modules/" in dockerignore
+    assert "dist/" in dockerignore
+
+
+def test_runtime_image_satisfies_hadolint_entrypoint_policy() -> None:
+    dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+
+    assert "\nUSER 1000\n" in dockerfile
+    assert "CMD []" not in dockerfile
+    assert 'ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]' in dockerfile
+    assert 'CMD ["sh", "-c", "sdd --help || exit 1"]' in dockerfile
+
+
+def test_docker_build_paths_use_buildkit_buildx() -> None:
+    makefile = MAKEFILE.read_text(encoding="utf-8")
+    security = _load_workflow(REUSABLE_SECURITY_WORKFLOW)
+    test_workflow = _load_workflow(REUSABLE_TEST_WORKFLOW)
+
+    assert "DOCKER_BUILDKIT=1 docker buildx build --load" in makefile
+    assert "$(DOCKER_BUILD_FLAGS)" in makefile
+    assert "docker build -t sdd-harness" not in makefile
+
+    security_steps = _jobs(security)["container-scan"]["steps"]
+    security_runs = "\n".join(step.get("run", "") for step in security_steps)
+    security_uses = "\n".join(step.get("uses", "") for step in security_steps)
+    assert "docker/setup-buildx-action" in security_uses
+    assert "docker buildx build --load --no-cache --pull" in security_runs
+    assert "docker build -t sdd-framework:scan" not in security_runs
+
+    container_steps = _jobs(test_workflow)["container-integrity"]["steps"]
+    container_runs = "\n".join(step.get("run", "") for step in container_steps)
+    container_uses = "\n".join(step.get("uses", "") for step in container_steps)
+    assert "docker/setup-buildx-action" in container_uses
+    assert "docker buildx build --load -t sdd-harness:latest" in container_runs
+    assert "docker build -t sdd-harness:latest" not in container_runs
+
+
 def test_release_dry_run_resolves_tag_without_sync_versions() -> None:
     workflow = _load_workflow(RELEASE_DRY_RUN_WORKFLOW)
     dry_run_steps = "\n".join(
@@ -325,6 +416,7 @@ def test_release_job_depends_on_install_smoke() -> None:
     assert set(jobs["release"]["needs"]) == {
         "release-install-smoke",
         "release-git-install-smoke",
+        "release-binary-install-smoke",
     }
 
 
@@ -378,7 +470,7 @@ def test_release_signing_uses_real_sigstore_action_with_oidc_permission() -> Non
         for step in release_job["steps"]
         if "sigstore/gh-action-sigstore-python" in step.get("uses", "")
     )
-    assert "@5b79a39c381910c090341a2c9b0bf022c8b387e1" in sign_step["uses"]
+    assert "@790bc6befb9d733738f18d8f895854b453640ec9" in sign_step["uses"]
     assert release_job["permissions"]["id-token"] == "write"
 
 

@@ -7,10 +7,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from sdd_runtime.exceptions import (
-    ReflectionCapReachedError as ReflectionCapReachedError,
-)
-from sdd_runtime.exceptions import (
-    RetryCapReachedError as RetryCapReachedError,
+    ReflectionCapReachedError,
+    RetryCapReachedError,
 )
 
 from ._token_budget import TokenBudget

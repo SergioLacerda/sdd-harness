@@ -156,7 +156,13 @@ def run_check_venv() -> int:
 
 
 def run_check() -> int:
-    """Python portion of the `check` target (golden-status stays a Make prerequisite)."""
+    """Python portion of the `check` target (golden-status stays a Make prerequisite).
+
+    Golden-policy runs in `--mode warn` here intentionally: drift is already
+    enforced as blocking elsewhere in CI (reusable-test.yml's `--mode block`,
+    release.yml/release-dry-run.yml's `--mode strict`). `check` stays a fast local
+    signal rather than a second blocking gate for the same policy.
+    """
     rc = _run(_python_cmd() + ["tools/ci/check_golden_policy.py", "--mode", "warn"])
     if rc != 0:
         return rc

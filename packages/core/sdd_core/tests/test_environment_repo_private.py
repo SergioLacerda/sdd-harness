@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import builtins
 import importlib.util
-import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -128,23 +127,29 @@ def test_detect_repo_root_returns_from___file___parents(tmp_path: Path) -> None:
         assert env_repo.detect_repo_root() == tmp_path
 
 
-def test_module_import_sets_tomllib_none_when_tomli_missing(tmp_path: Path) -> None:
+def test_module_import_sets_tomllib_none_when_both_backends_missing(
+    tmp_path: Path,
+) -> None:
+    """`tomllib` and `tomli` are both attempted, in that order, via plain
+    `try/except ImportError` (no `sys.version_info` branching — see
+    `_environment_repo.py`, which must work correctly regardless of which
+    interpreter version actually runs it, not just which version
+    `[tool.mypy] python_version` claims)."""
     module_path = Path(env_repo.__file__)
-    spec = importlib.util.spec_from_file_location("test_env_repo_no_tomli", module_path)
+    spec = importlib.util.spec_from_file_location(
+        "test_env_repo_no_tomllib_or_tomli", module_path
+    )
     assert spec is not None
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     original_import = builtins.__import__
 
     def _fake_import(name, globals=None, locals=None, fromlist=(), level=0):  # type: ignore[no-untyped-def]
-        if name == "tomli":
-            raise ImportError("missing tomli")
+        if name in ("tomllib", "tomli"):
+            raise ImportError(f"missing {name}")
         return original_import(name, globals, locals, fromlist, level)
 
-    with (
-        patch.object(sys, "version_info", (3, 10, 0)),
-        patch("builtins.__import__", side_effect=_fake_import),
-    ):
+    with patch("builtins.__import__", side_effect=_fake_import):
         spec.loader.exec_module(module)
 
     assert module.tomllib is None

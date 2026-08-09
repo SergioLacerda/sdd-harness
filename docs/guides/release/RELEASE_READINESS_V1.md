@@ -62,3 +62,17 @@ it is not something a workflow file can enforce on its own:
   `dry-run-build` job exists, both `dry-run` and `dry-run-build`) from
   `release-dry-run.yml`.
 4. Record postmortem and update playbooks in `docs/incidents/PLAYBOOKS.md`.
+
+## Pre-Build Dependency Check (Manual)
+
+Dependabot (`.github/dependabot.yml`) targets `develop`. Before cutting a build or
+promoting `develop` to `main` for release, check for outstanding dependency PRs so
+they don't silently ride along unreviewed:
+
+```bash
+gh pr list --base develop --label dependencies --state open
+```
+
+If this returns open PRs, decide per-PR whether to merge them into `develop` first
+or explicitly defer them — don't let a release proceed without an explicit decision
+on each one.

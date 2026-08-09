@@ -3,9 +3,17 @@ description: Run `uv sync` with retry, optionally preceded by `uv venv` and foll
 
 inputs:
   sync-args:
-    description: Arguments passed to `uv sync` (e.g. "--all-groups")
+    description: >-
+      Arguments passed to `uv sync`. Includes `--all-packages` by default so
+      every uv workspace member (e.g. `sdd_wizard`, not referenced by the
+      root project's own `[project.dependencies]`) gets installed — without
+      it, `--all-groups` alone silently omits workspace members the root
+      doesn't directly depend on, which caused `mypy`/other whole-tree tools
+      to fail to resolve their imports in CI while passing locally (see
+      `.analysis/refined/20260807-ci-mypy-gate-wiring-fix/`, closed missing
+      this case).
     required: false
-    default: "--all-groups"
+    default: "--all-groups --all-packages"
   editable-packages:
     description: Newline-separated list of paths to `uv pip install -e`, run after a successful sync. Empty = skip.
     required: false

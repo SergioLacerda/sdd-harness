@@ -6,6 +6,7 @@ MAKEFLAGS += --no-builtin-rules --no-builtin-variables
 #
 # Use uv run if uv is available; fall back to direct execution (e.g. inside Docker)
 VENV_PYTHON := $(firstword $(wildcard .venv/bin/python .venv/Scripts/python.exe))
+DOCKER_BUILD_FLAGS ?=
 UV := $(shell command -v uv 2>/dev/null)
 
 ifeq ($(strip $(VENV_PYTHON)),)
@@ -45,7 +46,7 @@ help:
 	@echo "docs-serve      - Build full site (docs + selector) and serve on http://localhost:8000/sdd-harness/"
 	@echo "docs-link-check - Check internal relative links in docs"
 	@echo "docs-link-fix   - Apply deterministic internal-link rewrites"
-	@echo "docker-build    - Build Docker image"
+	@echo "docker-build    - Build Docker image with BuildKit/buildx"
 	@echo "release-dry-run - Validate version, changelog, and tags before release"
 	@echo "clean           - Remove temporary files"
 	@echo "install-web     - Install apps/landing dependencies (npm ci)"
@@ -122,6 +123,11 @@ ci-pr-full: ci-pr
 	$(MAKE) coverage-strict
 
 golden-status:
+	@# Informational only, by design: golden-fixture drift is already enforced as
+	@# blocking in CI (reusable-test.yml's `check_golden_policy.py --mode block`,
+	@# release.yml/release-dry-run.yml's `--mode strict`). This target is a fast,
+	@# local heads-up for `make check`, not the enforcement point — see
+	@# `tools/maintenance/make_tasks.py:run_check()` for the matching rationale.
 	@echo "🔍 Checking golden file status..."
 	@if git status --porcelain tests/contract/fixtures/*.golden.json 2>/dev/null | grep -q .; then \
 		echo "⚠️  Golden files have uncommitted changes:"; \
@@ -170,5 +176,5 @@ docs-serve: docs-build
 
 docker-build:
 	cp infrastructure/docker/.dockerignore .dockerignore
-	docker build -t sdd-harness -f infrastructure/docker/Dockerfile . ; \
+	DOCKER_BUILDKIT=1 docker buildx build --load $(DOCKER_BUILD_FLAGS) -t sdd-harness -f infrastructure/docker/Dockerfile . ; \
 	  status=$$?; rm -f .dockerignore; exit $$status

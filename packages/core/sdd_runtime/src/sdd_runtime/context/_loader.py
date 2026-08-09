@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, cast
 
-from sdd_runtime.exceptions import BudgetBreachError as BudgetBreachError
+from sdd_runtime.exceptions import BudgetBreachError
 
 from ..cache import cached_load, get_context_cache
 from ._matching import _match_items as _match_items_impl
