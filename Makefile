@@ -19,6 +19,13 @@ else
   PYTHON := $(VENV_PYTHON)
 endif
 
+# Same workspace src dirs as [tool.pytest.ini_options].pythonpath in
+# pyproject.toml — needed by any recipe that runs a workspace package via
+# `python -m` (relative imports require -m, so a per-script sys.path guard
+# like tools/maintenance/lint_all.py's isn't an option there) without relying
+# on those packages being uv-sync-installed as editables first.
+WORKSPACE_PYTHONPATH := packages/core/sdd_core/src:packages/core/sdd_runtime/src:packages/core/sdd_telemetry/src:packages/features/sdd_integration/src:packages/features/sdd_adapters/src:packages/features/sdd_skills/src:packages/features/sdd_pages/src:packages/interfaces/sdd_wizard/src:packages/interfaces/sdd_cli/src
+
 .DEFAULT_GOAL := help
 
 # Targets are grouped by affinity into mk/*.mk, included below. Each file

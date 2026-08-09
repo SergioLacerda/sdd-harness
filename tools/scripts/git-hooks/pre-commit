@@ -9,6 +9,15 @@ CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 STAGED_FILES="$(git diff --cached --name-only)"
 STAGED_PY_FILES="$(git diff --cached --name-only -- '*.py' || true)"
 
+# Same workspace src dirs as [tool.pytest.ini_options].pythonpath in
+# pyproject.toml (and Makefile's WORKSPACE_PYTHONPATH). `uv run python -m
+# sdd_cli ...` below relies on uv's own sync-freshness cache to have sdd_cli
+# installed as an editable — if something external touches .venv without
+# going through uv (e.g. a reset/reprovisioned .venv), that cache can be
+# stale and `uv run` will not repair it. Exporting this directly makes the
+# `-m` invocation resolve regardless of uv's sync state.
+WORKSPACE_PYTHONPATH="$REPO_ROOT/packages/core/sdd_core/src:$REPO_ROOT/packages/core/sdd_runtime/src:$REPO_ROOT/packages/core/sdd_telemetry/src:$REPO_ROOT/packages/features/sdd_integration/src:$REPO_ROOT/packages/features/sdd_adapters/src:$REPO_ROOT/packages/features/sdd_skills/src:$REPO_ROOT/packages/features/sdd_pages/src:$REPO_ROOT/packages/interfaces/sdd_wizard/src:$REPO_ROOT/packages/interfaces/sdd_cli/src"
+
 echo "SDD Guardrail: Pre-commit Validation"
 echo "Branch: $CURRENT_BRANCH"
 
@@ -182,9 +191,13 @@ fi
 if echo "$STAGED_FILES" | grep -E '^docs/spec/.*\.md$' >/dev/null 2>&1; then
     echo "Running canonical spec lint (anchor/style parity with CI)..."
     if command -v uv >/dev/null 2>&1; then
-        if ! uv run python -m sdd_cli lint spec --validate-all-anchors --strict-anchor-style; then
+        if ! PYTHONPATH="$WORKSPACE_PYTHONPATH${PYTHONPATH:+:$PYTHONPATH}" \
+            uv run python -m sdd_cli lint spec --validate-all-anchors --strict-anchor-style; then
             echo "GUARDRAIL FAILURE: Canonical spec lint failed."
-            echo "FIX: Resolve spec lint errors before committing."
+            echo "FIX: Resolve spec lint errors before committing. If the error above is"
+            echo "'No module named sdd_cli' rather than an actual lint finding, your .venv"
+            echo "is not synced — run 'make install' (or 'uv sync --all-groups"
+            echo "--all-packages --extra test') and retry."
             exit 1
         fi
     else

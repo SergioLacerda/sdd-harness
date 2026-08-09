@@ -12,7 +12,12 @@ $(DOCS_TASKS):
 .PHONY: docs-build docs-serve
 docs-build: build-web ## Build composed site (Astro + MkDocs + Selector)
 	$(PYTHON) -m mkdocs build --strict
-	$(PYTHON) -m sdd_wizard.orchestration.wizard.selector_compiler_cli --output-dir build/site/selector
+	@# selector_compiler_cli uses a relative import (needs -m, so it can't
+	@# self-insert its own sys.path like tools/maintenance/lint_all.py does) —
+	@# export PYTHONPATH so it resolves without sdd_wizard/sdd_core being
+	@# uv-sync-installed as editables first. See WORKSPACE_PYTHONPATH above.
+	PYTHONPATH="$(WORKSPACE_PYTHONPATH)$${PYTHONPATH:+:$$PYTHONPATH}" \
+	  $(PYTHON) -m sdd_wizard.orchestration.wizard.selector_compiler_cli --output-dir build/site/selector
 
 docs-serve: docs-build ## Build full site (docs + selector) and serve on http://localhost:8000/sdd-harness/
 	@# The Astro landing app is built with base: '/sdd-harness/' (astro.config.mjs)
