@@ -242,6 +242,9 @@ def test_runtime_image_blocks_trivy_reported_python_package_regressions() -> Non
         "/usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA"
         in dockerfile
     )
+    assert "msgpack-1.1.2.dist-info" in dockerfile
+    assert "setuptools-70.3.0.dist-info" in dockerfile
+    assert "find / -path '*/site-packages/*dist-info/METADATA'" in dockerfile
 
 
 def test_runtime_image_satisfies_hadolint_entrypoint_policy() -> None:

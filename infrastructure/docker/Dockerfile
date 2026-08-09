@@ -94,6 +94,15 @@ RUN chmod +x /usr/local/bin/entrypoint.sh && \
     chown sdd:sdd /app && \
     ln -s /app/.venv /venv
 
+# Final image gate: Trivy scans the complete filesystem, so reject stale Python
+# package metadata no matter which layer or path introduced it.
+RUN find / -type d \( \
+    -name 'msgpack-1.1.2.dist-info' -o \
+    -name 'setuptools-70.3.0.dist-info' \
+    \) -prune -exec rm -rf {} + && \
+    ! find / -path '*/site-packages/*dist-info/METADATA' -type f \
+    -exec grep -H -E '^Version: (1\.1\.2|70\.3\.0)$' {} +
+
 # /app/.venv/bin first so Python and all tools resolve from the pre-built venv.
 # VIRTUAL_ENV points to the project-local virtualenv used by the runtime container.
 ENV PATH="/app/.venv/bin:/usr/local/bin:${PATH}" \
