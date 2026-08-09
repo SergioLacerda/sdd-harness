@@ -28,7 +28,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 
 # Install all workspace packages + test extras into /app/.venv in a single locked pass.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv venv /app/.venv && \
+    uv venv --clear /app/.venv && \
     UV_PROJECT_ENVIRONMENT=/app/.venv \
     uv sync --frozen --no-group docs --all-packages --extra test && \
     uv pip install --python /app/.venv/bin/python --reinstall \
@@ -75,7 +75,10 @@ RUN uv pip install --system --break-system-packages --reinstall setuptools==83.0
     grep -R -H -E '^Version: 83\.0\.0$' \
     /usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA && \
     ! grep -R -H -E '^Version: 70\.3\.0$' \
-    /usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA
+    /usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA && \
+    rm -rf /root/.cache/uv \
+    /usr/local/lib/python*/site-packages/pip \
+    /usr/local/lib/python*/site-packages/pip-*.dist-info
 
 RUN groupadd -g 1000 sdd && \
     useradd -u 1000 -g sdd -m -s /bin/bash sdd
@@ -83,6 +86,7 @@ RUN groupadd -g 1000 sdd && \
 WORKDIR /app
 
 COPY --chown=sdd:sdd . /app
+RUN rm -rf /app/.venv
 COPY --from=go-builder /build/sdd-compile /usr/local/bin/sdd-compile
 COPY --from=builder /app/.venv /app/.venv
 
@@ -100,8 +104,11 @@ RUN find / -type d \( \
     -name 'msgpack-1.1.2.dist-info' -o \
     -name 'setuptools-70.3.0.dist-info' \
     \) -prune -exec rm -rf {} + && \
-    ! find / -path '*/site-packages/*dist-info/METADATA' -type f \
-    -exec grep -H -E '^Version: (1\.1\.2|70\.3\.0)$' {} +
+    rm -rf /root/.cache/uv && \
+    ! sh -c "find / -path '*dist-info/METADATA' -type f -print0 | \
+    xargs -0 -r grep -H -E '^Version: (1\.1\.2|70\.3\.0)$'" && \
+    ! grep -R -H -E 'pkg:pypi/(msgpack@1\.1\.2|setuptools@70\.3\.0)|^(msgpack==1\.1\.2|setuptools==70\.3\.0)$' \
+    /usr/local/lib/python*/site-packages/pip/_vendor 2>/dev/null
 
 # /app/.venv/bin first so Python and all tools resolve from the pre-built venv.
 # VIRTUAL_ENV points to the project-local virtualenv used by the runtime container.
