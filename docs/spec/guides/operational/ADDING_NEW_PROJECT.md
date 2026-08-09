@@ -436,7 +436,6 @@ Before marking "complete":
 ## 🔗 Related Docs
 
 - `SPECIALIZATIONS_CONFIG.md` template (created in the target project root)
-- [governance_fetcher.py](../../../../packages/interfaces/sdd_wizard/src/sdd_wizard/orchestration/governance_fetcher.py)
 - [AGENT_HARNESS.md](../onboarding/AGENT_HARNESS.md)
 - [architecture.md](../../canonical/specifications/architecture.md)
 

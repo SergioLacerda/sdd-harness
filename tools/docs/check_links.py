@@ -10,7 +10,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
-from sdd_core.utils.process import ProcessNonZeroExitError, SafeProcessRunner
+# Repo root is two levels up from tools/docs/. This script is invoked as a
+# standalone subprocess (make_tasks.py's docs-link-check/-fix), not imported,
+# so it cannot rely on sdd_core being pip/uv-installed into the active venv —
+# same guard as tools/maintenance/lint_all.py.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "sdd_core" / "src"
+if str(_SDD_CORE_SRC) not in sys.path:
+    sys.path.insert(0, str(_SDD_CORE_SRC))
+
+from sdd_core.utils.process import (  # noqa: E402
+    ProcessNonZeroExitError,
+    SafeProcessRunner,
+)
 
 LINK_RE: Final[re.Pattern[str]] = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 MAPPING_RULES: Final[tuple[tuple[str, str], ...]] = (

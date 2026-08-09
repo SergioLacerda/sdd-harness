@@ -20,6 +20,20 @@ REUSABLE_TEST_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "reusable-test.ym
 DOCKERFILE = REPO_ROOT / "infrastructure" / "docker" / "Dockerfile"
 DOCKERIGNORE = REPO_ROOT / "infrastructure" / "docker" / ".dockerignore"
 MAKEFILE = REPO_ROOT / "Makefile"
+MK_INCLUDES_DIR = REPO_ROOT / "mk"
+
+
+def _makefile_content() -> str:
+    # The root Makefile is a thin orchestrator that `include`s mk/*.mk, grouped
+    # by affinity (see .analysis/refined/20260809-makefile-worldclass-refactor/
+    # design.md) — policy assertions must cover the full effective Makefile,
+    # not just the root file, or a recipe moved into mk/*.mk silently escapes them.
+    parts = [MAKEFILE.read_text(encoding="utf-8")]
+    parts.extend(
+        path.read_text(encoding="utf-8")
+        for path in sorted(MK_INCLUDES_DIR.glob("*.mk"))
+    )
+    return "\n".join(parts)
 
 
 def _load_workflow(path: Path) -> dict:
@@ -278,7 +292,7 @@ def test_runtime_image_satisfies_hadolint_entrypoint_policy() -> None:
 
 
 def test_docker_build_paths_use_buildkit_buildx() -> None:
-    makefile = MAKEFILE.read_text(encoding="utf-8")
+    makefile = _makefile_content()
     security = _load_workflow(REUSABLE_SECURITY_WORKFLOW)
     test_workflow = _load_workflow(REUSABLE_TEST_WORKFLOW)
 

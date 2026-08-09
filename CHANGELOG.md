@@ -26,6 +26,54 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
+## [1.0.5] — 2026-08-09
+
+### Added
+- Added multi-platform installation scripts (`install.sh`, `install.ps1`) and a
+  `reusable-release-build.yml` workflow that builds and publishes the `sdd` CLI
+  as standalone PyInstaller binaries across platforms.
+- Added a module-size complexity budget: `tools/architecture/validate_class_size.py`
+  becomes a blocking gate (with `tools/architecture/module_size_allowlist.json`
+  grandfathering pre-existing exceptions), formalized in
+  `docs/adr/ADR-019-guardrail-complexity-budget.md` to keep the repository's own
+  governance/guardrail surface itself bounded.
+- Added a Docker build gate that removes stale Python package metadata
+  (`msgpack`, `setuptools`) left behind by intermediate build layers, so a
+  full-filesystem Trivy scan of the final runtime image cannot resurface a
+  version that was already patched out earlier in the build.
+
+### Changed
+- Migrated Docker builds from plain `docker build` to BuildKit/buildx
+  (`docker buildx build --load`), in both the `Makefile`'s `docker-build`
+  target and the `reusable-security.yml`/`reusable-test.yml` CI jobs.
+  `.dockerignore` now also excludes `node_modules/`, and build-time caches
+  (`uv` cache, `pip`) are stripped from the final image to reduce layer bloat.
+- Reorganized the root `Makefile` into affinity-grouped `mk/*.mk` includes
+  (python, lint, docs, web, go, release, docker, misc) with a self-documenting
+  `help` target, plus additive namespaced aliases (e.g. `make test.fast`,
+  `make docker.build`) for every existing target. No existing target name,
+  recipe, or CI/documentation reference changes.
+- Standardized Dependabot grouping/configuration and cleaned up internal
+  import styles across the `sdd_runtime` and `sdd_cli` packages.
+- Simplified `sdd_core`'s TOML backend imports, taught
+  `tools/ci/check_no_sdd_ci_commands.py` to ignore comments when scanning for
+  disallowed CI commands, and added `--all-packages` to the `uv-sync-retry`
+  GitHub Action.
+
+### Fixed
+- Fixed a circular import between `sdd_cli`'s ask-backend helpers/response
+  service and `ask_hash` by removing a redundant re-export; also added a
+  Docker build-time check that fails the build if a known-vulnerable
+  `msgpack`/`setuptools` version resurfaces at runtime.
+- Fixed the production Docker image's `COPY` instruction order overwriting the
+  pre-built virtualenv with the repository's own local `.venv` when one
+  existed at build time, by copying the source tree before the builder-stage
+  `.venv`; added a regression test guarding the ordering.
+- Fixed the container image running as a named, non-numeric user (`USER sdd`)
+  with a shell-form `HEALTHCHECK`, both flagged by security scanning — it now
+  runs as numeric UID `1000` with an exec-form healthcheck, with unit test
+  coverage added for both.
+
 ## [1.0.4] — 2026-07-31
 
 ### Fixed
