@@ -8,7 +8,16 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from sdd_core.utils.process import SafeProcessRunner
+# Repo root is two levels up from tools/release/. Invoked as `python -m
+# tools.release.resolve_vcs_version` (release.yml, Makefile), so it cannot
+# rely on sdd_core being pip/uv-installed into the active venv — same guard
+# as tools/maintenance/lint_all.py and tools/docs/check_links.py.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "sdd_core" / "src"
+if str(_SDD_CORE_SRC) not in sys.path:
+    sys.path.insert(0, str(_SDD_CORE_SRC))
+
+from sdd_core.utils.process import SafeProcessRunner  # noqa: E402
 
 _SEMVER_TAG_RE = re.compile(r"^[vV]?(?P<version>\d+\.\d+\.\d+)$")
 

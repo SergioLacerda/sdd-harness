@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -13,6 +14,28 @@ from click.testing import CliRunner
 from sdd_cli.main import app
 
 runner = CliRunner()
+
+# Same workspace src dirs as [tool.pytest.ini_options].pythonpath in
+# pyproject.toml. pytest's own `pythonpath` setting only affects sys.path of
+# THIS process — a subprocess spawned via subprocess.run does not inherit
+# it, so `python -m sdd_cli ...` below would fail to import sdd_cli in any
+# venv without a full `uv sync --all-packages` editable install unless we
+# forward it explicitly via PYTHONPATH.
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+_WORKSPACE_PYTHONPATH = os.pathsep.join(
+    str(_REPO_ROOT / rel)
+    for rel in (
+        "packages/core/sdd_core/src",
+        "packages/core/sdd_runtime/src",
+        "packages/core/sdd_telemetry/src",
+        "packages/features/sdd_integration/src",
+        "packages/features/sdd_adapters/src",
+        "packages/features/sdd_skills/src",
+        "packages/features/sdd_pages/src",
+        "packages/interfaces/sdd_wizard/src",
+        "packages/interfaces/sdd_cli/src",
+    )
+)
 
 
 def _load_json_output(raw: str) -> dict:
@@ -71,10 +94,11 @@ def test_skills_dry_run_requires_regenerate_seeds() -> None:
 
 
 def test_skills_dry_run_module_entrypoint_preserves_exit_code() -> None:
-    repo_root = Path(__file__).resolve().parents[4]
+    env = {**os.environ, "PYTHONPATH": _WORKSPACE_PYTHONPATH}
     result = subprocess.run(
         [sys.executable, "-m", "sdd_cli", "skills", "--dry-run"],
-        cwd=repo_root,
+        cwd=_REPO_ROOT,
+        env=env,
         capture_output=True,
         text=True,
         check=False,
