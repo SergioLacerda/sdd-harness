@@ -27,6 +27,7 @@ from sdd_cli.utils.cli_callbacks import (
     json_option_callback,
     profile_option_callback,
     verbose_option_callback,
+    version_option_callback,
 )
 from sdd_cli.utils.operational_errors import (
     OperationalCliError,
@@ -57,6 +58,7 @@ if sys.platform == "win32":
 _profile_option_callback = profile_option_callback
 _json_option_callback = json_option_callback
 _verbose_option_callback = verbose_option_callback
+_version_option_callback = version_option_callback
 
 
 app = LazyCommandGroup(
@@ -89,6 +91,15 @@ app = LazyCommandGroup(
             is_eager=True,
             callback=_verbose_option_callback,
             help="Enable verbose output for commands supporting detailed mode.",
+        ),
+        click.Option(
+            ["--version"],
+            is_flag=True,
+            default=False,
+            expose_value=False,
+            is_eager=True,
+            callback=_version_option_callback,
+            help="Show the installed sdd-cli version and exit.",
         ),
     ],
 )

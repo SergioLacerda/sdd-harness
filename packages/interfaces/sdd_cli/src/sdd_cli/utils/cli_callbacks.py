@@ -39,3 +39,21 @@ def verbose_option_callback(
         ctx.obj = {}
     ctx.obj["verbose"] = bool(value)
     return value
+
+
+def version_option_callback(
+    ctx: click.Context, param: click.Parameter, value: bool
+) -> bool:
+    """Version Option Callback. Prints the installed sdd-cli version and exits."""
+    del param
+    if not value:
+        return value
+    from importlib.metadata import PackageNotFoundError
+    from importlib.metadata import version as _pkg_version
+
+    try:
+        click.echo(_pkg_version("sdd-cli"))
+    except PackageNotFoundError:
+        click.echo("sdd-cli version unknown (not installed as a package)")
+    ctx.exit(0)
+    return value
