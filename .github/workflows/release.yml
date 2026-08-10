@@ -233,9 +233,17 @@ jobs:
           # sdd-cli is already installed at the new dist version from the
           # earlier "Install sdd-cli from dist only" step, so plain `pip
           # install` sees the requirement as already satisfied and skips —
-          # it never downgrades without --force-reinstall (same reason the
-          # rollback step below already uses it).
-          "$PY" -m pip install --no-index --find-links .release-smoke/prev --force-reinstall sdd-cli
+          # it never downgrades without --force-reinstall.
+          # --no-deps is required alongside it: .release-smoke/prev only has
+          # the single downloaded sdd-cli wheel, not a full dependency
+          # closure like dist/ does (reusable-release-build.yml's `pip
+          # download` step vendors every transitive wheel there) — without
+          # --no-deps, --force-reinstall also tries to reinstall click/
+          # pyyaml/rich/etc. from that same directory and fails to find them
+          # ("No matching distribution found for click>=8.3.3"). sdd-cli's
+          # own version is all this smoke test verifies, so skipping its
+          # dependency tree here is correct, not a shortcut.
+          "$PY" -m pip install --no-index --find-links .release-smoke/prev --force-reinstall --no-deps sdd-cli
           INSTALLED=$("$PY" -m pip show sdd-cli | grep -i '^Version:' | awk '{print $2}')
           if [ "$INSTALLED" != "$PREV_VERSION" ]; then
             echo "ERROR: expected previous version $PREV_VERSION, got $INSTALLED"
@@ -253,7 +261,8 @@ jobs:
           echo "OK: upgrade succeeded ($INSTALLED)"
 
           echo "--- Roll back to previous release ($PREV_VERSION) ---"
-          "$PY" -m pip install --no-index --find-links .release-smoke/prev --force-reinstall sdd-cli
+          # --no-deps needed here for the same reason as the install above.
+          "$PY" -m pip install --no-index --find-links .release-smoke/prev --force-reinstall --no-deps sdd-cli
           INSTALLED=$("$PY" -m pip show sdd-cli | grep -i '^Version:' | awk '{print $2}')
           if [ "$INSTALLED" != "$PREV_VERSION" ]; then
             echo "ERROR: expected rolled-back version $PREV_VERSION, got $INSTALLED"

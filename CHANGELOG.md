@@ -112,7 +112,16 @@ Before tagging a new release, verify:
   installed at the new dist version from an earlier step, so plain `pip
   install` saw the requirement as already satisfied and silently skipped the
   downgrade (`ERROR: expected previous version 1.0.4, got 1.0.6`) instead of
-  actually testing the rollback path.
+  actually testing the rollback path. Adding `--force-reinstall` alone then
+  surfaced a second issue in the same step: `.release-smoke/prev` only
+  contains the single downloaded previous-version wheel, not a full
+  dependency closure like `dist/` has (`reusable-release-build.yml` vendors
+  every transitive wheel there), so `--force-reinstall` tried to also
+  reinstall `click`/`pyyaml`/`rich`/etc. from that same directory and failed
+  (`No matching distribution found for click>=8.3.3`). Added `--no-deps`
+  alongside `--force-reinstall` for both the initial downgrade and the later
+  rollback in that step, verified against a throwaway dummy-package
+  reproduction before applying.
 - Fixed `tools/release/resolve_vcs_version.py` raising `ModuleNotFoundError:
   No module named 'sdd_core'` when invoked as `python -m
   tools.release.resolve_vcs_version` (as `release.yml`/`Makefile` do) without
