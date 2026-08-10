@@ -174,7 +174,14 @@ jobs:
           # N-1 artifact to upgrade from and roll back to, without hardcoding
           # a version number here.
           mkdir -p .release-smoke/prev
-          python3 - <<'PYEOF'
+          # PREV_TAG/PREV_WHEEL_NAME/PREV_WHEEL_URL are only needed later in
+          # THIS SAME step — $GITHUB_ENV changes apply to subsequent steps
+          # only, never the step that writes them, so writing there and then
+          # reading "$PREV_WHEEL_NAME" below always failed with "unbound
+          # variable" under `set -u` (on every OS, not just Windows — this
+          # path was simply never exercised by a real release before v1.0.5).
+          # Capture directly into this shell instead via a local env file.
+          python3 - > .release-smoke/prev.env <<'PYEOF'
           import json
           import os
           import urllib.request
@@ -209,12 +216,12 @@ jobs:
           print(f"PREV_TAG={release['tag_name']}")
           print(f"PREV_WHEEL_NAME={wheel['name']}")
           print(f"PREV_WHEEL_URL={wheel['browser_download_url']}")
-
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-              env_file.write(f"PREV_TAG={release['tag_name']}\n")
-              env_file.write(f"PREV_WHEEL_NAME={wheel['name']}\n")
-              env_file.write(f"PREV_WHEEL_URL={wheel['browser_download_url']}\n")
           PYEOF
+
+          cat .release-smoke/prev.env
+          set -a
+          source .release-smoke/prev.env
+          set +a
 
           echo "Downloading previous release wheel: $PREV_WHEEL_NAME ($PREV_TAG)"
           curl -sSL -o ".release-smoke/prev/$PREV_WHEEL_NAME" "$PREV_WHEEL_URL"

@@ -26,7 +26,11 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
-## [1.0.5] — 2026-08-09
+## [1.0.6] — 2026-08-09
+
+> `v1.0.5` was tagged but its release workflow failed before completing (see
+> Fixed below) — no GitHub Release or published artifacts exist for that tag.
+> This release supersedes it, the same way `[1.0.3]` superseded `[1.0.2]`.
 
 ### Added
 - Added multi-platform installation scripts (`install.sh`, `install.ps1`) and a
@@ -73,6 +77,35 @@ Before tagging a new release, verify:
   with a shell-form `HEALTHCHECK`, both flagged by security scanning — it now
   runs as numeric UID `1000` with an exec-form healthcheck, with unit test
   coverage added for both.
+- Fixed `tools/docs/check_links.py` raising `ModuleNotFoundError: No module
+  named 'sdd_core'` whenever workspace packages aren't installed as editables
+  — added the same `sys.path` guard `tools/maintenance/lint_all.py` already
+  uses.
+- Fixed `make docs-build`'s selector-compiler step and the pre-commit hook's
+  canonical spec-lint step failing the same way (`No module named
+  'sdd_wizard'`/`'sdd_cli'`) when invoked via `python -m`, which can't use a
+  per-script `sys.path` guard — both now export a `WORKSPACE_PYTHONPATH`
+  matching `pyproject.toml`'s own pytest `pythonpath` list.
+- Fixed `PREV_WHEEL_NAME: unbound variable` in `release.yml`'s "Upgrade/
+  rollback smoke" step: the previous release's tag/wheel name/URL were
+  written to `$GITHUB_ENV` (which only takes effect in *later* steps) and
+  then read back within the same step — this failed on every OS, not just
+  Windows, and had never been exercised by a real release before `v1.0.5`.
+  Now captured into a local env file and `source`d in the same shell.
+- Fixed `sdd --version` (`Error: No such option '--version'`) — the flag was
+  never implemented, despite a release-smoke step assuming it existed. Added
+  it as an eager option resolving the real installed version via
+  `importlib.metadata`, and fixed the separate `sdd version` subcommand's
+  hardcoded `1.0.0` output the same way.
+- Fixed a broken doc link to `governance_fetcher.py` (deleted in an earlier
+  refactor, commit `e75bf5d`) in `ADDING_NEW_PROJECT.md`.
+- Added a missing mypy override for `questionary` (optional wizard dependency
+  with no bundled type stubs), matching the existing `msgpack`/`httpx`/
+  `crewai` overrides.
+- Extended the Makefile guardrail tests (`test_makefile_guardrails.py`,
+  `test_release_workflow_policy.py`) to scan `mk/*.mk` after the Makefile
+  split, so the "no inline `python -c`/`sh -c`" and selector-artifact checks
+  keep covering the full effective Makefile instead of just the root file.
 
 ## [1.0.4] — 2026-07-31
 

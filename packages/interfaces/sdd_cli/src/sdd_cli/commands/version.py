@@ -1,12 +1,20 @@
 """Version command for SDD CLI."""
 
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
+
 import typer
 
 from sdd_cli.services.command_group_output import show_command_group
 
-__version__ = "1.0.0"
-
 app = typer.Typer()
+
+
+def _resolve_version() -> str:
+    try:
+        return _pkg_version("sdd-cli")
+    except PackageNotFoundError:
+        return "unknown (not installed as a package)"
 
 
 @app.callback(invoke_without_command=True)
@@ -19,10 +27,10 @@ def _(
         show_command_group("Version", ["show"])
         raise typer.Exit(0)
     if ctx.invoked_subcommand is None:
-        typer.echo(f"SDD Version: {__version__}")
+        typer.echo(f"SDD Version: {_resolve_version()}")
 
 
 @app.command()
 def show() -> None:
     """Show SDD version."""
-    typer.echo(f"SDD Version: {__version__}")
+    typer.echo(f"SDD Version: {_resolve_version()}")
