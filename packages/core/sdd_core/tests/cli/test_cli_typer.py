@@ -31,7 +31,18 @@ class TestCLIMain:
         """Test version command displays version."""
         result = runner.invoke(app, ["version"])
         assert result.exit_code == 0
-        assert "1.0.0" in result.stdout
+        # Resolved dynamically via importlib.metadata (see
+        # sdd_cli/commands/version.py) — assert the label and a non-empty
+        # value rather than a specific version, which would go stale exactly
+        # like the hardcoded "1.0.0" this replaced.
+        assert result.stdout.startswith("SDD Version: ")
+        assert result.stdout.strip() != "SDD Version:"
+
+    def test_version_flag(self) -> None:
+        """Test --version flag on the root command prints a version and exits."""
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.stdout.strip() != ""
 
     def test_version_help(self) -> None:
         """Test version command help."""
