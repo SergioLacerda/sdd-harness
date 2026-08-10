@@ -26,12 +26,12 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
-## [1.0.7] — 2026-08-09
+## [1.0.8] — 2026-08-09
 
-> `v1.0.5` and `v1.0.6` were both tagged but their release workflows failed
-> before completing (see Fixed below) — no GitHub Release or published
-> artifacts exist for either tag. This release supersedes both, the same way
-> `[1.0.3]` superseded `[1.0.2]`.
+> `v1.0.5`, `v1.0.6`, and `v1.0.7` were all tagged but their release
+> workflows failed before completing (see Fixed below) — no GitHub Release or
+> published artifacts exist for any of them. This release supersedes all
+> three, the same way `[1.0.3]` superseded `[1.0.2]`.
 
 ### Added
 - Added multi-platform installation scripts (`install.sh`, `install.ps1`) and a
