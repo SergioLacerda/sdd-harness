@@ -26,11 +26,12 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
-## [1.0.6] — 2026-08-09
+## [1.0.7] — 2026-08-09
 
-> `v1.0.5` was tagged but its release workflow failed before completing (see
-> Fixed below) — no GitHub Release or published artifacts exist for that tag.
-> This release supersedes it, the same way `[1.0.3]` superseded `[1.0.2]`.
+> `v1.0.5` and `v1.0.6` were both tagged but their release workflows failed
+> before completing (see Fixed below) — no GitHub Release or published
+> artifacts exist for either tag. This release supersedes both, the same way
+> `[1.0.3]` superseded `[1.0.2]`.
 
 ### Added
 - Added multi-platform installation scripts (`install.sh`, `install.ps1`) and a
@@ -106,6 +107,23 @@ Before tagging a new release, verify:
   `test_release_workflow_policy.py`) to scan `mk/*.mk` after the Makefile
   split, so the "no inline `python -c`/`sh -c`" and selector-artifact checks
   keep covering the full effective Makefile instead of just the root file.
+- Fixed `release.yml`'s "Upgrade/rollback smoke" step installing the previous
+  release's wheel without `--force-reinstall`: `sdd-cli` was already
+  installed at the new dist version from an earlier step, so plain `pip
+  install` saw the requirement as already satisfied and silently skipped the
+  downgrade (`ERROR: expected previous version 1.0.4, got 1.0.6`) instead of
+  actually testing the rollback path.
+- Fixed `tools/release/resolve_vcs_version.py` raising `ModuleNotFoundError:
+  No module named 'sdd_core'` when invoked as `python -m
+  tools.release.resolve_vcs_version` (as `release.yml`/`Makefile` do) without
+  `sdd_core` installed as an editable — it was the one script in
+  `tools/release/` missing the `sys.path` guard already caught by
+  `test_release_scripts_module_invocation.py`'s regression test. Also
+  hardened `test_skills_dry_run_module_entrypoint_preserves_exit_code` (a
+  separate test spawning `python -m sdd_cli ...` as a real subprocess, which
+  does not inherit pytest's own `pythonpath` sys.path injection) to forward
+  the same workspace `PYTHONPATH` explicitly, instead of depending on
+  `sdd_cli` being installed in whichever venv runs the suite.
 
 ## [1.0.4] — 2026-07-31
 
