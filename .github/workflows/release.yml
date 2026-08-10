@@ -230,7 +230,12 @@ jobs:
           PREV_VERSION="${PREV_VERSION#V}"
 
           echo "--- Install previous release ($PREV_VERSION) ---"
-          "$PY" -m pip install --no-index --find-links .release-smoke/prev sdd-cli
+          # sdd-cli is already installed at the new dist version from the
+          # earlier "Install sdd-cli from dist only" step, so plain `pip
+          # install` sees the requirement as already satisfied and skips —
+          # it never downgrades without --force-reinstall (same reason the
+          # rollback step below already uses it).
+          "$PY" -m pip install --no-index --find-links .release-smoke/prev --force-reinstall sdd-cli
           INSTALLED=$("$PY" -m pip show sdd-cli | grep -i '^Version:' | awk '{print $2}')
           if [ "$INSTALLED" != "$PREV_VERSION" ]; then
             echo "ERROR: expected previous version $PREV_VERSION, got $INSTALLED"
