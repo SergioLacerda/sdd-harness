@@ -104,6 +104,43 @@ def maybe_regenerate_wizard_contracts(
         )
 
 
+def _bridge_client_language_context(
+    workspace_root: Path, metadata: dict[str, Any]
+) -> dict[str, str] | None:
+    """Synthesize `language_context` from `.sdd/profile`'s `language` key.
+
+    Only applies when the wizard hasn't already populated `language_context`
+    — wizard output always wins (it may distinguish interaction vs. docs
+    language, which a bare client `language` value cannot). Returns None when
+    there is nothing to bridge (no client `language` key, or wizard data
+    already present), so the caller leaves `metadata["language_context"]`
+    untouched in either case.
+    """
+    existing = metadata.get("language_context")
+    if isinstance(existing, dict) and existing:
+        return None
+
+    from sdd_core.utils.environment import (
+        WorkspaceNotInitializedError,
+        resolve_profile,
+    )
+
+    try:
+        profile = resolve_profile(root=workspace_root)
+    except WorkspaceNotInitializedError:
+        return None
+
+    if not profile.language:
+        return None
+
+    return {
+        "preferred_human_language": profile.language,
+        "preferred_chat_language": profile.language,
+        "preferred_ui_language": profile.language,
+        "preferred_local_docs_language": profile.language,
+    }
+
+
 def sync_workspace_metadata_from_config(
     workspace_root: Path, config: dict[str, Any]
 ) -> bool:
@@ -155,6 +192,8 @@ def sync_workspace_metadata_from_config(
         existing_fingerprints if isinstance(existing_fingerprints, dict) else {}
     )
 
+    language_context_update = _bridge_client_language_context(workspace_root, metadata)
+
     metadata.update(
         {
             "version": str(metadata.get("version") or "3.0"),
@@ -172,6 +211,8 @@ def sync_workspace_metadata_from_config(
             "mandates": mandate_map,
         }
     )
+    if language_context_update is not None:
+        metadata["language_context"] = language_context_update
     metadata_path.parent.mkdir(parents=True, exist_ok=True)
     metadata_path.write_text(
         json.dumps(metadata, indent=2, ensure_ascii=False) + "\n",

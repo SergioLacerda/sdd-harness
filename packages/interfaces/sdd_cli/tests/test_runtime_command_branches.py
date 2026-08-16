@@ -83,8 +83,41 @@ def test_do_update_cache_writes_new_cache(monkeypatch, tmp_path: Path, capsys) -
     )
     runtime_cmd._do_update_cache(tmp_path)
     out = capsys.readouterr().out
+    cache = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
     assert ".sdd-cache.md refreshed" in out
-    assert (tmp_path / ".sdd" / "runtime" / ".sdd-cache.md").exists()
+    assert cache.exists()
+    assert "Validation Quiz" in cache.read_text(encoding="utf-8")
+
+
+def test_do_update_cache_appends_validation_quiz_to_existing_cache(
+    monkeypatch, tmp_path: Path
+) -> None:
+    gov = tmp_path / ".sdd" / "compiled" / "governance-core.json"
+    gov.parent.mkdir(parents=True)
+    gov.write_text("{}", encoding="utf-8")
+    cache = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
+    cache.parent.mkdir(parents=True)
+    cache.write_text("# SDD Cache\n\nInitialized by: previous run\n", encoding="utf-8")
+
+    class _FakeAst:
+        enforcement_steps = ["step 1", "step 2"]
+
+    fake_module = SimpleNamespace(
+        GovernanceAST=SimpleNamespace(
+            from_compiled_json=lambda path: SimpleNamespace(
+                item_by_id=lambda item_id: _FakeAst()
+            )
+        )
+    )
+    monkeypatch.setitem(
+        __import__("sys").modules, "sdd_core.governance.ast", fake_module
+    )
+
+    runtime_cmd._do_update_cache(tmp_path)
+
+    text = cache.read_text(encoding="utf-8")
+    assert "Initialized by: previous run" in text
+    assert "Validation Quiz" in text
 
 
 def test_do_update_cache_missing_governance_file_raises(tmp_path: Path) -> None:

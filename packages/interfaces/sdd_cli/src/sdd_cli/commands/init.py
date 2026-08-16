@@ -65,10 +65,13 @@ def _exit_init_operational_error(error: OperationalCliError) -> NoReturn:
 
 
 def _write_profile_or_exit(
-    cwd: Path, profile_type: SddProfile, effective_name: str
+    cwd: Path,
+    profile_type: SddProfile,
+    effective_name: str,
+    language: str | None = None,
 ) -> ProfileContext:
     try:
-        return write_profile(cwd, profile_type, effective_name)
+        return write_profile(cwd, profile_type, effective_name, language)
     except OSError as exc:
         _raise_init_operational_error(
             exc,
@@ -81,8 +84,12 @@ def _write_profile_or_exit(
 
 
 def _resolve_default_flags(
-    ctx: typer.Context, type_: str, name: str | None, force: bool
-) -> tuple[str, str | None, bool]:
+    ctx: typer.Context,
+    type_: str,
+    name: str | None,
+    force: bool,
+    language: str | None,
+) -> tuple[str, str | None, bool, str | None]:
     """Apply --default fallbacks for any options left at their CLI defaults."""
     type_source = ctx.get_parameter_source("type")
     if type_source is not None and type_source.name == "DEFAULT":
@@ -93,7 +100,24 @@ def _resolve_default_flags(
     force_source = ctx.get_parameter_source("force")
     if force_source is not None and force_source.name == "DEFAULT":
         force = True
-    return type_, name, force
+    language_source = ctx.get_parameter_source("language")
+    if language_source is not None and language_source.name == "DEFAULT":
+        language = "en"
+    return type_, name, force, language
+
+
+_LANGUAGE_CANONICAL = {"en": "en", "pt-br": "pt-BR"}
+
+
+def _normalize_language_or_exit(language: str | None) -> str | None:
+    """Case-fold --language input to its canonical stored form (en | pt-BR)."""
+    if language is None:
+        return None
+    canonical = _LANGUAGE_CANONICAL.get(language.strip().lower())
+    if canonical is None:
+        typer.echo("[SDD] ERROR: --language must be 'en' or 'pt-BR'.", err=True)
+        raise typer.Exit(2)
+    return canonical
 
 
 def _is_relative_to(path: Path, base: Path) -> bool:
@@ -169,7 +193,14 @@ def init(  # noqa: C901
     default: bool = typer.Option(
         False,
         "--default",
-        help="One-command bootstrap: defaults --type to 'client', --name to 'local-dev', and --force, for any of those not explicitly set.",
+        help="One-command bootstrap: defaults --type to 'client', --name to 'local-dev', --language to 'en', and --force, for any of those not explicitly set.",
+    ),
+    language: str | None = typer.Option(  # noqa: UP045
+        None,
+        "--language",
+        "-l",
+        help="Client language preference (en|pt-BR), case-insensitive. "
+        "Written to .sdd/profile and bridged into compiled language_context.",
     ),
     list_commands: bool = typer.Option(False, "--list", help="List init commands."),
 ) -> None:
@@ -183,8 +214,11 @@ def init(  # noqa: C901
         show_command_group("Init", ["--type client", "--type master", "--default"])
         raise typer.Exit(0)
 
+    language = _normalize_language_or_exit(language)
     if default:
-        type, name, force = _resolve_default_flags(ctx, type, name, force)  # noqa: A001
+        type, name, force, language = _resolve_default_flags(  # noqa: A001
+            ctx, type, name, force, language
+        )
     parent_workspace = _find_blocking_parent_workspace(cwd)
     if parent_workspace is not None:
         typer.echo(
@@ -211,7 +245,7 @@ def init(  # noqa: C901
 
     profile_type = cast(SddProfile, normalized_type)
     effective_name = name or profile_type
-    profile_ctx = _write_profile_or_exit(cwd, profile_type, effective_name)
+    profile_ctx = _write_profile_or_exit(cwd, profile_type, effective_name, language)
 
     runtime_dir = cwd / ".sdd" / "runtime"
     try:
@@ -237,6 +271,8 @@ def init(  # noqa: C901
     typer.echo(f"  type:         {profile_ctx.type}")
     typer.echo(f"  name:         {profile_ctx.name}")
     typer.echo(f"  workspace_id: {profile_ctx.workspace_id}")
+    if profile_ctx.language:
+        typer.echo(f"  language:     {profile_ctx.language}")
     typer.echo("  core_hash:    (empty — run 'sdd governance compile' to populate)")
     typer.echo("  phase_0:      completed")
     run_bootstrap = (profile_type == "client") and not no_bootstrap

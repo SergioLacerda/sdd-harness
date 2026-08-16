@@ -44,14 +44,36 @@ def do_update_cache(root: Path) -> None:
     cache_file = root / ".sdd" / "runtime" / ".sdd-cache.md"
     cache_file.parent.mkdir(parents=True, exist_ok=True)
     if cache_file.exists():
+        cache_text = cache_file.read_text(encoding="utf-8")
+        if "Validation Quiz" not in cache_text:
+            separator = "\n\n" if cache_text.strip() else ""
+            cache_file.write_text(
+                f"{cache_text.rstrip()}{separator}{_render_validation_quiz_cache_entry()}\n",
+                encoding="utf-8",
+            )
         now = _time.time()
         _os.utime(cache_file, (now, now))
     else:
         cache_file.write_text(
-            "# SDD Cache\n\nInitialized by: sdd runtime status --update-cache\n",
+            "# SDD Cache\n\n"
+            "Initialized by: sdd runtime status --update-cache\n\n"
+            f"{_render_validation_quiz_cache_entry()}\n",
             encoding="utf-8",
         )
     typer.echo("✓ .sdd-cache.md refreshed.")
+
+
+def _render_validation_quiz_cache_entry() -> str:
+    return "\n".join(
+        [
+            "## Validation Quiz",
+            "- Pre-commit Validation",
+            "  1. Do Governance Rules (`.sdd/source/`) already solve this?",
+            "     - Yes. Apply M003 Context Awareness & Task Caching and M016 Guardrail Non-Regression.",
+            "  2. Does the Local Cache (`.sdd/runtime/.sdd-cache.md`) already solve this?",
+            "     - Yes. This cache entry records the required two-question quiz for the current project.",
+        ]
+    )
 
 
 def format_diagnostic_block(

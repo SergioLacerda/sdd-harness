@@ -438,6 +438,86 @@ class TestRegenerateSeeds:
         assert synced["mandates"] == {"M001": "Clean Architecture", "M002": "TDD"}
         assert synced["language_context"] == {"preferred_chat_language": "pt-BR"}
 
+    def test_sync_workspace_metadata_bridges_client_language_from_profile(
+        self, tmp_path: Path
+    ) -> None:
+        """`sdd init --language=pt-br` + `sdd governance compile`, no prior wizard run."""
+        from sdd_core.utils.environment import write_profile
+
+        write_profile(tmp_path, "client", "local-dev", "pt-BR")
+
+        config = {
+            "core_fingerprint": "1234567890abcdef9999",
+            "items": [{"id": "M001", "type": "MANDATE", "title": "Clean Architecture"}],
+        }
+
+        assert sync_workspace_metadata_from_config(tmp_path, config) is True
+        synced = json.loads(
+            (tmp_path / ".sdd" / "metadata.json").read_text(encoding="utf-8")
+        )
+        assert synced["language_context"] == {
+            "preferred_human_language": "pt-BR",
+            "preferred_chat_language": "pt-BR",
+            "preferred_ui_language": "pt-BR",
+            "preferred_local_docs_language": "pt-BR",
+        }
+
+    def test_sync_workspace_metadata_no_language_key_unchanged(
+        self, tmp_path: Path
+    ) -> None:
+        """No `--language` at init time — behavior identical to before this bridge existed."""
+        from sdd_core.utils.environment import write_profile
+
+        write_profile(tmp_path, "client", "local-dev")  # no language
+
+        config = {
+            "core_fingerprint": "1234567890abcdef9999",
+            "items": [{"id": "M001", "type": "MANDATE", "title": "Clean Architecture"}],
+        }
+
+        assert sync_workspace_metadata_from_config(tmp_path, config) is True
+        synced = json.loads(
+            (tmp_path / ".sdd" / "metadata.json").read_text(encoding="utf-8")
+        )
+        assert "language_context" not in synced
+
+    def test_sync_workspace_metadata_wizard_language_context_not_overwritten(
+        self, tmp_path: Path
+    ) -> None:
+        """A prior wizard run's language_context wins over a client profile language key."""
+        from sdd_core.utils.environment import write_profile
+
+        write_profile(tmp_path, "client", "local-dev", "en")
+
+        metadata_path = tmp_path / ".sdd" / "metadata.json"
+        metadata_path.write_text(
+            json.dumps(
+                {
+                    "language_context": {
+                        "preferred_human_language": "pt-BR",
+                        "preferred_chat_language": "pt-BR",
+                        "preferred_ui_language": "pt-BR",
+                        "preferred_local_docs_language": "en",
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        config = {
+            "core_fingerprint": "1234567890abcdef9999",
+            "items": [{"id": "M001", "type": "MANDATE", "title": "Clean Architecture"}],
+        }
+
+        assert sync_workspace_metadata_from_config(tmp_path, config) is True
+        synced = json.loads(metadata_path.read_text(encoding="utf-8"))
+        assert synced["language_context"] == {
+            "preferred_human_language": "pt-BR",
+            "preferred_chat_language": "pt-BR",
+            "preferred_ui_language": "pt-BR",
+            "preferred_local_docs_language": "en",
+        }
+
     def test_wizard_import_error_prints_warning(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:

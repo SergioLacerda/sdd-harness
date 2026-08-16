@@ -17,8 +17,15 @@ After `sdd install --wizard` has generated and deployed your project template,
 `sdd init --default` runs the full client bootstrap chain in one step: workspace
 profile, governance generate (`--full-bootstrap`), skills bootstrap
 (`--full-bootstrap --regenerate-seeds`), and runtime validation. It is
-equivalent to `sdd init --type client --name local-dev --force`,
-with any of `--type`/`--name`/`--force` you pass explicitly taking precedence.
+equivalent to `sdd init --type client --name local-dev --language en --force`,
+with any of `--type`/`--name`/`--language`/`--force` you pass explicitly
+taking precedence.
+
+Pass `--language en|pt-BR` (case-insensitive) to persist a client-side
+language preference into `.sdd/profile`; it is bridged into the compiled
+`.sdd/metadata.json`'s `language_context` the next time `sdd governance
+compile` runs, unless a prior `sdd wizard` run already populated it (wizard
+output always takes precedence).
 
 ```bash
 cd <your-project>

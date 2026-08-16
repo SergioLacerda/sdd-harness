@@ -5,6 +5,6 @@
   "payload_hash": "6fe4a0eb36a7cca646879ccf29cf9f49ccedd5b1818d2c5f778214e2a8dbad2c",
   "profile": "master",
   "schema_version": "1.0",
-  "signature": "nersS7u95khL4U1nJv9x0S4J5YPE+2db89V/VpXIctDCFPCzGLAbv/RqWb9b72CWxzL6imwk/4HeQW8aOr7NBw==",
-  "signed_at": "2026-07-31T10:54:11Z"
+  "signature": "4qBeEOVbLGlMse8DolM3HWxQ9jvx2Mg0wtCmUGYsQ0wGM3RsWXmvvLm5d0BA3Xcl79JppCgsjXu9qQM+hOQyAg==",
+  "signed_at": "2026-08-16T22:39:23Z"
 }

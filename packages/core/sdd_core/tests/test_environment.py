@@ -122,6 +122,20 @@ class TestWriteProfile:
         assert ctx.type == "client"
         assert ctx.name == "my-client"
 
+    def test_writes_and_reads_back_language(self, tmp_path: Path) -> None:
+        ctx = write_profile(tmp_path, "client", "test-workspace", "pt-BR")
+        assert ctx.language == "pt-BR"
+        profile_text = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
+        assert "language = pt-BR" in profile_text
+        assert resolve_profile(root=tmp_path).language == "pt-BR"
+
+    def test_no_language_key_when_not_passed(self, tmp_path: Path) -> None:
+        ctx = write_profile(tmp_path, "client", "test-workspace")
+        assert ctx.language is None
+        profile_text = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
+        assert "language" not in profile_text
+        assert resolve_profile(root=tmp_path).language is None
+
 
 class TestDetectProfile:
     """Tests for detect_profile backward-compat helper (merged)."""

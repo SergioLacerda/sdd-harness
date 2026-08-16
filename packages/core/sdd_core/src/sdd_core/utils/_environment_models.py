@@ -29,6 +29,7 @@ class ProfileContext:
     workspace_id: str
     core_hash: str
     root: Path
+    language: str | None = None
 
     @property
     def is_master(self) -> bool:
@@ -47,4 +48,5 @@ class ProfileContext:
             "root": self.root,
             "is_master": self.is_master,
             "is_client": self.is_client,
+            "language": self.language,
         }
