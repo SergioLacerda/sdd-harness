@@ -30,6 +30,25 @@ Soft/Standalone assurance is never equivalent to a connected Hard/Connected SDD 
 
 Skills embedded in this plugin are listed under `skills/`. Each skill file documents its own allowed CLI commands and risk score. Do not invent commands beyond what a skill file declares.
 
+## SDD Harness Summary (embedded snapshot)
+
+Governance fingerprint: `{{ governance_fingerprint }}`
+Workspace version: `{{ workspace_version }}`
+Mandate count: `{{ mandate_count }}`
+Governance summary digest: `sha256:{{ governance_summary_digest }}`
+
+This is an index, not policy text — mandate IDs and titles only. Full detail (where available in the source) is in `rules/sdd-harness-summary.md`. Neither is canonical; see `metadata/provenance.json` for the source revision this was compiled from.
+
+Mandates:
+{% for m in mandates %}
+- `{{ m.id }}` — {{ m.title }}
+{% endfor %}
+
+Guideline categories:
+{% for g in guideline_categories %}
+- {{ g }}
+{% endfor %}
+
 ## Canonical source
 
 This plugin is a generated projection. It is **not** the canonical governance source. Canonical SDD Harness policy lives in the `.sdd/` directory of the SDD Harness project this plugin was compiled from — see `metadata/provenance.json` for the exact source revision.

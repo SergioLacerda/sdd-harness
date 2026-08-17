@@ -8,7 +8,13 @@ from pathlib import Path
 import pytest
 import yaml
 
-from sdd_adapters.devin.plugin_generator import DevinPluginGenerator, _policy_digest
+from sdd_adapters.devin.plugin_generator import (
+    DevinPluginGenerator,
+    _governance_summary_digest,
+    _load_governance_summary,
+    _parse_governance_sections,
+    _policy_digest,
+)
 from sdd_core.utils.text_io import read_json_utf8
 
 
@@ -151,3 +157,167 @@ def test_generate_against_real_repo_registry(tmp_path: Path) -> None:
     )
     assert len(skill_dirs) >= 1
     assert len(result.policy_digest) == 64
+
+
+def test_parse_governance_sections_extracts_id_title_and_description() -> None:
+    text = (
+        "## M001: Clean Architecture\n"
+        "\n"
+        "**Criticality**: high\n"
+        "**Customizable**: No\n"
+        "\n"
+        "Layers must not depend on outer layers.\n"
+    )
+
+    sections = _parse_governance_sections(text)
+
+    assert sections == [
+        {
+            "id": "M001",
+            "title": "Clean Architecture",
+            "description": "Layers must not depend on outer layers.",
+            "has_description": True,
+        }
+    ]
+
+
+def test_parse_governance_sections_flags_placeholder_as_no_description() -> None:
+    text = (
+        "## M002: Test-Driven Development (TDD)\n"
+        "\n"
+        "**Criticality**: high\n"
+        "\n"
+        "No description available\n"
+    )
+
+    sections = _parse_governance_sections(text)
+
+    assert sections[0]["has_description"] is False
+    assert sections[0]["description"] == ""
+
+
+def test_parse_governance_sections_ignores_non_id_headings() -> None:
+    text = "## Overview\n\nSome prose.\n\n## M001: Clean Architecture\n\nReal text.\n"
+
+    sections = _parse_governance_sections(text)
+
+    assert len(sections) == 1
+    assert sections[0]["id"] == "M001"
+
+
+def _write_governance_source(sdd_dir: Path) -> None:
+    sdd_dir.mkdir(parents=True, exist_ok=True)
+    (sdd_dir / "metadata.json").write_text(
+        json.dumps({"governance_fingerprint": "abc123", "version": "3.0"}),
+        encoding="utf-8",
+    )
+    mandates_dir = sdd_dir / "source" / "mandates"
+    mandates_dir.mkdir(parents=True)
+    (mandates_dir / "mandates.md").write_text(
+        "## M001: Clean Architecture\n\n**Criticality**: high\n\nReal description.\n\n"
+        "## M002: TDD\n\n**Criticality**: high\n\nNo description available\n",
+        encoding="utf-8",
+    )
+    guidelines_dir = sdd_dir / "source" / "guidelines"
+    guidelines_dir.mkdir(parents=True)
+    (guidelines_dir / "general.md").write_text(
+        "## G01: Dependency Direction\n\n**Type**: GUIDELINE\n\nInner layers first.\n",
+        encoding="utf-8",
+    )
+    (guidelines_dir / "other.md").write_text(
+        "## G02: Something\n\n**Type**: GUIDELINE\n\nNo description available\n",
+        encoding="utf-8",
+    )
+
+
+def test_load_governance_summary_reads_metadata_mandates_and_guidelines(
+    tmp_path: Path,
+) -> None:
+    sdd_dir = tmp_path / ".sdd"
+    _write_governance_source(sdd_dir)
+
+    summary = _load_governance_summary(tmp_path)
+
+    assert summary["governance_fingerprint"] == "abc123"
+    assert summary["workspace_version"] == "3.0"
+    assert summary["mandate_count"] == 2
+    assert summary["guideline_categories"] == ["general", "other"]
+    general = next(g for g in summary["guidelines"] if g["category"] == "general")
+    other = next(g for g in summary["guidelines"] if g["category"] == "other")
+    assert general["has_highlight"] is True
+    assert other["has_highlight"] is False
+
+
+def test_load_governance_summary_degrades_gracefully_when_source_absent(
+    tmp_path: Path,
+) -> None:
+    summary = _load_governance_summary(tmp_path)
+
+    assert summary["governance_fingerprint"] == "unknown"
+    assert summary["mandate_count"] == 0
+    assert summary["mandates"] == []
+    assert summary["guideline_categories"] == []
+
+
+def test_governance_summary_digest_is_independent_of_policy_digest(
+    tmp_path: Path,
+) -> None:
+    sdd_dir = tmp_path / ".sdd"
+    _write_governance_source(sdd_dir)
+    _write_skill(sdd_dir, "alpha")
+
+    r1 = DevinPluginGenerator().generate(
+        output_dir=tmp_path, built_at="2026-08-17T00:00:00+00:00"
+    )
+
+    # Changing only skill content must not change governance_summary_digest.
+    _write_skill(sdd_dir, "beta")
+    r2 = DevinPluginGenerator().generate(
+        output_dir=tmp_path, built_at="2026-08-17T00:00:00+00:00"
+    )
+
+    assert r1.governance_summary_digest == r2.governance_summary_digest
+    assert r1.policy_digest != r2.policy_digest
+
+    # Changing only mandate content must not change policy_digest.
+    (sdd_dir / "source" / "mandates" / "mandates.md").write_text(
+        "## M001: Clean Architecture\n\n**Criticality**: high\n\nChanged text.\n",
+        encoding="utf-8",
+    )
+    r3 = DevinPluginGenerator().generate(
+        output_dir=tmp_path, built_at="2026-08-17T00:00:00+00:00"
+    )
+
+    assert r3.governance_summary_digest != r2.governance_summary_digest
+    assert r3.policy_digest == r2.policy_digest
+
+
+def test_generate_writes_governance_summary_bundle_content(tmp_path: Path) -> None:
+    sdd_dir = tmp_path / ".sdd"
+    _write_governance_source(sdd_dir)
+    _write_skill(sdd_dir, "alpha")
+
+    result = DevinPluginGenerator().generate(
+        output_dir=tmp_path, built_at="2026-08-17T00:00:00+00:00"
+    )
+
+    assert result.success is True
+    bundle = tmp_path / "dist" / "devin-plugin"
+    summary_path = bundle / "rules" / "sdd-harness-summary.md"
+    assert summary_path.exists()
+
+    agents_md = (bundle / "AGENTS.md").read_text(encoding="utf-8")
+    assert "SDD Harness Summary" in agents_md
+    assert "M001" in agents_md
+
+    summary_content = summary_path.read_text(encoding="utf-8")
+    assert f"sha256:{result.governance_summary_digest}" in summary_content
+    assert "Real description." in summary_content
+    assert "(no summary available in source)" in summary_content
+    assert "No description available" not in summary_content
+
+    provenance = read_json_utf8(bundle / "metadata" / "provenance.json")
+    assert (
+        provenance["embedded_governance_summary_digest"]
+        == f"sha256:{result.governance_summary_digest}"
+    )
