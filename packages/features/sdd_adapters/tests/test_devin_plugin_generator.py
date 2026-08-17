@@ -8,14 +8,15 @@ from pathlib import Path
 import pytest
 import yaml
 
-from sdd_adapters.devin.plugin_generator import (
-    DevinPluginGenerator,
+from sdd_adapters.devin._content_sources import (
     _coding_practices_digest,
-    _governance_summary_digest,
     _load_coding_practices,
     _load_governance_summary,
     _parse_anti_pattern,
     _parse_governance_sections,
+)
+from sdd_adapters.devin.plugin_generator import (
+    DevinPluginGenerator,
     _policy_digest,
 )
 from sdd_core.utils.text_io import read_json_utf8
@@ -131,7 +132,9 @@ def test_generate_with_include_skills_false_omits_skill_catalog(tmp_path: Path) 
     assert "does not embed the SDD skill catalog" in agents_md
 
 
-def test_generate_with_include_skills_true_still_requires_skills(tmp_path: Path) -> None:
+def test_generate_with_include_skills_true_still_requires_skills(
+    tmp_path: Path,
+) -> None:
     result = DevinPluginGenerator().generate(
         output_dir=tmp_path,
         built_at="2026-08-17T00:00:00+00:00",
@@ -399,9 +402,9 @@ def test_generate_writes_mandate_description_coverage_line(tmp_path: Path) -> No
         output_dir=tmp_path, built_at="2026-08-17T00:00:00+00:00"
     )
 
-    agents_md = (
-        tmp_path / "dist" / "devin-plugin" / "AGENTS.md"
-    ).read_text(encoding="utf-8")
+    agents_md = (tmp_path / "dist" / "devin-plugin" / "AGENTS.md").read_text(
+        encoding="utf-8"
+    )
 
     assert "Mandates with a source description: `1/2`" in agents_md
 
@@ -688,11 +691,7 @@ def test_generate_writes_coding_practices_when_category_present(
     assert "rules/sdd-coding-practices.md" in agents_md
 
     rule4 = (
-        tmp_path
-        / "dist"
-        / "devin-plugin"
-        / "rules"
-        / "sdd-soft-governance-behavior.md"
+        tmp_path / "dist" / "devin-plugin" / "rules" / "sdd-soft-governance-behavior.md"
     ).read_text(encoding="utf-8")
     assert "Rule 4" in rule4
     assert "Rule 3" in rule4
@@ -726,13 +725,7 @@ def test_coding_practices_digest_is_independent_of_other_digests(
 
     # Changing only coding-practices content must not change the other three
     # digest/version fields.
-    (
-        tmp_path
-        / "docs"
-        / "cognition"
-        / "anti-patterns"
-        / "SCOPE_CREEP.md"
-    ).write_text(
+    (tmp_path / "docs" / "cognition" / "anti-patterns" / "SCOPE_CREEP.md").write_text(
         _VALID_ANTI_PATTERN_TEXT.replace("Do the right thing", "Do a different thing"),
         encoding="utf-8",
     )
@@ -756,7 +749,12 @@ def test_coding_practices_digest_helper_changes_with_content() -> None:
                 "benchmark": "b",
             }
         ],
-        "go_resolution_bypass": {"hacks": "h", "cures": "c", "detection": "d", "rule": "r"},
+        "go_resolution_bypass": {
+            "hacks": "h",
+            "cures": "c",
+            "detection": "d",
+            "rule": "r",
+        },
     }
     changed = {
         **base,
@@ -892,15 +890,21 @@ def test_generate_standalone_hooks_v1_json_is_valid_schema(tmp_path: Path) -> No
     assert hooks["SessionStart"][0]["hooks"][0]["type"] == "command"
 
 
-def test_generate_standalone_rule_content_matches_expected_topics(tmp_path: Path) -> None:
+def test_generate_standalone_rule_content_matches_expected_topics(
+    tmp_path: Path,
+) -> None:
     result = DevinPluginGenerator().generate_standalone(output_dir=tmp_path)
     assert result.success is True, result.errors
 
     rules_dir = tmp_path / "dist" / "devin-standalone" / ".devin" / "rules"
-    assert "Red-Green-Refactor" in (rules_dir / "testing.md").read_text(encoding="utf-8")
+    assert "Red-Green-Refactor" in (rules_dir / "testing.md").read_text(
+        encoding="utf-8"
+    )
     assert "golangci-lint" in (rules_dir / "go.md").read_text(encoding="utf-8")
     assert "ruff" in (rules_dir / "python.md").read_text(encoding="utf-8")
-    assert "hand-edit" in (rules_dir / "generated-artifacts.md").read_text(encoding="utf-8")
+    assert "hand-edit" in (rules_dir / "generated-artifacts.md").read_text(
+        encoding="utf-8"
+    )
     assert "git" in (rules_dir / "git-safety.md").read_text(encoding="utf-8").lower()
     assert "Naming" in (rules_dir / "architecture.md").read_text(encoding="utf-8")
     assert "WHY" in (rules_dir / "documentation.md").read_text(encoding="utf-8")
@@ -950,9 +954,7 @@ def test_generate_standalone_never_touches_the_network(
     import socket
 
     def _blocked(*_args: object, **_kwargs: object) -> None:
-        raise AssertionError(
-            "network access attempted during standalone generation"
-        )
+        raise AssertionError("network access attempted during standalone generation")
 
     monkeypatch.setattr(socket.socket, "connect", _blocked)
 

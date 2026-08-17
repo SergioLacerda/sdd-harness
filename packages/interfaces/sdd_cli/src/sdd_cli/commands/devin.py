@@ -75,18 +75,19 @@ def build(
             )
             raise typer.Exit(1)
 
-        result = DevinPluginGenerator().generate_standalone(
+        standalone_result = DevinPluginGenerator().generate_standalone(
             output_dir=ws_root, dest=dest
         )
 
-        if not result.success:
+        if not standalone_result.success:
             console.print(
-                f"[red]Devin standalone build failed:[/red] {'; '.join(result.errors)}"
+                f"[red]Devin standalone build failed:[/red] {'; '.join(standalone_result.errors)}"
             )
             raise typer.Exit(1)
 
         console.print(
-            f"[green]Devin standalone config built[/green] ({len(result.files_written)} files)"
+            f"[green]Devin standalone config built[/green] "
+            f"({len(standalone_result.files_written)} files)"
         )
         return
 
