@@ -29,7 +29,10 @@ def build(
     dest: Path | None = typer.Option(
         None,
         "--dest",
-        help="Bundle output directory (default: <workspace>/dist/devin-plugin). Ignored with --standalone.",
+        help=(
+            "Output directory. Default: <workspace>/dist/devin-plugin, or "
+            "<workspace>/dist/devin-standalone with --standalone."
+        ),
     ),
     # bool | None (not a plain bool) so we can tell "user didn't pass either
     # flag" (None) apart from "user explicitly passed --skills" (True) — the
@@ -49,10 +52,11 @@ def build(
         False,
         "--standalone",
         help=(
-            "Build a zero-SDD-mention project configuration at the repo root "
+            "Build a zero-SDD-mention project configuration "
             "(AGENTS.md + .devin/config.json + .devin/hooks.v1.json + "
             ".devin/rules/*.md) instead of the SDD-branded plugin bundle. "
-            "Refuses if AGENTS.md or .devin/ already exist."
+            "Written under dist/devin-standalone/ (or --dest), never into the "
+            "project's real root files."
         ),
     ),
 ) -> None:
@@ -70,14 +74,10 @@ def build(
                 "--standalone's zero-SDD-mention guarantee."
             )
             raise typer.Exit(1)
-        if dest is not None:
-            console.print(
-                "[red]--dest is not supported with --standalone[/red] — "
-                "standalone mode always writes to the project root."
-            )
-            raise typer.Exit(1)
 
-        result = DevinPluginGenerator().generate_standalone(output_dir=ws_root)
+        result = DevinPluginGenerator().generate_standalone(
+            output_dir=ws_root, dest=dest
+        )
 
         if not result.success:
             console.print(

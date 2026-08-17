@@ -17,7 +17,6 @@ from sdd_adapters.devin.plugin_generator import (
     _parse_anti_pattern,
     _parse_governance_sections,
     _policy_digest,
-    _standalone_collision_paths,
 )
 from sdd_core.utils.text_io import read_json_utf8
 
@@ -818,58 +817,45 @@ _STANDALONE_EXPECTED_FILES = (
 )
 
 
-def test_standalone_collision_paths_empty_when_clean(tmp_path: Path) -> None:
-    assert _standalone_collision_paths(tmp_path) == []
-
-
-def test_standalone_collision_paths_detects_existing_agents_md(tmp_path: Path) -> None:
-    (tmp_path / "AGENTS.md").write_text("existing", encoding="utf-8")
-
-    conflicts = _standalone_collision_paths(tmp_path)
-
-    assert conflicts == [tmp_path / "AGENTS.md"]
-
-
-def test_standalone_collision_paths_detects_existing_devin_dir(tmp_path: Path) -> None:
-    (tmp_path / ".devin").mkdir()
-
-    conflicts = _standalone_collision_paths(tmp_path)
-
-    assert conflicts == [tmp_path / ".devin"]
-
-
-def test_generate_standalone_refuses_when_agents_md_exists(tmp_path: Path) -> None:
-    (tmp_path / "AGENTS.md").write_text("existing", encoding="utf-8")
-
-    result = DevinPluginGenerator().generate_standalone(output_dir=tmp_path)
-
-    assert result.success is False
-    assert "AGENTS.md" in result.errors[0]
-    assert result.files_written == []
-    # Refusal must not touch anything else either.
-    assert not (tmp_path / ".devin").exists()
-
-
-def test_generate_standalone_refuses_when_devin_dir_exists(tmp_path: Path) -> None:
-    (tmp_path / ".devin").mkdir()
-
-    result = DevinPluginGenerator().generate_standalone(output_dir=tmp_path)
-
-    assert result.success is False
-    assert ".devin" in result.errors[0]
-
-
-def test_generate_standalone_writes_exactly_the_expected_files(tmp_path: Path) -> None:
+def test_generate_standalone_defaults_to_dist_devin_standalone(tmp_path: Path) -> None:
     result = DevinPluginGenerator().generate_standalone(output_dir=tmp_path)
 
     assert result.success is True, result.errors
+    bundle = tmp_path / "dist" / "devin-standalone"
     for rel_path in _STANDALONE_EXPECTED_FILES:
-        assert (tmp_path / rel_path).exists(), f"missing {rel_path}"
-        assert (tmp_path / rel_path).stat().st_size > 0
+        assert (bundle / rel_path).exists(), f"missing {rel_path}"
+        assert (bundle / rel_path).stat().st_size > 0
 
-    written = {Path(p).relative_to(tmp_path) for p in result.files_written}
+    written = {Path(p).relative_to(bundle) for p in result.files_written}
     expected = {Path(p) for p in _STANDALONE_EXPECTED_FILES}
     assert written == expected
+
+    # Never written to the project's real root files.
+    assert not (tmp_path / "AGENTS.md").exists()
+    assert not (tmp_path / ".devin").exists()
+
+
+def test_generate_standalone_accepts_custom_dest(tmp_path: Path) -> None:
+    custom_dest = tmp_path / "custom-out"
+
+    result = DevinPluginGenerator().generate_standalone(
+        output_dir=tmp_path, dest=custom_dest
+    )
+
+    assert result.success is True, result.errors
+    assert (custom_dest / "AGENTS.md").exists()
+    assert (custom_dest / ".devin" / "config.json").exists()
+
+
+def test_generate_standalone_overwrites_its_own_prior_output(tmp_path: Path) -> None:
+    # dist/devin-standalone/ is a build artifact, same convention as
+    # dist/devin-plugin/ — regenerating it in place is expected, not refused.
+    generator = DevinPluginGenerator()
+    r1 = generator.generate_standalone(output_dir=tmp_path)
+    r2 = generator.generate_standalone(output_dir=tmp_path)
+
+    assert r1.success is True, r1.errors
+    assert r2.success is True, r2.errors
 
 
 def test_generate_standalone_config_json_is_valid_and_denies_git_mutation(
@@ -878,7 +864,11 @@ def test_generate_standalone_config_json_is_valid_and_denies_git_mutation(
     result = DevinPluginGenerator().generate_standalone(output_dir=tmp_path)
     assert result.success is True, result.errors
 
-    config = json.loads((tmp_path / ".devin" / "config.json").read_text(encoding="utf-8"))
+    config = json.loads(
+        (tmp_path / "dist" / "devin-standalone" / ".devin" / "config.json").read_text(
+            encoding="utf-8"
+        )
+    )
 
     assert "Exec(git push)" in config["permissions"]["deny"]
     assert "Exec(git commit)" in config["permissions"]["deny"]
@@ -891,7 +881,9 @@ def test_generate_standalone_hooks_v1_json_is_valid_schema(tmp_path: Path) -> No
     assert result.success is True, result.errors
 
     hooks = json.loads(
-        (tmp_path / ".devin" / "hooks.v1.json").read_text(encoding="utf-8")
+        (tmp_path / "dist" / "devin-standalone" / ".devin" / "hooks.v1.json").read_text(
+            encoding="utf-8"
+        )
     )
 
     # Top-level keys are event names directly — no wrapper key (confirmed real
@@ -904,7 +896,7 @@ def test_generate_standalone_rule_content_matches_expected_topics(tmp_path: Path
     result = DevinPluginGenerator().generate_standalone(output_dir=tmp_path)
     assert result.success is True, result.errors
 
-    rules_dir = tmp_path / ".devin" / "rules"
+    rules_dir = tmp_path / "dist" / "devin-standalone" / ".devin" / "rules"
     assert "Red-Green-Refactor" in (rules_dir / "testing.md").read_text(encoding="utf-8")
     assert "golangci-lint" in (rules_dir / "go.md").read_text(encoding="utf-8")
     assert "ruff" in (rules_dir / "python.md").read_text(encoding="utf-8")
@@ -918,8 +910,9 @@ def test_generate_standalone_output_never_mentions_sdd(tmp_path: Path) -> None:
     result = DevinPluginGenerator().generate_standalone(output_dir=tmp_path)
     assert result.success is True, result.errors
 
+    bundle = tmp_path / "dist" / "devin-standalone"
     for rel_path in _STANDALONE_EXPECTED_FILES:
-        content = (tmp_path / rel_path).read_text(encoding="utf-8")
+        content = (bundle / rel_path).read_text(encoding="utf-8")
         assert "sdd" not in content.lower(), f"{rel_path} mentions sdd"
 
 

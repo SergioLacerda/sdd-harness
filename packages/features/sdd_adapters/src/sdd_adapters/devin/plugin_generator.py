@@ -388,18 +388,6 @@ def _compiler_version() -> str:
         return "0.0.0+unknown"
 
 
-def _standalone_collision_paths(output_dir: Path) -> list[Path]:
-    """Paths generate_standalone() would overwrite if they already exist.
-
-    Standalone mode writes to the project's actual root (AGENTS.md, .devin/),
-    a materially higher blast radius than generate()'s gitignored dist/
-    output — it must refuse rather than silently overwrite a project's real
-    files.
-    """
-    candidates = [Path(output_dir) / "AGENTS.md", Path(output_dir) / ".devin"]
-    return [p for p in candidates if p.exists()]
-
-
 @dataclass
 class DevinStandaloneResult:
     """Result of standalone (zero-SDD-mention) Devin config generation."""
@@ -614,30 +602,22 @@ class DevinPluginGenerator:
         result.files_written.append(str(path))
         return path
 
-    def generate_standalone(self, output_dir: Path) -> DevinStandaloneResult:
+    def generate_standalone(
+        self, output_dir: Path, dest: Path | None = None
+    ) -> DevinStandaloneResult:
         """
-        Generate a zero-SDD-mention Devin project configuration at the
-        project root: AGENTS.md, .devin/config.json, .devin/hooks.v1.json,
-        .devin/rules/*.md (7 files).
+        Generate a zero-SDD-mention Devin project configuration: AGENTS.md,
+        .devin/config.json, .devin/hooks.v1.json, .devin/rules/*.md (7 files).
 
-        Unlike generate(), this writes to output_dir itself (the project's
-        actual root), not a build/dest directory — it refuses (writes
-        nothing, success=False) if AGENTS.md or .devin/ already exists there,
-        rather than risk overwriting a project's real files.
+        Args:
+            output_dir: project root (used only to resolve the default dest).
+            dest: output directory. Defaults to {output_dir}/dist/devin-standalone
+                — a build artifact, same convention as generate()'s
+                dist/devin-plugin default, never the project's real root files.
         """
         result = DevinStandaloneResult()
-
-        conflicts = _standalone_collision_paths(output_dir)
-        if conflicts:
-            result.success = False
-            result.errors.append(
-                "refusing to overwrite existing path(s): "
-                + ", ".join(str(p) for p in conflicts)
-            )
-            return result
-
         context = {"standalone_ruleset_version": _STANDALONE_RULESET_VERSION}
-        root = Path(output_dir)
+        root = Path(dest) if dest else Path(output_dir) / "dist" / "devin-standalone"
 
         try:
             self._write_standalone(root / "AGENTS.md", "AGENTS.md", context, result)
