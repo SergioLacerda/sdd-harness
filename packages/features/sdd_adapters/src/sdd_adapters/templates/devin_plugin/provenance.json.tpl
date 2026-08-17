@@ -6,6 +6,8 @@
   "built_at": "{{ built_at }}",
   "embedded_policy_digest": "sha256:{{ policy_digest }}",
   "embedded_governance_summary_digest": "sha256:{{ governance_summary_digest }}",
+  "soft_governance_ruleset_version": "{{ soft_governance_ruleset_version }}",
+  "coding_practices_digest": {% if has_coding_practices %}"sha256:{{ coding_practices_digest }}"{% else %}null{% endif %},
   "active_policy_digest": null,
   "profile": "soft",
   "provider": "devin",

@@ -20,6 +20,7 @@ external integration protocol.
 ```bash
 sdd devin build
 # optional: sdd devin build --dest ./some/other/path
+# governance-only bundle, no SDD skill catalog: sdd devin build --no-skills
 ```
 
 Or from Python:
@@ -28,7 +29,14 @@ Or from Python:
 from sdd_adapters.devin import DevinPluginGenerator
 
 DevinPluginGenerator().generate(output_dir=repo_root)
+# or: DevinPluginGenerator().generate(output_dir=repo_root, include_skills=False)
 ```
+
+`include_skills` defaults to `True`. Each embedded skill's "Allowed CLI" commands
+assume the `sdd` CLI is installed in the Devin environment — a dependency the base
+governance summary (`AGENTS.md` + `rules/`) does not have. Pass
+`include_skills=False` (or `--no-skills`) for a bundle that is governance context
+only, with no `skills/` directory and no `"skills"` key in `plugin.json`.
 
 Output: `dist/devin-plugin/` (gitignored — treat like any other build artifact).
 
@@ -45,9 +53,10 @@ devin plugins install ./dist/devin-plugin
 | `.devin-plugin/plugin.json` | Plugin manifest (name, version, license, skill paths) |
 | `AGENTS.md` | Always-on assurance/precedence disclosure + governance summary Tier A (index) |
 | `rules/sdd-harness-summary.md` | Governance summary Tier B (condensed detail), loaded contextually |
-| `skills/{name}/SKILL.md` | One per canonical SDD skill in `.sdd/skills/registry.json` |
+| `rules/sdd-soft-governance-behavior.md` | Curated, CLI-independent behavioral rules (git safety, escalation, mandate precedence) |
+| `skills/{name}/SKILL.md` | One per canonical SDD skill in `.sdd/skills/registry.json` — omitted entirely when built with `--no-skills` |
 | `hooks.json` + `hooks/session-start-assurance.sh` | Injects the Soft/Standalone disclosure into every session |
-| `metadata/provenance.json` | Plugin version, compiler version, source revision, embedded policy digest, embedded governance summary digest, profile |
+| `metadata/provenance.json` | Plugin version, compiler version, source revision, embedded policy digest, embedded governance summary digest, soft governance ruleset version, profile |
 | `LICENSE` | Copied from the source project's root `LICENSE`, if present |
 
 ## SDD Harness governance summary (mandates & guidelines)
@@ -76,6 +85,11 @@ A full mandate/guideline text copy (a "Tier C") was considered and rejected — 
 would raise the same policy-divergence risk the skills projection already accepts,
 without a compensating benefit over the condensed Tier B.
 
+`AGENTS.md` also prints a coverage line — `Mandates with a source description: X/Y`
+— computed from the same parsed data, so the emptiness of Tier B (when the source
+has no descriptions) is visible at the always-on level, without opening
+`rules/sdd-harness-summary.md` to discover it.
+
 **Staleness disclosure:** the governance summary has its own
 `embedded_governance_summary_digest` in `provenance.json`, printed in both `AGENTS.md`
 and `rules/sdd-harness-summary.md`. It is computed independently of
@@ -83,6 +97,25 @@ and `rules/sdd-harness-summary.md`. It is computed independently of
 changes the summary digest, and changing mandate/guideline content never changes the
 skills digest. Compare digests across two builds to tell which half of the embedded
 content changed.
+
+## Soft governance behavior ruleset
+
+`rules/sdd-soft-governance-behavior.md` is a small, **hand-curated** (not
+auto-parsed) set of behavioral rules distilled from this repository's
+`.sdd/agent-instructions.md`: git safety (never execute state-modifying git
+commands autonomously), escalate-on-incomplete-context, and mandates-outrank-
+guidelines precedence. It deliberately excludes anything that assumes a live `sdd`
+CLI connection — the M015 handshake procedure, `execution_gate` /
+`intake_index_mode` semantics, fingerprint-diffing instructions — since those only
+apply in Hard/Connected mode, which this plugin does not implement; embedding them
+in a Soft/Standalone bundle would point a disconnected session at signals it will
+never receive.
+
+Its `soft_governance_ruleset_version` in `provenance.json` is a plain version
+string a maintainer bumps by hand when the curated content changes — unlike the two
+content digests above, it does not recompute automatically on every build, because
+the ruleset is not mechanically derived from `agent-instructions.md` (that source
+has no stable per-rule structure to parse against safely).
 
 ## Precedence order
 
