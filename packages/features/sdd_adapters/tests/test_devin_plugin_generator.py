@@ -6,9 +6,9 @@ import json
 from pathlib import Path
 
 import yaml
-from sdd_core.utils.text_io import read_json_utf8
 
 from sdd_adapters.devin.plugin_generator import DevinPluginGenerator, _policy_digest
+from sdd_core.utils.text_io import read_json_utf8
 
 
 def test_policy_digest_is_deterministic_for_same_input() -> None:
