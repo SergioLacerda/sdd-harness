@@ -35,6 +35,7 @@ class TestInitCommand:
                 force=False,
                 no_bootstrap=True,
                 default=False,
+                language=None,
                 list_commands=False,
             )
         profile_path = tmp_path / ".sdd" / "profile"
@@ -58,6 +59,7 @@ class TestInitCommand:
                 force=False,
                 no_bootstrap=True,
                 default=False,
+                language=None,
                 list_commands=False,
             )
         # Second init without --force must exit 1
@@ -76,6 +78,7 @@ class TestInitCommand:
                 force=False,
                 no_bootstrap=True,
                 default=False,
+                language=None,
                 list_commands=False,
             )
         assert exc_info.value.exit_code == 1
@@ -95,6 +98,7 @@ class TestInitCommand:
                 force=False,
                 no_bootstrap=True,
                 default=False,
+                language=None,
                 list_commands=False,
             )
             init(
@@ -104,6 +108,7 @@ class TestInitCommand:
                 force=True,
                 no_bootstrap=True,
                 default=False,
+                language=None,
                 list_commands=False,
             )
         content = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
@@ -124,6 +129,7 @@ class TestInitCommand:
                 force=False,
                 no_bootstrap=True,
                 default=False,
+                language=None,
                 list_commands=False,
             )
         content = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
@@ -154,6 +160,7 @@ class TestInitCommand:
                 name=None,
                 force=False,
                 default=False,
+                language=None,
                 list_commands=False,
             )
         assert exc_info.value.exit_code == 1
@@ -181,6 +188,7 @@ class TestInitCommand:
                 force=False,
                 no_bootstrap=True,
                 default=False,
+                language=None,
                 list_commands=False,
             )
         assert (child / ".sdd" / "profile").exists()

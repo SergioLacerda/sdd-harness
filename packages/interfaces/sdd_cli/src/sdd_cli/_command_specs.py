@@ -38,6 +38,9 @@ COMMAND_SPECS: dict[str, CommandSpec] = {
     "governance": CommandSpec("sdd_cli.commands.governance", "Governance operations"),
     "skills": CommandSpec("sdd_cli.commands.skills", "Capability-oriented skills"),
     "doctor": CommandSpec("sdd_cli.commands.doctor", "Run diagnostics"),
+    "devin": CommandSpec(
+        "sdd_cli.commands.devin", "Devin governance plugin generation (Soft/Standalone)"
+    ),
     "docs": CommandSpec("sdd_cli.commands.docs", "Documentation operations"),
     "metrics": CommandSpec(
         "sdd_cli.commands.metrics", "Token economy metrics and Prometheus exposition"

@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 
 def _invoke_init(tmp_path: Path, extra_args: list[str], step_side_effect=None):
     """Helper: invoke `sdd init` with cwd mocked to tmp_path."""
@@ -243,7 +245,9 @@ class TestInitDefaultFlag:
     ) -> None:
         result, MockOrch, mock_write_profile = self._invoke(tmp_path, ["--default"])
         assert result.exit_code == 0, result.output
-        mock_write_profile.assert_called_once_with(tmp_path, "client", "local-dev")
+        mock_write_profile.assert_called_once_with(
+            tmp_path, "client", "local-dev", "en"
+        )
         MockOrch.return_value.run.assert_called_once_with(force=True)
 
     def test_default_does_not_override_explicit_type(self, tmp_path: Path) -> None:
@@ -252,7 +256,9 @@ class TestInitDefaultFlag:
             tmp_path, ["--default", "--type", "master"]
         )
         assert result.exit_code == 0, result.output
-        mock_write_profile.assert_called_once_with(tmp_path, "master", "local-dev")
+        mock_write_profile.assert_called_once_with(
+            tmp_path, "master", "local-dev", "en"
+        )
         MockOrch.assert_not_called()
 
     def test_default_does_not_override_explicit_name(self, tmp_path: Path) -> None:
@@ -260,7 +266,20 @@ class TestInitDefaultFlag:
             tmp_path, ["--default", "--name", "custom-name"]
         )
         assert result.exit_code == 0, result.output
-        mock_write_profile.assert_called_once_with(tmp_path, "client", "custom-name")
+        mock_write_profile.assert_called_once_with(
+            tmp_path, "client", "custom-name", "en"
+        )
+        MockOrch.return_value.run.assert_called_once_with(force=True)
+
+    def test_default_does_not_override_explicit_language(self, tmp_path: Path) -> None:
+        """--default fills in --language only when it wasn't explicitly set."""
+        result, MockOrch, mock_write_profile = self._invoke(
+            tmp_path, ["--default", "--language", "pt-br"]
+        )
+        assert result.exit_code == 0, result.output
+        mock_write_profile.assert_called_once_with(
+            tmp_path, "client", "local-dev", "pt-BR"
+        )
         MockOrch.return_value.run.assert_called_once_with(force=True)
 
     def test_default_does_not_override_explicit_force_false(
@@ -281,5 +300,41 @@ class TestInitDefaultFlag:
             tmp_path, ["--type", "client", "--name", "test", "--force"]
         )
         assert result.exit_code == 0, result.output
-        mock_write_profile.assert_called_once_with(tmp_path, "client", "test")
+        mock_write_profile.assert_called_once_with(tmp_path, "client", "test", None)
         MockOrch.return_value.run.assert_called_once_with(force=True)
+
+
+class TestInitLanguageFlag:
+    """--language accepts case-insensitive en|pt-BR and normalizes before storage."""
+
+    def _invoke(self, tmp_path: Path, args: list[str]):
+        return TestInitDefaultFlag()._invoke(tmp_path, args)
+
+    @pytest.mark.parametrize(
+        ("raw", "canonical"),
+        [
+            ("en", "en"),
+            ("EN", "en"),
+            ("pt-br", "pt-BR"),
+            ("PT-BR", "pt-BR"),
+            ("pt-BR", "pt-BR"),
+        ],
+    )
+    def test_normalizes_case_insensitive_input(
+        self, tmp_path: Path, raw: str, canonical: str
+    ) -> None:
+        result, _, mock_write_profile = self._invoke(
+            tmp_path, ["--type", "client", "--name", "test", "--language", raw]
+        )
+        assert result.exit_code == 0, result.output
+        mock_write_profile.assert_called_once_with(
+            tmp_path, "client", "test", canonical
+        )
+
+    def test_invalid_language_exits_with_error(self, tmp_path: Path) -> None:
+        result, _, mock_write_profile = self._invoke(
+            tmp_path, ["--type", "client", "--name", "test", "--language", "fr"]
+        )
+        assert result.exit_code == 2
+        assert "--language must be" in result.output
+        mock_write_profile.assert_not_called()

@@ -21,6 +21,7 @@ dependencies = [
     "sdd-wizard>=1.0",
     "sdd-integration>=1.0",
     "sdd-runtime>=1.0",
+    "sdd-adapters>=1.0",
 ]
 
 [project.scripts]

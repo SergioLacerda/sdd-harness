@@ -116,6 +116,7 @@ def resolve_profile(
         workspace_id=parser.get("sdd", "workspace_id", fallback=""),
         core_hash=parser.get("sdd", "core_hash", fallback=""),
         root=workspace_root,
+        language=parser.get("sdd", "language", fallback=None) or None,
     )
 
 
@@ -126,20 +127,29 @@ def detect_profile(root: Path | None = None) -> SddProfile:
         return "client"
 
 
-def write_profile(root: Path, profile_type: SddProfile, name: str) -> ProfileContext:
+def write_profile(
+    root: Path,
+    profile_type: SddProfile,
+    name: str,
+    language: str | None = None,
+) -> ProfileContext:
     sdd_dir = root / ".sdd"
     sdd_dir.mkdir(parents=True, exist_ok=True)
     workspace_id = str(uuid.uuid4())
     profile_path = sdd_dir / "profile"
 
-    parser = configparser.ConfigParser()
-    parser["sdd"] = {
+    section = {
         "version": "1",
         "workspace_id": workspace_id,
         "type": profile_type,
         "name": name,
         "core_hash": "",
     }
+    if language:
+        section["language"] = language
+
+    parser = configparser.ConfigParser()
+    parser["sdd"] = section
     with open(profile_path, "w", encoding="utf-8") as handle:
         parser.write(handle)
 
@@ -149,4 +159,5 @@ def write_profile(root: Path, profile_type: SddProfile, name: str) -> ProfileCon
         workspace_id=workspace_id,
         core_hash="",
         root=root,
+        language=language,
     )

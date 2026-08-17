@@ -49,7 +49,8 @@ and Windows.
 uv run sdd init --default
 ```
 
-`sdd init --default` is equivalent to `sdd init --type client --name local-dev --force` and
+`sdd init --default` is equivalent to
+`sdd init --type client --name local-dev --language en --force` and
 runs the full chain:
 
 1. Workspace profile (`.sdd/profile`)
