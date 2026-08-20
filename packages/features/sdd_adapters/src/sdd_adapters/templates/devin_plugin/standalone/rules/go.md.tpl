@@ -23,7 +23,7 @@ golangci-lint run
 
 ## Architecture & Dependency Direction
 
-Domain and application packages must not import adapter packages. Enforce the boundary in CI with a dependency-direction linter.
+Domain and application packages must not import adapter packages. Enforce the boundary in CI with a dependency-direction linter. Dependencies are injected via constructor or parameter, never global state — see `architecture.md` for the general principle.
 
 ## Dependency Versions
 
@@ -70,20 +70,11 @@ func GetUser(id string) (*User, error) {
 
 ```go
 // VIOLATION — no cancellation path
-go func() {
-    for { process() }
-}()
+go func() { for { process() } }()
 
-// OK
+// OK — checks ctx before each iteration
 go func(ctx context.Context) {
-    for {
-        select {
-        case <-ctx.Done():
-            return
-        default:
-            process()
-        }
-    }
+    for ctx.Err() == nil { process() }
 }(ctx)
 ```
 
