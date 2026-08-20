@@ -7,20 +7,20 @@ Last verified: `{{ last_verified }}`
 
 This project uses file-based soft governance. Rules are advisory — they guide
 your behavior but are not fully enforced at the tool level (see `git-safety.md`
-for the one exception: `.devin/config.json`'s `permissions.deny` list). Your
+for the one exception: `.claude/settings.json`'s `permissions.deny` list). Your
 compliance depends on reading and following the rule files below.
 
 ## Active Rule Categories
 
 | Category | File | Scope |
 |----------|------|-------|
-| Architecture | `architecture.md` | All files |
-| Git Safety | `git-safety.md` | All files |
-| Testing | `testing.md` | Code files |
-| Generated Output | `generated-artifacts.md` | All files |
-| Go Style | `go.md` | `*.go` |
-| Documentation | `documentation.md` | All files |
-| Token Economy | `token-economy.md` | All files |
+| Architecture | `.claude/rules/architecture.md` | All files |
+| Git Safety | `.claude/rules/git-safety.md` | All files |
+| Testing | `.claude/rules/testing.md` | Code files |
+| Generated Output | `.claude/rules/generated-artifacts.md` | All files |
+| Go Style | `.claude/rules/go.md` | `*.go` |
+| Documentation | `.claude/rules/documentation.md` | All files |
+| Token Economy | `.claude/rules/token-economy.md` | All files |
 
 ## Compliance Priority
 
@@ -46,6 +46,6 @@ Before considering a task done, verify:
 
 This is an advisory checklist, not a blocking gate.
 
-Permissions and lifecycle hooks are configured in `.devin/config.json` and `.devin/hooks.v1.json`.
+Permissions are configured in `.claude/settings.json`.
 
 These files are a generated starting point. Edit them directly to fit this project — there is no external source they must stay in sync with.

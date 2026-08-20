@@ -1,9 +1,13 @@
+---
+applyTo: "**"
+---
+
 # Architecture
 
 Ruleset version: `{{ standalone_ruleset_version }}`
 Last verified: `{{ last_verified }}`
 
-Function/file size, naming, typing, and dependency-direction rules that apply regardless of language. Language-specific detail lives in `go.md`.
+Function/file size, naming, typing, and dependency-direction rules that apply regardless of language. Language-specific detail lives in `go.instructions.md`.
 
 ## Function and File Size
 
@@ -51,6 +55,6 @@ Function/file size, naming, typing, and dependency-direction rules that apply re
 
 ## Dependencies
 
-- Inject dependencies via constructor or parameter — see `go.md` for dependency version hygiene.
+- Inject dependencies via constructor or parameter — see `go.instructions.md` for dependency version hygiene.
 - Never via global state, module-level singletons, or import-time mutation.
 - Wrap third-party libraries behind a thin interface you own, so a library swap touches one place.

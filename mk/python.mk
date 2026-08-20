@@ -24,13 +24,19 @@ $(PYTHON_TASKS):
 
 check: golden-status
 
+# Informational only, by design: golden-fixture drift is already enforced as
+# blocking in CI (reusable-test.yml's `check_golden_policy.py --mode block`,
+# release.yml/release-dry-run.yml's `--mode strict`). This target is a fast,
+# local heads-up for `make check`, not the enforcement point — see
+# `tools/maintenance/make_tasks.py:run_check()` for the matching rationale.
+#
+# Comments live outside the recipe (not `@#` inside it): a `#` line inside a
+# recipe is passed to the shell verbatim, not stripped by Make. sh/bash treat
+# `#` as a comment, but cmd.exe (what plain-Windows `make.exe` falls back to
+# when it can't find sh.exe) does not — it tries to execute the comment text
+# as a command and fails with "CreateProcess(NULL, # ...) failed."
 .PHONY: golden-status
 golden-status: ## Check golden-file git status (informational; used by `check`)
-	@# Informational only, by design: golden-fixture drift is already enforced as
-	@# blocking in CI (reusable-test.yml's `check_golden_policy.py --mode block`,
-	@# release.yml/release-dry-run.yml's `--mode strict`). This target is a fast,
-	@# local heads-up for `make check`, not the enforcement point — see
-	@# `tools/maintenance/make_tasks.py:run_check()` for the matching rationale.
 	@echo "🔍 Checking golden file status..."
 	@if git status --porcelain tests/contract/fixtures/*.golden.json 2>/dev/null | grep -q .; then \
 		echo "⚠️  Golden files have uncommitted changes:"; \

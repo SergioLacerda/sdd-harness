@@ -36,7 +36,7 @@ def _probe_cache(cache_dir: Path) -> dict[str, Any]:
     if not cache_dir.exists():
         return {"dir": str(cache_dir), "entries": []}
     entries = sorted(
-        str(path.relative_to(cache_dir))
+        path.relative_to(cache_dir).as_posix()
         for path in cache_dir.rglob("*")
         if path.is_file()
     )

@@ -1,9 +1,13 @@
+---
+applyTo: "**"
+---
+
 # Documentation
 
 Ruleset version: `{{ standalone_ruleset_version }}`
 Last verified: `{{ last_verified }}`
 
-Comments and documentation should explain WHY, not WHAT. Well-named code already says what it does. Concise comments also conserve context window — see `token-economy.md`.
+Comments and documentation should explain WHY, not WHAT. Well-named code already says what it does. Concise comments also conserve context window — see `token-economy.instructions.md`.
 
 - Document hidden constraints, bug references, and upstream limitations — the things a reader cannot infer from the code itself.
 - Skip comments that restate the line below them (`// increment counter` above `i++`).

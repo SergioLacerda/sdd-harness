@@ -1,3 +1,7 @@
+---
+applyTo: "**"
+---
+
 # Generated Artifacts
 
 Ruleset version: `{{ standalone_ruleset_version }}`

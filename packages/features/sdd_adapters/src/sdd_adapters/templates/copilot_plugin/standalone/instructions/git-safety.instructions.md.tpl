@@ -1,3 +1,7 @@
+---
+applyTo: "**"
+---
+
 # Git Safety
 
 Ruleset version: `{{ standalone_ruleset_version }}`
@@ -7,4 +11,4 @@ Never execute git state-modifying commands (`add`, `commit`, `push`, `reset`, `m
 
 Completing a task does not authorize a commit. Only an explicit human request does.
 
-This is enforced, not just advised — see `.devin/config.json`'s `permissions.deny` list, which blocks the same operations at the tool level.
+GitHub Copilot has no declarative permissions/config file to enforce this at the tool level (see `.github/copilot-instructions.md` § Known limitations) — this rule is advisory only, not mechanically enforced the way an equivalent rule can be on providers with a permissions config file.

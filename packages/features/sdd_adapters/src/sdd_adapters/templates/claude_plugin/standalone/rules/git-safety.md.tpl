@@ -7,4 +7,4 @@ Never execute git state-modifying commands (`add`, `commit`, `push`, `reset`, `m
 
 Completing a task does not authorize a commit. Only an explicit human request does.
 
-This is enforced, not just advised — see `.devin/config.json`'s `permissions.deny` list, which blocks the same operations at the tool level.
+This is enforced, not just advised — see `.claude/settings.json`'s `permissions.deny` list, which blocks the same operations at the tool level.

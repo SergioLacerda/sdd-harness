@@ -39,6 +39,7 @@ include mk/web.mk
 include mk/go.mk
 include mk/release.mk
 include mk/docker.mk
+include mk/plugins.mk
 include mk/misc.mk
 
 .PHONY: help

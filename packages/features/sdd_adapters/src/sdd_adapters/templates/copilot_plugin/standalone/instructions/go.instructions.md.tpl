@@ -1,3 +1,7 @@
+---
+applyTo: "**/*.go"
+---
+
 # Go
 
 Ruleset version: `{{ standalone_ruleset_version }}`

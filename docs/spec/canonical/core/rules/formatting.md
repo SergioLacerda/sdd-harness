@@ -9,10 +9,7 @@ Eliminate style discussions.
 ## 🔒 HARD RULES
 
 - MUST use language-native formatter:
-  - black
-  - prettier
-  - gofmt
-  - cargo fmt
+  - gofmt (Go-only for now — see `code-style.md`)
 
 ---
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -87,7 +88,10 @@ def test_generate_writes_full_plugin_bundle(tmp_path: Path) -> None:
     assert provenance["embedded_policy_digest"] == f"sha256:{result.policy_digest}"
 
     hook_script = bundle / "hooks" / "session-start-assurance.sh"
-    assert hook_script.stat().st_mode & 0o111  # executable bits set
+    if sys.platform != "win32":
+        # NTFS has no POSIX exec bit for stat() to report, even though
+        # chmod() is still called for a non-Windows target asset.
+        assert hook_script.stat().st_mode & 0o111  # executable bits set
 
 
 def test_generate_is_deterministic_for_same_input(tmp_path: Path) -> None:
@@ -809,9 +813,9 @@ _STANDALONE_EXPECTED_FILES = (
     ".devin/rules/git-safety.md",
     ".devin/rules/testing.md",
     ".devin/rules/generated-artifacts.md",
-    ".devin/rules/python.md",
     ".devin/rules/go.md",
     ".devin/rules/documentation.md",
+    ".devin/rules/token-economy.md",
 )
 
 
@@ -831,6 +835,9 @@ def test_generate_standalone_defaults_to_dist_devin_standalone(tmp_path: Path) -
     # Never written to the project's real root files.
     assert not (tmp_path / "AGENTS.md").exists()
     assert not (tmp_path / ".devin").exists()
+
+    # Python was removed — Go-only for now.
+    assert not (bundle / ".devin" / "rules" / "python.md").exists()
 
 
 def test_generate_standalone_accepts_custom_dest(tmp_path: Path) -> None:
@@ -900,14 +907,34 @@ def test_generate_standalone_rule_content_matches_expected_topics(
     assert "Red-Green-Refactor" in (rules_dir / "testing.md").read_text(
         encoding="utf-8"
     )
-    assert "golangci-lint" in (rules_dir / "go.md").read_text(encoding="utf-8")
-    assert "ruff" in (rules_dir / "python.md").read_text(encoding="utf-8")
+    go_content = (rules_dir / "go.md").read_text(encoding="utf-8")
+    assert "golangci-lint" in go_content
+    assert "govulncheck" in go_content  # CQ-3 dependency version hygiene
     assert "hand-edit" in (rules_dir / "generated-artifacts.md").read_text(
         encoding="utf-8"
     )
     assert "git" in (rules_dir / "git-safety.md").read_text(encoding="utf-8").lower()
-    assert "Naming" in (rules_dir / "architecture.md").read_text(encoding="utf-8")
+    architecture_content = (rules_dir / "architecture.md").read_text(encoding="utf-8")
+    assert "Naming" in architecture_content
+    assert "Error Handling" in architecture_content  # CQ-1
+    assert "Security" in architecture_content  # CQ-2
     assert "WHY" in (rules_dir / "documentation.md").read_text(encoding="utf-8")
+    assert "Context Window Discipline" in (rules_dir / "token-economy.md").read_text(
+        encoding="utf-8"
+    )
+
+
+def test_generate_standalone_root_manifest_has_priority_and_self_check(
+    tmp_path: Path,
+) -> None:
+    result = DevinPluginGenerator().generate_standalone(output_dir=tmp_path)
+    assert result.success is True, result.errors
+
+    content = (tmp_path / "dist" / "devin-standalone" / "AGENTS.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Compliance Priority" in content
+    assert "Self-Check" in content
 
 
 def test_generate_standalone_output_never_mentions_sdd(tmp_path: Path) -> None:
@@ -940,7 +967,6 @@ def test_generate_standalone_real_sources_exist() -> None:
     for rel_path in (
         "docs/guidelines/core-engineering-principles.md",
         "docs/guidelines/languages/go.md",
-        "docs/guidelines/languages/python.md",
         "docs/spec/canonical/features/TDD.md",
     ):
         path = repo_root / rel_path

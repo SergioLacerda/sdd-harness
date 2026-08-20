@@ -41,6 +41,14 @@ COMMAND_SPECS: dict[str, CommandSpec] = {
     "devin": CommandSpec(
         "sdd_cli.commands.devin", "Devin governance plugin generation (Soft/Standalone)"
     ),
+    "copilot": CommandSpec(
+        "sdd_cli.commands.copilot",
+        "Copilot governance projection generation (Soft/Standalone)",
+    ),
+    "claude": CommandSpec(
+        "sdd_cli.commands.claude",
+        "Claude Code governance projection generation (Soft/Standalone)",
+    ),
     "docs": CommandSpec("sdd_cli.commands.docs", "Documentation operations"),
     "metrics": CommandSpec(
         "sdd_cli.commands.metrics", "Token economy metrics and Prometheus exposition"

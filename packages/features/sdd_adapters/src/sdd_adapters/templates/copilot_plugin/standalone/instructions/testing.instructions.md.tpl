@@ -1,10 +1,14 @@
+---
+applyTo: "**/*.go"
+---
+
 # Testing
 
 Ruleset version: `{{ standalone_ruleset_version }}`
 Last verified: `{{ last_verified }}`
 
-Functions kept small and testable in isolation, per `architecture.md`, are what
-makes the Red-Green-Refactor cycle below practical.
+Functions kept small and testable in isolation, per `architecture.instructions.md`,
+are what makes the Red-Green-Refactor cycle below practical.
 
 ## Red-Green-Refactor
 
