@@ -12,13 +12,13 @@ import time
 from pathlib import Path
 
 import pytest
-
-from sdd_wizard.orchestration.phase_4_5_6_generator import run_phase_4_5_6_generator
 from tests.perf.wizard_pipeline_fixtures import (
     WIZARD_PIPELINE_CONFIG,
     generate_governance_items,
     write_governance_inputs,
 )
+
+from sdd_wizard.orchestration.phase_4_5_6_generator import run_phase_4_5_6_generator
 
 pytestmark = [pytest.mark.unit, pytest.mark.perf]
 

@@ -507,8 +507,34 @@ def test_parse_json_empty_stdout_with_no_stderr_omits_stderr_line() -> None:
     assert "stderr:" not in str(exc_info.value)
 
 
-def test_cache_dir_is_under_home_sdd_bin() -> None:
+def test_cache_dir_is_under_home_sdd_bin(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("SDD_CACHE_DIR", raising=False)
+    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
     assert compiler_runner._cache_dir() == Path.home() / ".sdd" / "bin"
+
+
+def test_cache_dir_honors_sdd_cache_dir_override(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("SDD_CACHE_DIR", str(tmp_path))
+    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
+    assert compiler_runner._cache_dir() == tmp_path / "bin"
+
+
+def test_cache_dir_falls_back_to_xdg_cache_home(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("SDD_CACHE_DIR", raising=False)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
+    assert compiler_runner._cache_dir() == tmp_path / "sdd" / "bin"
+
+
+def test_cache_dir_prefers_sdd_cache_dir_over_xdg(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("SDD_CACHE_DIR", str(tmp_path / "sdd-override"))
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
+    assert compiler_runner._cache_dir() == tmp_path / "sdd-override" / "bin"
 
 
 def test_asset_platform_windows_uses_exe_extension(
@@ -955,3 +981,53 @@ def test_verify_returns_valid_false_on_malformed_output() -> None:
     assert result["ok"] is False
     assert result["valid"] is False
     assert "boom" in result["error"]
+
+
+def _locate_built_binary() -> Path | None:
+    """Find the locally-built sdd-compile binary, if `make build-compiler` ran."""
+    from sdd_core.utils.environment import detect_repo_root
+
+    try:
+        repo_root = detect_repo_root()
+    except RuntimeError:
+        return None
+    binary = repo_root / "tools" / "sdd-compile" / "bin" / "sdd-compile"
+    return binary if binary.is_file() else None
+
+
+@pytest.mark.skipif(
+    _locate_built_binary() is None,
+    reason="sdd-compile binary not built locally (run `make build-compiler`)",
+)
+def test_real_binary_executes_from_path_with_space_and_non_ascii(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """doc02 E2E criterion: execution must work from non-ASCII/space paths.
+
+    Copies the real, locally-built sdd-compile binary into a directory whose
+    name contains both a space and a non-ASCII character (simulating a user
+    home directory like ``/home/José Álvarez/``), then resolves and runs it
+    through the real, unmocked `CompilerRunner` -> `SafeProcessRunner` chain
+    via `SDD_COMPILE_BIN` (the same env var a real standalone install would
+    use to pin a specific binary). `SafeProcessRunner` uses list-form
+    `subprocess.run(..., shell=False, ...)` (no shell involved), so this
+    exercises the Go binary's own argv/file-path handling — the one part of
+    the chain this test can't verify by reading Python source alone.
+    """
+    import shutil
+
+    built_binary = _locate_built_binary()
+    assert built_binary is not None  # guaranteed by skipif above
+
+    weird_dir = tmp_path / "usuário José Álvarez ção"
+    weird_dir.mkdir()
+    copied_binary = weird_dir / "sdd-compile"
+    shutil.copy(built_binary, copied_binary)
+    copied_binary.chmod(copied_binary.stat().st_mode | stat.S_IXUSR)
+
+    monkeypatch.setenv("SDD_COMPILE_BIN", str(copied_binary))
+    runner = CompilerRunner()
+    assert runner.resolution_rule == "env_override"
+
+    version_output = runner.version()
+    assert version_output.strip()

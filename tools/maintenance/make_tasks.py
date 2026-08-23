@@ -181,6 +181,49 @@ def run_check() -> int:
     )
 
 
+def run_test_unit() -> int:
+    """`unit` is an exclusion, not a required marker on every file.
+
+    Most of the suite (packages/*/tests/) is unmarked but genuinely
+    unit-level — retagging thousands of files was not needed to isolate this
+    family cheaply. `integration`/`contract`/`golden` are the three families
+    with their own marker (see pyproject.toml `markers`); anything not tagged
+    with one of those, and not `perf`, is unit by elimination.
+    """
+    return _run(
+        _python_cmd()
+        + [
+            "-m",
+            "pytest",
+            "tests",
+            "packages",
+            "-m",
+            "not integration and not contract and not golden and not perf",
+        ]
+    )
+
+
+def run_test_integration() -> int:
+    return _run(
+        _python_cmd()
+        + ["-m", "pytest", "tests", "packages", "-m", "integration and not perf"]
+    )
+
+
+def run_test_contract() -> int:
+    return _run(
+        _python_cmd()
+        + ["-m", "pytest", "tests", "packages", "-m", "contract and not perf"]
+    )
+
+
+def run_test_golden() -> int:
+    return _run(
+        _python_cmd()
+        + ["-m", "pytest", "tests", "packages", "-m", "golden and not perf"]
+    )
+
+
 def run_lint(*, fix: bool) -> int:
     cmd = _python_cmd() + ["tools/maintenance/lint_all.py"]
     if fix:
@@ -394,6 +437,10 @@ def main(argv: list[str] | None = None) -> int:
     test_p.add_argument("args", nargs="*")
     sub.add_parser("test-fast")
     sub.add_parser("test-perf")
+    sub.add_parser("test-unit")
+    sub.add_parser("test-integration")
+    sub.add_parser("test-contract")
+    sub.add_parser("test-golden")
     sub.add_parser("coverage")
     sub.add_parser("coverage-strict")
     sub.add_parser("release-dry-run")
@@ -426,6 +473,10 @@ def main(argv: list[str] | None = None) -> int:
         "lint-fix": lambda: run_lint(fix=True),
         "test-fast": run_test_fast,
         "test-perf": run_test_perf,
+        "test-unit": run_test_unit,
+        "test-integration": run_test_integration,
+        "test-contract": run_test_contract,
+        "test-golden": run_test_golden,
         "coverage": run_coverage,
         "coverage-strict": run_coverage_strict,
         "release-dry-run": run_release_dry_run,

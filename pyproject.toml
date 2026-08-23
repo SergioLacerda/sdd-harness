@@ -139,6 +139,9 @@ typing = [
 security = [
     "bandit>=1.9.4",
 ]
+mutation = [
+    "mutmut>=3.7.0",
+]
 docs = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.7.7",
@@ -286,6 +289,7 @@ markers = [
     "unit: isolated fast tests",
     "integration: cross-package tests",
     "contract: architectural compliance tests",
+    "golden: artifact/snapshot drift-detection tests (compares output against a committed golden fixture)",
     "e2e: full-system tests",
     "slow: expensive execution",
     "perf: performance/benchmark tests with wall-clock assertions — excluded from default runs, use 'make test-perf'",

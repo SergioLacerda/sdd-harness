@@ -7,11 +7,12 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.helpers.text_io import read_text_utf8
+
 from sdd_cli.generators._indices import (
     generate_cli_commands_index,
     generate_skill_index,
 )
-from tests.helpers.text_io import read_text_utf8
 
 
 class TestGenerateSkillIndex:

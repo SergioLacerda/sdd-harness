@@ -1,0 +1,215 @@
+name: Ecosystem Canary
+
+# Dependency-freshness canary (doc 03, Trilha row 3): floats dependencies in
+# a disposable checkout and runs the existing test suite against them, to
+# anticipate ecosystem breakage before Dependabot proposes a reviewed PR.
+#
+# Deliberately standalone: no `workflow_call`, no other workflow depends on
+# or is depended on by this one — a canary failure never blocks a PR, main,
+# or release build. Floated manifests (uv.lock / go.mod+go.sum /
+# package-lock.json) are never committed; they only ever exist on the
+# ephemeral runner checkout.
+
+on:
+  schedule:
+    - cron: '0 22 * * 0'   # Sunday 22:00 UTC — ahead of Dependabot's Monday 03:00 UTC pip window
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  python-canary:
+    name: Python dependency freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v7.0.0
+        with:
+          go-version-file: tools/sdd-compile/go.mod
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          version: "0.11.9"
+          enable-cache: true
+
+      - name: Build compiler (unfloated — not this job's ecosystem)
+        run: make build-compiler
+
+      - name: Float Python dependencies
+        run: |
+          cp uv.lock /tmp/uv.lock.before
+          uv lock --upgrade
+
+      - name: Install workspace (floated lock)
+        uses: ./.github/actions/uv-sync-retry
+
+      - name: Run test suite
+        run: |
+          set -o pipefail
+          make check 2>&1 | tee /tmp/python-canary.log
+
+      - name: Build failure report
+        if: failure()
+        run: |
+          {
+            echo "### uv.lock diff"
+            echo '```diff'
+            diff -u /tmp/uv.lock.before uv.lock || true
+            echo '```'
+            echo
+            echo "### Test log (last 200 lines)"
+            echo '```'
+            tail -n 200 /tmp/python-canary.log
+            echo '```'
+          } > /tmp/python-canary-report.md
+
+      - name: Report canary failure
+        if: failure()
+        uses: ./.github/actions/canary-issue-report
+        with:
+          ecosystem: python
+          labels: dependencies,python
+          body-file: /tmp/python-canary-report.md
+
+  go-canary:
+    name: Go dependency freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v7.0.0
+        with:
+          go-version-file: tools/sdd-compile/go.mod
+
+      - name: Float Go dependencies
+        working-directory: tools/sdd-compile
+        run: |
+          cp go.mod /tmp/go.mod.before
+          cp go.sum /tmp/go.sum.before
+          go get -u ./...
+          go mod tidy
+
+      - name: Build and test (floated deps)
+        run: |
+          set -o pipefail
+          make build-compiler 2>&1 | tee /tmp/go-canary.log
+          make test-compiler-go 2>&1 | tee -a /tmp/go-canary.log
+
+      - name: Build failure report
+        if: failure()
+        run: |
+          {
+            echo "### go.mod diff"
+            echo '```diff'
+            diff -u /tmp/go.mod.before tools/sdd-compile/go.mod || true
+            echo '```'
+            echo
+            echo "### go.sum diff (first 50 lines)"
+            echo '```diff'
+            diff -u /tmp/go.sum.before tools/sdd-compile/go.sum 2>/dev/null | head -n 50 || true
+            echo '```'
+            echo
+            echo "### Build/test log (last 200 lines)"
+            echo '```'
+            tail -n 200 /tmp/go-canary.log
+            echo '```'
+          } > /tmp/go-canary-report.md
+
+      - name: Report canary failure
+        if: failure()
+        uses: ./.github/actions/canary-issue-report
+        with:
+          ecosystem: go
+          labels: dependencies,go
+          body-file: /tmp/go-canary-report.md
+
+  npm-canary:
+    name: npm dependency freshness (apps/landing)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: "24"
+
+      - name: Float npm dependencies
+        working-directory: apps/landing
+        run: |
+          npm ci
+          cp package-lock.json /tmp/package-lock.json.before
+          npm update
+
+      - name: Lint and test (floated deps)
+        working-directory: apps/landing
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee /tmp/npm-canary.log
+          npm run test 2>&1 | tee -a /tmp/npm-canary.log
+
+      - name: Build failure report
+        if: failure()
+        run: |
+          {
+            echo "### package-lock.json diff (first 100 lines)"
+            echo '```diff'
+            diff -u /tmp/package-lock.json.before apps/landing/package-lock.json | head -n 100 || true
+            echo '```'
+            echo
+            echo "### Lint/test log (last 200 lines)"
+            echo '```'
+            tail -n 200 /tmp/npm-canary.log
+            echo '```'
+          } > /tmp/npm-canary-report.md
+
+      - name: Report canary failure
+        if: failure()
+        uses: ./.github/actions/canary-issue-report
+        with:
+          ecosystem: npm
+          labels: dependencies,npm
+          body-file: /tmp/npm-canary-report.md
+
+  actions-canary:
+    name: GitHub Actions freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Check pinned Actions freshness
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .artifacts
+          python3 tools/ci/check_actions_freshness.py \
+            --json-out .artifacts/actions_freshness.json \
+            | tee /tmp/actions-canary-report.md
+
+      - name: Report canary failure
+        if: failure()
+        uses: ./.github/actions/canary-issue-report
+        with:
+          ecosystem: github-actions
+          labels: dependencies,github-actions
+          body-file: /tmp/actions-canary-report.md
