@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Draft generator for the ADR-009 enforcement-ladder threshold sign-off (A9).
+"""Draft generator for the ADR-021 enforcement-ladder threshold sign-off (A9).
 
-`docs/adr/ADR-009-threshold-signoff.md` must mirror
+`docs/adr/ADR-021-threshold-signoff.md` must mirror
 `tools/ci/config/enforcement_ladder_thresholds.json` exactly, or
 `check_enforcement_threshold_signoff.py` fails CI. Today that sync is done by
 hand — this script drafts the numeric fields from the current thresholds
@@ -112,12 +112,12 @@ def _render(*, ladder_name: str, header: dict[str, str], values: dict[str, str])
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Draft docs/adr/ADR-009-threshold-signoff.md from the current thresholds config."
+        description="Draft docs/adr/ADR-021-threshold-signoff.md from the current thresholds config."
     )
     parser.add_argument(
         "--thresholds", default="tools/ci/config/enforcement_ladder_thresholds.json"
     )
-    parser.add_argument("--signoff", default="docs/adr/ADR-009-threshold-signoff.md")
+    parser.add_argument("--signoff", default="docs/adr/ADR-021-threshold-signoff.md")
     parser.add_argument("--ladder-name", default="progressive-enforcement-ladder")
     parser.add_argument(
         "--dry-run", action="store_true", help="Print the draft without writing it."

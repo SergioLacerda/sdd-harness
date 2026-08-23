@@ -8,20 +8,22 @@ from pathlib import Path
 import pytest
 
 from sdd_cli.services.audit_event_parser import (
-    _as_score,
     _drift_cause,
     _drift_type,
     _event_ts,
-    _has_quality_signals,
     _is_ask_invocation,
     _is_ask_phase_event,
     _is_drift_event,
     _load_events,
     _parse_int,
     _parse_ts,
-    _quality_score,
     _ts_sort_key,
     _window_events,
+)
+from sdd_cli.services.audit_quality_score import (
+    _as_score,
+    _has_quality_signals,
+    _quality_score,
 )
 
 

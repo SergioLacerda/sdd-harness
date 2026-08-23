@@ -6,6 +6,7 @@ from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 from sdd_cli.services import runtime_handler as runtime_mod
+from sdd_cli.services import runtime_handler_status as runtime_status_mod
 
 
 def test_read_workspace_id_and_profile_from_ini(tmp_path: Path, monkeypatch) -> None:
@@ -18,18 +19,22 @@ def test_read_workspace_id_and_profile_from_ini(tmp_path: Path, monkeypatch) -> 
 
 
 def test_check_cache_staleness_and_footer_status(tmp_path: Path) -> None:
-    assert runtime_mod._check_cache_staleness(tmp_path)["missing"] is True
+    assert runtime_status_mod._check_cache_staleness(tmp_path)["missing"] is True
     cache = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
     cache.parent.mkdir(parents=True)
     cache.write_text("x", encoding="utf-8")
-    info = runtime_mod._check_cache_staleness(tmp_path)
+    info = runtime_status_mod._check_cache_staleness(tmp_path)
     assert info["missing"] is False
     assert (
-        runtime_mod._footer_drift_status({"detected": True, "type": "spec_drift"})
+        runtime_status_mod._footer_drift_status(
+            {"detected": True, "type": "spec_drift"}
+        )
         == "spec_drift"
     )
     assert (
-        runtime_mod._footer_drift_status({"detected": False, "type": "spec_drift"})
+        runtime_status_mod._footer_drift_status(
+            {"detected": False, "type": "spec_drift"}
+        )
         == "none"
     )
 

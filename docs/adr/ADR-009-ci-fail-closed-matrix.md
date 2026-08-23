@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-08-07
-**Companion to:** `ADR-009-progressive-enforcement-ladder.md`
+**Companion to:** `ADR-020-progressive-enforcement-ladder.md`
 
 ---
 
@@ -46,6 +46,6 @@ see ADR-009 § Promotion criteria), all three move to `block`.
 
 ## Links
 
-- `docs/adr/ADR-009-progressive-enforcement-ladder.md` (parent ADR — phase semantics, promotion/rollback criteria, telemetry requirement)
+- `docs/adr/ADR-020-progressive-enforcement-ladder.md` (parent ADR — phase semantics, promotion/rollback criteria, telemetry requirement)
 - `.github/workflows/release.yml` (existing ephemeral-key proof of concept: `governance keygen` → `sign` → `audit`)
 - `.analysis/refined/20260807-ci-fail-closed-matrix-fix/` (originating Strategist mission)

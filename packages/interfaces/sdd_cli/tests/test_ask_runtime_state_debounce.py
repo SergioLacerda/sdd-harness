@@ -13,13 +13,14 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from sdd_cli.services import ask_context as ask_context_mod
+from sdd_cli.services import ask_context_drift as ask_context_drift_mod
+from sdd_cli.services import ask_context_routing as ask_context_routing_mod
 
 
 def test_write_runtime_cache_and_routing_decision_persists_both(
     tmp_path: Path,
 ) -> None:
-    ask_context_mod.write_runtime_cache_and_routing_decision(
+    ask_context_routing_mod.write_runtime_cache_and_routing_decision(
         tmp_path,
         {"ts": "2026-01-01T00:00:00Z", "compiled_fingerprint_used": "fp1"},
         "query",
@@ -37,7 +38,9 @@ def test_write_runtime_cache_and_routing_decision_persists_both(
 
     assert data["last_ask"]["compiled_fingerprint_used"] == "fp1"
 
-    cached = ask_context_mod.resolve_routing_decision(tmp_path, "query", "diagnose")
+    cached = ask_context_routing_mod.resolve_routing_decision(
+        tmp_path, "query", "diagnose"
+    )
     assert cached is not None
     assert cached["organize_used"] is True
     assert cached["handbook_task_type"] == "diagnosis"
@@ -64,7 +67,7 @@ def test_write_runtime_cache_and_routing_decision_reads_state_once(
         return real_read_text(self, *args, **kwargs)
 
     with patch.object(Path, "read_text", _spy_read_text):
-        ask_context_mod.write_runtime_cache_and_routing_decision(
+        ask_context_routing_mod.write_runtime_cache_and_routing_decision(
             tmp_path,
             {"compiled_fingerprint_used": "fp1"},
             "query",
@@ -85,7 +88,7 @@ def test_write_runtime_cache_and_routing_decision_preserves_existing_data(
         json.dumps({"spec_fingerprint": "existing123"}), encoding="utf-8"
     )
 
-    ask_context_mod.write_runtime_cache_and_routing_decision(
+    ask_context_routing_mod.write_runtime_cache_and_routing_decision(
         tmp_path, {"ts": "now"}, "q", None, "", {"organize_used": False}
     )
 
@@ -99,7 +102,7 @@ def test_write_runtime_cache_and_routing_decision_skips_routing_store_without_fi
 ) -> None:
     """No fingerprint (e.g. degraded/unauthenticated call) -> last_ask is still
     written, but no routing-decision entry is cached against an empty key."""
-    ask_context_mod.write_runtime_cache_and_routing_decision(
+    ask_context_routing_mod.write_runtime_cache_and_routing_decision(
         tmp_path, {"ts": "now"}, "q", None, "", {"organize_used": False}
     )
 
@@ -112,7 +115,7 @@ def test_write_runtime_cache_and_routing_decision_silently_handles_write_error(
     tmp_path: Path,
 ) -> None:
     with patch("pathlib.Path.write_text", side_effect=OSError("disk full")):
-        ask_context_mod.write_runtime_cache_and_routing_decision(
+        ask_context_routing_mod.write_runtime_cache_and_routing_decision(
             tmp_path, {"ts": "now"}, "q", None, "fp1", {"organize_used": False}
         )
 
@@ -141,8 +144,8 @@ def test_check_fingerprint_drift_and_end_of_call_write_share_one_read(
         return real_read_text(self, *args, **kwargs)
 
     with patch.object(Path, "read_text", _spy_read_text):
-        ask_context_mod.check_fingerprint_drift(tmp_path, "fp1")
-        ask_context_mod.write_runtime_cache_and_routing_decision(
+        ask_context_drift_mod.check_fingerprint_drift(tmp_path, "fp1")
+        ask_context_routing_mod.write_runtime_cache_and_routing_decision(
             tmp_path,
             {"compiled_fingerprint_used": "fp1"},
             "query",

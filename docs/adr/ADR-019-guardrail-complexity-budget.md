@@ -122,7 +122,7 @@ waiting for a perfect budget before deciding the one case in front of us.
 
 ## Links
 
-- `docs/adr/ADR-009-progressive-enforcement-ladder.md` (related — general
+- `docs/adr/ADR-020-progressive-enforcement-ladder.md` (related — general
   warn/block/strict philosophy this ADR's module-size decision follows)
 - `packages/interfaces/sdd_wizard/EXCEPTIONS.md` (prior-art pattern reused for the
   grandfather list)

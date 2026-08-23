@@ -12,7 +12,8 @@ import typer
 
 from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
 
-from ._helpers import _json_mode, _now
+from ._helpers import _now
+from ._helpers_signals import _json_mode
 from ._phase_timeouts import DEFAULT_ASK_PHASE_TIMEOUTS_MS, DEFAULT_ASK_TIMEOUT_MS
 from ._phase_timer import PhaseTimer
 

@@ -1,4 +1,4 @@
-# ADR-009 — Progressive Enforcement Ladder (WARN → BLOCK → STRICT)
+# ADR-020 — Progressive Enforcement Ladder (WARN → BLOCK → STRICT)
 
 **Status:** Accepted
 **Date:** 2026-05-21
@@ -83,6 +83,6 @@ postmortem and policy tuning. A block without a telemetry record is a ladder vio
 
 ## Links
 
-- Policy matrix: `docs/adr/ADR-009-progressive-enforcement-ladder.md` (this file)
-- Threshold signoff: `docs/adr/ADR-009-threshold-signoff.md`
+- Policy matrix: `docs/adr/ADR-020-progressive-enforcement-ladder.md` (this file)
+- Threshold signoff: `docs/adr/ADR-021-threshold-signoff.md`
 - Related: M010 (Governance Hardening), ADR-001 (Runtime Authority Boundary)

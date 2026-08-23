@@ -11,11 +11,13 @@ import typer
 from rich.console import Console
 
 from sdd_cli.services.governance_generate_handlers import (
-    generate_adapters_safe,
-    generate_runtime_handbook_required,
     generate_seeds,
     resolve_generate_path,
     run_generate_phases,
+)
+from sdd_cli.services.governance_generate_prereqs import (
+    generate_adapters_safe,
+    generate_runtime_handbook_required,
     write_instruction_files_safe,
     write_prompt_commands_safe,
 )
@@ -72,7 +74,7 @@ class TestWriteInstructionFilesSafe:
     def test_success_prints_written_message(self, tmp_path: Path) -> None:
         console = _console()
         with patch(
-            "sdd_cli.services.governance_generate_handlers.generate_agent_instruction_files",
+            "sdd_cli.services.governance_generate_prereqs.generate_agent_instruction_files",
             return_value=[("copilot", tmp_path / "a.md")],
         ):
             write_instruction_files_safe(tmp_path, {}, console=console)
@@ -82,7 +84,7 @@ class TestWriteInstructionFilesSafe:
     def test_exception_prints_warning(self, tmp_path: Path) -> None:
         console = _console()
         with patch(
-            "sdd_cli.services.governance_generate_handlers.generate_agent_instruction_files",
+            "sdd_cli.services.governance_generate_prereqs.generate_agent_instruction_files",
             side_effect=RuntimeError("boom"),
         ):
             write_instruction_files_safe(tmp_path, {}, console=console)
@@ -94,7 +96,7 @@ class TestWritePromptCommandsSafe:
     def test_success_prints_written_message(self, tmp_path: Path) -> None:
         console = _console()
         with patch(
-            "sdd_cli.services.governance_generate_handlers.generate_agent_prompt_commands",
+            "sdd_cli.services.governance_generate_prereqs.generate_agent_prompt_commands",
             return_value=[("codex", tmp_path / "commands.md")],
         ):
             write_prompt_commands_safe(tmp_path, {}, console=console)
@@ -104,7 +106,7 @@ class TestWritePromptCommandsSafe:
     def test_exception_prints_warning(self, tmp_path: Path) -> None:
         console = _console()
         with patch(
-            "sdd_cli.services.governance_generate_handlers.generate_agent_prompt_commands",
+            "sdd_cli.services.governance_generate_prereqs.generate_agent_prompt_commands",
             side_effect=RuntimeError("boom"),
         ):
             write_prompt_commands_safe(tmp_path, {}, console=console)
@@ -161,7 +163,7 @@ class TestGenerateRuntimeHandbookRequired:
                 return_value=workspace,
             ),
             patch(
-                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
                 return_value=[tmp_path / ".sdd/source/handbook/index.yaml"],
             ) as mock_generate,
         ):
@@ -178,7 +180,7 @@ class TestGenerateRuntimeHandbookRequired:
                 return_value=tmp_path / "workspace",
             ),
             patch(
-                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
                 return_value=[],
             ) as mock_generate,
         ):
@@ -204,7 +206,7 @@ class TestGenerateRuntimeHandbookRequired:
                 side_effect=RuntimeError("repo missing"),
             ),
             patch(
-                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
                 return_value=[],
             ) as mock_generate,
         ):
@@ -216,7 +218,7 @@ class TestGenerateRuntimeHandbookRequired:
     def test_quiet_suppresses_success_output(self, tmp_path: Path) -> None:
         console = _console()
         with patch(
-            "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+            "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
             return_value=[tmp_path / ".sdd/source/handbook/index.yaml"],
         ):
             generate_runtime_handbook_required(tmp_path, console=console, quiet=True)
@@ -227,7 +229,7 @@ class TestGenerateRuntimeHandbookRequired:
         console = _console()
         with (
             patch(
-                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
                 side_effect=RuntimeError("boom"),
             ),
             pytest.raises(RuntimeError, match="boom"),

@@ -7,11 +7,9 @@ from pathlib import Path
 
 import yaml
 
-from sdd_cli.services.governance_docs_sources import (
-    generate_runtime_handbook,
-    lookup_runtime_handbook,
-    validate_governance_sources,
-)
+from sdd_cli.services.governance_docs_drift import validate_governance_sources
+from sdd_cli.services.governance_docs_handbook_gen import generate_runtime_handbook
+from sdd_cli.services.governance_docs_handbook_lookup import lookup_runtime_handbook
 
 
 def _write_json(path: Path, data: dict[str, object]) -> None:

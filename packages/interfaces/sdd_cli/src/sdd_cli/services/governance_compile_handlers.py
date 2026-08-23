@@ -9,11 +9,11 @@ from typing import Any
 import typer
 from rich.console import Console
 
+from sdd_cli.services._governance_compile_flow import run_compile_flow
 from sdd_cli.services._governance_compile_support import (
     compliance_components,
     maybe_load_artifact_fingerprint,
     resolve_output_base_path,
-    run_compile_flow,
 )
 from sdd_cli.services.governance_compile_telemetry import (
     emit_compile_telemetry,

@@ -9,9 +9,9 @@ from typing import Any
 
 from rich.console import Console
 
+from sdd_cli.services._governance_compile_flow import regenerate_seeds_flow
 from sdd_cli.services._governance_compile_support import (
     compliance_components,
-    regenerate_seeds_flow,
     resolve_output_base_path,
 )
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
@@ -96,7 +96,7 @@ def regenerate_seeds(*, console: Console | None = None) -> None:
     if console is None:
         console = Console()
     from sdd_cli.generators.agent_seeds import generate_agent_instruction_files
-    from sdd_cli.services.governance_docs_sources import generate_runtime_handbook
+    from sdd_cli.services.governance_docs_handbook_gen import generate_runtime_handbook
     from sdd_cli.utils.loader import load_governance_config, validate_governance_path
 
     def generate_runtime_handbook_required(*args: Any, **kwargs: Any) -> list[Path]:

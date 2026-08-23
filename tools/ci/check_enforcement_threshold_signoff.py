@@ -133,7 +133,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--signoff",
-        default="docs/adr/ADR-009-threshold-signoff.md",
+        default="docs/adr/ADR-021-threshold-signoff.md",
     )
     return parser.parse_args()
 

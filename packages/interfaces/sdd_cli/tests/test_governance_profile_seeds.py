@@ -12,7 +12,7 @@ from unittest.mock import patch
 import pytest
 from rich.console import Console
 
-from sdd_cli.services._governance_compile_support import (
+from sdd_cli.services._governance_compile_flow import (
     sync_workspace_metadata_from_config,
 )
 from sdd_cli.services.governance_compile_handlers import (
@@ -255,7 +255,7 @@ class TestRegenerateSeeds:
                 return_value=True,
             ) as mock_gen_root,
             patch(
-                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
                 return_value=[tmp_path / ".sdd/source/handbook/index.yaml"],
             ) as mock_handbook,
         ):
@@ -312,7 +312,7 @@ class TestRegenerateSeeds:
                 return_value=True,
             ),
             patch(
-                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
                 return_value=[],
             ) as mock_handbook,
         ):
@@ -393,7 +393,7 @@ class TestRegenerateSeeds:
                 return_value=True,
             ),
             patch(
-                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
                 return_value=[],
             ),
         ):
@@ -535,7 +535,7 @@ class TestRegenerateSeeds:
             ),
             patch("sdd_cli.generators.agent_seeds.generate_agent_instruction_files"),
             patch(
-                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
                 return_value=[],
             ),
             patch.dict(sys.modules, {"sdd_wizard.contracts": None}),
@@ -602,7 +602,7 @@ class TestRegenerateSeeds:
                 return_value=True,
             ),
             patch(
-                "sdd_cli.services.governance_docs_sources.generate_runtime_handbook",
+                "sdd_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
                 side_effect=RuntimeError("boom"),
             ),
             pytest.raises(RuntimeHandbookRegenerationError, match="boom"),

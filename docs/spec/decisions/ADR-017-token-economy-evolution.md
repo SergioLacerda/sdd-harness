@@ -1,4 +1,4 @@
-# ADR-013: Token Economy Evolution (Hybrid Accounting)
+# ADR-017: Token Economy Evolution (Hybrid Accounting)
 
 ## Status
 

@@ -10,10 +10,10 @@ from sdd_cli.services.audit_event_parser import (
     _is_ask_invocation,
     _is_ask_phase_event,
     _is_drift_event,
-    _quality_score,
     _token_totals,
     _window_events,
 )
+from sdd_cli.services.audit_quality_score import _quality_score
 
 
 def window_confidence(token_coverage: float, drift_classified_coverage: float) -> str:

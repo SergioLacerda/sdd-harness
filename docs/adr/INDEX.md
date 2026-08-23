@@ -163,7 +163,7 @@ vs Go compiler comparison.
 
 ---
 
-### ADR-009: Progressive Enforcement Ladder (WARN → BLOCK → STRICT) (2026-05-21)
+### ADR-020: Progressive Enforcement Ladder (WARN → BLOCK → STRICT) (2026-05-21)
 
 **Decision:** Governance enforcement uses a three-phase ladder; rules advance based on measured stability, not calendar.
 
@@ -174,8 +174,8 @@ vs Go compiler comparison.
 
 **Links:**
 
-- [ADR-009-progressive-enforcement-ladder.md](ADR-009-progressive-enforcement-ladder.md)
-- [ADR-009-threshold-signoff.md](ADR-009-threshold-signoff.md)
+- [ADR-020-progressive-enforcement-ladder.md](ADR-020-progressive-enforcement-ladder.md)
+- [ADR-021-threshold-signoff.md](ADR-021-threshold-signoff.md)
 - [ADR-009-ci-fail-closed-matrix.md](ADR-009-ci-fail-closed-matrix.md) — companion matrix mapping CI controls onto the warn/block/strict phases
 - Related: M010 (Governance Hardening)
 
@@ -320,7 +320,7 @@ check blocking for new violations going forward.
 
 These artifacts support governance operations but are not ADRs:
 
-- [Threshold signoff: progressive-enforcement-ladder](ADR-009-threshold-signoff.md)
+- [Threshold signoff: progressive-enforcement-ladder](ADR-021-threshold-signoff.md)
 
 ---
 

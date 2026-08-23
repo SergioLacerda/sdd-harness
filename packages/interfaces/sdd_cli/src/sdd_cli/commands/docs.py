@@ -7,11 +7,9 @@ import click
 import typer
 
 from sdd_cli.services.command_group_output import show_command_group
-from sdd_cli.services.governance_docs_sources import (
-    generate_runtime_handbook,
-    lookup_runtime_handbook,
-    validate_governance_sources,
-)
+from sdd_cli.services.governance_docs_drift import validate_governance_sources
+from sdd_cli.services.governance_docs_handbook_gen import generate_runtime_handbook
+from sdd_cli.services.governance_docs_handbook_lookup import lookup_runtime_handbook
 
 app = typer.Typer(help="Documentation commands", invoke_without_command=True)
 
