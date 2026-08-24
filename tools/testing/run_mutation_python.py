@@ -44,8 +44,9 @@ class MutationTarget:
 
     `package_dir` is repo-root-relative (e.g. "packages/core/sdd_runtime").
     `only_mutate` entries are relative to that package's own `src/`.
-    `ignore_test_files` lists repo-root-relative test files to exclude from
-    this run — reserve this for files that genuinely misbehave under
+    `ignore_test_files` lists test files, relative to the package's own
+    `tests/` dir, to exclude from this run — reserve this for files that
+    genuinely misbehave under
     mutmut's multi-phase re-invocation (e.g. real `@given`/Hypothesis
     property tests), not as a blanket exclusion. Excluding a file that
     happens to be the *only* coverage for the mutated code silently produces
@@ -86,7 +87,15 @@ def _write_mutmut_config(src_dir: Path, target: MutationTarget) -> Path:
             f"{config_path} already exists — refusing to overwrite. "
             "Remove it manually if a previous run left it behind."
         )
-    test_selection = "../../tests"
+    # Absolute, not relative: mutmut's own working directory differs between
+    # its "collect stats" phase (runs from src_dir) and its per-mutant test
+    # phase (runs from src_dir/mutants, one level deeper) — a relative path
+    # here would need to mean two different things depending on which phase
+    # is active. package_dir/tests is the package's own test suite, e.g.
+    # packages/core/sdd_runtime/tests/, not the repo-root tests/ directory
+    # (which the src/tests and src/docs symlinks below exist to make
+    # importable, not collectible).
+    test_selection = str(src_dir.parent / "tests")
     deselect_expr = " and ".join(f"not {name}" for name in target.extra_deselect)
     lines = [
         "[tool.mutmut]",
@@ -98,7 +107,7 @@ def _write_mutmut_config(src_dir: Path, target: MutationTarget) -> Path:
     if deselect_expr:
         args_list += ["-k", deselect_expr]
     for ignored in target.ignore_test_files:
-        args_list.append(f"--ignore=../../tests/{ignored}")
+        args_list.append(f"--ignore={src_dir.parent / 'tests' / ignored}")
     if args_list:
         lines.append(f"pytest_add_cli_args = {args_list!r}")
     config_path.write_text("\n".join(lines) + "\n", encoding="utf-8")

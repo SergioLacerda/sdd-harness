@@ -256,9 +256,12 @@ indent-style = "space"
 line-ending = "auto"
 
 [tool.pytest.ini_options]
+# Paths in this section are relative to this file's own directory
+# (packages/), same caveat as the per-file-ignores fix in
+# [tool.ruff.lint.per-file-ignores] above — this is not the repo root.
 testpaths = [
-    "tests",
-    "packages"
+    "../tests",
+    "."
 ]
 norecursedirs = [
     "templates",
@@ -302,17 +305,15 @@ markers = [
     "encoding_edge: tests that intentionally exercise malformed text bytes via permissive decode helper",
 ]
 
+# Only ".." (repo root, for tests.helpers.*) is load-bearing — every package
+# below is already on sys.path via its own editable install (uv sync
+# --all-packages), so a per-package src/ entry here is redundant for import
+# resolution and actively harmful for tools/testing/run_mutation_python.py:
+# pytest re-inserts these at sys.path[0] during its own config phase, after
+# mutmut has already inserted its instrumented mutants/ copy, so an entry
+# here would silently shadow it and mutmut would report 0 mutants covered.
 pythonpath = [
-    ".",
-    "packages/core/sdd_core/src",
-    "packages/core/sdd_runtime/src",
-    "packages/core/sdd_telemetry/src",
-    "packages/features/sdd_integration/src",
-    "packages/features/sdd_adapters/src",
-    "packages/features/sdd_skills/src",
-    "packages/features/sdd_pages/src",
-    "packages/interfaces/sdd_wizard/src",
-    "packages/interfaces/sdd_cli/src"
+    ".."
 ]
 
 [tool.coverage.run]
