@@ -1,5 +1,5 @@
 # Stage 0: Go binary builder
-FROM golang:1.26-alpine AS go-builder
+FROM golang:1.27-alpine AS go-builder
 
 WORKDIR /build
 COPY tools/sdd-compile/ .
