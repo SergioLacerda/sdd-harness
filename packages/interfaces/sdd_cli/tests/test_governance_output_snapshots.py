@@ -4,10 +4,10 @@ import re
 from pathlib import Path
 
 from click.testing import CliRunner
+from tests.helpers.text_io import read_text_utf8
 
 from sdd_cli.main import app
 from sdd_cli.services.runtime_preflight import PreflightResult
-from tests.helpers.text_io import read_text_utf8
 
 runner = CliRunner()
 SNAPSHOT_DIR = Path(__file__).parent / "snapshots"

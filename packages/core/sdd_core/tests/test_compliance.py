@@ -705,8 +705,15 @@ class TestReadAllEvents:
         assert result == []
 
 
+def _clear_compliance_path_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("SDD_COMPLIANCE_LOG", raising=False)
+    monkeypatch.delenv("SDD_COMPLIANCE_EVENTS_PATH", raising=False)
+    monkeypatch.delenv("SDD_TELEMETRY_PATH", raising=False)
+
+
 class TestDefaultLogPath:
     def test_returns_none_when_disabled(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        _clear_compliance_path_env(monkeypatch)
         monkeypatch.setenv("SDD_COMPLIANCE_LOG", "disabled")
         result = default_log_path()
         assert result is None
@@ -714,6 +721,7 @@ class TestDefaultLogPath:
     def test_returns_override_when_set(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
+        _clear_compliance_path_env(monkeypatch)
         custom_log = str(tmp_path / "custom.jsonl")
         monkeypatch.setenv("SDD_COMPLIANCE_LOG", custom_log)
         result = default_log_path()
@@ -723,10 +731,30 @@ class TestDefaultLogPath:
     def test_returns_default_when_no_env(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.delenv("SDD_COMPLIANCE_LOG", raising=False)
+        _clear_compliance_path_env(monkeypatch)
         result = default_log_path(workspace_root=tmp_path)
         assert result is not None
         assert result.name == "compliance-events.jsonl"
+
+    def test_lower_precedence_var_used_when_only_it_is_set(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        _clear_compliance_path_env(monkeypatch)
+        custom_log = str(tmp_path / "from-telemetry-path.jsonl")
+        monkeypatch.setenv("SDD_TELEMETRY_PATH", custom_log)
+        result = default_log_path()
+        assert result is not None
+        assert str(result) == custom_log
+
+    def test_sdd_compliance_log_wins_over_lower_precedence_vars(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        _clear_compliance_path_env(monkeypatch)
+        monkeypatch.setenv("SDD_COMPLIANCE_LOG", str(tmp_path / "winner.jsonl"))
+        monkeypatch.setenv("SDD_TELEMETRY_PATH", str(tmp_path / "loser.jsonl"))
+        result = default_log_path()
+        assert result is not None
+        assert result.name == "winner.jsonl"
 
 
 class TestGetCompiledFingerprint:
@@ -773,7 +801,7 @@ class TestDefaultLogPathFallbacks:
     def test_uses_find_workspace_root_when_no_workspace_arg(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.delenv("SDD_COMPLIANCE_LOG", raising=False)
+        _clear_compliance_path_env(monkeypatch)
         with patch(
             "sdd_core.utils.environment.find_workspace_root", return_value=tmp_path
         ):
@@ -784,7 +812,7 @@ class TestDefaultLogPathFallbacks:
     def test_falls_back_to_cwd_when_find_workspace_root_returns_none(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.delenv("SDD_COMPLIANCE_LOG", raising=False)
+        _clear_compliance_path_env(monkeypatch)
         with patch("sdd_core.utils.environment.find_workspace_root", return_value=None):
             result = default_log_path()
         assert result is not None
@@ -793,7 +821,7 @@ class TestDefaultLogPathFallbacks:
     def test_falls_back_when_find_workspace_root_raises(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.delenv("SDD_COMPLIANCE_LOG", raising=False)
+        _clear_compliance_path_env(monkeypatch)
         with patch(
             "sdd_core.utils.environment.find_workspace_root",
             side_effect=RuntimeError("no ws"),

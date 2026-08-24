@@ -187,6 +187,7 @@ class TestGovernanceCoreSchema:
 
 
 @pytest.mark.contract
+@pytest.mark.golden
 class TestGovernanceCoreGoldenFile:
     """Regression guard: compiled artifact must match the committed golden snapshot.
 
@@ -318,6 +319,7 @@ class TestGovernanceClientSchema:
 
 
 @pytest.mark.contract
+@pytest.mark.golden
 class TestGovernanceClientGoldenFile:
     """Regression guard: client artifact must match committed golden snapshot."""
 

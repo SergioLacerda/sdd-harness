@@ -1,4 +1,4 @@
-"""ask_response_json — JSON response and dossier line construction for `sdd ask`."""
+"""ask_response_json — JSON response emission for `sdd ask`."""
 
 from __future__ import annotations
 
@@ -6,75 +6,17 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from sdd_cli.services.ask_dossier import estimate_budget_utilization_pct
 from sdd_cli.services.ask_hash import _hash_query
 from sdd_cli.services.ask_payload import build_ask_json_data
-from sdd_cli.services.ask_response import (
+from sdd_cli.services.ask_response import _now
+from sdd_cli.services.ask_response_dossier import build_json_dossier_lines
+from sdd_cli.services.ask_response_intake import (
     _looks_like_implementation_intent,
-    _now,
     build_intake_contract_fields,
     resolve_execution_gate,
 )
 from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
 from sdd_cli.utils.output import emit_json
-
-
-def build_json_dossier_lines(
-    inputs: _AskInputs,
-    session: _AskSessionContext,
-    mandates_count: int,
-    *,
-    resolve_dossier_budget_fn: Callable[[int | None], int],
-    load_dossier_artifact_fn: Callable[[Path], Any | None],
-    build_dossier_lines_fn: Callable[..., list[str]],
-    handle_dossier_error_fn: Callable[[Exception], None],
-    prefer_full_summary_fn: Callable[[], bool],
-) -> list[str]:
-    """Build dossier lines for the JSON response, or [] if not requested."""
-    if not inputs.dossier:
-        return []
-    try:
-        from sdd_runtime.context import ContextLoader, ContextRequest
-
-        dossier_budget = resolve_dossier_budget_fn(inputs.budget)
-        artifact = load_dossier_artifact_fn(session.workspace_root)
-        prefer_full_summary = prefer_full_summary_fn()
-        loader = ContextLoader()
-        # Probe pass at 0% utilization: measures real bytes_loaded without
-        # triggering compression or breach (see ask_dossier.build_and_output_dossier
-        # for the text-mode twin of this logic).
-        probe_result = loader.load_result(
-            ContextRequest(
-                query=inputs.query,
-                artifact=artifact,
-                max_items=mandates_count,
-                budget_utilization_pct=0.0,
-                prefer_full_summary=prefer_full_summary,
-            )
-        )
-        budget_utilization_pct = estimate_budget_utilization_pct(
-            probe_result.bytes_loaded, dossier_budget
-        )
-        context_result = loader.load_result(
-            ContextRequest(
-                query=inputs.query,
-                artifact=artifact,
-                max_items=mandates_count,
-                budget_utilization_pct=budget_utilization_pct,
-                prefer_full_summary=prefer_full_summary,
-            )
-        )
-        return build_dossier_lines_fn(
-            query=inputs.query,
-            skill=inputs.skill,
-            budget=dossier_budget,
-            mandates_count=mandates_count,
-            budget_utilization_pct=budget_utilization_pct,
-            context_result=context_result,
-        )
-    except Exception as exc:
-        handle_dossier_error_fn(exc)
-        return []
 
 
 def emit_ask_json_response(
@@ -206,53 +148,6 @@ def emit_ask_json_response(
     )
     if dossier_lines:
         data["dossier"] = {"lines": dossier_lines}
-    emit_json(
-        {
-            "status": "ok",
-            "command": "ask",
-            "ok": True,
-            "error": None,
-            "data": data,
-        }
-    )
-
-
-def emit_ask_intake_only_json_response(
-    inputs: _AskInputs,
-    session: _AskSessionContext,
-    *,
-    runtime_handbook_hint: dict[str, Any] | None = None,
-) -> None:
-    """Cheap hook-mode JSON response: gate + structured intent only.
-
-    Deliberately omits fingerprint, mandates_loaded, degraded/drift status,
-    trust_source, and full runtime_handbook payloads — those require the full
-    governance snapshot this profile exists to avoid loading (spike:
-    20260714-sdd-ask-single-entrypoint-spike, A-005/I-005). A compact
-    runtime_handbook_hint may be present when a runtime-only lookup finds an
-    opportunistic runbook signal.
-    """
-    execution_gate = resolve_execution_gate(
-        organize_used=session.organize_used,
-        organize_reason=session.organize_reason,
-    )
-    intake_contract = build_intake_contract_fields(
-        execution_gate=execution_gate, query=inputs.query, skill=inputs.skill
-    )
-    data: dict[str, Any] = {
-        "profile": session.profile,
-        "query_hash": _hash_query(inputs.query),
-        "intake_index_mode": "multi" if session.organize_used else "none",
-        "intake_chunks": session.organize_chunks,
-        "intake_retrieval": session.organize_retrieval,
-        "intake_artifact": session.organize_artifact_path or "n/a",
-        "governance_mode": "hard",
-        "execution_gate": execution_gate,
-        "intake_profile": "cheap",
-        **intake_contract,
-    }
-    if runtime_handbook_hint:
-        data["runtime_handbook_hint"] = runtime_handbook_hint
     emit_json(
         {
             "status": "ok",

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 import os
-import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -46,23 +45,6 @@ def _read_profile(root: Path) -> str:
         field="type",
         fallback="",
     )
-
-
-def _check_cache_staleness(root: Path) -> dict[str, Any]:
-    """Return staleness info for .sdd/runtime/.sdd-cache.md."""
-    cache_file = root / ".sdd" / "runtime" / ".sdd-cache.md"
-    if not cache_file.exists():
-        return {"stale": False, "missing": True, "age_min": None}
-    age = int(time.time() - cache_file.stat().st_mtime)
-    return {"stale": age > 900, "missing": False, "age_min": age // 60}
-
-
-def _footer_drift_status(drift_info: dict[str, Any]) -> str:
-    """Map runtime drift payload to canonical compact footer drift status."""
-    drift_type = str(drift_info.get("type", "none")).strip().lower() or "none"
-    if bool(drift_info.get("detected")):
-        return drift_type
-    return "none"
 
 
 def _normalize_report(report: Any) -> dict[str, Any]:

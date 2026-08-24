@@ -8,11 +8,8 @@ from pathlib import Path
 
 import typer
 
-from sdd_cli.commands._ask_backend._helpers import (
-    _get_cached_ahp,
-    _json_mode,
-    _signature_mode,
-)
+from sdd_cli.commands._ask_backend._helpers import _get_cached_ahp, _signature_mode
+from sdd_cli.commands._ask_backend._helpers_signals import _json_mode
 from sdd_cli.shared.constants import BREACH_EXIT_CODE as _BREACH_EXIT_CODE
 
 logger = logging.getLogger(__name__)

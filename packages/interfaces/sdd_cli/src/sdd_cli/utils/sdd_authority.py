@@ -8,7 +8,6 @@ Centralizes the operational contract:
 
 from __future__ import annotations
 
-import os
 import tempfile
 from pathlib import Path
 
@@ -45,11 +44,16 @@ def _repo_root() -> Path:
 
 
 def _workspace_root_from_env() -> Path | None:
-    """Return SDD_WORKSPACE_ROOT if set (highest-priority explicit override)."""
-    raw = os.environ.get("SDD_WORKSPACE_ROOT", "").strip()
-    if not raw:
-        return None
-    return Path(raw).expanduser().resolve()
+    """Return SDD_WORKSPACE_ROOT if set (highest-priority explicit override).
+
+    Delegates to sdd_core's implementation — this used to be a
+    character-for-character duplicate of
+    `sdd_core.utils.environment.workspace_root_from_env`, which risked the two
+    silently diverging over time.
+    """
+    from sdd_core.utils.environment import workspace_root_from_env
+
+    return workspace_root_from_env()
 
 
 def resolve_workspace_root(explicit_root: Path | None = None) -> Path:

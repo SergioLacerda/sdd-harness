@@ -14,38 +14,48 @@ from pathlib import Path
 
 import pytest
 
-from sdd_cli.services import ask_context as ask_context_mod
+from sdd_cli.services import ask_context_drift as ask_context_drift_mod
+from sdd_cli.services import ask_context_routing as ask_context_routing_mod
 
 
 def test_compute_routing_signature_is_stable_for_equivalent_inputs() -> None:
-    sig1 = ask_context_mod.compute_routing_signature(
+    sig1 = ask_context_drift_mod.compute_routing_signature(
         "  Fix the Bug  ", "diagnose", "fp1"
     )
-    sig2 = ask_context_mod.compute_routing_signature("fix the bug", "Diagnose", "fp1")
+    sig2 = ask_context_drift_mod.compute_routing_signature(
+        "fix the bug", "Diagnose", "fp1"
+    )
     assert sig1 == sig2
 
 
 def test_compute_routing_signature_changes_with_query_skill_or_fingerprint() -> None:
-    base = ask_context_mod.compute_routing_signature("query", "skill", "fp1")
-    assert base != ask_context_mod.compute_routing_signature(
+    base = ask_context_drift_mod.compute_routing_signature("query", "skill", "fp1")
+    assert base != ask_context_drift_mod.compute_routing_signature(
         "other query", "skill", "fp1"
     )
-    assert base != ask_context_mod.compute_routing_signature(
+    assert base != ask_context_drift_mod.compute_routing_signature(
         "query", "other-skill", "fp1"
     )
-    assert base != ask_context_mod.compute_routing_signature("query", "skill", "fp2")
+    assert base != ask_context_drift_mod.compute_routing_signature(
+        "query", "skill", "fp2"
+    )
 
 
 def test_resolve_routing_decision_returns_none_on_cold_start(tmp_path: Path) -> None:
     """No prior `sdd ask` call recorded -> never cache against an unknown fingerprint."""
-    assert ask_context_mod.resolve_routing_decision(tmp_path, "query", None) is None
+    assert (
+        ask_context_routing_mod.resolve_routing_decision(tmp_path, "query", None)
+        is None
+    )
 
 
 def test_store_then_resolve_routing_decision_hits_on_unchanged_fingerprint(
     tmp_path: Path,
 ) -> None:
-    ask_context_mod.write_runtime_cache(tmp_path, {"compiled_fingerprint_used": "fp1"})
-    ask_context_mod.store_routing_decision(
+    ask_context_drift_mod.write_runtime_cache(
+        tmp_path, {"compiled_fingerprint_used": "fp1"}
+    )
+    ask_context_routing_mod.store_routing_decision(
         tmp_path,
         "query",
         "diagnose",
@@ -57,7 +67,9 @@ def test_store_then_resolve_routing_decision_hits_on_unchanged_fingerprint(
         },
     )
 
-    cached = ask_context_mod.resolve_routing_decision(tmp_path, "query", "diagnose")
+    cached = ask_context_routing_mod.resolve_routing_decision(
+        tmp_path, "query", "diagnose"
+    )
 
     assert cached == {
         "organize_used": True,
@@ -70,8 +82,10 @@ def test_store_then_resolve_routing_decision_hits_on_unchanged_fingerprint(
 def test_resolve_routing_decision_misses_after_fingerprint_change(
     tmp_path: Path,
 ) -> None:
-    ask_context_mod.write_runtime_cache(tmp_path, {"compiled_fingerprint_used": "fp1"})
-    ask_context_mod.store_routing_decision(
+    ask_context_drift_mod.write_runtime_cache(
+        tmp_path, {"compiled_fingerprint_used": "fp1"}
+    )
+    ask_context_routing_mod.store_routing_decision(
         tmp_path,
         "query",
         None,
@@ -80,14 +94,21 @@ def test_resolve_routing_decision_misses_after_fingerprint_change(
     )
 
     # Governance recompiled since the decision was cached; last-known fingerprint moves on.
-    ask_context_mod.write_runtime_cache(tmp_path, {"compiled_fingerprint_used": "fp2"})
+    ask_context_drift_mod.write_runtime_cache(
+        tmp_path, {"compiled_fingerprint_used": "fp2"}
+    )
 
-    assert ask_context_mod.resolve_routing_decision(tmp_path, "query", None) is None
+    assert (
+        ask_context_routing_mod.resolve_routing_decision(tmp_path, "query", None)
+        is None
+    )
 
 
 def test_resolve_routing_decision_misses_for_different_skill(tmp_path: Path) -> None:
-    ask_context_mod.write_runtime_cache(tmp_path, {"compiled_fingerprint_used": "fp1"})
-    ask_context_mod.store_routing_decision(
+    ask_context_drift_mod.write_runtime_cache(
+        tmp_path, {"compiled_fingerprint_used": "fp1"}
+    )
+    ask_context_routing_mod.store_routing_decision(
         tmp_path,
         "query",
         "diagnose",
@@ -96,14 +117,17 @@ def test_resolve_routing_decision_misses_for_different_skill(tmp_path: Path) -> 
     )
 
     assert (
-        ask_context_mod.resolve_routing_decision(tmp_path, "query", "planning") is None
+        ask_context_routing_mod.resolve_routing_decision(tmp_path, "query", "planning")
+        is None
     )
 
 
 def test_store_routing_decision_caps_entry_count(tmp_path: Path) -> None:
-    ask_context_mod.write_runtime_cache(tmp_path, {"compiled_fingerprint_used": "fp1"})
-    for i in range(ask_context_mod._ROUTING_CACHE_MAX_ENTRIES + 5):
-        ask_context_mod.store_routing_decision(
+    ask_context_drift_mod.write_runtime_cache(
+        tmp_path, {"compiled_fingerprint_used": "fp1"}
+    )
+    for i in range(ask_context_routing_mod._ROUTING_CACHE_MAX_ENTRIES + 5):
+        ask_context_routing_mod.store_routing_decision(
             tmp_path, f"query-{i}", None, "fp1", {"organize_used": False}
         )
 
@@ -111,12 +135,12 @@ def test_store_routing_decision_caps_entry_count(tmp_path: Path) -> None:
     data = json.loads(state_path.read_text(encoding="utf-8"))
     assert (
         len(data["last_routing_decisions"])
-        == ask_context_mod._ROUTING_CACHE_MAX_ENTRIES
+        == ask_context_routing_mod._ROUTING_CACHE_MAX_ENTRIES
     )
 
 
 def test_store_routing_decision_is_noop_without_fingerprint(tmp_path: Path) -> None:
-    ask_context_mod.store_routing_decision(
+    ask_context_routing_mod.store_routing_decision(
         tmp_path, "query", None, "", {"organize_used": True}
     )
     state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
@@ -129,8 +153,10 @@ def test_run_organize_intake_skips_heuristic_on_cache_hit(
     """A signature hit must short-circuit `should_use_organize` entirely."""
     from sdd_cli.commands import _ask_backend as _backend
 
-    ask_context_mod.write_runtime_cache(tmp_path, {"compiled_fingerprint_used": "fp1"})
-    ask_context_mod.store_routing_decision(
+    ask_context_drift_mod.write_runtime_cache(
+        tmp_path, {"compiled_fingerprint_used": "fp1"}
+    )
+    ask_context_routing_mod.store_routing_decision(
         tmp_path,
         "same query",
         "diagnose",

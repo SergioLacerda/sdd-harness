@@ -15,15 +15,17 @@ from sdd_cli.services._audit_runner_support import (
 )
 from sdd_cli.services.audit_event_parser import (
     DriftRow,  # noqa: F401 — backward-compat re-export
-    _as_score,  # noqa: F401 — backward-compat re-export
     _drift_cause,  # noqa: F401 — backward-compat re-export
     _drift_type,  # noqa: F401 — backward-compat re-export
     _event_ts,  # noqa: F401 — backward-compat re-export
-    _has_quality_signals,  # noqa: F401 — backward-compat re-export
     _load_events,  # noqa: F401 — backward-compat re-export
     _parse_int,  # noqa: F401 — backward-compat re-export
     _parse_ts,  # noqa: F401 — backward-compat re-export
     _ts_sort_key,  # noqa: F401 — backward-compat re-export
+)
+from sdd_cli.services.audit_quality_score import (
+    _as_score,  # noqa: F401 — backward-compat re-export
+    _has_quality_signals,  # noqa: F401 — backward-compat re-export
 )
 from sdd_cli.utils.sdd_authority import resolve_workspace_root
 

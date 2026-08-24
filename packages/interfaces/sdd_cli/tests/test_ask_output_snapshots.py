@@ -5,9 +5,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 from click.testing import CliRunner
+from tests.helpers.text_io import read_text_utf8
 
 from sdd_cli.main import app
-from tests.helpers.text_io import read_text_utf8
 
 runner = CliRunner()
 SNAPSHOT_DIR = Path(__file__).parent / "snapshots"

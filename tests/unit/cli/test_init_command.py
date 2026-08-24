@@ -24,7 +24,7 @@ class TestInitCommand:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -48,7 +48,7 @@ class TestInitCommand:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -67,7 +67,7 @@ class TestInitCommand:
             pytest.raises(typer.Exit) as exc_info,
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -87,7 +87,7 @@ class TestInitCommand:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -118,7 +118,7 @@ class TestInitCommand:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -149,7 +149,7 @@ class TestInitCommand:
             pytest.raises(typer.Exit) as exc_info,
             patch("sdd_cli.commands.init.Path.cwd", return_value=child),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init._find_blocking_parent_workspace",
                 return_value=parent_root,
             ),
         ):
@@ -177,7 +177,7 @@ class TestInitCommand:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=child),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):

@@ -116,7 +116,16 @@ jobs:
           # via validateSerializable (depth/node-count limits before Marshal is
           # called) — see gov_compiler.go. Accepted-risk exception: fail the
           # build only if a *different* vulnerability is reported.
-          output=$(go run golang.org/x/vuln/cmd/govulncheck@latest ./... 2>&1) || true
+          #
+          # Tool version pinned (not @latest — no floating tool versions in
+          # PR/main builds per docs/adr ADR-009-ci-fail-closed-matrix and the
+          # supply-chain policy). Freshness of the vulnerability data itself
+          # does not depend on this pin: govulncheck always fetches the
+          # current advisory database from https://vuln.go.dev at run time
+          # regardless of the scanner binary's own version. Bump this tag
+          # periodically to pick up scanner improvements — check newer tags
+          # with `go list -m -versions golang.org/x/vuln`.
+          output=$(go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./... 2>&1) || true
           echo "$output"
           other_vulns=$(echo "$output" | grep -oE 'GO-[0-9]{4}-[0-9]+' | sort -u | grep -v '^GO-2026-4740$' || true)
           if [[ -n "$other_vulns" ]]; then

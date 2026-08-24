@@ -18,6 +18,7 @@ from sdd_cli.services.audit_event_parser import (
     _is_drift_event,
     _token_totals,
 )
+from sdd_core.governance.compliance_constants import resolve_compliance_log_override
 
 __all__ = [
     "compute_base_summary",
@@ -100,6 +101,9 @@ def compute_base_summary(
 
 
 def default_events_path(*, resolve_workspace_root_fn: Any) -> Path:
+    override = resolve_compliance_log_override()
+    if override.path is not None:
+        return override.path
     try:
         root = resolve_workspace_root_fn()
     except Exception:

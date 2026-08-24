@@ -6,8 +6,9 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
-from sdd_cli.generators._plugins import _STRATEGIST_ENTRY, generate_plugins_registry
 from tests.helpers.text_io import read_text_utf8
+
+from sdd_cli.generators._plugins import _STRATEGIST_ENTRY, generate_plugins_registry
 
 
 class TestStrategistEntry:

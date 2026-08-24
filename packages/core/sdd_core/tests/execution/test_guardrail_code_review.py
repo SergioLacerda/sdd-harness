@@ -17,7 +17,6 @@ import shutil
 import subprocess
 
 import pytest
-
 from tests.helpers.text_io import read_text_utf8
 
 # Import centralized paths

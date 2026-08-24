@@ -83,15 +83,15 @@ from ._helpers import _normalize_typer_value as _normalize_typer_value  # noqa: 
 from ._pipeline import (  # noqa: E402
     _should_use_organize,
     ask_cmd,
-    build_governed_ask_snapshot,
-    build_runtime_handbook_hint,
     run_sdd_organize,
 )
+from ._pipeline_handbook import build_runtime_handbook_hint  # noqa: E402
 from ._pipeline_runtime import _ask_cmd_impl as _ask_cmd_impl  # noqa: E402
 from ._pipeline_session import (  # noqa: E402
     _emit_state_warnings,
     _run_organize_intake,
 )
+from ._pipeline_snapshot import build_governed_ask_snapshot  # noqa: E402
 from ._telemetry import (  # noqa: E402
     OtelBridge,
     OtlpHttpExporter,
@@ -101,7 +101,7 @@ from ._telemetry import (  # noqa: E402
     _capture_effective_tokens,
     _emit_ask_telemetry,
     _enqueue_flush,
-    _load_dossier_artifact,
     _resolve_tokens,
     _upsert_ask_session,
 )
+from ._telemetry_dossier import _load_dossier_artifact  # noqa: E402

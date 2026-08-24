@@ -29,14 +29,72 @@ def build(
     dest: Path | None = typer.Option(
         None,
         "--dest",
-        help="Bundle output directory (default: <workspace>/dist/devin-plugin).",
+        help=(
+            "Output directory. Default: <workspace>/dist/devin-plugin, or "
+            "<workspace>/dist/devin-standalone with --standalone."
+        ),
+    ),
+    # bool | None (not a plain bool) so we can tell "user didn't pass either
+    # flag" (None) apart from "user explicitly passed --skills" (True) — the
+    # latter is a usage error together with --standalone, the former is not.
+    skills: bool | None = typer.Option(
+        None,
+        "--skills/--no-skills",
+        help=(
+            "Include the SDD skill catalog (skills/*.md). Each skill's allowed CLI "
+            "assumes the sdd CLI is installed in the Devin environment; use "
+            "--no-skills for a governance-only bundle (AGENTS.md + rules/) with no "
+            "such dependency. Not allowed together with --standalone. Default: "
+            "included, unless --standalone is set."
+        ),
+    ),
+    standalone: bool = typer.Option(
+        False,
+        "--standalone",
+        help=(
+            "Build a zero-SDD-mention project configuration "
+            "(AGENTS.md + .devin/config.json + .devin/hooks.v1.json + "
+            ".devin/rules/*.md) instead of the SDD-branded plugin bundle. "
+            "Written under dist/devin-standalone/ (or --dest), never into the "
+            "project's real root files."
+        ),
     ),
 ) -> None:
-    """Build the Soft/Standalone Devin governance plugin bundle from .sdd/skills/."""
+    """Build a Devin governance surface: the SDD-branded plugin bundle (default) or a zero-SDD-mention standalone project config (--standalone)."""
     from sdd_adapters.devin import DevinPluginGenerator
 
     ws_root = resolve_workspace_root()
-    result = DevinPluginGenerator().generate(output_dir=ws_root, dest=dest)
+
+    if standalone:
+        if skills:
+            console.print(
+                "[red]--standalone and --skills cannot be used together[/red] — "
+                "skills are SDD-branded content (sourced from .sdd/skills/, "
+                "documenting sdd-prefixed CLI commands), which contradicts "
+                "--standalone's zero-SDD-mention guarantee."
+            )
+            raise typer.Exit(1)
+
+        standalone_result = DevinPluginGenerator().generate_standalone(
+            output_dir=ws_root, dest=dest
+        )
+
+        if not standalone_result.success:
+            console.print(
+                f"[red]Devin standalone build failed:[/red] {'; '.join(standalone_result.errors)}"
+            )
+            raise typer.Exit(1)
+
+        console.print(
+            f"[green]Devin standalone config built[/green] "
+            f"({len(standalone_result.files_written)} files)"
+        )
+        return
+
+    include_skills = True if skills is None else skills
+    result = DevinPluginGenerator().generate(
+        output_dir=ws_root, dest=dest, include_skills=include_skills
+    )
 
     if not result.success:
         console.print(

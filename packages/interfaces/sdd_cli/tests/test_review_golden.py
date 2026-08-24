@@ -16,10 +16,10 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.helpers.text_io import read_text_utf8
 from typer.testing import CliRunner
 
 from sdd_cli.commands.test import app as test_app
-from tests.helpers.text_io import read_text_utf8
 
 
 def _make_ast_dict(items: list[dict], fingerprint: str = "fp-test") -> dict:

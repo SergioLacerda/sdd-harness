@@ -9,6 +9,7 @@
   "homepage": "https://github.com/SergioLacerda/sdd-harness",
   "repository": "https://github.com/SergioLacerda/sdd-harness.git",
   "license": "MIT",
-  "keywords": ["sdd", "governance", "devin-plugin", "soft-standalone"],
-  "skills": ["skills"]
+  "keywords": ["sdd", "governance", "devin-plugin", "soft-standalone"]{% if include_skills %},
+  "skills": ["skills"]{% endif %}
+
 }

@@ -9,9 +9,9 @@ from unittest.mock import patch
 
 import pytest
 
-from sdd_cli.services.ask_context import (
+from sdd_cli.services.ask_context import get_profile_state
+from sdd_cli.services.ask_context_drift import (
     check_fingerprint_drift,
-    get_profile_state,
     write_runtime_cache,
 )
 

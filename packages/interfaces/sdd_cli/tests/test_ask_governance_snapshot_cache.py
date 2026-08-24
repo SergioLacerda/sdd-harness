@@ -16,7 +16,9 @@ from pathlib import Path
 
 import pytest
 
-from sdd_cli.services import ask_context as ask_context_mod
+from sdd_cli.services import ask_context_drift as ask_context_drift_mod
+from sdd_cli.services import ask_context_routing as ask_context_routing_mod
+from sdd_cli.services import ask_context_snapshot as ask_context_snapshot_mod
 
 
 def _iso_now(offset_seconds: float = 0.0) -> str:
@@ -34,29 +36,35 @@ def test_store_then_get_governance_snapshot_hits_within_ttl(tmp_path: Path) -> N
         "degrade_reason": "",
         "trust_source": "canonical",
     }
-    ask_context_mod.store_governance_snapshot(tmp_path, "fp1", snapshot)
+    ask_context_snapshot_mod.store_governance_snapshot(tmp_path, "fp1", snapshot)
 
-    cached = ask_context_mod.get_cached_governance_snapshot(tmp_path, "fp1")
+    cached = ask_context_snapshot_mod.get_cached_governance_snapshot(tmp_path, "fp1")
 
     assert cached == snapshot
 
 
 def test_get_governance_snapshot_misses_for_unknown_fingerprint(tmp_path: Path) -> None:
-    ask_context_mod.store_governance_snapshot(tmp_path, "fp1", {"fingerprint": "fp1"})
+    ask_context_snapshot_mod.store_governance_snapshot(
+        tmp_path, "fp1", {"fingerprint": "fp1"}
+    )
 
-    assert ask_context_mod.get_cached_governance_snapshot(tmp_path, "fp2") is None
+    assert (
+        ask_context_snapshot_mod.get_cached_governance_snapshot(tmp_path, "fp2") is None
+    )
 
 
 def test_get_governance_snapshot_returns_none_without_fingerprint(
     tmp_path: Path,
 ) -> None:
-    assert ask_context_mod.get_cached_governance_snapshot(tmp_path, "") is None
+    assert ask_context_snapshot_mod.get_cached_governance_snapshot(tmp_path, "") is None
 
 
 def test_get_governance_snapshot_expires_after_ttl(tmp_path: Path) -> None:
     state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
     state_path.parent.mkdir(parents=True)
-    stale_computed_at = _iso_now(-(ask_context_mod._SNAPSHOT_CACHE_TTL_SECONDS + 30))
+    stale_computed_at = _iso_now(
+        -(ask_context_snapshot_mod._SNAPSHOT_CACHE_TTL_SECONDS + 30)
+    )
     state_path.write_text(
         json.dumps(
             {
@@ -71,13 +79,17 @@ def test_get_governance_snapshot_expires_after_ttl(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    assert ask_context_mod.get_cached_governance_snapshot(tmp_path, "fp1") is None
+    assert (
+        ask_context_snapshot_mod.get_cached_governance_snapshot(tmp_path, "fp1") is None
+    )
 
 
 def test_get_governance_snapshot_hits_just_inside_ttl(tmp_path: Path) -> None:
     state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
     state_path.parent.mkdir(parents=True)
-    fresh_computed_at = _iso_now(-(ask_context_mod._SNAPSHOT_CACHE_TTL_SECONDS - 30))
+    fresh_computed_at = _iso_now(
+        -(ask_context_snapshot_mod._SNAPSHOT_CACHE_TTL_SECONDS - 30)
+    )
     state_path.write_text(
         json.dumps(
             {
@@ -92,26 +104,29 @@ def test_get_governance_snapshot_hits_just_inside_ttl(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    assert ask_context_mod.get_cached_governance_snapshot(tmp_path, "fp1") == {
+    assert ask_context_snapshot_mod.get_cached_governance_snapshot(tmp_path, "fp1") == {
         "fingerprint": "fp1"
     }
 
 
 def test_store_governance_snapshot_caps_entry_count(tmp_path: Path) -> None:
-    for i in range(ask_context_mod._SNAPSHOT_CACHE_MAX_ENTRIES + 5):
-        ask_context_mod.store_governance_snapshot(
+    for i in range(ask_context_snapshot_mod._SNAPSHOT_CACHE_MAX_ENTRIES + 5):
+        ask_context_snapshot_mod.store_governance_snapshot(
             tmp_path, f"fp{i}", {"fingerprint": f"fp{i}"}
         )
 
     state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
     data = json.loads(state_path.read_text(encoding="utf-8"))
-    assert len(data["snapshot_cache"]) == ask_context_mod._SNAPSHOT_CACHE_MAX_ENTRIES
+    assert (
+        len(data["snapshot_cache"])
+        == ask_context_snapshot_mod._SNAPSHOT_CACHE_MAX_ENTRIES
+    )
 
 
 def test_write_runtime_cache_and_routing_decision_persists_governance_snapshot(
     tmp_path: Path,
 ) -> None:
-    ask_context_mod.write_runtime_cache_and_routing_decision(
+    ask_context_routing_mod.write_runtime_cache_and_routing_decision(
         tmp_path,
         {"compiled_fingerprint_used": "fp1"},
         "query",
@@ -121,7 +136,7 @@ def test_write_runtime_cache_and_routing_decision_persists_governance_snapshot(
         {"fingerprint": "fp1", "mandates_count": 16},
     )
 
-    cached = ask_context_mod.get_cached_governance_snapshot(tmp_path, "fp1")
+    cached = ask_context_snapshot_mod.get_cached_governance_snapshot(tmp_path, "fp1")
 
     assert cached == {"fingerprint": "fp1", "mandates_count": 16}
 
@@ -129,7 +144,7 @@ def test_write_runtime_cache_and_routing_decision_persists_governance_snapshot(
 def test_write_runtime_cache_and_routing_decision_skips_snapshot_without_fingerprint(
     tmp_path: Path,
 ) -> None:
-    ask_context_mod.write_runtime_cache_and_routing_decision(
+    ask_context_routing_mod.write_runtime_cache_and_routing_decision(
         tmp_path,
         {"compiled_fingerprint_used": ""},
         "query",
@@ -150,9 +165,9 @@ def test_build_governed_ask_snapshot_skips_load_on_cache_hit(
     """A fresh workspace with a recorded `last_ask` fingerprint and a matching
     `snapshot_cache` entry must skip `_load_compiled_governance` entirely."""
     from sdd_cli.commands import _ask_backend as _backend
-    from sdd_cli.commands._ask_backend import _pipeline
+    from sdd_cli.commands._ask_backend import _pipeline_snapshot as _pipeline
 
-    ask_context_mod.write_runtime_cache_and_routing_decision(
+    ask_context_routing_mod.write_runtime_cache_and_routing_decision(
         tmp_path,
         {"compiled_fingerprint_used": "fp1"},
         "prior query",
@@ -188,7 +203,7 @@ def test_build_governed_ask_snapshot_skips_load_on_cache_hit(
     monkeypatch.setattr(_backend, "_runtime_drift_check", lambda root, fp: False)
     monkeypatch.setattr(_backend, "_root_seed_drift_check", lambda root: False)
     monkeypatch.setattr(
-        "sdd_cli.services.governance_docs_sources.lookup_runtime_handbook",
+        "sdd_cli.services.governance_docs_handbook_lookup.lookup_runtime_handbook",
         lambda root, *, task_type, operation_phase: _FakeReport(),
     )
 
@@ -212,7 +227,7 @@ def test_build_governed_ask_snapshot_loads_fresh_on_cold_start(
     """No prior `sdd ask` call recorded -> always runs the real load, and
     marks the result for persistence."""
     from sdd_cli.commands import _ask_backend as _backend
-    from sdd_cli.commands._ask_backend import _pipeline
+    from sdd_cli.commands._ask_backend import _pipeline_snapshot as _pipeline
 
     load_calls = {"count": 0}
 
@@ -232,7 +247,7 @@ def test_build_governed_ask_snapshot_loads_fresh_on_cold_start(
     monkeypatch.setattr(_backend, "_runtime_drift_check", lambda root, fp: False)
     monkeypatch.setattr(_backend, "_root_seed_drift_check", lambda root: False)
     monkeypatch.setattr(
-        "sdd_cli.services.governance_docs_sources.lookup_runtime_handbook",
+        "sdd_cli.services.governance_docs_handbook_lookup.lookup_runtime_handbook",
         lambda root, *, task_type, operation_phase: _FakeReport(),
     )
 
@@ -263,9 +278,11 @@ def test_build_governed_ask_snapshot_reloads_after_fingerprint_change(
     entry (e.g. a governance recompile happened) must fall through to a real
     load, not silently reuse an unrelated cached entry."""
     from sdd_cli.commands import _ask_backend as _backend
-    from sdd_cli.commands._ask_backend import _pipeline
+    from sdd_cli.commands._ask_backend import _pipeline_snapshot as _pipeline
 
-    ask_context_mod.write_runtime_cache(tmp_path, {"compiled_fingerprint_used": "fp1"})
+    ask_context_drift_mod.write_runtime_cache(
+        tmp_path, {"compiled_fingerprint_used": "fp1"}
+    )
 
     load_calls = {"count": 0}
 
@@ -285,7 +302,7 @@ def test_build_governed_ask_snapshot_reloads_after_fingerprint_change(
     monkeypatch.setattr(_backend, "_runtime_drift_check", lambda root, fp: False)
     monkeypatch.setattr(_backend, "_root_seed_drift_check", lambda root: False)
     monkeypatch.setattr(
-        "sdd_cli.services.governance_docs_sources.lookup_runtime_handbook",
+        "sdd_cli.services.governance_docs_handbook_lookup.lookup_runtime_handbook",
         lambda root, *, task_type, operation_phase: _FakeReport(),
     )
 
