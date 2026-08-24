@@ -63,6 +63,9 @@ jobs:
           editable-packages: |
             packages/core/sdd_core
             packages/core/sdd_telemetry
+            packages/features/sdd_skills
+            packages/core/sdd_runtime
+            packages/features/sdd_adapters
             packages/features/sdd_integration
             packages/features/sdd_pages
             packages/interfaces/sdd_wizard
@@ -511,7 +514,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv tool install ./packages/interfaces/sdd_cli
+          # sdd-cli's local workspace dependencies (sdd-adapters, sdd-runtime,
+          # etc.) aren't published to PyPI, so `uv tool install` needs each of
+          # them handed in explicitly via --with — a bare `uv tool install
+          # ./packages/interfaces/sdd_cli` fails with "sdd-adapters was not
+          # found in the package registry".
+          uv tool install ./packages/interfaces/sdd_cli \
+            --with ./packages/core/sdd_core \
+            --with ./packages/core/sdd_telemetry \
+            --with ./packages/features/sdd_skills \
+            --with ./packages/core/sdd_runtime \
+            --with ./packages/features/sdd_adapters \
+            --with ./packages/features/sdd_integration \
+            --with ./packages/interfaces/sdd_wizard
 
       - name: Run client bootstrap from the source install
         shell: bash
