@@ -26,6 +26,59 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
+## [1.0.10] — 2026-08-25
+
+> `v1.0.9` was tagged but its release workflow failed before completing — the
+> `CHANGELOG.md` validation gate rejected it because this file had no
+> `[1.0.9]` section yet (see Fixed below for the gate itself). No GitHub
+> Release or published artifacts exist for it. This release supersedes it,
+> the same way `[1.0.8]` superseded `[1.0.5]`–`[1.0.7]`.
+
+### Added
+- Added a Devin plugin generator and `sdd devin` CLI command for
+  soft-standalone governance projections, with specialized governance rules,
+  project-level configuration templates, and governance summary snapshots
+  integrated into its generated output.
+- Added `--language` support to `sdd init`, persisting and bridging the
+  user's language preference across the generated workspace.
+- Added `GateLatencyCollector` to track guardrail latency metrics, with the
+  underlying percentile math modularized into its own helper.
+- Added `security-freshness.yml`, an independent weekly-scheduled run of the
+  same security suite as `reusable-security.yml` (govulncheck, pip-audit,
+  bandit, container scan), so a CVE disclosed against an otherwise-unchanged
+  dependency doesn't wait for the next push to be caught.
+- Added a `uv lock --check` preflight step to `health.yml`'s
+  `environment-preflight` job, failing fast when `uv.lock` drifts out of sync
+  with `pyproject.toml` instead of surfacing confusingly in downstream jobs
+  (this is the class of bug that produced the two Fixed entries below).
+
+### Changed
+- Decomposed `sdd-cli`'s CLI commands into modular sub-apps, and its `init`
+  orchestration into modular services, adding telemetry and `ask-backend`
+  pipeline enhancements along the way.
+- Bumped dependencies across the workspace (`crewai`, `setuptools`,
+  `hatchling`, `mypy`, `ruff`, `python-dotenv`, `hypothesis`, `types-PyYAML`,
+  the Go toolchain, GitHub Actions, and the landing app's npm packages) via
+  Dependabot.
+
+### Fixed
+- Fixed the Docker build's `setuptools==83.0.0` pin drifting out of sync with
+  `pyproject.toml`'s `constraint-dependencies` (bumped to `>=84.0.0` for
+  PYSEC-2026-3447 by a Dependabot update that never touched the Dockerfile):
+  both build stages now pin `84.0.0` and the final Trivy-facing metadata gate
+  bans `83.0.0` alongside the older `70.3.0`/`1.1.2`; `uv.lock` was relocked
+  to match.
+- Fixed a `mypy` `unused-ignore` error on `tools/verify_mkdocs_paths.py`'s
+  `add_multi_constructor` call — the `types-PyYAML` bump above shipped a
+  properly typed stub, making the existing `# type: ignore[no-untyped-call]`
+  obsolete.
+- Fixed `release-install-smoke` failing on `macos-latest` with `No matching
+  distribution found for pyyaml` — the release wheelhouse download step only
+  ever targeted `manylinux2014_x86_64` and `win_amd64`, so no
+  platform-specific dependency wheels (e.g. PyYAML) existed for macOS's
+  offline `pip install --no-index` smoke install. Added a
+  `macosx_11_0_arm64` download target alongside the existing two.
+
 ## [1.0.8] — 2026-08-09
 
 > `v1.0.5`, `v1.0.6`, and `v1.0.7` were all tagged but their release
