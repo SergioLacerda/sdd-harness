@@ -203,6 +203,15 @@ jobs:
             dist/sdd_cli-*.whl
           python -m pip download \
             --dest dist \
+            --find-links dist \
+            --only-binary=:all: \
+            --platform macosx_11_0_arm64 \
+            --implementation cp \
+            --python-version 312 \
+            --abi cp312 \
+            dist/sdd_cli-*.whl
+          python -m pip download \
+            --dest dist \
             --only-binary=:all: \
             "colorama>=0.4.6"
 
