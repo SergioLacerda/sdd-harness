@@ -63,6 +63,20 @@ one-time derivation — scoped in
 `.analysis/pending/20260824-tp4-complexity-budget-remainder-analysis.md`,
 not attempted in this pass.
 
+**2026-08-25 update** (Strategist mission `20260825-tp4-instrumentation-design`,
+`.analysis/refined/20260825-tp4-instrumentation-design/`): design guidance for
+two of the remaining `TBD` rows is now available — a two-tier gate-latency
+event/aggregation model (pipeline-level and per-gate-rule P50/P95 from one
+event stream) and a dedicated `GateLatencyCollector`, covering the "Max
+synchronous gates per PR" and "Pipeline P50/P95 wall-clock time" rows once
+implemented (not yet — this is design only, tracked as `implementation_handoff`
+in that package's `tasks.md`). The "Guardrail false-positive rate" row's two
+prerequisite product questions — what mechanically counts as a "false
+positive" or an "override" in this repo, and whether a guardrail-evaluation
+cache should exist — remain open decisions pending user input; see that
+package's `proposal.md`. This row stays `Needs measurement` until those
+decisions are made.
+
 ### Applied decision: module-size enforcement
 
 - Fix the `validate_class_size.py` module-level scan to exclude gitignored/build

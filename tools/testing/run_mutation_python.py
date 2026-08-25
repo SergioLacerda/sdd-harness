@@ -119,6 +119,17 @@ TARGETS: dict[str, MutationTarget] = {
             "test_non_callable_non_prompter_returns_make_prompter",
         ],
     ),
+    "sdd_runtime_signatures_validate": MutationTarget(
+        name="sdd_runtime_signatures_validate",
+        package_dir="packages/core/sdd_runtime",
+        only_mutate=["sdd_runtime/signatures/_validate.py"],
+        # Same package as sdd_runtime_gate_evaluation above, so the same two
+        # package-wide (not module-specific) pitfalls apply here too:
+        ignore_test_files=["test_properties.py"],
+        extra_deselect=[
+            "test_skills_runtime_does_not_fallback_to_subprocess_run",
+        ],
+    ),
 }
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 import warnings
 from collections.abc import Callable
 from pathlib import Path
@@ -11,6 +12,7 @@ from sdd_skills import SkillRunResult, format_governance_footer
 
 from .._skill_contracts import _is_deprecation_due
 from ..learning import SupervisedLearningStore
+from ..telemetry import RuntimeEvent
 from ._executor_commands import execute_skill_commands
 from ._executor_pipeline import run_composed_skill
 from ._executor_results import (
@@ -88,6 +90,7 @@ def run_skill_flow(
         root=root,
         artifacts=artifacts,
         footer_fn=footer_fn,
+        sink=sink,
     )
     if pre_run_result is not None:
         return pre_run_result
@@ -141,12 +144,19 @@ def _try_pre_run(**kwargs: Any) -> SkillRunResult | None:
     handler = kwargs["handler"]
     if handler is None:
         return None
+    start = time.monotonic()
     outcome = handler.pre_run(
         kwargs["handler_context"],
         learning=kwargs["learning"],
         skill=kwargs["skill"],
         profile=kwargs["profile"],
         footer_fn=kwargs["footer_fn"],
+    )
+    _emit_gate_latency(
+        sink=kwargs.get("sink"),
+        skill=kwargs["skill"],
+        gate_decision=outcome.artifacts.get("gate_decision"),
+        duration_ms=int((time.monotonic() - start) * 1000),
     )
     kwargs["artifacts"].update(outcome.artifacts)
     if outcome.early_result is not None:
@@ -164,6 +174,41 @@ def _try_pre_run(**kwargs: Any) -> SkillRunResult | None:
         enforcement_mode=kwargs["enforcement_mode"],
         project_root=kwargs["root"],
         footer_fn=kwargs["footer_fn"],
+    )
+
+
+def _emit_gate_latency(
+    *,
+    sink: Any,
+    skill: Any,
+    gate_decision: dict[str, Any] | None,
+    duration_ms: int,
+) -> None:
+    """Emit a ``guardrail.gate.latency`` event for one correction-gate evaluation.
+
+    No-op when there is no sink to emit to, or when this handler's pre_run
+    did not evaluate a correction gate (``gate_decision`` absent — most
+    handlers are not gate handlers at all). ``details.outcome`` carries the
+    gate's actual decision value (``allow``/``deny``/``escalate``) rather than
+    a separate vocabulary, so it never drifts from what `_evaluate_correction_gate`
+    can return.
+    """
+    if sink is None or gate_decision is None:
+        return
+    skill_name = getattr(skill, "name", "") or ""
+    sink.emit(
+        RuntimeEvent(
+            event="guardrail.gate.latency",
+            command=f"skills run {skill_name}",
+            status="ok",
+            trace_id="",
+            path_id=skill_name,
+            duration_ms=duration_ms,
+            details={
+                "rule_id": gate_decision.get("rule_id", ""),
+                "outcome": gate_decision.get("decision", ""),
+            },
+        )
     )
 
 
