@@ -251,14 +251,14 @@ def test_runtime_image_blocks_trivy_reported_python_package_regressions() -> Non
     dockerfile = DOCKERFILE.read_text(encoding="utf-8")
 
     assert "msgpack==1.2.1" in dockerfile
-    assert "setuptools==83.0.0" in dockerfile
+    assert "setuptools==84.0.0" in dockerfile
     assert "uv venv --clear /app/.venv" in dockerfile
     assert "--reinstall" in dockerfile
-    assert "Version: (1\\.1\\.2|70\\.3\\.0)" in dockerfile
+    assert "Version: (1\\.1\\.2|70\\.3\\.0|83\\.0\\.0)" in dockerfile
     assert "msgpack-*.dist-info/METADATA" in dockerfile
     assert "setuptools-*.dist-info/METADATA" in dockerfile
     assert (
-        "--system --break-system-packages --reinstall setuptools==83.0.0" in dockerfile
+        "--system --break-system-packages --reinstall setuptools==84.0.0" in dockerfile
     )
     assert (
         "/usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA"
@@ -266,10 +266,14 @@ def test_runtime_image_blocks_trivy_reported_python_package_regressions() -> Non
     )
     assert "msgpack-1.1.2.dist-info" in dockerfile
     assert "setuptools-70.3.0.dist-info" in dockerfile
+    assert "setuptools-83.0.0.dist-info" in dockerfile
     assert "rm -rf /root/.cache/uv" in dockerfile
     assert "/usr/local/lib/python*/site-packages/pip" in dockerfile
     assert "pip/_vendor" in dockerfile
-    assert "pkg:pypi/(msgpack@1\\.1\\.2|setuptools@70\\.3\\.0)" in dockerfile
+    assert (
+        "pkg:pypi/(msgpack@1\\.1\\.2|setuptools@70\\.3\\.0|setuptools@83\\.0\\.0)"
+        in dockerfile
+    )
     assert "find / -path '*dist-info/METADATA'" in dockerfile
     assert "xargs -0 -r grep" in dockerfile
 
