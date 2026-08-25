@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import typer
 
+from sdd_cli.commands._telemetry_app import _ctx_json, _resolve_events_path, app
 from sdd_cli.commands._telemetry_command_query import emit_init, emit_summary
 from sdd_cli.commands._telemetry_command_support import (
     abort_invalid_time_filter,
     emit_query,
 )
-from sdd_cli.commands.telemetry import _ctx_json, _resolve_events_path, app
 from sdd_cli.services.telemetry_handler import (
     _read_events,
     apply_time_filter,

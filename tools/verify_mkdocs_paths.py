@@ -26,7 +26,7 @@ class _MkDocsLoader(yaml.SafeLoader):
 
 # Treat any !!python/name: tag as a plain string — the tool only reads
 # nav and docs_dir, so it never needs the actual Python callables.
-_MkDocsLoader.add_multi_constructor(  # type: ignore[no-untyped-call]
+_MkDocsLoader.add_multi_constructor(
     "tag:yaml.org,2002:python/name:",
     lambda loader, tag, node: loader.construct_scalar(node),
 )

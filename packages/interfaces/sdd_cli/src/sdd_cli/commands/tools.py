@@ -6,6 +6,7 @@ from pathlib import Path
 import click
 import typer
 
+from sdd_cli.commands._tools_app import _find_repo_root, app
 from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.tools_registry import (
     ToolEntry,
@@ -14,7 +15,7 @@ from sdd_cli.services.tools_registry import (
     load_tools_registry,
 )
 
-app = typer.Typer(invoke_without_command=True)
+__all__ = ["app", "_find_repo_root", "tools_run"]
 
 
 @app.callback(invoke_without_command=True)
@@ -26,12 +27,6 @@ def _(
     if list_commands or ctx.invoked_subcommand is None:
         show_command_group("Tools", ["list", "run"])
         raise typer.Exit(0)
-
-
-def _find_repo_root() -> Path:
-    from sdd_cli.utils.environment import detect_repo_root
-
-    return detect_repo_root()
 
 
 @app.command("list")
@@ -166,4 +161,4 @@ def _format_manifest_entry(entry: ToolEntry) -> str:
 # lazy command loading (which only imports `sdd_cli.commands.tools`) still
 # registers it on `app`. Mirrors the existing `_ask_backend/__init__.py`
 # pattern for `_ask_cmd_impl`.
-from sdd_cli.commands import tools_run  # noqa: E402,F401
+from sdd_cli.commands import tools_run  # noqa: E402

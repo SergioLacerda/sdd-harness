@@ -1,5 +1,5 @@
 # Stage 0: Go binary builder
-FROM golang:1.26-alpine AS go-builder
+FROM golang:1.27-alpine AS go-builder
 
 WORKDIR /build
 COPY tools/sdd-compile/ .
@@ -32,12 +32,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     UV_PROJECT_ENVIRONMENT=/app/.venv \
     uv sync --frozen --no-group docs --all-packages --extra test && \
     uv pip install --python /app/.venv/bin/python --reinstall \
-    msgpack==1.2.1 setuptools==83.0.0 && \
+    msgpack==1.2.1 setuptools==84.0.0 && \
     grep -R -H -E '^Version: 1\.2\.1$' \
     /app/.venv/lib/python*/site-packages/msgpack-*.dist-info/METADATA && \
-    grep -R -H -E '^Version: 83\.0\.0$' \
+    grep -R -H -E '^Version: 84\.0\.0$' \
     /app/.venv/lib/python*/site-packages/setuptools-*.dist-info/METADATA && \
-    ! grep -R -H -E '^Version: (1\.1\.2|70\.3\.0)$' \
+    ! grep -R -H -E '^Version: (1\.1\.2|70\.3\.0|83\.0\.0)$' \
     /app/.venv/lib/python*/site-packages/msgpack-*.dist-info/METADATA \
     /app/.venv/lib/python*/site-packages/setuptools-*.dist-info/METADATA
 
@@ -71,10 +71,10 @@ COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /usr/local/bin/uv
 
 # Trivy scans the full runtime filesystem, including the base image's system
 # site-packages outside /app/.venv.
-RUN uv pip install --system --break-system-packages --reinstall setuptools==83.0.0 && \
-    grep -R -H -E '^Version: 83\.0\.0$' \
+RUN uv pip install --system --break-system-packages --reinstall setuptools==84.0.0 && \
+    grep -R -H -E '^Version: 84\.0\.0$' \
     /usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA && \
-    ! grep -R -H -E '^Version: 70\.3\.0$' \
+    ! grep -R -H -E '^Version: (70\.3\.0|83\.0\.0)$' \
     /usr/local/lib/python*/site-packages/setuptools-*.dist-info/METADATA && \
     rm -rf /root/.cache/uv \
     /usr/local/lib/python*/site-packages/pip \
@@ -102,12 +102,13 @@ RUN chmod +x /usr/local/bin/entrypoint.sh && \
 # package metadata no matter which layer or path introduced it.
 RUN find / -type d \( \
     -name 'msgpack-1.1.2.dist-info' -o \
-    -name 'setuptools-70.3.0.dist-info' \
+    -name 'setuptools-70.3.0.dist-info' -o \
+    -name 'setuptools-83.0.0.dist-info' \
     \) -prune -exec rm -rf {} + && \
     rm -rf /root/.cache/uv && \
     ! sh -c "find / -path '*dist-info/METADATA' -type f -print0 | \
-    xargs -0 -r grep -H -E '^Version: (1\.1\.2|70\.3\.0)$'" && \
-    ! grep -R -H -E 'pkg:pypi/(msgpack@1\.1\.2|setuptools@70\.3\.0)|^(msgpack==1\.1\.2|setuptools==70\.3\.0)$' \
+    xargs -0 -r grep -H -E '^Version: (1\.1\.2|70\.3\.0|83\.0\.0)$'" && \
+    ! grep -R -H -E 'pkg:pypi/(msgpack@1\.1\.2|setuptools@70\.3\.0|setuptools@83\.0\.0)|^(msgpack==1\.1\.2|setuptools==70\.3\.0|setuptools==83\.0\.0)$' \
     /usr/local/lib/python*/site-packages/pip/_vendor 2>/dev/null
 
 # /app/.venv/bin first so Python and all tools resolve from the pre-built venv.

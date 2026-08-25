@@ -27,7 +27,7 @@ def _patch_root(monkeypatch, tmp_path: Path) -> None:
     # environments export telemetry path overrides (e.g. CI container jobs).
     monkeypatch.delenv("SDD_TELEMETRY_PATH", raising=False)
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
 
 
@@ -194,10 +194,10 @@ def test_default_events_path_fallback_on_exception(monkeypatch) -> None:
     """_default_events_path raises when resolve_workspace_root fails."""
     monkeypatch.delenv("SDD_TELEMETRY_PATH", raising=False)
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root",
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root",
         lambda: (_ for _ in ()).throw(RuntimeError("no workspace")),
     )
-    from sdd_cli.commands.telemetry import _default_events_path
+    from sdd_cli.commands._telemetry_app import _default_events_path
 
     with pytest.raises(RuntimeError):
         _default_events_path()
@@ -206,7 +206,7 @@ def test_default_events_path_fallback_on_exception(monkeypatch) -> None:
 def test_status_workspace_resolution_failure_json(monkeypatch) -> None:
     monkeypatch.delenv("SDD_TELEMETRY_PATH", raising=False)
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root",
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root",
         lambda: (_ for _ in ()).throw(RuntimeError("no workspace")),
     )
     result = runner.invoke(app, ["--json", "telemetry", "status"])
@@ -219,7 +219,7 @@ def test_status_workspace_resolution_failure_json(monkeypatch) -> None:
 def test_status_workspace_resolution_failure_text(monkeypatch) -> None:
     monkeypatch.delenv("SDD_TELEMETRY_PATH", raising=False)
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root",
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root",
         lambda: (_ for _ in ()).throw(RuntimeError("no workspace")),
     )
     result = runner.invoke(app, ["telemetry", "status"])

@@ -13,7 +13,7 @@ runner = CliRunner()
 
 def _patch_root(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
 
 

@@ -61,6 +61,29 @@ def test_simple_cycle_detected(tmp_path: Path) -> None:
     assert any(set(c) == {"sdd_core.a", "sdd_core.b"} for c in cycles)
 
 
+def test_package_reimport_cycle_detected(tmp_path: Path) -> None:
+    """Mirrors the real-world `from package import submodule` idiom that
+    caused audit.py/tools.py/telemetry.py's cyclic imports to go undetected
+    by this tool while still being flagged by CodeQL."""
+    validate_cycles = _load_module()
+    repo = _mk_repo(tmp_path)
+    _write_module(
+        repo,
+        "packages/core/sdd_core/src/sdd_core/a.py",
+        "import sdd_core.b\n",
+    )
+    _write_module(
+        repo,
+        "packages/core/sdd_core/src/sdd_core/b.py",
+        "from sdd_core import a\n",
+    )
+
+    graph, _ = validate_cycles._build_graph(repo)
+    sccs = validate_cycles._tarjan_scc(graph)
+    cycles = [c for c in sccs if len(c) > 1]
+    assert any(set(c) == {"sdd_core.a", "sdd_core.b"} for c in cycles)
+
+
 def test_external_imports_are_ignored(tmp_path: Path) -> None:
     validate_cycles = _load_module()
     repo = _mk_repo(tmp_path)

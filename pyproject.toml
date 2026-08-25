@@ -27,30 +27,30 @@ test = [
     "PyYAML>=6.0.3",
     "typer>=0.27.1",
     "rich>=15.0.0",
-    "python-dotenv>=1.2.2",
+    "python-dotenv>=1.2.3",
     "pydantic>=2.13.4",
-    "hypothesis>=6.165.2",
+    "hypothesis>=6.165.10",
     "httpx>=0.28.1",
 ]
 lint = [
-    "ruff>=0.16.1",
+    "ruff>=0.16.4",
 ]
 typing = [
-    "mypy>=2.3.0",
-    "types-PyYAML>=6.0.12.20260724",
+    "mypy>=2.3.1",
+    "types-PyYAML>=6.0.12.20260815",
 ]
 dev = [
-    "hatchling>=1.31.0",
+    "hatchling>=1.32.0",
     "hatch-vcs>=0.5.0",
 ]
 examples-langgraph = [
-    "langgraph>=1.2.10",
-    "langchain-core>=1.5.3",
+    "langgraph>=1.2.11",
+    "langchain-core>=1.6.0",
 ]
 examples-crewai = [
-    "crewai==1.15.12",
+    "crewai==1.15.17",
     "onnxruntime<1.25",
-    "setuptools>=83.0.0",
+    "setuptools>=84.0.0",
 ]
 
 [project.urls]
@@ -85,7 +85,7 @@ conflicts = [
 constraint-dependencies = [
     "idna>=3.15",  # CVE-2026-45409: DoS via arbitrarily large inputs in idna.encode()
     "click>=8.3.3",  # PYSEC-2026-2132: command injection in click.edit()
-    "setuptools>=83.0.0",  # PYSEC-2026-3447: MANIFEST.in exclude bypass via Unicode normalization
+    "setuptools>=84.0.0",  # PYSEC-2026-3447: MANIFEST.in exclude bypass via Unicode normalization
 ]
 
 [tool.uv.workspace]
@@ -116,7 +116,7 @@ sdd-cli         = { workspace = true }
 # To update a tool: edit the range, run `uv lock`, commit both files.
 [dependency-groups]
 lint = [
-    "ruff>=0.16.1",
+    "ruff>=0.16.4",
     # black removed: ruff format is the canonical formatter (ruff 0.1+).
 ]
 test = [
@@ -129,12 +129,12 @@ test = [
     "PyYAML>=6.0.3",
     "typer>=0.27.1",
     "rich>=15.0.0",
-    "python-dotenv>=1.2.2",
+    "python-dotenv>=1.2.3",
     "pydantic>=2.13.4",
 ]
 typing = [
-    "mypy>=2.3.0",
-    "types-PyYAML>=6.0.12.20260724",
+    "mypy>=2.3.1",
+    "types-PyYAML>=6.0.12.20260815",
 ]
 security = [
     "bandit>=1.9.4",
@@ -153,7 +153,7 @@ dev = [
     { include-group = "test" },
     { include-group = "typing" },
     { include-group = "security" },
-    "hatchling>=1.31.0",
+    "hatchling>=1.32.0",
     "hatch-vcs>=0.5.0",
     "tomli>=2.0.0; python_version < '3.11'",
 ]
