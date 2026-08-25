@@ -202,6 +202,27 @@ def test_run_golden_policy_check_modes() -> None:
         )
 
 
+def test_run_release_prepare_invokes_prepare_release_module() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_python_cmd", return_value=["PYTHON"]),
+        patch.object(make_tasks, "_run", return_value=0) as run,
+    ):
+        assert make_tasks.run_release_prepare("1.0.11") == 0
+        run.assert_called_once_with(
+            ["PYTHON", "-m", "tools.release.prepare_release", "--version", "1.0.11"]
+        )
+
+
+def test_main_dispatches_release_prepare_with_version_arg() -> None:
+    make_tasks = _make_tasks_module()
+    with patch.object(
+        make_tasks, "run_release_prepare", return_value=0
+    ) as run_release_prepare:
+        assert make_tasks.main(["release-prepare", "--version", "1.0.11"]) == 0
+        run_release_prepare.assert_called_once_with("1.0.11")
+
+
 def test_run_governance_bootstrap_invokes_sdd_cli_module() -> None:
     make_tasks = _make_tasks_module()
     with (

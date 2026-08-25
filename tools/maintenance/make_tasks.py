@@ -380,6 +380,12 @@ def run_docs_link_fix() -> int:
     return _run(_python_cmd() + ["tools/docs/check_links.py", "--mode", "fix"])
 
 
+def run_release_prepare(version: str) -> int:
+    return _run(
+        _python_cmd() + ["-m", "tools.release.prepare_release", "--version", version]
+    )
+
+
 def run_release_dry_run() -> int:
     print("=== Version check ===")
     print(f"root: {_read_project_version()}")
@@ -444,6 +450,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("coverage")
     sub.add_parser("coverage-strict")
     sub.add_parser("release-dry-run")
+    release_prepare_p = sub.add_parser("release-prepare")
+    release_prepare_p.add_argument("--version", required=True)
     sub.add_parser("clean")
     sub.add_parser("ci-pr")
     sub.add_parser("golden-policy-check")
@@ -465,6 +473,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.task == "test":
         return run_test(args.args)
+    if args.task == "release-prepare":
+        return run_release_prepare(args.version)
 
     dispatch: dict[str, Any] = {
         "check-venv": run_check_venv,

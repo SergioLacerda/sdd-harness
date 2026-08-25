@@ -24,11 +24,15 @@ $(RELEASE_TASKS):
 ci-pr-full: ci-pr ## Run ci-pr plus strict coverage gates
 	$(MAKE) coverage-strict
 
+.PHONY: release-prepare
+release-prepare: ## Insert CHANGELOG.md version header and update README install tag (usage: make release-prepare VERSION=x.y.z)
+	$(PYTHON) tools/maintenance/make_tasks.py release-prepare --version "$(VERSION)"
+
 # --- Namespaced aliases (additive, non-breaking — see proposal.md Decision D2) ---
 .PHONY: release.ci-pr release.ci-pr-full release.dry-run release.enforcement-consistency \
   release.enforcement-digest release.enforcement-signoff release.signoff-draft \
   release.core-compiler-contract release.observability-check release.readiness-check \
-  release.runbook-check
+  release.runbook-check release.prepare
 release.ci-pr: ci-pr
 release.ci-pr-full: ci-pr-full
 release.dry-run: release-dry-run
@@ -40,3 +44,4 @@ release.core-compiler-contract: core-compiler-runtime-contract
 release.observability-check: observability-contract-check
 release.readiness-check: release-readiness-v1-check
 release.runbook-check: runbook-hardening-check
+release.prepare: release-prepare
