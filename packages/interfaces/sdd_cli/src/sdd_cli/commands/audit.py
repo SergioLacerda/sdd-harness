@@ -7,6 +7,7 @@ from pathlib import Path
 
 import typer
 
+from sdd_cli.commands._audit_app import app
 from sdd_cli.commands._audit_command_support import emit_audit_view
 from sdd_cli.services.audit_formatters import (
     _ctx_json,
@@ -25,9 +26,7 @@ from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.shared.contracts import build_ok_result
 from sdd_cli.utils.output import emit_json
 
-app = typer.Typer(
-    help="Governance audit and drift analytics", invoke_without_command=True
-)
+__all__ = ["app", "audit_export_commands"]
 
 
 @app.callback()

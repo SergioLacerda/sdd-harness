@@ -11,6 +11,7 @@ from pathlib import Path
 import click
 import typer
 
+from sdd_cli.commands._audit_app import app
 from sdd_cli.commands._audit_command_support import (
     emit_bootstrap_check,
     emit_legacy_check,
@@ -18,7 +19,6 @@ from sdd_cli.commands._audit_command_support import (
     run_compliance_pack_workflow,
     write_export_manifest,
 )
-from sdd_cli.commands.audit import app
 from sdd_cli.services.audit_export import _build_export_payload, _event_to_row
 from sdd_cli.services.audit_formatters import (
     _ctx_json,

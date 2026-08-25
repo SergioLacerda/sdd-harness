@@ -152,7 +152,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.12"]
     steps:
       - name: Set up Python
@@ -220,7 +220,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       # Mirrors release.yml's source-install smoke: exercises the documented
       # client channel from the Actions checkout with real git checkout semantics
@@ -252,6 +252,14 @@ jobs:
           set -euo pipefail
           if [ "${{ runner.os }}" = "Windows" ]; then
             BIN="$(cygpath -m "$PWD/dist/sdd-compile-windows-amd64.exe")"
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            # GitHub-hosted macos-latest runners are Apple Silicon (ARM64);
+            # reusable-release-build.yml's darwin matrix only produces
+            # darwin-arm64 today (see its own SHA256SUMS assembly comment on
+            # 5-target parity minus darwin-amd64), so that's the only asset
+            # available to smoke here.
+            BIN="$PWD/dist/sdd-compile-darwin-arm64"
+            chmod +x "$BIN"
           else
             BIN="$PWD/dist/sdd-compile-linux-amd64"
             chmod +x "$BIN"

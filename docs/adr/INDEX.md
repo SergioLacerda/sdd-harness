@@ -304,7 +304,7 @@ check blocking for new violations going forward.
 
 **Rationale:**
 
-- Repeats ADR-009's "evidence-based, not calendar-based" philosophy at the budget
+- Repeats ADR-020's "evidence-based, not calendar-based" philosophy at the budget
   level, not just per-rule
 - Grandfathering avoids blocking unrelated work on pre-existing violations while
   still closing the "warn-only forever" gap
@@ -312,7 +312,7 @@ check blocking for new violations going forward.
 **Links:**
 
 - [ADR-019-guardrail-complexity-budget.md](ADR-019-guardrail-complexity-budget.md)
-- Related: ADR-009 (Progressive Enforcement Ladder)
+- Related: ADR-020 (Progressive Enforcement Ladder)
 - Implementation reference: `tools/architecture/validate_class_size.py`,
   `packages/interfaces/sdd_wizard/EXCEPTIONS.md` (grandfather-list pattern)
 

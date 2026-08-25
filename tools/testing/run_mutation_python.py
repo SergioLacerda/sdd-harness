@@ -33,9 +33,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-# Pinned to match the version validated in this repo (no @latest — see the
-# no-floating-tool-versions policy already applied to govulncheck).
-_MUTMUT_VERSION = "3.7.0"
+# The mutmut version this script's setup was validated against is pinned in
+# pyproject.toml's `mutation` dependency group (`mutmut>=3.7.0`), not
+# duplicated here — that's the single enforcement point (no @latest, same
+# policy already applied to govulncheck).
 
 
 @dataclass(frozen=True)
@@ -69,6 +70,53 @@ TARGETS: dict[str, MutationTarget] = {
         ignore_test_files=["test_properties.py"],
         extra_deselect=[
             "test_skills_runtime_does_not_fallback_to_subprocess_run",
+        ],
+    ),
+    "sdd_core_process_authorization": MutationTarget(
+        name="sdd_core_process_authorization",
+        package_dir="packages/core/sdd_core",
+        only_mutate=["sdd_core/utils/_process_auth.py"],
+        # Both genuinely misbehave under mutmut's mutants/ cwd, unrelated to
+        # _process_auth.py — not a blanket exclusion, see each reason below.
+        ignore_test_files=[
+            # Hardcodes a repo-root-relative GENERATOR_PATH that resolves to
+            # a nonexistent nested path under mutmut's mutants/ cwd.
+            "test_generate_specializations.py",
+            # Asserts a built wheel exposes a native asset (the compiled Go
+            # binary) — never present in mutmut's Python-only mutants/ copy.
+            "test_package_data.py",
+        ],
+    ),
+    "sdd_wizard_selector_dsl_parsing": MutationTarget(
+        name="sdd_wizard_selector_dsl_parsing",
+        package_dir="packages/interfaces/sdd_wizard",
+        # NOTE: selector_compiler.py itself (the original candidate for this
+        # target) is a @dataclass-decorated class — confirmed by direct
+        # inspection that mutmut 3.7.0 does not inject trampolines into any
+        # of its methods (0 `_mutmut_N` markers in the generated mutants
+        # copy, vs. a non-dataclass class in the same run that mutated
+        # normally). This is a tool limitation, not a config/test gap;
+        # targeting the plain-function parsing module it delegates to
+        # instead, which covers the same "source selection" doc-04 category
+        # without hitting the dataclass limitation.
+        only_mutate=["sdd_wizard/orchestration/wizard/_selector_dsl_parsing.py"],
+        # Both unrelated to this target, deselected by name rather than by
+        # file (each file has dozens of other, unaffected tests):
+        extra_deselect=[
+            # Reads repo-root-relative Path("README.md"), absent under
+            # mutmut's src/ cwd.
+            "test_readme_contains_agent_onboarding_commands",
+            # isinstance() checks against a class constructed *indirectly*
+            # (via make_prompter()/_wrap_prompter(), inside prompter.py
+            # itself) fail under mutmut's dual sys.path setup — the
+            # function's own module-level class reference and the test's
+            # direct import resolve to two distinct class objects with the
+            # same name. Tests that instantiate the class directly (e.g.
+            # test_plain_prompter_is_prompter) don't hit this and are left
+            # active.
+            "test_make_prompter_non_tty_returns_plain",
+            "test_make_prompter_tty_returns_rich_when_questionary_available",
+            "test_non_callable_non_prompter_returns_make_prompter",
         ],
     ),
 }

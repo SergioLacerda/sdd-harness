@@ -11,7 +11,7 @@ from pathlib import Path
 import click
 import typer
 
-from sdd_cli.commands.tools import app
+from sdd_cli.commands._tools_app import _find_repo_root, app
 from sdd_cli.services.tools_registry import (
     ToolEntry,
     ToolsRegistryError,
@@ -30,8 +30,6 @@ def run(
     ),
 ) -> None:
     """Run a tool script using 'uv run'."""
-    from sdd_cli.commands.tools import _find_repo_root
-
     root = _find_repo_root()
     try:
         registry = load_tools_registry(root)

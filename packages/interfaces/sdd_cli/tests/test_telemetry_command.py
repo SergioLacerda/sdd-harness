@@ -28,7 +28,7 @@ def test_telemetry_status_global_json_uses_canonical_envelope(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
 
     result = runner.invoke(app, ["--json", "telemetry", "status"])
@@ -44,7 +44,7 @@ def test_telemetry_init_json_uses_canonical_data_payload(
     monkeypatch, tmp_path: Path
 ) -> None:
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
 
     result = runner.invoke(app, ["--json", "telemetry", "init"])
@@ -67,7 +67,7 @@ def test_telemetry_dump_global_json_uses_canonical_envelope(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
 
     result = runner.invoke(app, ["--json", "telemetry", "dump", "--limit", "10"])
@@ -82,7 +82,7 @@ def test_telemetry_query_invalid_since_still_errors(
     tmp_path: Path, monkeypatch
 ) -> None:
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
     result = runner.invoke(
         app, ["--json", "telemetry", "query", "--since", "invalid-date"]
@@ -112,7 +112,7 @@ def test_telemetry_query_global_json_uses_canonical_envelope(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
     result = runner.invoke(
         app, ["--json", "telemetry", "query", "--event-type", "governance.ask"]
@@ -135,7 +135,7 @@ def test_telemetry_query_json_uses_canonical_data_payload(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
     result = runner.invoke(app, ["--json", "telemetry", "query"])
     assert result.exit_code == 0, result.output
@@ -157,7 +157,7 @@ def test_telemetry_dump_json_uses_canonical_data_payload(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
     result = runner.invoke(app, ["--json", "telemetry", "dump", "--limit", "5"])
     assert result.exit_code == 0, result.output

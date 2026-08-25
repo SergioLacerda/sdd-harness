@@ -23,7 +23,7 @@ def _make_sink(tmp_path: Path, events: list[dict]) -> Path:
 def _patch_root(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.delenv("SDD_TELEMETRY_PATH", raising=False)
     monkeypatch.setattr(
-        "sdd_cli.commands.telemetry.resolve_workspace_root", lambda: tmp_path
+        "sdd_cli.commands._telemetry_app.resolve_workspace_root", lambda: tmp_path
     )
 
 
