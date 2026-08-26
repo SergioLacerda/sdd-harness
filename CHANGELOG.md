@@ -26,7 +26,25 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
-## [1.0.11] — 2026-08-25
+## [1.0.12] — 2026-08-26
+
+> `v1.0.11` was tagged but its release workflow failed the same way `v1.0.9`
+> did — the `CHANGELOG.md` validation gate rejected it because `[Unreleased]`
+> had no entries yet when the version header was created, so the extracted
+> release notes were empty (`tools/release/prepare_release.py` now refuses to
+> do this). No GitHub Release or published artifacts exist for it.
+
+### Added
+- Added `make release-prepare VERSION=x.y.z`, automating the `CHANGELOG.md`
+  `[Unreleased]` → `[x.y.z]` version-header rename and the `README.md`
+  pinned-install-tag update steps of the Release Checklist above
+  (`tools/release/prepare_release.py`).
+
+### Fixed
+- Corrected mandate M006's canonical title in
+  `docs/spec/canonical/guides/M006_RFC_PROCESS.md` — it leaked the full Goal
+  sentence into the heading instead of a short title, causing the compiled
+  governance artifact's M006 title to diverge from its golden fixture.
 
 ## [1.0.10] — 2026-08-25
 
