@@ -131,12 +131,12 @@ SergioLacerda/sdd-harness`.
 > verification.
 
 The Git-subdirectory install below is a source/development install path — it
-installs the code at a specific tag rather than a released wheel. Replace `v1.0.4`
+installs the code at a specific tag rather than a released wheel. Replace `v1.0.11`
 with the tag you want; omitting the `@<tag>` ref (not recommended) installs
 whatever the default branch head currently is:
 
 ```bash
-uv tool install "git+https://github.com/SergioLacerda/sdd-harness@v1.0.4#subdirectory=packages/interfaces/sdd_cli"
+uv tool install "git+https://github.com/SergioLacerda/sdd-harness@v1.0.11#subdirectory=packages/interfaces/sdd_cli"
 cd your-project
 sdd install --wizard
 sdd init --default

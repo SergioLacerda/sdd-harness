@@ -108,7 +108,7 @@ def pipeline_checks(
             phase_1.get("core_fingerprint") != phase_1.get("client_fingerprint"),
         ),
         ("Core items > 0", phase_1.get("core_item_count", 0) > 0),
-        ("Client items count valid", phase_1.get("client_item_count", 0) >= 0),
+        ("Client items > 0", phase_1.get("client_item_count", 0) > 0),
     ]
 
 

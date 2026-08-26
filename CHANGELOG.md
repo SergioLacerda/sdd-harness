@@ -26,6 +26,8 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
+## [1.0.11] — 2026-08-25
+
 ## [1.0.10] — 2026-08-25
 
 > `v1.0.9` was tagged but its release workflow failed before completing — the

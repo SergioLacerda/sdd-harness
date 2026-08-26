@@ -24,6 +24,9 @@ SCRIPT_MODULES_AND_ARGS = {
     "validate_release_assets": ["/nonexistent-dist-dir"],
     "verify_wheel_native_assets": ["/nonexistent-dist-dir"],
     "verify_wheel_dependency_coupling": ["/nonexistent-dist-dir"],
+    # An invalid version fails validation before any file is read or written,
+    # so this never touches the real repo-root CHANGELOG.md/README.md.
+    "prepare_release": ["--version", "not-a-version"],
 }
 
 

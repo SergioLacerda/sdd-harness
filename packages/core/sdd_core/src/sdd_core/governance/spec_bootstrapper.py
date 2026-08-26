@@ -79,7 +79,21 @@ class SourceSpecBootstrapper:
         return title_map
 
     def _bootstrap_from_markdown(self) -> None:
-        """Generate `mandate.md` and bootstrap `guidelines.dsl` from canonical docs."""
+        """Generate `mandate.md` from canonical docs when available, and always
+        seed the `guidelines.dsl` fallback.
+
+        `guidelines.dsl`'s content (`UNIVERSAL_LANGUAGE_GUIDELINES`) is a fixed
+        constant, independent of whether a `docs/` tree exists — it must not be
+        gated behind the same `docs_root`/mandate-scan precondition that
+        `mandate.md` depends on. A client workspace (no `docs/` directory,
+        e.g. a real standalone install) never has that tree, which previously
+        made this method a permanent no-op there and left client governance
+        compiled with zero guideline items.
+        """
+        guidelines_dsl = self.spec / "guidelines.dsl"
+        if not guidelines_dsl.exists():
+            guidelines_dsl.write_text(UNIVERSAL_LANGUAGE_GUIDELINES, encoding="utf-8")
+
         docs_root = self.repo_root / "docs"
         if not docs_root.exists():
             return
@@ -90,6 +104,17 @@ class SourceSpecBootstrapper:
         if not mandate_ids:
             return
 
+        # A wizard-deployed `mandates/mandates.md` is already a correct,
+        # non-leaked source for this workspace's own core items (see
+        # PipelineBuilder.build()'s v3.0-structure fallback). Writing a
+        # top-level `mandate.md` here would take priority over it and, under
+        # a repo_root that resolved to an unrelated checkout (e.g. an
+        # editable/dev install of sdd-cli initializing a separate client
+        # project), would leak that checkout's own mandate titles into this
+        # workspace instead.
+        if (self.spec / "mandates" / "mandates.md").exists():
+            return
+
         mandate_md = self.spec / "mandate.md"
         if not mandate_md.exists():
             lines = ["# Mandates - SDD v3.0", ""]
@@ -98,10 +123,6 @@ class SourceSpecBootstrapper:
                 lines.append(f"## {mandate_id}: {title}")
                 lines.append("")
             mandate_md.write_text("\n".join(lines), encoding="utf-8")
-
-        guidelines_dsl = self.spec / "guidelines.dsl"
-        if not guidelines_dsl.exists():
-            guidelines_dsl.write_text(UNIVERSAL_LANGUAGE_GUIDELINES, encoding="utf-8")
 
         if self.has_source_specs():
             self._out("  ℹ️  Bootstrapped docs-meta from markdown scan")

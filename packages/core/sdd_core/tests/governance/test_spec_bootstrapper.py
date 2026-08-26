@@ -165,24 +165,26 @@ class TestBootstrapFromMarkdown:
         assert mandate_spec.exists()
         assert "M001" in mandate_spec.read_text(encoding="utf-8")
 
-    def test_bootstrap_from_markdown_skips_when_no_docs_dir(
+    def test_bootstrap_from_markdown_seeds_guidelines_when_no_docs_dir(
         self, tmp_path: Path
     ) -> None:
-        """Should exit gracefully when docs directory doesn't exist."""
+        """guidelines.dsl must be seeded even with no docs/ tree (e.g. a real
+        standalone client workspace) — its content is a fixed constant,
+        independent of docs/ scanning. mandate.md still requires docs/."""
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
 
         bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
         bootstrapper._bootstrap_from_markdown()
 
-        # Should not create any files
+        assert (spec_dir / "guidelines.dsl").exists()
         assert not (spec_dir / "mandate.md").exists()
-        assert not (spec_dir / "guidelines.dsl").exists()
 
-    def test_bootstrap_from_markdown_skips_when_no_ids_found(
+    def test_bootstrap_from_markdown_seeds_guidelines_when_no_ids_found(
         self, tmp_path: Path
     ) -> None:
-        """Should exit gracefully when no mandate/guideline IDs found."""
+        """guidelines.dsl must be seeded even when docs/ has no mandate IDs.
+        mandate.md still stays absent — there is nothing to derive it from."""
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
         docs_dir = tmp_path / "docs"
@@ -194,6 +196,34 @@ class TestBootstrapFromMarkdown:
         bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
         bootstrapper._bootstrap_from_markdown()
 
-        # Should not create any files
+        assert (spec_dir / "guidelines.dsl").exists()
         assert not (spec_dir / "mandate.md").exists()
-        assert not (spec_dir / "guidelines.dsl").exists()
+
+    def test_bootstrap_from_markdown_skips_mandate_md_when_wizard_mandates_present(
+        self, tmp_path: Path
+    ) -> None:
+        """Must not write a top-level mandate.md — which PipelineBuilder
+        prioritizes over mandates/mandates.md — when a wizard-deployed
+        mandates/mandates.md already exists. Otherwise, a repo_root that
+        resolves to an unrelated checkout (e.g. an editable dev install
+        initializing a separate client project) would leak that checkout's
+        own mandate titles into this workspace instead of using its own,
+        already-correct deployed mandates."""
+        spec_dir = tmp_path / "spec"
+        spec_dir.mkdir()
+        (spec_dir / "mandates").mkdir()
+        (spec_dir / "mandates" / "mandates.md").write_text(
+            "# Mandates - SDD v3.0\n\n## M001: Deployed\n", encoding="utf-8"
+        )
+        docs_dir = tmp_path / "docs"
+        canonical_dir = docs_dir / "spec" / "canonical" / "core" / "mandates"
+        canonical_dir.mkdir(parents=True)
+        (canonical_dir / "M999_UNRELATED.md").write_text(
+            "# Mandate: Unrelated Repo Content\n\n**ID:** M999\n", encoding="utf-8"
+        )
+
+        bootstrapper = SourceSpecBootstrapper(spec_dir, tmp_path)
+        bootstrapper._bootstrap_from_markdown()
+
+        assert not (spec_dir / "mandate.md").exists()
+        assert (spec_dir / "guidelines.dsl").exists()
