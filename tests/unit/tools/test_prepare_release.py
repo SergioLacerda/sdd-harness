@@ -73,15 +73,19 @@ def test_prepare_changelog_inserts_header_and_moves_body(tmp_path: Path) -> None
     assert lines[unreleased_idx + 2] == "## [1.0.11] — 2026-08-25"
 
 
-def test_prepare_changelog_handles_empty_unreleased(tmp_path: Path) -> None:
+def test_prepare_changelog_rejects_empty_unreleased(tmp_path: Path) -> None:
+    """Regression test: release.yml's changelog-extraction step rejects a
+    version section with no content between it and the next header, even
+    though the header itself exists — this bit a real v1.0.11 release
+    attempt (empty [Unreleased] produced an empty [1.0.11] section)."""
     changelog = tmp_path / "CHANGELOG.md"
     changelog.write_text(_CHANGELOG_WITH_EMPTY_UNRELEASED, encoding="utf-8")
 
-    inserted = prepare_changelog(changelog, "1.0.11", today=date(2026, 8, 25))
+    with pytest.raises(PrepareReleaseError, match="no entries"):
+        prepare_changelog(changelog, "1.0.11", today=date(2026, 8, 25))
 
-    assert inserted is True
-    text = changelog.read_text(encoding="utf-8")
-    assert "## [1.0.11] — 2026-08-25\n\n## [1.0.10]" in text
+    # rejected before any write
+    assert changelog.read_text(encoding="utf-8") == _CHANGELOG_WITH_EMPTY_UNRELEASED
 
 
 def test_prepare_changelog_is_idempotent_for_existing_version(tmp_path: Path) -> None:
@@ -154,7 +158,7 @@ def test_prepare_release_rejects_invalid_version(tmp_path: Path) -> None:
 def test_prepare_release_updates_both_files(tmp_path: Path) -> None:
     changelog = tmp_path / "CHANGELOG.md"
     readme = tmp_path / "README.md"
-    changelog.write_text(_CHANGELOG_WITH_EMPTY_UNRELEASED, encoding="utf-8")
+    changelog.write_text(_CHANGELOG_WITH_UNRELEASED_CONTENT, encoding="utf-8")
     readme.write_text(_README_SNIPPET, encoding="utf-8")
 
     result = prepare_release(

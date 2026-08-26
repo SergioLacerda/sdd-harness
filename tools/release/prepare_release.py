@@ -87,6 +87,15 @@ def prepare_changelog(changelog_path: Path, version: str, *, today: date) -> boo
     )
     body = lines[unreleased_idx + 1 : next_header_idx]
 
+    if not any(line.strip() for line in body):
+        raise PrepareReleaseError(
+            f"'{_UNRELEASED_HEADER}' has no entries — add changelog notes under "
+            f"'{_UNRELEASED_HEADER}' before preparing version {version}. "
+            "release.yml's changelog-extraction step rejects a version section "
+            "with no content between it and the next header, even though the "
+            "header itself would exist."
+        )
+
     new_section = [
         _UNRELEASED_HEADER,
         "",
