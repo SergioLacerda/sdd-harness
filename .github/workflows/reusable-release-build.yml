@@ -203,6 +203,15 @@ jobs:
             dist/sdd_cli-*.whl
           python -m pip download \
             --dest dist \
+            --find-links dist \
+            --only-binary=:all: \
+            --platform macosx_11_0_arm64 \
+            --implementation cp \
+            --python-version 312 \
+            --abi cp312 \
+            dist/sdd_cli-*.whl
+          python -m pip download \
+            --dest dist \
             --only-binary=:all: \
             "colorama>=0.4.6"
 
@@ -214,6 +223,9 @@ jobs:
           uv sync --all-groups
           uv pip install -e packages/core/sdd_core \
             && uv pip install -e packages/core/sdd_telemetry \
+            && uv pip install -e packages/features/sdd_skills \
+            && uv pip install -e packages/core/sdd_runtime \
+            && uv pip install -e packages/features/sdd_adapters \
             && uv pip install -e packages/features/sdd_integration \
             && uv pip install -e packages/features/sdd_pages \
             && uv pip install -e packages/interfaces/sdd_wizard \

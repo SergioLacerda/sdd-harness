@@ -1,0 +1,27 @@
+name: Security Freshness
+
+# doc 03's "security-freshness" trilha: govulncheck/pip-audit (and the rest
+# of reusable-security.yml) only run today when push/PR triggers health.yml
+# — a CVE disclosed against an *unchanged* dependency between commits isn't
+# caught until the next push. This gives the same security suite its own
+# independent weekly schedule, so freshness doesn't depend on code churn.
+#
+# Deliberately reuses reusable-security.yml wholesale rather than
+# duplicating just govulncheck/pip-audit: the scanner logic stays in one
+# place, and re-running bandit/npm-audit/container-scan weekly against
+# otherwise-unchanged code is a normal, low-cost scheduled re-scan, not
+# scope creep — none of these jobs gate any other workflow (no `needs:`
+# from this file to anything else), matching ecosystem-canary.yml's own
+# non-blocking pattern.
+
+on:
+  schedule:
+    - cron: '0 6 * * 3'   # Wednesday 06:00 UTC — independent of ecosystem-canary's Sunday slot
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    uses: ./.github/workflows/reusable-security.yml

@@ -33,18 +33,18 @@ exist."**
 
 ### Complexity budget (baseline, 2026-08-07)
 
-| Metric | Baseline | Source | Status |
-|---|---|---|---|
-| Module-size violations (>400 lines, real source only) | 4 | `validate_class_size.py --show-module-warnings`, re-run 2026-08-07, excluding the 2 `build/` false positives (see Consequences) | Measured |
-| CI workflow files | 13 | `.github/workflows/*.yml` count, confirmed in Strategist mission `20260807-critique-project-todo-gap-eval` | Measured |
-| Max synchronous gates per PR | TBD | Requires enumerating blocking jobs per workflow trigger | Needs measurement |
-| Pipeline P50/P95 wall-clock time | TBD | Requires CI run-history mining (GitHub Actions API) | Needs measurement |
-| Number of generated artifacts | TBD | Requires enumerating `.sdd/compiled/*`, release assets, docs build outputs | Needs measurement |
-| Number of canonical governance sources | TBD | `docs/spec/canonical/governance-sources.yaml` entry count — quick to derive, not run this pass | Needs measurement |
-| Product-code : enforcement-code ratio | TBD | Requires a `cloc`-style split of `packages/` vs. `tools/ci/` + `tools/architecture/` + `tools/guardrails/` | Needs measurement |
-| Supported modes/configurations | TBD | e.g. Strategist personas, signature modes, output profiles — not enumerated this pass | Needs measurement |
-| Handshake token/time cost | TBD | Referenced in the critique; `sdd ask` telemetry (`ask.runtime.handbook`, `ask.governance.snapshot` timings visible in this session's own hook output) is the likely source — not aggregated this pass | Needs measurement |
-| Guardrail false-positive rate | TBD, but see Consequences | The module-size scanner's own `build/`-directory bug (this ADR's trigger case) is itself one concrete false-positive data point | Needs measurement (partial evidence) |
+| Metric | Baseline | Source | Status | Owner | Review By |
+|---|---|---|---|---|---|
+| Module-size violations (>400 lines, real source only) | 4 | `validate_class_size.py --show-module-warnings`, re-run 2026-08-07, excluding the 2 `build/` false positives (see Consequences) | Measured | Sergio Lacerda | 2026-11-24 |
+| CI workflow files | 13 | `.github/workflows/*.yml` count, confirmed in Strategist mission `20260807-critique-project-todo-gap-eval` | Measured | Sergio Lacerda | 2026-11-24 |
+| Number of canonical governance sources | 46 | `grep -c "^  - id:" docs/spec/canonical/governance-sources.yaml`, re-measured 2026-08-24 (16 mandates + 23 guidelines + 7 handbook/docs/mirror entries) | Measured | Sergio Lacerda | 2026-11-24 |
+| Product-code : enforcement-code ratio | 10.42:1 | `wc -l` over `packages/**/*.py` (excl. `tests/`, `build/`) = 60,057 lines vs. `tools/{ci,architecture,guardrails}/**/*.py` = 5,762 lines, measured 2026-08-24 | Measured | Sergio Lacerda | 2026-11-24 |
+| Number of generated artifacts | 22 | 8 in `.sdd/compiled/*` + 9 required release assets (`tools/release/validate_release_assets.py`'s `REQUIRED_ASSETS`: 5 compiler binaries + 3 CLI binaries + `SHA256SUMS`) + 4 additional release artifacts (`sdd_cli` wheel, SBOM, Sigstore signature bundle, SLSA provenance attestation, per `release.yml`) + 1 docs site (mkdocs static build). Measured 2026-08-24 | Measured | Sergio Lacerda | 2026-11-24 |
+| Supported modes/configurations | 3 Strategist personas (`debug`, `epic`, `pragmatic`) + 3 signature modes (`off`/`warn`/`strict`) + output profiles (`.strategist/output-profiles/`) | `ls .strategist/personas/`, `grep signature_mode packages/core/sdd_core/src/`, `ls .strategist/output-profiles/`, measured 2026-08-24 — kept as an enumerated list, not a single count, since "modes" spans unrelated dimensions with no single meaningful sum | Measured | Sergio Lacerda | 2026-11-24 |
+| Max synchronous gates per PR | TBD | Requires enumerating blocking jobs per workflow trigger | Needs measurement | Sergio Lacerda | 2026-11-24 |
+| Pipeline P50/P95 wall-clock time | TBD | Requires CI run-history mining (GitHub Actions API) | Needs measurement | Sergio Lacerda | 2026-11-24 |
+| Handshake token/time cost | TBD | Referenced in the critique; `sdd ask` telemetry (`ask.runtime.handbook`, `ask.governance.snapshot` timings visible in this session's own hook output) is the likely source — not aggregated this pass | Needs measurement | Sergio Lacerda | 2026-11-24 |
+| Guardrail false-positive rate | TBD, but see Consequences | The module-size scanner's own `build/`-directory bug (this ADR's trigger case) is itself one concrete false-positive data point. Needs the false-positive/override telemetry described in doc 06 (no emitter exists yet — see `.analysis/pending/20260824-tp4-complexity-budget-remainder-analysis.md`) before a real rate can be computed | Needs measurement (partial evidence) | Sergio Lacerda | 2026-11-24 |
 
 Rows marked `Needs measurement` are not blocking on this ADR's acceptance — they
 are the explicit backlog for making this budget quantitatively complete. This ADR
@@ -52,6 +52,30 @@ is accepted with a partially-measured budget rather than delayed until every row
 filled, consistent with ADR-009's own "evidence-based, not calendar-based"
 philosophy: measurement work is scoped and tracked, not indefinitely deferred by
 waiting for a perfect budget before deciding the one case in front of us.
+
+**2026-08-24 update** (doc 06, `.analysis/refined/20260822-critique-v3-refinement/`
+T-P4): five of the nine `TBD` rows above are now measured — see the `Owner`/
+`Review By` columns added to satisfy doc 06's acceptance criterion that no
+critical metric stays `TBD` without an owner and a deadline. The four
+remaining `TBD` rows need real new instrumentation (per-gate latency
+timers, an override/false-positive telemetry emitter) rather than a
+one-time derivation — scoped in
+`.analysis/pending/20260824-tp4-complexity-budget-remainder-analysis.md`,
+not attempted in this pass.
+
+**2026-08-25 update** (Strategist mission `20260825-tp4-instrumentation-design`,
+`.analysis/refined/20260825-tp4-instrumentation-design/`): design guidance for
+two of the remaining `TBD` rows is now available — a two-tier gate-latency
+event/aggregation model (pipeline-level and per-gate-rule P50/P95 from one
+event stream) and a dedicated `GateLatencyCollector`, covering the "Max
+synchronous gates per PR" and "Pipeline P50/P95 wall-clock time" rows once
+implemented (not yet — this is design only, tracked as `implementation_handoff`
+in that package's `tasks.md`). The "Guardrail false-positive rate" row's two
+prerequisite product questions — what mechanically counts as a "false
+positive" or an "override" in this repo, and whether a guardrail-evaluation
+cache should exist — remain open decisions pending user input; see that
+package's `proposal.md`. This row stays `Needs measurement` until those
+decisions are made.
 
 ### Applied decision: module-size enforcement
 
@@ -122,7 +146,7 @@ waiting for a perfect budget before deciding the one case in front of us.
 
 ## Links
 
-- `docs/adr/ADR-009-progressive-enforcement-ladder.md` (related — general
+- `docs/adr/ADR-020-progressive-enforcement-ladder.md` (related — general
   warn/block/strict philosophy this ADR's module-size decision follows)
 - `packages/interfaces/sdd_wizard/EXCEPTIONS.md` (prior-art pattern reused for the
   grandfather list)

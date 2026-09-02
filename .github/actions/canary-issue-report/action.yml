@@ -1,0 +1,42 @@
+name: Ecosystem canary issue report
+description: >-
+  Open or update (never duplicate) a GitHub issue reporting an
+  `ecosystem-canary` failure for one ecosystem. Idempotency is by title
+  prefix, not a dedicated label, so it only depends on labels that already
+  exist in this repo (seeded by dependabot.yml's own usage).
+
+inputs:
+  ecosystem:
+    description: Short ecosystem name, e.g. python, go, npm, github-actions
+    required: true
+  labels:
+    description: Comma-separated existing issue labels, e.g. "dependencies,python"
+    required: true
+  body-file:
+    description: Path to a file with the issue body (dependency diff + minimal log excerpt)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Open or update canary issue
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        title="[ecosystem-canary] ${{ inputs.ecosystem }}: dependency freshness failure"
+        existing=$(gh issue list --repo "${GITHUB_REPOSITORY}" \
+          --search "in:title \"${title}\"" \
+          --state open --json number --jq '.[0].number // empty')
+        if [[ -n "${existing}" ]]; then
+          echo "Updating existing issue #${existing}"
+          gh issue comment "${existing}" --repo "${GITHUB_REPOSITORY}" \
+            --body-file "${{ inputs.body-file }}"
+        else
+          echo "Creating new issue"
+          gh issue create --repo "${GITHUB_REPOSITORY}" \
+            --title "${title}" \
+            --body-file "${{ inputs.body-file }}" \
+            --label "${{ inputs.labels }}"
+        fi

@@ -65,9 +65,9 @@
       "criticality": "high",
       "id": "M006",
       "status": "active",
-      "summary_minimal": "Any change that could require users to update their code or governance artifacts must follow this RFC process.",
+      "summary_minimal": "RFC Process for Breaking Changes",
       "summary_runtime": null,
-      "title": "Any change that could require users to update their code or governance artifacts must follow this RFC process.",
+      "title": "RFC Process for Breaking Changes",
       "type": "MANDATE"
     },
     {

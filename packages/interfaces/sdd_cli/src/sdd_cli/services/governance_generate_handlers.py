@@ -10,11 +10,7 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 
-from sdd_cli.generators.agent_seeds import (
-    generate_agent_instruction_files,
-    generate_agent_prompt_commands,
-    generate_agent_seeds,
-)
+from sdd_cli.generators.agent_seeds import generate_agent_seeds
 from sdd_cli.services._governance_generate_support import (
     generate_artifacts_flow,
     run_generate_flow,
@@ -29,6 +25,12 @@ from sdd_cli.services.governance_bootstrap_handlers import (
 )
 from sdd_cli.services.governance_command_output import fail_generate_precondition
 from sdd_cli.services.governance_compile_handlers import resolve_output_base
+from sdd_cli.services.governance_generate_prereqs import (
+    generate_adapters_safe,
+    generate_runtime_handbook_required,
+    write_instruction_files_safe,
+    write_prompt_commands_safe,
+)
 from sdd_cli.utils.loader import load_governance_config, validate_governance_path
 from sdd_cli.utils.output import emit_json
 from sdd_cli.utils.sdd_authority import enforce_path_policy, resolve_workspace_root
@@ -54,73 +56,6 @@ def generate_seeds(
     seeds_dir = Path(output_dir) / ".vscode" / "agents"
     seeds_info = generate_agent_seeds(seeds_dir, config)
     return seeds_info, seeds_dir
-
-
-def write_instruction_files_safe(
-    output_base: Path, config: dict[str, Any], *, console: Console
-) -> None:
-    """Write agent instruction files, logging a warning on failure."""
-    try:
-        for label, target in generate_agent_instruction_files(output_base, config):
-            console.print(f"[green]{label} instructions written to {target}[/green]")
-    except Exception as _e:
-        console.print(f"[yellow]WARN: could not write instruction files: {_e}[/yellow]")
-
-
-def write_prompt_commands_safe(
-    output_base: Path, config: dict[str, Any], *, console: Console
-) -> None:
-    """Write agent prompt command files, logging a warning on failure."""
-    try:
-        for label, target in generate_agent_prompt_commands(output_base, config):
-            console.print(f"[green]{label} prompt commands written to {target}[/green]")
-    except Exception as _e:
-        console.print(
-            f"[yellow]WARN: could not write prompt command files: {_e}[/yellow]"
-        )
-
-
-def generate_adapters_safe(output_base: Path, *, console: Console) -> None:
-    """Generate adapter files, logging a warning on failure."""
-    try:
-        from sdd_adapters.adapter_generator import AdapterGenerator
-
-        adapter_gen = AdapterGenerator()
-        results = adapter_gen.generate(output_dir=output_base)
-        for target, result in results.items():
-            if result.success and result.files_written:
-                console.print(
-                    f"[green]Adapters ({target}): {len(result.files_written)} files written[/green]"
-                )
-            elif result.errors:
-                for err in result.errors:
-                    console.print(f"[yellow]WARN: adapter {target}: {err}[/yellow]")
-    except Exception as _e:
-        console.print(f"[yellow]WARN: could not generate adapter files: {_e}[/yellow]")
-
-
-def generate_runtime_handbook_required(
-    output_base: Path, *, console: Console, quiet: bool = False
-) -> None:
-    """Generate mandatory runtime handbook slices from docs/ source registry."""
-    from sdd_cli.services.governance_docs_sources import (
-        DEFAULT_REGISTRY,
-        generate_runtime_handbook,
-    )
-    from sdd_cli.utils.environment import detect_repo_root
-    from sdd_cli.utils.sdd_authority import resolve_workspace_root
-
-    source_root = resolve_workspace_root() or output_base
-    if not (source_root / DEFAULT_REGISTRY).exists():
-        try:
-            repo_root = detect_repo_root()
-        except RuntimeError:
-            repo_root = None
-        if repo_root is not None and (repo_root / DEFAULT_REGISTRY).exists():
-            source_root = repo_root
-    written = generate_runtime_handbook(source_root, runtime_root=output_base)
-    if written and not quiet:
-        console.print(f"[green]Runtime handbook: {len(written)} files written[/green]")
 
 
 def run_generate_phases(

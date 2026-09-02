@@ -771,15 +771,22 @@ def test_coding_practices_digest_helper_changes_with_content() -> None:
 def test_generate_coding_practices_against_real_repo_sources(tmp_path: Path) -> None:
     repo_root = None
     for parent in Path(__file__).resolve().parents:
-        if (parent / "docs" / "cognition" / "anti-patterns").exists():
+        # Both markers are required: packages/docs/ mirrors docs/cognition/
+        # anti-patterns/ (see packages/docs/), so that alone no longer
+        # identifies the true repo root — the closer, .sdd-less packages/
+        # directory would match first and generate() would then fail to find
+        # .sdd/skills/registry.json under it.
+        if (parent / "docs" / "cognition" / "anti-patterns").exists() and (
+            parent / ".sdd" / "skills" / "registry.json"
+        ).exists():
             repo_root = parent
             break
     if repo_root is None:
         pytest.skip(
-            "no docs/cognition/anti-patterns/ found above this test file — this "
-            "environment does not include the full SDD Harness source tree "
-            "(e.g. a packaging/shadow-repo check); skipping the real-source "
-            "regression test."
+            "no docs/cognition/anti-patterns/ + .sdd/skills/registry.json found "
+            "above this test file — this environment does not include the full "
+            "SDD Harness source tree (e.g. a packaging/shadow-repo check); "
+            "skipping the real-source regression test."
         )
 
     result = DevinPluginGenerator().generate(
@@ -954,14 +961,21 @@ def test_generate_standalone_real_sources_exist() -> None:
     # real-file test, adapted for static content with no parser to re-run).
     repo_root = None
     for parent in Path(__file__).resolve().parents:
-        if (parent / "docs" / "guidelines" / "core-engineering-principles.md").exists():
+        # See the identical .sdd co-check in
+        # test_generate_coding_practices_against_real_repo_sources above:
+        # packages/docs/ mirrors this file too, so the docs marker alone
+        # would match packages/ before the true repo root.
+        if (
+            parent / "docs" / "guidelines" / "core-engineering-principles.md"
+        ).exists() and (parent / ".sdd" / "skills" / "registry.json").exists():
             repo_root = parent
             break
     if repo_root is None:
         pytest.skip(
-            "no docs/guidelines/core-engineering-principles.md found above this "
-            "test file — this environment does not include the full SDD Harness "
-            "source tree; skipping the real-source existence check."
+            "no docs/guidelines/core-engineering-principles.md + "
+            ".sdd/skills/registry.json found above this test file — this "
+            "environment does not include the full SDD Harness source tree; "
+            "skipping the real-source existence check."
         )
 
     for rel_path in (

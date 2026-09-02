@@ -31,6 +31,11 @@ from ._ask_latency_collector import (
 from ._collector import TokenEconomyCollector
 from ._config import _load_token_budget_config
 from ._economy_snapshot import EconomySnapshot
+from ._gate_latency_collector import (
+    GateLatencyCollector,
+    GateLatencyGroup,
+    GateLatencySnapshot,
+)
 from ._model_metrics import ModelMetrics
 from ._renderer import PrometheusTextRenderer
 
@@ -38,6 +43,9 @@ __all__ = [
     "AskLatencyCollector",
     "AskLatencySnapshot",
     "EconomySnapshot",
+    "GateLatencyCollector",
+    "GateLatencyGroup",
+    "GateLatencySnapshot",
     "LatencyGroup",
     "ModelMetrics",
     "PrometheusTextRenderer",

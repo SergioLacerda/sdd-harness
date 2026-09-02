@@ -43,8 +43,8 @@ def _time_snapshot_calls(
     iterations: int,
 ) -> list[float]:
     from sdd_cli.commands import _ask_backend as _backend
-    from sdd_cli.commands._ask_backend import _pipeline
-    from sdd_cli.services import ask_context as ask_context_mod
+    from sdd_cli.commands._ask_backend import _pipeline_snapshot as _pipeline
+    from sdd_cli.services import ask_context_routing as ask_context_routing_mod
 
     def _slow_load_compiled_governance(root: Path) -> tuple:
         time.sleep(_SIMULATED_LOAD_DELAY_SECONDS)
@@ -62,12 +62,12 @@ def _time_snapshot_calls(
     monkeypatch.setattr(_backend, "_runtime_drift_check", lambda root, fp: False)
     monkeypatch.setattr(_backend, "_root_seed_drift_check", lambda root: False)
     monkeypatch.setattr(
-        "sdd_cli.services.governance_docs_sources.lookup_runtime_handbook",
+        "sdd_cli.services.governance_docs_handbook_lookup.lookup_runtime_handbook",
         lambda root, *, task_type, operation_phase: _FakeReport(),
     )
 
     if warm_cache:
-        ask_context_mod.write_runtime_cache_and_routing_decision(
+        ask_context_routing_mod.write_runtime_cache_and_routing_decision(
             tmp_path,
             {"compiled_fingerprint_used": "fp1"},
             "prior query",

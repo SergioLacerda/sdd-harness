@@ -1,4 +1,12 @@
 schema_version: "1"
+# `path` identifies the reference/subject-matter document an entry pertains to.
+# It is validated only for existence (see governance_docs_sources.py's
+# _validate_entry_path) — it is not a unique content pointer. Multiple entries
+# legitimately share a `path` (e.g. several per-language guidelines documented
+# in one language guide, or several mandate-linked guidelines documented in
+# one mandate file via `refs`). True duplication is an `id`-level concern
+# only, enforced by the loader's duplicate-id check. Do not "deduplicate"
+# entries by path alone.
 sources:
   - id: M001
     type: mandate

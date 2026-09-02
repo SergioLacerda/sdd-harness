@@ -7,6 +7,39 @@ from typing import Any
 from sdd_cli.services.ask_types import _AskInputs, _AskSessionContext
 
 
+def run_intake_only_ask(
+    inputs: _AskInputs,
+    session: _AskSessionContext,
+    *,
+    build_runtime_handbook_hint_fn: Any,
+    json_mode_fn: Any,
+    emit_intake_only_json_response_fn: Any,
+    emit_intake_only_text_response_fn: Any,
+) -> None:
+    """Cheap hook-mode profile (spike: 20260714-sdd-ask-single-entrypoint-spike,
+    I-005). Deliberately skips build_governed_ask_snapshot (compiled-governance
+    load, signature verification, drift checks, full handbook payload) and
+    telemetry/runtime-cache writes — those are the stages the spike identified
+    as unnecessary for every hook-fired prompt. A compact runtime handbook hint
+    is still allowed because it reads only `.sdd/source/handbook/**` and stays
+    opportunistic.
+    """
+    handbook_hint = build_runtime_handbook_hint_fn(
+        root=session.workspace_root,
+        query=inputs.query,
+        skill=inputs.skill,
+        cached_handbook_task_type=session.cached_handbook_task_type,
+    )
+    if json_mode_fn():
+        emit_intake_only_json_response_fn(
+            inputs, session, runtime_handbook_hint=handbook_hint
+        )
+    else:
+        emit_intake_only_text_response_fn(
+            inputs, session, runtime_handbook_hint=handbook_hint
+        )
+
+
 def normalize_ask_inputs(
     *,
     query: str,

@@ -26,7 +26,7 @@ def _clear_shared_context_cache():
 def test_cached_handbook_lookup_skips_second_lookup_on_hit(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from sdd_cli.commands._ask_backend import _pipeline
+    from sdd_cli.commands._ask_backend import _pipeline_handbook as _pipeline
 
     calls = {"count": 0}
 
@@ -42,7 +42,7 @@ def test_cached_handbook_lookup_skips_second_lookup_on_hit(
         return _FakeReport()
 
     monkeypatch.setattr(
-        "sdd_cli.services.governance_docs_sources.lookup_runtime_handbook",
+        "sdd_cli.services.governance_docs_handbook_lookup.lookup_runtime_handbook",
         _fake_lookup_runtime_handbook,
     )
 
@@ -66,7 +66,7 @@ def test_cached_handbook_lookup_skips_second_lookup_on_hit(
 def test_cached_handbook_lookup_misses_for_different_query(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from sdd_cli.commands._ask_backend import _pipeline
+    from sdd_cli.commands._ask_backend import _pipeline_handbook as _pipeline
 
     calls = {"count": 0}
 
@@ -82,7 +82,7 @@ def test_cached_handbook_lookup_misses_for_different_query(
         return _FakeReport()
 
     monkeypatch.setattr(
-        "sdd_cli.services.governance_docs_sources.lookup_runtime_handbook",
+        "sdd_cli.services.governance_docs_handbook_lookup.lookup_runtime_handbook",
         _fake_lookup_runtime_handbook,
     )
 
@@ -109,7 +109,7 @@ def test_build_governed_ask_snapshot_uses_cached_task_type_when_provided(
     routing-decision cache, T-03), `build_governed_ask_snapshot` must reuse it
     instead of calling `_infer_handbook_task_type` again."""
     from sdd_cli.commands import _ask_backend as _backend
-    from sdd_cli.commands._ask_backend import _pipeline
+    from sdd_cli.commands._ask_backend import _pipeline_handbook as _pipeline
 
     infer_calls = {"count": 0}
 
@@ -132,7 +132,7 @@ def test_build_governed_ask_snapshot_uses_cached_task_type_when_provided(
     monkeypatch.setattr(_backend, "_runtime_drift_check", lambda root, fp: False)
     monkeypatch.setattr(_backend, "_root_seed_drift_check", lambda root: False)
     monkeypatch.setattr(
-        "sdd_cli.services.governance_docs_sources.lookup_runtime_handbook",
+        "sdd_cli.services.governance_docs_handbook_lookup.lookup_runtime_handbook",
         lambda root, *, task_type, operation_phase: _FakeReport(),
     )
 

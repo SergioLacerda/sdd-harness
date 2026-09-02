@@ -73,6 +73,7 @@ def _render_agents_md() -> str:
         (_render_agents_md, "agents_md.golden.md"),
     ],
 )
+@pytest.mark.golden
 def test_root_seed_template_matches_golden(render_fn, golden_name: str) -> None:
     """MUST: root-seed template output is unchanged for fixed inputs (no silent drift)."""
     golden_path = FIXTURES / golden_name

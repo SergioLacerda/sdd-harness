@@ -10,7 +10,6 @@ asserting on them.
 from __future__ import annotations
 
 from sdd_runtime.metrics._ask_latency_collector import AskLatencyCollector
-
 from tests.helpers.text_io import write_text_utf8
 
 

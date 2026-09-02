@@ -9,7 +9,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from sdd_cli.commands.scaffold import _append_to_registry, _render
+from sdd_cli.commands.scaffold import _render
+from sdd_cli.commands.scaffold_registry import _append_to_registry
 from sdd_cli.main import app
 
 runner = CliRunner()

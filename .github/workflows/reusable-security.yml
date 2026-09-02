@@ -36,7 +36,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
         with:
           version: "0.11.9"
           enable-cache: true
@@ -59,7 +59,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
         with:
           version: "0.11.9"
           enable-cache: true
@@ -116,7 +116,16 @@ jobs:
           # via validateSerializable (depth/node-count limits before Marshal is
           # called) — see gov_compiler.go. Accepted-risk exception: fail the
           # build only if a *different* vulnerability is reported.
-          output=$(go run golang.org/x/vuln/cmd/govulncheck@latest ./... 2>&1) || true
+          #
+          # Tool version pinned (not @latest — no floating tool versions in
+          # PR/main builds per docs/adr ADR-009-ci-fail-closed-matrix and the
+          # supply-chain policy). Freshness of the vulnerability data itself
+          # does not depend on this pin: govulncheck always fetches the
+          # current advisory database from https://vuln.go.dev at run time
+          # regardless of the scanner binary's own version. Bump this tag
+          # periodically to pick up scanner improvements — check newer tags
+          # with `go list -m -versions golang.org/x/vuln`.
+          output=$(go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./... 2>&1) || true
           echo "$output"
           other_vulns=$(echo "$output" | grep -oE 'GO-[0-9]{4}-[0-9]+' | sort -u | grep -v '^GO-2026-4740$' || true)
           if [[ -n "$other_vulns" ]]; then
@@ -138,7 +147,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
         with:
           version: "0.11.9"
           enable-cache: true
@@ -154,7 +163,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
         continue-on-error: true
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
       - name: Sync Docker ignore rules
         run: cp infrastructure/docker/.dockerignore .dockerignore
       - name: Build image

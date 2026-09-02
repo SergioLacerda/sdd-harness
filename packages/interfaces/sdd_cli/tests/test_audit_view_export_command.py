@@ -126,7 +126,10 @@ def test_audit_export_rejects_unknown_format(tmp_path: Path) -> None:
 def test_audit_legacy_check_blocks_in_q4_with_hits(tmp_path: Path) -> None:
     legacy_doc = tmp_path / "README.md"
     legacy_doc.write_text("use /legacy/path here", encoding="utf-8")
-    with patch("sdd_cli.commands.audit.resolve_workspace_root", return_value=tmp_path):
+    with patch(
+        "sdd_cli.commands.audit_export_commands.resolve_workspace_root",
+        return_value=tmp_path,
+    ):
         result = runner.invoke(
             app,
             ["audit", "legacy-check", "--phase-date", "2026-10-01"],
@@ -143,7 +146,10 @@ def test_audit_bootstrap_check_ok(tmp_path: Path) -> None:
     (tmp_path / "CLAUDE.md").write_text(
         "Read .sdd/agent-instructions.md", encoding="utf-8"
     )
-    with patch("sdd_cli.commands.audit.resolve_workspace_root", return_value=tmp_path):
+    with patch(
+        "sdd_cli.commands.audit_export_commands.resolve_workspace_root",
+        return_value=tmp_path,
+    ):
         result = runner.invoke(app, ["audit", "bootstrap-check"])
     assert result.exit_code == 0, result.output
     assert "status: OK" in result.output
@@ -155,9 +161,12 @@ def test_audit_compliance_pack_generates_files(tmp_path: Path) -> None:
     out_dir = tmp_path / "pack"
 
     with (
-        patch("sdd_cli.commands.audit.resolve_workspace_root", return_value=tmp_path),
         patch(
-            "sdd_cli.commands.audit.SafeProcessRunner.run",
+            "sdd_cli.commands.audit_export_commands.resolve_workspace_root",
+            return_value=tmp_path,
+        ),
+        patch(
+            "sdd_cli.commands.audit_export_commands.SafeProcessRunner.run",
             side_effect=[
                 SimpleNamespace(stdout="", stderr="", returncode=0, success=True),
                 SimpleNamespace(stdout="runtime ok\n", stderr="", returncode=0),
@@ -194,7 +203,10 @@ def test_audit_compliance_pack_missing_sdd_cli_module_exits_1(tmp_path: Path) ->
     out_dir = tmp_path / "pack"
 
     with (
-        patch("sdd_cli.commands.audit.resolve_workspace_root", return_value=tmp_path),
+        patch(
+            "sdd_cli.commands.audit_export_commands.resolve_workspace_root",
+            return_value=tmp_path,
+        ),
         patch("sdd_cli.utils.dev_deps.check_module_available", return_value=False),
     ):
         result = runner.invoke(

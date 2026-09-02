@@ -317,6 +317,9 @@ def _load_governance_summary(output_dir: Path) -> dict[str, Any]:
             )
             workspace_version = str(metadata.get("version", workspace_version))
         except (OSError, json.JSONDecodeError):
+            # Best-effort only: fall back to the "unknown" defaults already
+            # set above rather than fail plugin generation over a metadata
+            # file that's missing, unreadable, or malformed.
             pass
 
     mandates: list[dict[str, Any]] = []

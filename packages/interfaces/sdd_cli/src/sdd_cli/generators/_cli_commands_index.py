@@ -40,7 +40,7 @@ def generate_cli_commands_index(
                 "group": "governance",
                 "purpose": "Query governance context",
                 "flags": ["--dossier", "--skill", "--budget"],
-                "governed_by": ["M010", "G003"],
+                "governed_by": ["M010"],
                 "requires_handshake": True,
             },
             {
@@ -48,7 +48,7 @@ def generate_cli_commands_index(
                 "group": "governance",
                 "purpose": "Query governance with full context and compression",
                 "flags": [],
-                "governed_by": ["M010", "G003"],
+                "governed_by": ["M010"],
                 "requires_handshake": True,
             },
             {

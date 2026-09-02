@@ -29,6 +29,9 @@ ALLOWED_TOOLS = {
     "tools/ci/check_golden_policy.py",
     "tools/ci/check_core_compiler_runtime_contract.py",
     "tools/ci/check_tdd_diff_coverage.py",
+    # Launches `uv run mutmut` for a scoped mutation-testing target — a
+    # standalone dev/CI tool, not application code under packages/.
+    "tools/testing/run_mutation_python.py",
 }
 
 MIGRATED_TOOLS = {

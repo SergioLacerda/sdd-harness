@@ -74,5 +74,6 @@ def _evaluate_correction_gate(
             "next_action": str(rule.get("next_action", "human-review")),
             "requires_human_review": bool(rule.get("requires_human_review", True)),
             "escalate_to_human": bool(rule.get("escalate_to_human", True)),
+            "rule_id": str(rule.get("id", "")),
         }
     return _default_correction_gate_rules()[-1].copy()

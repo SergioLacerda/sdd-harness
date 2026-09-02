@@ -7,6 +7,10 @@ golden-policy-check: ## Check golden-file policy compliance
 golden-policy-check-strict: ## Check golden-file policy compliance (strict)
 test-fast: ## Run packages/tests with -x --ff (no perf tests)
 test-perf: ## Run performance/benchmark tests (excluded from other test targets)
+test-unit: ## Run unit-family tests only (everything not integration/contract/golden/perf)
+test-integration: ## Run integration-family tests only (-m integration)
+test-contract: ## Run contract-family tests only (-m contract)
+test-golden: ## Run golden/snapshot-drift tests only (-m golden)
 coverage: ## Run tests with HTML coverage report
 coverage-strict: ## Per-layer coverage gates (core 90%, features 70%, interfaces 70%)
 update-golden-snapshots: ## Update contract test golden files
@@ -15,7 +19,8 @@ clean: ## Remove temporary files
 check: ## Run CI-safe tests (unit + integration + contract, no perf)
 
 PYTHON_TASKS := golden-policy-check golden-policy-check-strict \
-  test-fast test-perf coverage coverage-strict update-golden-snapshots \
+  test-fast test-perf test-unit test-integration test-contract test-golden \
+  coverage coverage-strict update-golden-snapshots \
   generate-schemas clean check
 
 .PHONY: $(PYTHON_TASKS)
@@ -52,6 +57,10 @@ golden-status: ## Check golden-file git status (informational; used by `check`)
 test: ## Run full multi-layer test pipeline with unified coverage gate
 	$(PYTHON) tools/maintenance/make_tasks.py test $(ARGS)
 
+.PHONY: mutation-python
+mutation-python: ## Run Python mutation testing on registered critical modules (scheduled, not per-PR)
+	$(PYTHON) tools/testing/run_mutation_python.py
+
 .PHONY: lock
 lock: ## Regenerate uv.lock
 	uv lock
@@ -67,7 +76,7 @@ install-docs: ## Install documentation dependencies (mkdocs)
 .PHONY: py.install py.install-docs py.lock py.clean py.generate-schemas \
   test.check test.all test.fast test.perf test.coverage test.coverage-strict \
   test.golden-status test.golden-policy-check test.golden-policy-check-strict \
-  test.update-golden-snapshots
+  test.update-golden-snapshots test.mutation-python
 py.install: install
 py.install-docs: install-docs
 py.lock: lock
@@ -83,3 +92,4 @@ test.golden-status: golden-status
 test.golden-policy-check: golden-policy-check
 test.golden-policy-check-strict: golden-policy-check-strict
 test.update-golden-snapshots: update-golden-snapshots
+test.mutation-python: mutation-python

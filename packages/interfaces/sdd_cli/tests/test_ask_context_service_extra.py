@@ -6,6 +6,7 @@ import click
 import pytest
 
 from sdd_cli.services import ask_context as ask_context_mod
+from sdd_cli.services import ask_context_drift as ask_context_drift_mod
 
 
 def test_resolve_workspace_root_uses_authority_and_policy(
@@ -76,7 +77,7 @@ def test_load_ask_context_builds_dataclass(
         lambda root: ("compiled", "abcdef12", 16, True, False, "", "runtime"),
     )
     monkeypatch.setattr(
-        ask_context_mod, "check_fingerprint_drift", lambda root, fp: True
+        ask_context_drift_mod, "check_fingerprint_drift", lambda root, fp: True
     )
     result = ask_context_mod.load_ask_context(workspace_root=tmp_path)
     assert result.workspace_root == tmp_path
@@ -98,7 +99,7 @@ def test_check_root_seed_drift_detects_stale_root_seed(
         "# Governance fingerprint: deadbeef99\n", encoding="utf-8"
     )
 
-    assert ask_context_mod.check_root_seed_drift(tmp_path) is True
+    assert ask_context_drift_mod.check_root_seed_drift(tmp_path) is True
 
 
 def test_check_root_seed_drift_and_check_fingerprint_drift_are_independent(
@@ -118,5 +119,5 @@ def test_check_root_seed_drift_and_check_fingerprint_drift_are_independent(
     )
     # No .sdd/runtime/governance-state.json — check_fingerprint_drift must stay
     # False (its own no-cached-state default), unaffected by the root-seed drift above.
-    assert ask_context_mod.check_root_seed_drift(tmp_path) is True
-    assert ask_context_mod.check_fingerprint_drift(tmp_path, "abc123") is False
+    assert ask_context_drift_mod.check_root_seed_drift(tmp_path) is True
+    assert ask_context_drift_mod.check_fingerprint_drift(tmp_path, "abc123") is False

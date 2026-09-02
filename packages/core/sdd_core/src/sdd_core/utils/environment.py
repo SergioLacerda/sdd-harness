@@ -31,7 +31,8 @@ from sdd_core.utils._environment_workspace import (
 )
 
 
-def _workspace_root_from_env() -> Path | None:
+def workspace_root_from_env() -> Path | None:
+    """Return `SDD_WORKSPACE_ROOT` if set (highest-priority explicit override)."""
     return _workspace_root_from_env_impl()
 
 
@@ -43,7 +44,7 @@ def get_sdd_paths(
         resolved_repo_root = repo_root.resolve() if repo_root else detect_repo_root()
     except RuntimeError:
         resolved_repo_root = Path.cwd().resolve()
-    env_workspace = _workspace_root_from_env()
+    env_workspace = workspace_root_from_env()
     resolved_workspace_root = (
         workspace_root.resolve()
         if workspace_root
@@ -114,5 +115,6 @@ __all__ = [
     "resolve_venv_python",
     "resolve_venv_sdd",
     "tomllib",
+    "workspace_root_from_env",
     "write_profile",
 ]

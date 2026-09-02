@@ -77,7 +77,7 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
                 return_value=parent_root,
             ),
         ):
@@ -105,7 +105,7 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
                 return_value=None,
             ),
         ):
@@ -155,7 +155,7 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
                 return_value=None,
             ),
         ):
@@ -177,7 +177,7 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
                 return_value=None,
             ),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
@@ -205,7 +205,7 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
                 return_value=None,
             ),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
@@ -228,7 +228,7 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", _fake_cwd),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
                 return_value=None,
             ),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
@@ -253,7 +253,7 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
                 return_value=None,
             ),
             patch(
@@ -283,7 +283,7 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
                 return_value=None,
             ),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
@@ -313,11 +313,11 @@ class TestInitEdgeCases:
         with (
             patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_parent_workspace_with_profile",
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
                 return_value=None,
             ),
             patch("sdd_cli.commands.init.write_profile", return_value=mock_ctx),
-            patch("sdd_cli.commands.init.OnboardingOrchestrator") as MockOrch,
+            patch("sdd_cli.commands.init_bootstrap.OnboardingOrchestrator") as MockOrch,
         ):
             MockOrch.return_value.run.side_effect = OperationalCliError(
                 "Bootstrap step failed while running 'governance generate'.",

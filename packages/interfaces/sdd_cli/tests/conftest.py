@@ -8,6 +8,27 @@ import pytest
 from sdd_runtime import RuntimeEvent
 
 
+@pytest.fixture(autouse=True)
+def _clear_compliance_path_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ensure no compliance-events path override leaks in from the session.
+
+    The root `tests/conftest.py` sets `SDD_COMPLIANCE_EVENTS_PATH` for the
+    whole pytest session as a safety net (so tests never write into the real
+    repo's `.sdd/runtime/`). Unit tests in this package that mock
+    `resolve_workspace_root` or use their own `tmp_path` fixtures need a clean
+    slate instead, since `SDD_COMPLIANCE_LOG`/`SDD_COMPLIANCE_EVENTS_PATH`/
+    `SDD_TELEMETRY_PATH` all resolve the same compliance-events path (see
+    `sdd_core.governance.compliance_constants.resolve_compliance_log_override`)
+    and would otherwise short-circuit those tests' own resolution logic. Tests
+    that want to exercise a specific override still call `monkeypatch.setenv`
+    themselves — that always wins over this autouse cleanup, since it runs
+    within the same test after this fixture's setup.
+    """
+    monkeypatch.delenv("SDD_COMPLIANCE_LOG", raising=False)
+    monkeypatch.delenv("SDD_COMPLIANCE_EVENTS_PATH", raising=False)
+    monkeypatch.delenv("SDD_TELEMETRY_PATH", raising=False)
+
+
 @pytest.fixture
 def metrics_events_path(tmp_path: Path) -> Path:
     """Fixture that provides isolated JSONL path with synthetic metrics events.

@@ -7,11 +7,9 @@ from pathlib import Path
 
 import yaml
 
-from sdd_cli.services.governance_docs_sources import (
-    generate_runtime_handbook,
-    lookup_runtime_handbook,
-    validate_governance_sources,
-)
+from sdd_cli.services.governance_docs_drift import validate_governance_sources
+from sdd_cli.services.governance_docs_handbook_gen import generate_runtime_handbook
+from sdd_cli.services.governance_docs_handbook_lookup import lookup_runtime_handbook
 
 
 def _write_json(path: Path, data: dict[str, object]) -> None:
@@ -291,3 +289,130 @@ def test_lookup_runtime_handbook_reports_none_without_docs_scan(tmp_path: Path) 
 
     assert report.status == "none"
     assert report.diagnostic == "handbook_match=none"
+
+
+def test_validate_governance_sources_missing_registry_file(tmp_path: Path) -> None:
+    report = validate_governance_sources(tmp_path)
+
+    assert report.ok is False
+    assert any("missing registry" in error for error in report.errors)
+    assert report.mandate_ids == []
+    assert report.guideline_ids == []
+    assert report.handbook_ids == []
+
+
+def test_validate_governance_sources_rejects_wrong_schema_version(
+    tmp_path: Path,
+) -> None:
+    _runtime(tmp_path)
+    path = tmp_path / "docs" / "spec" / "canonical" / "governance-sources.yaml"
+    path.parent.mkdir(parents=True)
+    path.write_text("schema_version: '2'\nsources: []\n", encoding="utf-8")
+
+    report = validate_governance_sources(tmp_path)
+
+    assert report.ok is False
+    assert any("schema_version must be '1'" in error for error in report.errors)
+
+
+def test_validate_governance_sources_detects_stale_handbook_output(
+    tmp_path: Path,
+) -> None:
+    """A `.sdd/source/handbook/` file not declared by any active handbook
+    entry (here: no handbook entries at all) must be flagged as stale."""
+    _runtime(tmp_path)
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "m001.md").write_text("# M001", encoding="utf-8")
+    (docs / "g01.md").write_text("# G01", encoding="utf-8")
+    _registry(
+        tmp_path,
+        [
+            {
+                "id": "M001",
+                "type": "mandate",
+                "status": "active",
+                "path": "docs/m001.md",
+            },
+            {
+                "id": "G01",
+                "type": "guideline",
+                "status": "active",
+                "path": "docs/g01.md",
+            },
+        ],
+    )
+    stale = tmp_path / ".sdd" / "source" / "handbook" / "orphan.yaml"
+    stale.parent.mkdir(parents=True)
+    stale.write_text("id: ORPHAN\n", encoding="utf-8")
+
+    report = validate_governance_sources(tmp_path)
+
+    assert any(
+        "stale handbook runtime output is not declared" in warning
+        and "orphan.yaml" in warning
+        for warning in report.warnings
+    )
+
+
+def test_validate_governance_sources_detects_readable_source_output_drift(
+    tmp_path: Path,
+) -> None:
+    """`.sdd/source/` outputs are checked against every entry's declared
+    `outputs`, not just handbook entries — covers both directions: a
+    declared-but-missing file and a present-but-undeclared (stale) file."""
+    _runtime(tmp_path)
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "m001.md").write_text("# M001", encoding="utf-8")
+    (docs / "g01.md").write_text("# G01", encoding="utf-8")
+    _registry(
+        tmp_path,
+        [
+            {
+                "id": "M001",
+                "type": "mandate",
+                "status": "active",
+                "path": "docs/m001.md",
+                "outputs": [".sdd/source/mandates/mandates.md"],
+            },
+            {
+                "id": "G01",
+                "type": "guideline",
+                "status": "active",
+                "path": "docs/g01.md",
+            },
+            {
+                "id": "HBK-CONTEXT-LOADING",
+                "type": "handbook",
+                "status": "active",
+                "path": "docs/g01.md",
+                "task_types": ["planning"],
+                "load_policy": {"max_tokens": 700},
+            },
+        ],
+    )
+    # Declared (.sdd/source/mandates/mandates.md, and the handbook index.yaml
+    # implied by the active handbook entry above) are never written to disk;
+    # an undeclared stray file is written instead.
+    stray = tmp_path / ".sdd" / "source" / "stray.txt"
+    stray.parent.mkdir(parents=True)
+    stray.write_text("unexpected", encoding="utf-8")
+
+    report = validate_governance_sources(tmp_path)
+
+    assert any(
+        "declared readable runtime output missing" in warning
+        and "mandates.md" in warning
+        for warning in report.warnings
+    )
+    assert any(
+        "declared readable runtime output missing" in warning
+        and "handbook/index.yaml" in warning
+        for warning in report.warnings
+    )
+    assert any(
+        "stale readable runtime output is not declared" in warning
+        and "stray.txt" in warning
+        for warning in report.warnings
+    )

@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 
 from sdd_cli.commands._ask_backend._phase_timer import PhaseTimer
-from sdd_cli.commands._ask_backend._pipeline_runtime import print_ask_console_summary
+from sdd_cli.commands._ask_backend._pipeline_metrics import print_ask_console_summary
 
 
 def test_prints_one_line_per_recorded_phase_plus_total(capsys) -> None:

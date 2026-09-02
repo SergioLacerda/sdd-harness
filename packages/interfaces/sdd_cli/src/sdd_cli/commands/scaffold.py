@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Annotated
@@ -14,6 +13,7 @@ from jinja2 import (
     select_autoescape,
 )
 
+from sdd_cli.commands.scaffold_registry import _append_to_registry
 from sdd_cli.services.command_group_output import show_command_group
 from sdd_core.utils.environment import find_workspace_root
 
@@ -65,23 +65,6 @@ def _render(template_path: Path, context: Mapping[str, object]) -> str:
         keep_trailing_newline=True,
     )
     return str(env.get_template(template_path.name).render(**context))
-
-
-def _append_to_registry(registry_path: Path, entry: dict[str, object]) -> None:
-    data = (
-        json.loads(registry_path.read_text(encoding="utf-8"))
-        if registry_path.exists()
-        else {}
-    )
-    key = "skills" if "skills" in data else "commands"
-    items: list[dict[str, object]] = data.get(key, [])
-    if not any(
-        i.get("name") == entry.get("name") or i.get("id") == entry.get("id")
-        for i in items
-    ):
-        items.append(entry)
-    data[key] = items
-    registry_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
 @app.command()

@@ -199,7 +199,7 @@ tools:
 class TestToolsRun:
     def test_script_not_found_without_extension_exits_1(self, tmp_path: Path) -> None:
         _make_tools_dir(tmp_path)
-        with patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path):
+        with patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path):
             result = runner.invoke(app, ["tools", "run", "missing"])
         assert result.exit_code == 1
         assert "not found" in result.output
@@ -211,7 +211,7 @@ class TestToolsRun:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(returncode=0)
         with (
-            patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path),
+            patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["tools", "run", "check"])
@@ -224,7 +224,7 @@ class TestToolsRun:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(returncode=0)
         with (
-            patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path),
+            patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["tools", "run", "tool.py"])
@@ -238,7 +238,7 @@ class TestToolsRun:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(returncode=0)
         with (
-            patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path),
+            patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["tools", "run", "tool.py", "extra_arg"])
@@ -266,7 +266,7 @@ tools:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(returncode=0)
         with (
-            patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path),
+            patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["tools", "run", "maintenance/lint_all"])
@@ -298,7 +298,7 @@ tools:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(returncode=0)
         with (
-            patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path),
+            patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["tools", "run", "maintenance/lint_all.py"])
@@ -325,7 +325,7 @@ tools:
     replacement: new/check
 """,
         )
-        with patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path):
+        with patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path):
             result = runner.invoke(app, ["tools", "run", "old/check"])
         assert result.exit_code == 1
         assert "not runnable from manifest" in result.output
@@ -354,7 +354,7 @@ tools:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(returncode=0)
         with (
-            patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path),
+            patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["tools", "run", "old/check"])
@@ -380,7 +380,7 @@ tools:
     allow_direct_run: true
 """,
         )
-        with patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path):
+        with patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path):
             result = runner.invoke(app, ["tools", "run", "compiler/project"])
         assert result.exit_code == 1
         assert "runner 'go-project' is not directly executable" in result.output
@@ -393,7 +393,7 @@ tools:
         mock_runner = MagicMock()
         mock_runner.run.side_effect = ProcessAuthorizationError("blocked")
         with (
-            patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path),
+            patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["tools", "run", "tool.py"])
@@ -408,7 +408,7 @@ tools:
         mock_runner = MagicMock()
         mock_runner.run.side_effect = ProcessSpawnError("uv not found")
         with (
-            patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path),
+            patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["tools", "run", "tool.py"])
@@ -421,7 +421,7 @@ tools:
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(returncode=42)
         with (
-            patch("sdd_cli.commands.tools._find_repo_root", return_value=tmp_path),
+            patch("sdd_cli.commands.tools_run._find_repo_root", return_value=tmp_path),
             patch("sdd_core.utils.process.SafeProcessRunner", return_value=mock_runner),
         ):
             result = runner.invoke(app, ["tools", "run", "tool.py"])

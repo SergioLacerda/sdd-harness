@@ -110,7 +110,7 @@ def test_sdd_ask_metadata_and_runtime_output_agree_on_delegation_state() -> None
     """
     from sdd_runtime.skills import _REGISTRY
 
-    from sdd_cli.services.ask_response import build_intake_contract_fields
+    from sdd_cli.services.ask_response_intake import build_intake_contract_fields
 
     skill = _REGISTRY["sdd-ask"]
     assert skill.delegation_policy is not None

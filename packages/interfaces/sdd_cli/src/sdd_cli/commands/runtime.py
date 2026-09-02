@@ -19,12 +19,14 @@ from sdd_cli.commands._runtime_command_support import (
 )
 from sdd_cli.services.command_group_output import show_command_group
 from sdd_cli.services.runtime_handler import (
-    _check_cache_staleness,
     _emit_runtime_status,  # noqa: F401  patchable by tests
-    _footer_drift_status,
     _normalize_report,
     _read_profile,
     _show_ask_confidence,  # noqa: F401  patchable by tests
+)
+from sdd_cli.services.runtime_handler_status import (
+    _check_cache_staleness,
+    _footer_drift_status,
 )
 from sdd_cli.utils.output import emit_json, is_json_mode, is_verbose_mode
 from sdd_cli.utils.sdd_authority import (

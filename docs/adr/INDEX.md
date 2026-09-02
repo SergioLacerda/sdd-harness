@@ -163,7 +163,7 @@ vs Go compiler comparison.
 
 ---
 
-### ADR-009: Progressive Enforcement Ladder (WARN → BLOCK → STRICT) (2026-05-21)
+### ADR-020: Progressive Enforcement Ladder (WARN → BLOCK → STRICT) (2026-05-21)
 
 **Decision:** Governance enforcement uses a three-phase ladder; rules advance based on measured stability, not calendar.
 
@@ -174,8 +174,8 @@ vs Go compiler comparison.
 
 **Links:**
 
-- [ADR-009-progressive-enforcement-ladder.md](ADR-009-progressive-enforcement-ladder.md)
-- [ADR-009-threshold-signoff.md](ADR-009-threshold-signoff.md)
+- [ADR-020-progressive-enforcement-ladder.md](ADR-020-progressive-enforcement-ladder.md)
+- [ADR-021-threshold-signoff.md](ADR-021-threshold-signoff.md)
 - [ADR-009-ci-fail-closed-matrix.md](ADR-009-ci-fail-closed-matrix.md) — companion matrix mapping CI controls onto the warn/block/strict phases
 - Related: M010 (Governance Hardening)
 
@@ -304,7 +304,7 @@ check blocking for new violations going forward.
 
 **Rationale:**
 
-- Repeats ADR-009's "evidence-based, not calendar-based" philosophy at the budget
+- Repeats ADR-020's "evidence-based, not calendar-based" philosophy at the budget
   level, not just per-rule
 - Grandfathering avoids blocking unrelated work on pre-existing violations while
   still closing the "warn-only forever" gap
@@ -312,7 +312,7 @@ check blocking for new violations going forward.
 **Links:**
 
 - [ADR-019-guardrail-complexity-budget.md](ADR-019-guardrail-complexity-budget.md)
-- Related: ADR-009 (Progressive Enforcement Ladder)
+- Related: ADR-020 (Progressive Enforcement Ladder)
 - Implementation reference: `tools/architecture/validate_class_size.py`,
   `packages/interfaces/sdd_wizard/EXCEPTIONS.md` (grandfather-list pattern)
 
@@ -320,7 +320,7 @@ check blocking for new violations going forward.
 
 These artifacts support governance operations but are not ADRs:
 
-- [Threshold signoff: progressive-enforcement-ladder](ADR-009-threshold-signoff.md)
+- [Threshold signoff: progressive-enforcement-ladder](ADR-021-threshold-signoff.md)
 
 ---
 

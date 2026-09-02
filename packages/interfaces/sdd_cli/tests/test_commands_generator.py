@@ -7,11 +7,12 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.helpers.text_io import read_text_utf8
+
 from sdd_cli.generators._commands import (
     _CLI_COMMANDS,
     generate_commands_registry,
 )
-from tests.helpers.text_io import read_text_utf8
 
 
 class TestGenerateCommandsRegistry:

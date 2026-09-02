@@ -99,12 +99,22 @@ def _under_type_checking(node: ast.AST, parents: dict[ast.AST, ast.AST]) -> bool
     return False
 
 
-def _resolve_import_from_target(node: ast.ImportFrom, module_name: str) -> str | None:
+def _resolve_importfrom_targets(
+    node: ast.ImportFrom, module_name: str, known_modules: set[str]
+) -> set[str]:
     if node.level and node.level > 0:
-        return _resolve_relative(module_name, node.level, node.module)
-    if node.module:
-        return node.module
-    return None
+        base = _resolve_relative(module_name, node.level, node.module)
+    else:
+        base = node.module
+    if not base:
+        return set()
+
+    targets = {base}
+    for alias in node.names:
+        candidate = f"{base}.{alias.name}"
+        if candidate in known_modules:
+            targets.add(candidate)
+    return targets
 
 
 def _add_import_dependencies(
@@ -122,9 +132,9 @@ def _add_importfrom_dependency(
     module_name: str,
     known_modules: set[str],
 ) -> None:
-    target = _resolve_import_from_target(node, module_name)
-    if target and _is_first_party(target) and target in known_modules:
-        deps.add(target)
+    for target in _resolve_importfrom_targets(node, module_name, known_modules):
+        if _is_first_party(target) and target in known_modules:
+            deps.add(target)
 
 
 def _extract_module_dependencies(

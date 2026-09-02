@@ -8,7 +8,7 @@ from unittest.mock import patch
 import yaml
 
 from sdd_cli.commands._ask_backend._phase_timer import PhaseTimer
-from sdd_cli.commands._ask_backend._pipeline import build_governed_ask_snapshot
+from sdd_cli.commands._ask_backend._pipeline_snapshot import build_governed_ask_snapshot
 
 
 def _write_runtime_handbook(root: Path) -> None:
@@ -71,7 +71,7 @@ def test_build_governed_ask_snapshot_adds_runtime_handbook_match(
             return_value=False,
         ),
         patch(
-            "sdd_cli.commands._ask_backend._pipeline._collect_learning_signals",
+            "sdd_cli.commands._ask_backend._pipeline_snapshot._collect_learning_signals",
             return_value={},
         ),
     ):
@@ -110,7 +110,7 @@ def test_build_governed_ask_snapshot_records_runtime_handbook_phase(
             return_value=False,
         ),
         patch(
-            "sdd_cli.commands._ask_backend._pipeline._collect_learning_signals",
+            "sdd_cli.commands._ask_backend._pipeline_snapshot._collect_learning_signals",
             return_value={},
         ),
     ):
@@ -148,7 +148,7 @@ def test_build_governed_ask_snapshot_without_phase_timer_records_nothing(
             return_value=False,
         ),
         patch(
-            "sdd_cli.commands._ask_backend._pipeline._collect_learning_signals",
+            "sdd_cli.commands._ask_backend._pipeline_snapshot._collect_learning_signals",
             return_value={},
         ),
     ):
@@ -190,7 +190,7 @@ def test_load_ask_snapshot_records_both_governance_snapshot_and_handbook_phases(
             return_value=False,
         ),
         patch(
-            "sdd_cli.commands._ask_backend._pipeline._collect_learning_signals",
+            "sdd_cli.commands._ask_backend._pipeline_snapshot._collect_learning_signals",
             return_value={},
         ),
     ):

@@ -51,7 +51,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.11.9"
 
@@ -63,6 +63,9 @@ jobs:
           editable-packages: |
             packages/core/sdd_core
             packages/core/sdd_telemetry
+            packages/features/sdd_skills
+            packages/core/sdd_runtime
+            packages/features/sdd_adapters
             packages/features/sdd_integration
             packages/features/sdd_pages
             packages/interfaces/sdd_wizard
@@ -125,7 +128,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.12"]
     steps:
       - name: Set up Python
@@ -465,7 +468,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       # Full checkout: install from this working copy. This lane exercises the
       # documented source-install channel end-to-end — including real checkout
@@ -483,7 +486,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.11.9"
 
@@ -501,6 +504,14 @@ jobs:
           # download path cannot work here; pin the freshly built binary instead.
           if [ "${{ runner.os }}" = "Windows" ]; then
             BIN="$(cygpath -m "$PWD/dist/sdd-compile-windows-amd64.exe")"
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            # GitHub-hosted macos-latest runners are Apple Silicon (ARM64);
+            # reusable-release-build.yml's darwin matrix only produces
+            # darwin-arm64 today (see its own SHA256SUMS assembly comment on
+            # 5-target parity minus darwin-amd64), so that's the only asset
+            # available to smoke here.
+            BIN="$PWD/dist/sdd-compile-darwin-arm64"
+            chmod +x "$BIN"
           else
             BIN="$PWD/dist/sdd-compile-linux-amd64"
             chmod +x "$BIN"
@@ -511,7 +522,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv tool install ./packages/interfaces/sdd_cli
+          # sdd-cli's local workspace dependencies (sdd-adapters, sdd-runtime,
+          # etc.) aren't published to PyPI, so `uv tool install` needs each of
+          # them handed in explicitly via --with — a bare `uv tool install
+          # ./packages/interfaces/sdd_cli` fails with "sdd-adapters was not
+          # found in the package registry".
+          uv tool install ./packages/interfaces/sdd_cli \
+            --with ./packages/core/sdd_core \
+            --with ./packages/core/sdd_telemetry \
+            --with ./packages/features/sdd_skills \
+            --with ./packages/core/sdd_runtime \
+            --with ./packages/features/sdd_adapters \
+            --with ./packages/features/sdd_integration \
+            --with ./packages/interfaces/sdd_wizard
 
       - name: Run client bootstrap from the source install
         shell: bash
