@@ -219,7 +219,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv venv
+          # --clear: `make build-compiler` above resolves $(PYTHON) to `uv run
+          # python` when no .venv exists yet, and `uv run` implicitly creates
+          # one — so .venv may already exist by the time we get here.
+          uv venv --clear
           uv sync --all-groups
           uv pip install -e packages/core/sdd_core \
             && uv pip install -e packages/core/sdd_telemetry \
