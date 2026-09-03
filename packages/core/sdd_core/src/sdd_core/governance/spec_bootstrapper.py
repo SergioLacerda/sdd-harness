@@ -105,9 +105,8 @@ class SourceSpecBootstrapper:
             return
 
         # A wizard-deployed `mandates/mandates.md` is already a correct,
-        # non-leaked source for this workspace's own core items (see
-        # PipelineBuilder.build()'s v3.0-structure fallback). Writing a
-        # top-level `mandate.md` here would take priority over it and, under
+        # non-leaked source for this workspace's own core items. Writing a
+        # top-level `mandate.md` here is unnecessary and, under
         # a repo_root that resolved to an unrelated checkout (e.g. an
         # editable/dev install of sdd-cli initializing a separate client
         # project), would leak that checkout's own mandate titles into this

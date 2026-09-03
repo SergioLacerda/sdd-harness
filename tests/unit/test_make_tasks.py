@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -176,6 +177,42 @@ def test_run_check_venv_prints_resolved_path(
     assert capsys.readouterr().out.strip() == str(resolved_path)
 
 
+def test_run_golden_status_reports_clean_status(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    make_tasks = _make_tasks_module()
+    with patch("sdd_core.utils.process.SafeProcessRunner.run") as runner_run:
+        runner_run.return_value = SimpleNamespace(returncode=0, stdout="", stderr="")
+        assert make_tasks.run_golden_status() == 0
+
+    assert "Golden files are in sync with git" in capsys.readouterr().out
+    runner_run.assert_called_once_with(
+        [
+            "git",
+            "status",
+            "--porcelain",
+            "--",
+            "tests/contract/fixtures/*.golden.json",
+        ],
+        cwd=make_tasks.REPO_ROOT,
+        capture_output=True,
+    )
+
+
+def test_run_golden_status_reports_changed_fixtures(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    make_tasks = _make_tasks_module()
+    status = " M tests/contract/fixtures/governance_core.golden.json\n"
+    with patch("sdd_core.utils.process.SafeProcessRunner.run") as runner_run:
+        runner_run.return_value = SimpleNamespace(returncode=0, stdout=status, stderr="")
+        assert make_tasks.run_golden_status() == 0
+
+    output = capsys.readouterr().out
+    assert "Golden files have uncommitted changes" in output
+    assert "governance_core.golden.json" in output
+
+
 def test_run_ci_pr_stops_on_first_failure() -> None:
     make_tasks = _make_tasks_module()
     with (
@@ -199,6 +236,53 @@ def test_run_golden_policy_check_modes() -> None:
         make_tasks.run_golden_policy_check(strict=True)
         run.assert_called_with(
             ["PYTHON", "tools/ci/check_golden_policy.py", "--mode", "strict"]
+        )
+
+
+def test_run_help_lists_targets_with_dependencies(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    make_tasks = _make_tasks_module()
+    assert make_tasks.run_help() == 0
+    output = capsys.readouterr().out
+    assert "docs-build" in output
+    assert "build-web" in output
+    assert "release-prepare" in output
+
+
+def test_web_wrappers_use_npm_prefix() -> None:
+    make_tasks = _make_tasks_module()
+    with patch.object(make_tasks, "_run", return_value=0) as run:
+        assert make_tasks.run_install_web() == 0
+        run.assert_called_with(["npm", "--prefix", "apps/landing", "ci"])
+        assert make_tasks.run_npm_script("lint") == 0
+        run.assert_called_with(["npm", "--prefix", "apps/landing", "run", "lint"])
+
+
+def test_lint_go_skips_when_tool_missing() -> None:
+    make_tasks = _make_tasks_module()
+    with patch.object(make_tasks.shutil, "which", return_value=None):
+        assert make_tasks.run_lint_go(fix=False) == 0
+
+
+def test_build_compiler_uses_goexe_suffix() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch("sdd_core.utils.process.SafeProcessRunner.run") as runner_run,
+        patch.object(make_tasks, "_run", return_value=0) as run,
+    ):
+        runner_run.return_value = SimpleNamespace(returncode=0, stdout=".exe\n", stderr="")
+        assert make_tasks.run_build_compiler() == 0
+        run.assert_called_once_with(
+            [
+                "go",
+                "build",
+                "-C",
+                "tools/sdd-compile",
+                "-o",
+                "bin/sdd-compile.exe",
+                ".",
+            ]
         )
 
 

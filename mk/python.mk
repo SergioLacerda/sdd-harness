@@ -32,26 +32,15 @@ check: golden-status
 # Informational only, by design: golden-fixture drift is already enforced as
 # blocking in CI (reusable-test.yml's `check_golden_policy.py --mode block`,
 # release.yml/release-dry-run.yml's `--mode strict`). This target is a fast,
-# local heads-up for `make check`, not the enforcement point — see
+# local heads-up for `make check`, not the enforcement point; see
 # `tools/maintenance/make_tasks.py:run_check()` for the matching rationale.
 #
-# Comments live outside the recipe (not `@#` inside it): a `#` line inside a
-# recipe is passed to the shell verbatim, not stripped by Make. sh/bash treat
-# `#` as a comment, but cmd.exe (what plain-Windows `make.exe` falls back to
-# when it can't find sh.exe) does not — it tries to execute the comment text
-# as a command and fails with "CreateProcess(NULL, # ...) failed."
+# Keep this recipe as a Python delegation instead of shell conditionals/pipes:
+# plain-Windows `make.exe` may fall back to cmd.exe, which cannot parse sh
+# syntax such as `if ...; then`.
 .PHONY: golden-status
 golden-status: ## Check golden-file git status (informational; used by `check`)
-	@echo "🔍 Checking golden file status..."
-	@if git status --porcelain tests/contract/fixtures/*.golden.json 2>/dev/null | grep -q .; then \
-		echo "⚠️  Golden files have uncommitted changes:"; \
-		git status --porcelain tests/contract/fixtures/*.golden.json; \
-		echo ""; \
-		echo "If intentional, commit them with: git add tests/contract/fixtures/"; \
-		echo "If accidental, revert with: git checkout tests/contract/fixtures/"; \
-	else \
-		echo "✓ Golden files are in sync with git"; \
-	fi
+	$(PYTHON) tools/maintenance/make_tasks.py golden-status
 
 .PHONY: test
 test: ## Run full multi-layer test pipeline with unified coverage gate
@@ -72,7 +61,7 @@ install: build-compiler ## Install all workspace dependencies (dev)
 install-docs: ## Install documentation dependencies (mkdocs)
 	uv sync --group docs
 
-# --- Namespaced aliases (additive, non-breaking — see proposal.md Decision D2) ---
+# --- Namespaced aliases (additive, non-breaking; see proposal.md Decision D2) ---
 .PHONY: py.install py.install-docs py.lock py.clean py.generate-schemas \
   test.check test.all test.fast test.perf test.coverage test.coverage-strict \
   test.golden-status test.golden-policy-check test.golden-policy-check-strict \

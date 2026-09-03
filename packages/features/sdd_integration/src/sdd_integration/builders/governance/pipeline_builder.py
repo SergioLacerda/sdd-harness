@@ -105,11 +105,10 @@ class PipelineBuilder:
         ) and (spec_root / "meta").exists():
             spec_root = spec_root / "meta"
 
-        # Also check for mandates/mandates.md (v3.0 structure)
-        if (
-            not (spec_root / "mandate.md").exists()
-            and (spec_root / "mandates" / "mandates.md").exists()
-        ):
+        # Prefer mandates/mandates.md (v3.0 structure) over the legacy
+        # top-level mandate.md so stale generated compatibility files cannot
+        # shadow the canonical readable source.
+        if (spec_root / "mandates" / "mandates.md").exists():
             md_mandate = spec_root / "mandates" / "mandates.md"
         else:
             md_mandate = spec_root / "mandate.md"

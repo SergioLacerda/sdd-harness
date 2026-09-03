@@ -297,11 +297,17 @@ def test_runtime_image_satisfies_hadolint_entrypoint_policy() -> None:
 
 def test_docker_build_paths_use_buildkit_buildx() -> None:
     makefile = _makefile_content()
+    make_tasks = (REPO_ROOT / "tools" / "maintenance" / "make_tasks.py").read_text(
+        encoding="utf-8"
+    )
     security = _load_workflow(REUSABLE_SECURITY_WORKFLOW)
     test_workflow = _load_workflow(REUSABLE_TEST_WORKFLOW)
 
-    assert "DOCKER_BUILDKIT=1 docker buildx build --load" in makefile
-    assert "$(DOCKER_BUILD_FLAGS)" in makefile
+    assert "tools/maintenance/make_tasks.py docker-build" in makefile
+    assert '--flags "$(DOCKER_BUILD_FLAGS)"' in makefile
+    assert 'env["DOCKER_BUILDKIT"] = "1"' in make_tasks
+    assert '"buildx"' in make_tasks
+    assert '"--load"' in make_tasks
     assert "docker build -t sdd-harness" not in makefile
 
     security_steps = _jobs(security)["container-scan"]["steps"]

@@ -59,7 +59,7 @@ def _scan_pinned_uses(root: Path) -> list[PinnedUse]:
     for pattern in WORKFLOW_GLOBS:
         for path in sorted(root.glob(pattern)):
             text = path.read_text(encoding="utf-8")
-            rel = str(path.relative_to(root))
+            rel = path.relative_to(root).as_posix()
             for match in USES_RE.finditer(text):
                 repo, sha, tag = match.groups()
                 found.append(PinnedUse(repo=repo, sha=sha, tag=tag, file=rel))

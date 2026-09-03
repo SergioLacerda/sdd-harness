@@ -293,6 +293,33 @@ class TestInitDefaultFlag:
         mock_write_profile.assert_called_once_with(tmp_path, "client", "test", None)
         MockOrch.return_value.run.assert_called_once_with(force=True)
 
+    def test_incompatible_sdd_core_write_profile_exits_with_upgrade_hint(
+        self, tmp_path: Path
+    ) -> None:
+        from typer.testing import CliRunner
+
+        from sdd_cli.commands.init import app
+
+        runner = CliRunner()
+        with (
+            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch(
+                "sdd_cli.commands.init_workspace_boundary._find_parent_workspace_with_profile",
+                return_value=None,
+            ),
+            patch(
+                "sdd_cli.commands.init.write_profile",
+                side_effect=TypeError(
+                    "write_profile() takes 3 positional arguments but 4 were given"
+                ),
+            ),
+        ):
+            result = runner.invoke(app, ["--default"])
+
+        assert result.exit_code == 1
+        assert "Installed sdd-core is incompatible" in result.output
+        assert "uv tool upgrade sdd-cli" in result.output
+
 
 class TestInitLanguageFlag:
     """--language accepts case-insensitive en|pt-BR and normalizes before storage."""

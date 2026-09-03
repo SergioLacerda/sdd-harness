@@ -344,6 +344,24 @@ class TestPipelineBuilderFilesystem:
         assert result["core_items"][0]["title"] == "Test Mandate"
         assert len(result["client_items"]) == 1
 
+    def test_build_prefers_v3_mandates_over_legacy_mandate_md(
+        self, tmp_path: Path
+    ) -> None:
+        """Should not let a stale legacy mandate.md shadow v3.0 source."""
+        (tmp_path / "mandate.md").write_text(
+            "# M001: Legacy Title\nLegacy paragraph.", encoding="utf-8"
+        )
+        mandates_dir = tmp_path / "mandates"
+        mandates_dir.mkdir()
+        (mandates_dir / "mandates.md").write_text(
+            "# M001: Canonical Title\nCanonical paragraph.", encoding="utf-8"
+        )
+
+        builder = PipelineBuilder(str(tmp_path))
+        result = builder.build()
+
+        assert result["core_items"][0]["title"] == "Canonical Title"
+
     def test_build_fails_fast_on_zero_parsed_mandates(self, tmp_path: Path) -> None:
         """A mandate source that parses to zero items must raise, not emit empty artifacts."""
         # Simulates a git symlink checked out as a plain text stub on Windows:

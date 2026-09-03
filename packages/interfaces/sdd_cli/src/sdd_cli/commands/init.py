@@ -9,12 +9,14 @@ import typer
 
 from sdd_cli.commands.init_bootstrap import (
     _create_runtime_marker_and_telemetry,
+    _exit_init_operational_error,
     _normalize_language_or_exit,
     _raise_init_operational_error,
     _run_init_bootstrap,
 )
 from sdd_cli.commands.init_workspace_boundary import _find_blocking_parent_workspace
 from sdd_cli.services.command_group_output import show_command_group
+from sdd_cli.utils.operational_errors import OperationalCliError
 from sdd_cli.utils.sdd_console import format_sdd_line
 from sdd_core.utils.environment import ProfileContext, SddProfile, write_profile
 
@@ -29,6 +31,20 @@ def _write_profile_or_exit(
 ) -> ProfileContext:
     try:
         return write_profile(cwd, profile_type, effective_name, language)
+    except TypeError as exc:
+        if language is None or "positional" not in str(exc):
+            raise
+        _exit_init_operational_error(
+            OperationalCliError(
+                headline="Installed sdd-core is incompatible with this sdd-cli release.",
+                cause=exc,
+                command="sdd init",
+                step="profile",
+                operation="write profile",
+                path=cwd / ".sdd" / "profile",
+                next_hint="upgrade the standalone tool so sdd-cli and sdd-core come from the same release, then retry: uv tool upgrade sdd-cli",
+            )
+        )
     except OSError as exc:
         _raise_init_operational_error(
             exc,

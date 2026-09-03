@@ -41,13 +41,30 @@ def test_docs_build_publishes_selector_artifacts() -> None:
     content = _makefile_content()
     # docs-build must inline the selector compiler targeting the mkdocs output dir
     # (not docs/ — docs/ must not receive runtime-generated files)
-    assert (
-        "$(PYTHON) -m sdd_wizard.orchestration.wizard.selector_compiler_cli "
-        "--output-dir build/site/selector"
-    ) in content
+    make_tasks = (REPO_ROOT / "tools" / "maintenance" / "make_tasks.py").read_text(
+        encoding="utf-8"
+    )
+    assert "docs-build: build-web" in content
+    assert "$(PYTHON) tools/maintenance/make_tasks.py docs-build" in content
+    assert "sdd_wizard.orchestration.wizard.selector_compiler_cli" in make_tasks
+    assert '"build/site/selector"' in make_tasks
 
 
 def test_docs_serve_runs_selector_build() -> None:
     content = _makefile_content()
     # docs-serve depends on docs-build, which already includes the selector compiler step
     assert "docs-serve: docs-build" in content
+
+
+def test_makefile_recipes_delegate_shell_sensitive_logic_to_python() -> None:
+    content = _makefile_content()
+    forbidden = [
+        " grep ",
+        " awk ",
+        " trap ",
+        "ln -s",
+        "PYTHONPATH=",
+        " && ",
+    ]
+    for token in forbidden:
+        assert token not in content
