@@ -205,7 +205,9 @@ def test_run_golden_status_reports_changed_fixtures(
     make_tasks = _make_tasks_module()
     status = " M tests/contract/fixtures/governance_core.golden.json\n"
     with patch("sdd_core.utils.process.SafeProcessRunner.run") as runner_run:
-        runner_run.return_value = SimpleNamespace(returncode=0, stdout=status, stderr="")
+        runner_run.return_value = SimpleNamespace(
+            returncode=0, stdout=status, stderr=""
+        )
         assert make_tasks.run_golden_status() == 0
 
     output = capsys.readouterr().out
@@ -271,7 +273,9 @@ def test_build_compiler_uses_goexe_suffix() -> None:
         patch("sdd_core.utils.process.SafeProcessRunner.run") as runner_run,
         patch.object(make_tasks, "_run", return_value=0) as run,
     ):
-        runner_run.return_value = SimpleNamespace(returncode=0, stdout=".exe\n", stderr="")
+        runner_run.return_value = SimpleNamespace(
+            returncode=0, stdout=".exe\n", stderr=""
+        )
         assert make_tasks.run_build_compiler() == 0
         run.assert_called_once_with(
             [

@@ -118,7 +118,9 @@ def _python_cmd() -> list[str]:
     return [str(_check_venv())]
 
 
-def _run(cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> int:
+def _run(
+    cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None
+) -> int:
     from sdd_core.utils.process import SafeProcessRunner
 
     result = SafeProcessRunner().run(
@@ -127,7 +129,9 @@ def _run(cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None 
     return result.returncode
 
 
-def _run_optional_tool(cmd: list[str], *, missing_message: str, cwd: Path | None = None) -> int:
+def _run_optional_tool(
+    cmd: list[str], *, missing_message: str, cwd: Path | None = None
+) -> int:
     if shutil.which(cmd[0]) is None:
         print(missing_message)
         return 0
@@ -335,7 +339,9 @@ def run_build_compiler() -> int:
             print(result.stderr.strip(), file=sys.stderr)
         return result.returncode
     goexe = result.stdout.strip()
-    return _run(["go", "build", "-C", "tools/sdd-compile", "-o", f"bin/sdd-compile{goexe}", "."])
+    return _run(
+        ["go", "build", "-C", "tools/sdd-compile", "-o", f"bin/sdd-compile{goexe}", "."]
+    )
 
 
 def run_test_compiler_go() -> int:
