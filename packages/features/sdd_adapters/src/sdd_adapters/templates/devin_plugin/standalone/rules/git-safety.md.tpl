@@ -1,6 +1,7 @@
 # Git Safety
 
 Ruleset version: `{{ standalone_ruleset_version }}`
+Last verified: `{{ last_verified }}`
 
 Never execute git state-modifying commands (`add`, `commit`, `push`, `reset`, `merge`, `rebase`, branch deletion, etc.) autonomously via any tool or shell. Only suggest git commands in ready-to-run blocks for a human to execute.
 

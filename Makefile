@@ -1,5 +1,5 @@
-# Cross-platform note: on Windows use Git Bash or WSL to run make targets.
-# All shell commands are POSIX-compatible within a bash/sh context.
+# Cross-platform note: Make targets should run on Linux and Windows.
+# Recipes delegate shell-sensitive logic to tools/maintenance/make_tasks.py.
 #
 # No implicit suffix rules are used in this Makefile.
 MAKEFLAGS += --no-builtin-rules --no-builtin-variables
@@ -7,7 +7,11 @@ MAKEFLAGS += --no-builtin-rules --no-builtin-variables
 # Use uv run if uv is available; fall back to direct execution (e.g. inside Docker)
 VENV_PYTHON := $(firstword $(wildcard .venv/bin/python .venv/Scripts/python.exe))
 DOCKER_BUILD_FLAGS ?=
-UV := $(shell command -v uv 2>/dev/null)
+ifeq ($(OS),Windows_NT)
+  UV := $(firstword $(shell where uv 2>NUL))
+else
+  UV := $(shell command -v uv 2>/dev/null)
+endif
 
 ifeq ($(strip $(VENV_PYTHON)),)
   ifeq ($(strip $(UV)),)
@@ -39,16 +43,9 @@ include mk/web.mk
 include mk/go.mk
 include mk/release.mk
 include mk/docker.mk
+include mk/plugins.mk
 include mk/misc.mk
 
 .PHONY: help
 help: ## Show this help
-	@echo "SDD Architecture Development"
-	@echo "==========================="
-	@awk 'BEGIN {FS = ":.*##"} \
-	  /^##@/ { printf "\n%s\n", substr($$0, 5) } \
-	  /^[a-zA-Z0-9_.-]+:.*##/ { printf "  %-28s %s\n", $$1, $$2 }' \
-	  $(MAKEFILE_LIST)
-	@echo ""
-	@echo "Most targets above also have a namespaced alias in their group,"
-	@echo "e.g. 'make test.fast' == 'make test-fast', 'make docker.build' == 'make docker-build'."
+	$(PYTHON) tools/maintenance/make_tasks.py help

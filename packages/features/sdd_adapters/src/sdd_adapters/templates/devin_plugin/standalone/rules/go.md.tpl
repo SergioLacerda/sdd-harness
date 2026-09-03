@@ -1,6 +1,7 @@
 # Go
 
 Ruleset version: `{{ standalone_ruleset_version }}`
+Last verified: `{{ last_verified }}`
 
 ## Code Style
 
@@ -22,7 +23,14 @@ golangci-lint run
 
 ## Architecture & Dependency Direction
 
-Domain and application packages must not import adapter packages. Enforce the boundary in CI with a dependency-direction linter.
+Domain and application packages must not import adapter packages. Enforce the boundary in CI with a dependency-direction linter. Dependencies are injected via constructor or parameter, never global state — see `architecture.md` for the general principle.
+
+## Dependency Versions
+
+- Pin direct dependencies to exact versions (`go.sum` is canonical).
+- Review changelogs before upgrading — never blindly bump.
+- Run `govulncheck ./...` as part of CI.
+- Minimize the dependency tree — every dependency is attack surface and maintenance burden.
 
 ## Anti-Patterns
 
@@ -30,18 +38,12 @@ Domain and application packages must not import adapter packages. Enforce the bo
 
 ```go
 // VIOLATION
-file.Close()
 _ = json.Unmarshal(data, &value)
 
 // OK
 if err := json.Unmarshal(data, &value); err != nil {
     return fmt.Errorf("decode payload: %w", err)
 }
-defer func() {
-    if err := file.Close(); err != nil {
-        log.Printf("close file: %v", err)
-    }
-}()
 ```
 
 **Panic as control flow:**
@@ -68,24 +70,11 @@ func GetUser(id string) (*User, error) {
 
 ```go
 // VIOLATION — no cancellation path
-go func() {
-    for {
-        process()
-        time.Sleep(time.Second)
-    }
-}()
+go func() { for { process() } }()
 
-// OK
+// OK — checks ctx before each iteration
 go func(ctx context.Context) {
-    for {
-        select {
-        case <-ctx.Done():
-            return
-        default:
-            process()
-            time.Sleep(time.Second)
-        }
-    }
+    for ctx.Err() == nil { process() }
 }(ctx)
 ```
 

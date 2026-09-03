@@ -12,7 +12,7 @@ That, in turn, needs the package's `src/` to reach the repo-root `tests/` and
 `docs/` directories (for shared test helpers and the governance-compile
 bootstrap other tests need) — `mutmut`'s `also_copy` mechanism only copies
 paths that are forward-relative to CWD, so this script creates temporary
-symlinks for the duration of the run and always removes them afterward
+workspace links for the duration of the run and always removes them afterward
 (this repo bans tracked git symlinks — see
 `tests/unit/ci/test_repo_portability.py` — so these must never be committed).
 
@@ -30,6 +30,7 @@ import subprocess  # nosec B404
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -60,6 +61,20 @@ class MutationTarget:
     only_mutate: list[str]
     ignore_test_files: list[str] = field(default_factory=list)
     extra_deselect: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class WorkspaceLink:
+    path: Path
+    kind: Literal["symlink", "junction"]
+
+    def remove(self) -> None:
+        if self.kind == "symlink":
+            if self.path.is_symlink():
+                self.path.unlink()
+            return
+        if self.path.exists():
+            self.path.rmdir()
 
 
 TARGETS: dict[str, MutationTarget] = {
@@ -139,6 +154,32 @@ def _run(cmd: list[str], *, cwd: Path) -> int:
     return result.returncode
 
 
+def _is_windows_symlink_privilege_error(exc: OSError) -> bool:
+    return sys.platform == "win32" and getattr(exc, "winerror", None) == 1314
+
+
+def _create_workspace_link(link: Path, target: Path) -> WorkspaceLink:
+    try:
+        link.symlink_to(target, target_is_directory=True)
+        return WorkspaceLink(path=link, kind="symlink")
+    except OSError as exc:
+        if not _is_windows_symlink_privilege_error(exc):
+            raise
+
+    result = subprocess.run(  # nosec B603 - fixed argv, cmd built-in, no shell
+        ["cmd", "/c", "mklink", "/J", str(link), str(target)],
+        cwd=link.parent,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        details = (result.stderr or result.stdout).strip()
+        raise OSError(
+            f"failed to create Windows junction {link} -> {target}: {details}"
+        )
+    return WorkspaceLink(path=link, kind="junction")
+
+
 def _write_mutmut_config(src_dir: Path, target: MutationTarget) -> Path:
     config_path = src_dir / "pyproject.toml"
     if config_path.exists():
@@ -182,6 +223,7 @@ def run_target(target: MutationTarget) -> int:
 
     tests_link = src_dir / "tests"
     docs_link = src_dir / "docs"
+    workspace_links: list[WorkspaceLink] = []
     config_path: Path | None = None
     mutants_dir = src_dir / "mutants"
 
@@ -191,8 +233,8 @@ def run_target(target: MutationTarget) -> int:
         if docs_link.exists() or docs_link.is_symlink():
             raise FileExistsError(f"{docs_link} already exists — aborting")
 
-        tests_link.symlink_to(REPO_ROOT / "tests")
-        docs_link.symlink_to(REPO_ROOT / "docs")
+        workspace_links.append(_create_workspace_link(tests_link, REPO_ROOT / "tests"))
+        workspace_links.append(_create_workspace_link(docs_link, REPO_ROOT / "docs"))
         config_path = _write_mutmut_config(src_dir, target)
 
         return _run(
@@ -207,9 +249,8 @@ def run_target(target: MutationTarget) -> int:
             cwd=src_dir,
         )
     finally:
-        for link in (tests_link, docs_link):
-            if link.is_symlink():
-                link.unlink()
+        for link in reversed(workspace_links):
+            link.remove()
         if config_path is not None and config_path.exists():
             config_path.unlink()
         if mutants_dir.exists():

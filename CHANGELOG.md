@@ -26,6 +26,23 @@ Before tagging a new release, verify:
 
 ## [Unreleased]
 
+## [1.0.13] — 2026-09-02
+
+### Fixed
+- Fixed Windows compatibility for Make targets by moving shell-sensitive
+  recipes into `tools/maintenance/make_tasks.py`, including `help`,
+  `golden-status`, docs serving, Docker build setup, Go lint/build wrappers,
+  and web commands.
+- Fixed `release.prepare` version forwarding so `make release.prepare vX.Y.Z`
+  and `make release-prepare X.Y.Z` normalize to the release script's required
+  `X.Y.Z` format.
+- Fixed Windows path and symlink portability regressions in CI/dev tooling,
+  including GitHub Actions freshness scans, governance readable-source drift
+  checks, and Python mutation-test workspace links.
+- Fixed governance compilation source precedence so the v3
+  `mandates/mandates.md` source cannot be shadowed by stale legacy
+  `mandate.md` content.
+
 ## [1.0.12] — 2026-08-26
 
 > `v1.0.11` was tagged but its release workflow failed the same way `v1.0.9`

@@ -1,96 +1,121 @@
 # Rules: Code Style
 
-Hard rules for naming, organization, and code formatting.
+Hard rules for naming, organization, and code formatting. Go-only for now — see
+`formatting.md` for the same scope decision.
 
 ---
 
 ## Naming Conventions
 
-### Classes
+### Exported Types (structs, interfaces)
 
 - **MUST** use PascalCase: `UserRepository`, `CampaignUseCase`
 - **MUST** be singular nouns: ❌ `Users` → ✅ `User`
 - **MUST** include domain concept in name: `UserEntity`, `CampaignRepository`
-- **Port classes:** Suffix with `Port`: `RepositoryPort`, `NotificationPort`
-- **Adapter classes:** Suffix with `Adapter`: `PostgresAdapter`, `FileSystemAdapter`
+- **Port interfaces:** Suffix with `Port`: `RepositoryPort`, `NotificationPort`
+- **Adapter structs:** Suffix with `Adapter`: `PostgresAdapter`, `FileSystemAdapter`
 
 ### Functions & Methods
 
-- **MUST** use snake_case: `get_user_by_id()`, `save_campaign()`
-- **MUST** be verb phrases: `get_`, `create_`, `update_`, `delete_`, `save_`, `load_`
-- **MUST NOT** abbreviate: ❌ `get_usr_id()` → ✅ `get_user_id()`
-- **Private methods:** Prefix with `_`: `_validate_input()`, `_transform_data()`
-- **Async methods:** No suffix needed, but type hint with `async def`
+- **Exported:** PascalCase verb phrases: `GetUserByID()`, `SaveCampaign()`
+- **Unexported:** camelCase verb phrases, no leading underscore (Go uses case, not
+  a prefix, to mark visibility): `validateInput()`, `transformData()`
+- **MUST NOT** abbreviate: ❌ `GetUsrID()` → ✅ `GetUserByID()`
+- **Concurrency:** functions that may block MUST accept a `context.Context` as the
+  first parameter, not a bespoke async suffix or wrapper type
 
 ### Variables & Constants
 
-- **Variables:** snake_case: `user_id`, `campaign_data`, `vector_index`
-- **Constants:** UPPERCASE: `MAX_RETRIES`, `DEFAULT_TIMEOUT`, `VECTOR_DIMENSION`
-- **MUST** be descriptive: ❌ `x`, `tmp`, `data` → ✅ `vector_embedding`, `temp_cache`
-- **Boolean variables:** Prefix with `is_`, `has_`, `can_`: `is_active`, `has_permissions`, `can_merge`
+- **Variables:** camelCase (unexported), PascalCase (exported): `userID`,
+  `campaignData`, `VectorIndex`
+- **Constants:** same camelCase/PascalCase convention as variables — Go does not
+  use `ALL_CAPS` for constants; group related constants with `iota` when they form
+  a sequence
+- **MUST** be descriptive: ❌ `x`, `tmp`, `data` → ✅ `vectorEmbedding`, `tempCache`
+- **Boolean variables:** Prefix with `is`, `has`, `can`: `isActive`,
+  `hasPermissions`, `canMerge`
 
-### Files & Modules
+### Files & Packages
 
-- **MUST** use snake_case: `campaign_repository.py`, `user_service.py`
-- **MUST** match primary class: `user_repository.py` contains class `UserRepository`
-- **Tests:** Suffix with `_test.py`: `campaign_repository_test.py`
-- **Directories:** snake_case, plural for collections: `repositories/`, `use_cases/`, `adapters/`
+- **Files:** lowercase, words separated by underscore only when it improves
+  readability: `campaign_repository.go`, `userservice.go`
+- **Tests:** MUST suffix with `_test.go` — this is a Go toolchain requirement, not
+  only a convention: `campaign_repository_test.go`
+- **Packages:** short, lowercase, single word, no underscores or mixedCaps:
+  `repository`, `usecase`, `adapter` — never `repositories` (Go package names are
+  typically singular and describe what the package provides, not a collection)
 
 ---
 
 ## Code Organization
 
-### Module Imports
+### Import Order
 
-```python
-# Order:
-# 1. Standard library
-# 2. Third-party
-# 3. Domain/Application (. or ..)
-# 4. Infrastructure
+```go
+// Order:
+// 1. Standard library
+// 2. Third-party
+// 3. Local/internal packages
 
-from typing import Protocol
-import asyncio
+import (
+    "context"
+    "fmt"
 
-from pydantic import BaseModel
-from sqlalchemy import Column, String
+    "github.com/some/thirdparty"
 
-from domain.campaign import Campaign
-from application.ports import RepositoryPort
-
-from infrastructure.adapters.postgres import PostgresConnection
+    "example.com/project/internal/domain"
+    "example.com/project/internal/application/ports"
+)
 ```
 
-### Class Organization
+`goimports` enforces this grouping automatically — run it, do not hand-order
+imports.
 
-```python
-class MyClass:
-    """Docstring."""
+### Struct & Interface Organization
 
-    # 1. Class variables
-    # 2. __init__
-    # 3. Public methods
-    # 4. Private methods (prefix with _)
-    # 5. Async methods (group by type)
+```go
+// MyType does X.
+type MyType struct {
+    // 1. Fields
+    field1 string
+}
+
+// NewMyType constructs a MyType.
+func NewMyType(field1 string) *MyType {
+    return &MyType{field1: field1}
+}
+
+// 2. Exported methods (constructor first, then exported methods)
+func (m *MyType) DoSomething() error {
+    return m.doInternalStep()
+}
+
+// 3. Unexported methods
+func (m *MyType) doInternalStep() error {
+    return nil
+}
 ```
 
 ---
 
 ## Formatting
 
-- **Line length:** 88 characters (Black formatter default)
-- **Indentation:** 4 spaces (never tabs)
-- **Blank lines:** 2 lines between top-level definitions, 1 between methods
-- **Use ruff & mypy:** Enforce via CI/CD (see `make lint`)
+- **Indentation:** tabs, via `gofmt` — never spaces, never hand-formatted
+- **Line length:** no hard limit enforced by `gofmt`; keep lines readable, split
+  long expressions across multiple lines when they hurt scanability
+- **Blank lines:** let `gofmt` normalize spacing — do not hand-tune it
+- **Use `gofmt`, `go vet` & `golangci-lint`:** Enforce via CI/CD (see `make lint`)
 
 ---
 
 ## Documentation
 
-- **Docstrings:** Required for public classes/methods (not internal methods)
-- **Format:** Google-style docstrings
+- **Doc comments:** Required for every exported identifier (type, func, const,
+  var); MUST start with the identifier's name per Go doc-comment convention:
+  `// UserRepository handles persistence for User aggregates.`
 - **Comments:** Explain WHY, not WHAT (code already explains what)
-- **Type hints:** MUST include for all function signatures
+- **Type hints:** N/A — Go is statically typed; every signature already carries
+  its types
 
 ---
 
@@ -98,12 +123,13 @@ class MyClass:
 
 | ❌ Anti-Pattern | ✅ Fix |
 |---|---|
-| `x`, `tmp_var`, `data` | `user_id`, `temp_cache`, `campaign_data` |
-| `UserS` (plural class) | `User` (singular) |
-| `GetUserID()` (camelCase function) | `get_user_id()` (snake_case) |
-| Hardcoded values | Use constants with UPPERCASE names |
-| Mixed import order | Follow defined order (stdlib → 3rd-party → local) |
+| `x`, `tmpVar`, `data` | `userID`, `tempCache`, `campaignData` |
+| `Users` (plural exported type) | `User` (singular) |
+| `get_user_id()` (snake_case function) | `GetUserID()` / `getUserID()` (Go case convention) |
+| Hardcoded values | Use named constants |
+| Mixed import order | Run `goimports` (stdlib → 3rd-party → local) |
 | Magic numbers | Extract to named constants |
+| `_test` prefix instead of suffix | File MUST end in `_test.go` |
 
 ---
 
@@ -111,8 +137,8 @@ class MyClass:
 
 Enforced via:
 
-- ✅ `ruff check` — Linting and style violations
-- ✅ `mypy` — Type checking
-- ✅ `black --check` — Line length and formatting (if configured)
+- ✅ `gofmt -l .` — Formatting violations
+- ✅ `go vet ./...` — Suspicious constructs
+- ✅ `golangci-lint run` — Linting and style violations combined
 - ✅ `make lint` — All style checks combined
 - ✅ `make pre-delivery` — P004 Pre-Delivery Quality Gate includes lint

@@ -21,6 +21,12 @@ AUTHORIZED_BINARIES: frozenset[str] = frozenset(
         "python3",
         "pytest",
         "uv",
+        "npm",
+        "go",
+        "docker",
+        "bash",
+        "golangci-lint",
+        "cmd",
         "sdd",
         "sdd-compile",
     }
@@ -103,6 +109,21 @@ class ProcessAuthorizer:
                 "Use a script path or an approved module execution pattern."
             )
 
+    def validate_cmd_args(self, binary_name: str, args: list[str]) -> None:
+        """Allow cmd.exe only for the Windows junction helper."""
+        if binary_name != "cmd":
+            return
+        if (
+            len(args) == 6
+            and args[1].lower() == "/c"
+            and args[2].lower() == "mklink"
+            and args[3].lower() == "/j"
+        ):
+            return
+        raise ProcessAuthorizationError(
+            "cmd execution is only permitted for 'cmd /c mklink /J <link> <target>'."
+        )
+
     def validate_args(self, args: list[str]) -> None:
         if not args:
             raise ProcessAuthorizationError("Command arguments cannot be empty")
@@ -130,4 +151,5 @@ class ProcessAuthorizer:
                 f"Binary '{binary_name}' is not authorized for governed execution"
             )
         self.validate_python_args(binary_name, args)
+        self.validate_cmd_args(binary_name, args)
         return binary_name

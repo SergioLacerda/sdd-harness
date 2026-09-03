@@ -6,6 +6,9 @@ from __future__ import annotations
 import argparse
 import contextlib
 import io
+import os
+import re
+import shlex
 import shutil
 import sys
 from pathlib import Path
@@ -26,6 +29,7 @@ if str(SDD_CORE_SRC) not in sys.path:
 
 # Fallback used only if pyproject.toml is missing or has no parseable typer pin.
 _FALLBACK_MIN_TYPER_VERSION = (0, 26, 8)
+_MAKE_HELP_RE = re.compile(r"^([A-Za-z0-9_.-]+):.*##(.*)$")
 
 
 def _version_tuple(version: str) -> tuple[int, ...]:
@@ -114,11 +118,24 @@ def _python_cmd() -> list[str]:
     return [str(_check_venv())]
 
 
-def _run(cmd: list[str]) -> int:
+def _run(
+    cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None
+) -> int:
     from sdd_core.utils.process import SafeProcessRunner
 
-    result = SafeProcessRunner().run(cmd, cwd=REPO_ROOT, capture_output=False)
+    result = SafeProcessRunner().run(
+        cmd, cwd=cwd or REPO_ROOT, env=env, capture_output=False
+    )
     return result.returncode
+
+
+def _run_optional_tool(
+    cmd: list[str], *, missing_message: str, cwd: Path | None = None
+) -> int:
+    if shutil.which(cmd[0]) is None:
+        print(missing_message)
+        return 0
+    return _run(cmd, cwd=cwd)
 
 
 def _read_project_version() -> str:
@@ -155,6 +172,32 @@ def run_check_venv() -> int:
     return 0
 
 
+def run_help() -> int:
+    """Print Make target help without awk/shell dependencies."""
+    print("SDD Architecture Development")
+    print("===========================")
+    for path in [REPO_ROOT / "Makefile", *sorted((REPO_ROOT / "mk").glob("*.mk"))]:
+        for raw_line in path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if line.startswith("##@"):
+                print(f"\n{line[3:].strip()}")
+                continue
+            if line.startswith("#"):
+                continue
+            match = _MAKE_HELP_RE.match(line)
+            if match is None:
+                continue
+            target, description = match.groups()
+            print(f"  {target:<28} {description.strip()}")
+    print()
+    print("Most targets above also have a namespaced alias in their group,")
+    print(
+        "e.g. 'make test.fast' == 'make test-fast', "
+        "'make docker.build' == 'make docker-build'."
+    )
+    return 0
+
+
 def run_check() -> int:
     """Python portion of the `check` target (golden-status stays a Make prerequisite).
 
@@ -179,6 +222,38 @@ def run_check() -> int:
             "--cov-report=term-missing:skip-covered",
         ]
     )
+
+
+def run_golden_status() -> int:
+    """Print golden fixture git status without relying on shell syntax."""
+    from sdd_core.utils.process import SafeProcessRunner
+
+    print("Checking golden file status...")
+    result = SafeProcessRunner().run(
+        ["git", "status", "--porcelain", "--", "tests/contract/fixtures/*.golden.json"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        # Informational only (see module docstring above `golden-status` in
+        # mk/python.mk): drift is enforced elsewhere in CI, so an environment
+        # where `git status` itself fails (e.g. a non-git checkout) must not
+        # fail this target and abort the pipeline.
+        print("WARN: could not check golden file status.", file=sys.stderr)
+        if result.stderr.strip():
+            print(result.stderr.strip(), file=sys.stderr)
+        return 0
+
+    status = result.stdout.strip()
+    if status:
+        print("Golden files have uncommitted changes:")
+        print(status)
+        print()
+        print("If intentional, commit them with: git add tests/contract/fixtures/")
+        print("If accidental, restore them before running check.")
+    else:
+        print("Golden files are in sync with git")
+    return 0
 
 
 def run_test_unit() -> int:
@@ -229,6 +304,73 @@ def run_lint(*, fix: bool) -> int:
     if fix:
         cmd.append("--fix")
     return _run(cmd)
+
+
+def run_lint_go(*, fix: bool) -> int:
+    cmd = ["golangci-lint", "run"]
+    if fix:
+        cmd.append("--fix")
+    cmd.append("./tools/sdd-compile/...")
+    action = "Go lint-fix" if fix else "Go lint"
+    return _run_optional_tool(
+        cmd,
+        missing_message=f"golangci-lint not installed; skipping {action}",
+    )
+
+
+def run_lint_fix_web() -> int:
+    print("lint-fix-web: apps/landing's lint script is 'astro check',")
+    print("a type/diagnostics checker with no autofix mode.")
+    print("Run 'make lint-web' to see diagnostics.")
+    return 0
+
+
+def _npm_cmd() -> str:
+    return "npm.cmd" if sys.platform == "win32" else "npm"
+
+
+def run_npm_script(script: str) -> int:
+    return _run([_npm_cmd(), "--prefix", "apps/landing", "run", script])
+
+
+def run_install_web() -> int:
+    return _run([_npm_cmd(), "--prefix", "apps/landing", "ci"])
+
+
+def run_build_compiler() -> int:
+    goexe = ""
+    from sdd_core.utils.process import SafeProcessRunner
+
+    result = SafeProcessRunner().run(["go", "env", "GOEXE"], capture_output=True)
+    if result.returncode != 0:
+        if result.stderr.strip():
+            print(result.stderr.strip(), file=sys.stderr)
+        return result.returncode
+    goexe = result.stdout.strip()
+    return _run(
+        ["go", "build", "-C", "tools/sdd-compile", "-o", f"bin/sdd-compile{goexe}", "."]
+    )
+
+
+def run_test_compiler_go() -> int:
+    return _run(["go", "test", "-C", "tools/sdd-compile", "./tests/", "-count=1"])
+
+
+def run_mutation_go() -> int:
+    for package in ("./internal/signing", "./internal/parser"):
+        rc = _run(
+            [
+                "go",
+                "run",
+                "github.com/go-gremlins/gremlins/cmd/gremlins@v0.6.0",
+                "unleash",
+                package,
+            ],
+            cwd=REPO_ROOT / "tools" / "sdd-compile",
+        )
+        if rc != 0:
+            return rc
+    return 0
 
 
 def run_test(extra_args: list[str]) -> int:
@@ -366,6 +508,117 @@ def run_generate_schemas() -> int:
     return _run(_python_cmd() + ["tools/testing/generate-schemas.py"])
 
 
+def _workspace_pythonpath_env() -> dict[str, str]:
+    paths = [
+        "packages/core/sdd_core/src",
+        "packages/core/sdd_runtime/src",
+        "packages/core/sdd_telemetry/src",
+        "packages/features/sdd_integration/src",
+        "packages/features/sdd_adapters/src",
+        "packages/features/sdd_skills/src",
+        "packages/features/sdd_pages/src",
+        "packages/interfaces/sdd_wizard/src",
+        "packages/interfaces/sdd_cli/src",
+    ]
+    env = os.environ.copy()
+    existing = env.get("PYTHONPATH")
+    joined = os.pathsep.join(paths)
+    env["PYTHONPATH"] = f"{joined}{os.pathsep}{existing}" if existing else joined
+    return env
+
+
+def run_docs_build() -> int:
+    rc = _run(_python_cmd() + ["-m", "mkdocs", "build", "--strict"])
+    if rc != 0:
+        return rc
+    return _run(
+        _python_cmd()
+        + [
+            "-m",
+            "sdd_wizard.orchestration.wizard.selector_compiler_cli",
+            "--output-dir",
+            "build/site/selector",
+        ],
+        env=_workspace_pythonpath_env(),
+    )
+
+
+def _replace_dir_link(link: Path, target: Path) -> None:
+    if link.is_symlink():
+        link.unlink()
+    elif link.exists():
+        if link.is_dir():
+            shutil.rmtree(link)
+        else:
+            link.unlink()
+    link.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        link.symlink_to(target, target_is_directory=True)
+        return
+    except OSError as exc:
+        if sys.platform != "win32" or getattr(exc, "winerror", None) != 1314:
+            raise
+
+    from sdd_core.utils.process import SafeProcessRunner
+
+    result = SafeProcessRunner().run(
+        ["cmd", "/c", "mklink", "/J", str(link), str(target)],
+        cwd=link.parent,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        details = (result.stderr or result.stdout).strip()
+        raise OSError(f"failed to create Windows junction {link}: {details}")
+
+
+def run_docs_serve() -> int:
+    selector = REPO_ROOT / "build" / "site" / "selector" / "index.html"
+    if not selector.is_file():
+        print(
+            "ERROR: build/site/selector/index.html missing; "
+            "selector compiler did not run. Run 'make docs-build' first.",
+            file=sys.stderr,
+        )
+        return 1
+    _replace_dir_link(
+        REPO_ROOT / "build" / "serve-root" / "sdd-harness",
+        REPO_ROOT / "build" / "site",
+    )
+    print("Serving at http://localhost:8000/sdd-harness/")
+    return _run(
+        _python_cmd() + ["-m", "http.server", "8000", "--directory", "build/serve-root"]
+    )
+
+
+def run_docker_build(flags_text: str = "") -> int:
+    dockerignore = REPO_ROOT / ".dockerignore"
+    shutil.copyfile(
+        REPO_ROOT / "infrastructure" / "docker" / ".dockerignore", dockerignore
+    )
+    env = os.environ.copy()
+    env["DOCKER_BUILDKIT"] = "1"
+    flags = shlex.split(flags_text)
+    try:
+        return _run(
+            [
+                "docker",
+                "buildx",
+                "build",
+                "--load",
+                *flags,
+                "-t",
+                "sdd-harness",
+                "-f",
+                "infrastructure/docker/Dockerfile",
+                ".",
+            ],
+            env=env,
+        )
+    finally:
+        with contextlib.suppress(FileNotFoundError):
+            dockerignore.unlink()
+
+
 def run_governance_bootstrap() -> int:
     return _run(
         _python_cmd() + ["-m", "sdd_cli", "governance", "generate", "--full-bootstrap"]
@@ -378,6 +631,13 @@ def run_docs_link_check() -> int:
 
 def run_docs_link_fix() -> int:
     return _run(_python_cmd() + ["tools/docs/check_links.py", "--mode", "fix"])
+
+
+def run_hooks_install() -> int:
+    if shutil.which("bash") is None:
+        print("ERROR: bash is required to install local git hooks.", file=sys.stderr)
+        return 1
+    return _run(["bash", ".github/setup-precommit-hook.sh"])
 
 
 def run_release_prepare(version: str) -> int:
@@ -436,9 +696,21 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="task", required=True)
 
     sub.add_parser("check-venv")
+    sub.add_parser("help")
     sub.add_parser("check")
     sub.add_parser("lint")
     sub.add_parser("lint-fix")
+    sub.add_parser("lint-go")
+    sub.add_parser("lint-fix-go")
+    sub.add_parser("lint-web")
+    sub.add_parser("lint-fix-web")
+    sub.add_parser("install-web")
+    sub.add_parser("build-web")
+    sub.add_parser("test-web")
+    sub.add_parser("cover-web")
+    sub.add_parser("build-compiler")
+    sub.add_parser("test-compiler-go")
+    sub.add_parser("mutation-go")
     test_p = sub.add_parser("test")
     test_p.add_argument("args", nargs="*")
     sub.add_parser("test-fast")
@@ -454,6 +726,7 @@ def main(argv: list[str] | None = None) -> int:
     release_prepare_p.add_argument("--version", required=True)
     sub.add_parser("clean")
     sub.add_parser("ci-pr")
+    sub.add_parser("golden-status")
     sub.add_parser("golden-policy-check")
     sub.add_parser("golden-policy-check-strict")
     sub.add_parser("enforcement-ladder-consistency")
@@ -467,20 +740,39 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("update-golden-snapshots")
     sub.add_parser("generate-schemas")
     sub.add_parser("governance-bootstrap")
+    sub.add_parser("docs-build")
+    sub.add_parser("docs-serve")
     sub.add_parser("docs-link-check")
     sub.add_parser("docs-link-fix")
+    docker_build_p = sub.add_parser("docker-build")
+    docker_build_p.add_argument("--flags", default="")
+    sub.add_parser("hooks-install")
 
     args = parser.parse_args(argv)
     if args.task == "test":
         return run_test(args.args)
     if args.task == "release-prepare":
         return run_release_prepare(args.version)
+    if args.task == "docker-build":
+        return run_docker_build(args.flags)
 
     dispatch: dict[str, Any] = {
         "check-venv": run_check_venv,
+        "help": run_help,
         "check": run_check,
         "lint": lambda: run_lint(fix=False),
         "lint-fix": lambda: run_lint(fix=True),
+        "lint-go": lambda: run_lint_go(fix=False),
+        "lint-fix-go": lambda: run_lint_go(fix=True),
+        "lint-web": lambda: run_npm_script("lint"),
+        "lint-fix-web": run_lint_fix_web,
+        "install-web": run_install_web,
+        "build-web": lambda: run_npm_script("build"),
+        "test-web": lambda: run_npm_script("test"),
+        "cover-web": lambda: run_npm_script("cover"),
+        "build-compiler": run_build_compiler,
+        "test-compiler-go": run_test_compiler_go,
+        "mutation-go": run_mutation_go,
         "test-fast": run_test_fast,
         "test-perf": run_test_perf,
         "test-unit": run_test_unit,
@@ -492,6 +784,7 @@ def main(argv: list[str] | None = None) -> int:
         "release-dry-run": run_release_dry_run,
         "clean": run_clean,
         "ci-pr": run_ci_pr,
+        "golden-status": run_golden_status,
         "golden-policy-check": lambda: run_golden_policy_check(strict=False),
         "golden-policy-check-strict": lambda: run_golden_policy_check(strict=True),
         "enforcement-ladder-consistency": run_enforcement_ladder_consistency,
@@ -505,8 +798,11 @@ def main(argv: list[str] | None = None) -> int:
         "update-golden-snapshots": run_update_golden_snapshots,
         "generate-schemas": run_generate_schemas,
         "governance-bootstrap": run_governance_bootstrap,
+        "docs-build": run_docs_build,
+        "docs-serve": run_docs_serve,
         "docs-link-check": run_docs_link_check,
         "docs-link-fix": run_docs_link_fix,
+        "hooks-install": run_hooks_install,
     }
     handler = dispatch.get(args.task)
     return handler() if handler is not None else 1

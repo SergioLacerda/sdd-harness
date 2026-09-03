@@ -22,6 +22,17 @@ from sdd_cli.services.governance_docs_sources import (
 )
 
 
+def _source_output_path(output: object) -> Path | None:
+    raw = str(output).replace("\\", "/")
+    if not raw.startswith(".sdd/source/"):
+        return None
+    return Path(*raw.split("/"))
+
+
+def _display_path(path: Path) -> str:
+    return path.as_posix()
+
+
 def _append_id_drift_error(
     errors: list[str],
     *,
@@ -44,8 +55,10 @@ def _declared_handbook_outputs(entries: list[dict[str, Any]]) -> set[Path]:
             continue
         outputs.add(DEFAULT_HANDBOOK_DIR / "index.yaml")
         for output in entry.get("outputs", []):
-            output_path = Path(str(output))
-            if str(output_path).startswith(".sdd/source/handbook/"):
+            output_path = _source_output_path(output)
+            if output_path is not None and output_path.as_posix().startswith(
+                ".sdd/source/handbook/"
+            ):
                 outputs.add(output_path)
     return outputs
 
@@ -56,8 +69,8 @@ def _declared_readable_source_outputs(entries: list[dict[str, Any]]) -> set[Path
         if str(entry.get("type", "")).lower() == "handbook" and _active(entry):
             outputs.add(DEFAULT_HANDBOOK_DIR / "index.yaml")
         for output in entry.get("outputs", []):
-            output_path = Path(str(output))
-            if str(output_path).startswith(".sdd/source/"):
+            output_path = _source_output_path(output)
+            if output_path is not None:
                 outputs.add(output_path)
     return outputs
 
@@ -68,7 +81,7 @@ def _append_handbook_output_drift(
     declared = _declared_handbook_outputs(entries)
     for output in sorted(declared):
         if not (root / output).exists():
-            errors.append(f"handbook runtime output missing: {output}")
+            errors.append(f"handbook runtime output missing: {_display_path(output)}")
 
     handbook_root = root / DEFAULT_HANDBOOK_DIR
     if not handbook_root.exists():
@@ -79,7 +92,9 @@ def _append_handbook_output_drift(
         if path.is_file()
     }
     for output in sorted(actual - declared):
-        warnings.append(f"stale handbook runtime output is not declared: {output}")
+        warnings.append(
+            f"stale handbook runtime output is not declared: {_display_path(output)}"
+        )
 
 
 def _append_readable_source_output_drift(
@@ -95,9 +110,13 @@ def _append_readable_source_output_drift(
         if path.is_file() and path.suffix != ".sig"
     }
     for output in sorted(declared - actual):
-        warnings.append(f"declared readable runtime output missing: {output}")
+        warnings.append(
+            f"declared readable runtime output missing: {_display_path(output)}"
+        )
     for output in sorted(actual - declared):
-        warnings.append(f"stale readable runtime output is not declared: {output}")
+        warnings.append(
+            f"stale readable runtime output is not declared: {_display_path(output)}"
+        )
 
 
 def validate_governance_sources(

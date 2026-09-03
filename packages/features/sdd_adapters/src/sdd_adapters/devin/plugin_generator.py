@@ -26,14 +26,15 @@ _STANDALONE_TEMPLATES_DIR = _TEMPLATES_DIR / "standalone"
 _PLUGIN_VERSION = "0.1.0"
 _SOFT_GOVERNANCE_RULESET_VERSION = "1.0.0"
 _STANDALONE_RULESET_VERSION = "1.0.0"
+_STANDALONE_LAST_VERIFIED = "2026-08-18"
 _STANDALONE_RULE_NAMES = (
     "architecture",
     "git-safety",
     "testing",
     "generated-artifacts",
-    "python",
     "go",
     "documentation",
+    "token-economy",
 )
 
 
@@ -282,7 +283,10 @@ class DevinPluginGenerator:
                 dist/devin-plugin default, never the project's real root files.
         """
         result = DevinStandaloneResult()
-        context = {"standalone_ruleset_version": _STANDALONE_RULESET_VERSION}
+        context = {
+            "standalone_ruleset_version": _STANDALONE_RULESET_VERSION,
+            "last_verified": _STANDALONE_LAST_VERIFIED,
+        }
         root = Path(dest) if dest else Path(output_dir) / "dist" / "devin-standalone"
 
         try:

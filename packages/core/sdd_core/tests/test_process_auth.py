@@ -74,6 +74,20 @@ class TestProcessAuthorizerAuthorize:
         assert auth.resolve_binary_name("uv.bat") == "uv"
         assert auth.resolve_binary_name("uv.cmd") == "uv"
 
+    def test_make_task_binaries_are_authorized(self) -> None:
+        """Make wrappers delegate to these governed toolchain binaries."""
+        auth = ProcessAuthorizer()
+        for binary in (
+            "npm.cmd",
+            "go.exe",
+            "docker.exe",
+            "bash.exe",
+            "golangci-lint.exe",
+        ):
+            auth.authorize([binary, "--version"])
+        # cmd.exe is only authorized for the Windows junction helper invocation.
+        auth.authorize(["cmd.exe", "/c", "mklink", "/J", "link", "target"])
+
     def test_release_compiler_asset_names_resolve_to_sdd_compile(self) -> None:
         """Platform-suffixed release compiler assets remain governed compiler runs."""
         auth = ProcessAuthorizer()
@@ -188,7 +202,7 @@ class TestSafeProcessRunnerValidation:
         """run_interactive with unauthorized binary raises ValueError."""
         runner = SafeProcessRunner()
         with pytest.raises(ValueError, match="not authorized"):
-            runner.run_interactive(["bash", "script.sh"])
+            runner.run_interactive(["/nonexistent/binary/path", "script.sh"])
 
 
 class TestProcessSecurityPatterns:
