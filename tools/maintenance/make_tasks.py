@@ -235,10 +235,14 @@ def run_golden_status() -> int:
         capture_output=True,
     )
     if result.returncode != 0:
+        # Informational only (see module docstring above `golden-status` in
+        # mk/python.mk): drift is enforced elsewhere in CI, so an environment
+        # where `git status` itself fails (e.g. a non-git checkout) must not
+        # fail this target and abort the pipeline.
         print("WARN: could not check golden file status.", file=sys.stderr)
         if result.stderr.strip():
             print(result.stderr.strip(), file=sys.stderr)
-        return result.returncode
+        return 0
 
     status = result.stdout.strip()
     if status:

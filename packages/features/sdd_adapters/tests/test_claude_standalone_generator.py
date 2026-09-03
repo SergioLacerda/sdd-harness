@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from sdd_adapters.claude.generator import ClaudeStandaloneGenerator
+from sdd_core.utils.text_io import read_text_utf8
 
 _TOPICS = (
     "architecture",
@@ -35,9 +36,9 @@ def test_generate_standalone_settings_has_permissions_but_no_hooks(
     assert result.success is True
 
     settings = json.loads(
-        (
+        read_text_utf8(
             tmp_path / "dist" / "claude-standalone" / ".claude" / "settings.json"
-        ).read_text()
+        )
     )
     assert "permissions" in settings
     assert "allow" in settings["permissions"]
@@ -51,8 +52,8 @@ def test_generate_standalone_is_deterministic_for_same_input(tmp_path: Path) -> 
         output_dir=tmp_path, dest=tmp_path / "dist2"
     )
 
-    a = (tmp_path / "dist" / "claude-standalone" / "CLAUDE.md").read_text()
-    b = (tmp_path / "dist2" / "CLAUDE.md").read_text()
+    a = read_text_utf8(tmp_path / "dist" / "claude-standalone" / "CLAUDE.md")
+    b = read_text_utf8(tmp_path / "dist2" / "CLAUDE.md")
     assert a == b
     assert r1.success
     assert r2.success

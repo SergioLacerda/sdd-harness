@@ -114,7 +114,7 @@ class ProcessAuthorizer:
         if binary_name != "cmd":
             return
         if (
-            len(args) == 5
+            len(args) == 6
             and args[1].lower() == "/c"
             and args[2].lower() == "mklink"
             and args[3].lower() == "/j"

@@ -215,6 +215,24 @@ def test_run_golden_status_reports_changed_fixtures(
     assert "governance_core.golden.json" in output
 
 
+def test_run_golden_status_is_informational_when_git_fails(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A non-git checkout (e.g. CI's shadow-repo copy) must not fail `check`."""
+    make_tasks = _make_tasks_module()
+    with patch("sdd_core.utils.process.SafeProcessRunner.run") as runner_run:
+        runner_run.return_value = SimpleNamespace(
+            returncode=128,
+            stdout="",
+            stderr="fatal: not a git repository (or any of the parent directories): .git",
+        )
+        assert make_tasks.run_golden_status() == 0
+
+    err = capsys.readouterr().err
+    assert "WARN: could not check golden file status." in err
+    assert "not a git repository" in err
+
+
 def test_run_ci_pr_stops_on_first_failure() -> None:
     make_tasks = _make_tasks_module()
     with (
