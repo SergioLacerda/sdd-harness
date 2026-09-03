@@ -113,9 +113,13 @@ class ProcessAuthorizer:
         """Allow cmd.exe only for the Windows junction helper."""
         if binary_name != "cmd":
             return
-        if len(args) == 5 and args[1].lower() == "/c" and args[2].lower() == "mklink":
-            if args[3].lower() == "/j":
-                return
+        if (
+            len(args) == 5
+            and args[1].lower() == "/c"
+            and args[2].lower() == "mklink"
+            and args[3].lower() == "/j"
+        ):
+            return
         raise ProcessAuthorizationError(
             "cmd execution is only permitted for 'cmd /c mklink /J <link> <target>'."
         )
