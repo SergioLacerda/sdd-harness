@@ -74,6 +74,19 @@ class TestProcessAuthorizerAuthorize:
         assert auth.resolve_binary_name("uv.bat") == "uv"
         assert auth.resolve_binary_name("uv.cmd") == "uv"
 
+    def test_make_task_binaries_are_authorized(self) -> None:
+        """Make wrappers delegate to these governed toolchain binaries."""
+        auth = ProcessAuthorizer()
+        for binary in (
+            "npm.cmd",
+            "go.exe",
+            "docker.exe",
+            "bash.exe",
+            "golangci-lint.exe",
+            "cmd.exe",
+        ):
+            auth.authorize([binary, "--version"])
+
     def test_release_compiler_asset_names_resolve_to_sdd_compile(self) -> None:
         """Platform-suffixed release compiler assets remain governed compiler runs."""
         auth = ProcessAuthorizer()

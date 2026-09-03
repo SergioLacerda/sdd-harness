@@ -321,12 +321,16 @@ def run_lint_fix_web() -> int:
     return 0
 
 
+def _npm_cmd() -> str:
+    return "npm.cmd" if sys.platform == "win32" else "npm"
+
+
 def run_npm_script(script: str) -> int:
-    return _run(["npm", "--prefix", "apps/landing", "run", script])
+    return _run([_npm_cmd(), "--prefix", "apps/landing", "run", script])
 
 
 def run_install_web() -> int:
-    return _run(["npm", "--prefix", "apps/landing", "ci"])
+    return _run([_npm_cmd(), "--prefix", "apps/landing", "ci"])
 
 
 def run_build_compiler() -> int:

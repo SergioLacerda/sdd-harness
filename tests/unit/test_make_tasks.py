@@ -254,11 +254,15 @@ def test_run_help_lists_targets_with_dependencies(
 
 def test_web_wrappers_use_npm_prefix() -> None:
     make_tasks = _make_tasks_module()
-    with patch.object(make_tasks, "_run", return_value=0) as run:
+    with (
+        patch.object(make_tasks, "_npm_cmd", return_value="npm") as npm_cmd,
+        patch.object(make_tasks, "_run", return_value=0) as run,
+    ):
         assert make_tasks.run_install_web() == 0
         run.assert_called_with(["npm", "--prefix", "apps/landing", "ci"])
         assert make_tasks.run_npm_script("lint") == 0
         run.assert_called_with(["npm", "--prefix", "apps/landing", "run", "lint"])
+        assert npm_cmd.call_count == 2
 
 
 def test_lint_go_skips_when_tool_missing() -> None:
