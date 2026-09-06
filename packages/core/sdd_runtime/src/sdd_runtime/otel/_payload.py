@@ -47,6 +47,29 @@ def _build_otlp_payload(event: RuntimeEvent, attrs: OtelAttributes) -> dict[str,
     end_ts = event.end_ts if event.end_ts else event.ts
     end_ns = _ts_to_nano(end_ts)
 
+    span: dict[str, Any] = {
+        "traceId": attrs.trace_id,
+        "spanId": attrs.span_id,
+        "name": attrs.sdd_event,
+        "kind": 1,  # SPAN_KIND_INTERNAL
+        "startTimeUnixNano": start_ns,
+        "endTimeUnixNano": end_ns,
+        "attributes": _to_kv_list(attrs.to_otel_dict()),
+        "status": {
+            "code": _status_code(attrs.sdd_status),
+        },
+    }
+    if attrs.sdd_parent_event_id:
+        # TEL-08 (`.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
+        # `sdd_parent_event_id` is populated with the parent RuntimeEvent's
+        # own `span_id` (see `_pipeline_runtime_telemetry.py`) — it is
+        # already a valid OTLP span id, not a separate identifier scheme.
+        # Mapping it to the native `parentSpanId` field lets a real
+        # collector reconstruct the span tree; the `sdd.parent_event_id`
+        # attribute (in `attributes` above) is kept for backward-compatible
+        # correlation by anything already reading it.
+        span["parentSpanId"] = attrs.sdd_parent_event_id
+
     return {
         "resourceSpans": [
             {
@@ -56,20 +79,7 @@ def _build_otlp_payload(event: RuntimeEvent, attrs: OtelAttributes) -> dict[str,
                 "scopeSpans": [
                     {
                         "scope": {"name": "sdd-runtime", "version": "1.0"},
-                        "spans": [
-                            {
-                                "traceId": attrs.trace_id,
-                                "spanId": attrs.span_id,
-                                "name": attrs.sdd_event,
-                                "kind": 1,  # SPAN_KIND_INTERNAL
-                                "startTimeUnixNano": start_ns,
-                                "endTimeUnixNano": end_ns,
-                                "attributes": _to_kv_list(attrs.to_otel_dict()),
-                                "status": {
-                                    "code": _status_code(attrs.sdd_status),
-                                },
-                            }
-                        ],
+                        "spans": [span],
                     }
                 ],
             }

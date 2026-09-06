@@ -123,6 +123,17 @@ def _emit_runtime_status(
             )
 
         session_manager = SessionManager(state_dir=context["runtime_dir"])
+        # Read the prior session BEFORE upserting the new one — classify()
+        # must compare the artifact against the baseline recorded on the
+        # *previous* run, not against a session that was just built from
+        # (and therefore trivially matches) the current artifact. Upserting
+        # first made every classification compare the artifact to itself,
+        # so fingerprint/profile drift could never be detected via this
+        # path. See DRF-03,
+        # `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`.
+        previous_session = session_manager.get(
+            context["workspace_id"], context["agent_id"], "runtime-status"
+        )
         session = SessionState(
             workspace_id=context["workspace_id"],
             agent_id=context["agent_id"],
@@ -131,30 +142,40 @@ def _emit_runtime_status(
             schema_version=injection.schema_version,
             policy_set_version=injection.schema_version,
         )
-        session_manager.upsert(session)
 
         drift_type = "none"
         drift_detected = False
         if artifact is not None:
-            drift_report = DriftDetector().classify(
-                session=session,
-                artifact=artifact,
-                current_profile=current_profile,
-            )
-            drift_detected = drift_report.drift_detected
-            drift_type = drift_report.drift_type
-            if drift_detected:
+            if previous_session is None:
+                # First session for this (workspace, agent, work item) key —
+                # there is no prior baseline to classify against.
                 drift_info = {
-                    "detected": True,
-                    "type": drift_type,
-                    "remediation_command": drift_report.remediation_command,
+                    "detected": False,
+                    "type": "none",
+                    "reason": "first session recorded for this workspace/agent",
                 }
-                emit_fn(
-                    f"\n[runtime] drift detected: {drift_type}"
-                    f"  →  {drift_report.remediation_command}",
-                )
             else:
-                drift_info = {"detected": False, "type": drift_type, "reason": ""}
+                drift_report = DriftDetector().classify(
+                    session=previous_session,
+                    artifact=artifact,
+                    current_profile=current_profile,
+                )
+                drift_detected = drift_report.drift_detected
+                drift_type = drift_report.drift_type
+                if drift_detected:
+                    drift_info = {
+                        "detected": True,
+                        "type": drift_type,
+                        "remediation_command": drift_report.remediation_command,
+                    }
+                    emit_fn(
+                        f"\n[runtime] drift detected: {drift_type}"
+                        f"  →  {drift_report.remediation_command}",
+                    )
+                else:
+                    drift_info = {"detected": False, "type": drift_type, "reason": ""}
+
+        session_manager.upsert(session)
 
         sink = TelemetrySink(
             jsonl_path=resolve_compliance_events_path(workspace_root=root),

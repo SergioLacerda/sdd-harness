@@ -194,6 +194,87 @@ def test_emit_ask_telemetry_handles_sink_failure(
     assert logger.debug_calls
 
 
+def test_emit_ask_telemetry_records_durable_degradation_for_sensitive_event(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """TEL-02 regression: a sensitive event's emission failure must leave a
+    durable, inspectable record — not only an invisible `logger.debug` call
+    — per M007/M008's stronger obligations for sensitive decisions.
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` TEL-02.
+    """
+    _install_fake_sdd_runtime(monkeypatch)
+    monkeypatch.setattr(
+        telemetry_mod,
+        "resolve_compliance_events_path",
+        lambda workspace_root: tmp_path / "events.jsonl",
+    )
+
+    class _BrokenSink:
+        def __init__(self, jsonl_path: Path, logging_mode: str) -> None:
+            raise RuntimeError("sink boom")
+
+    logger = _Logger()
+    result = telemetry_mod.emit_ask_telemetry(
+        "governance.violation",  # sensitive per validator._SENSITIVE_EVENTS
+        command="ask",
+        workspace_root=tmp_path,
+        trace_id="trace-4",
+        agent_id="agent-4",
+        fingerprint="fp-4",
+        context_source="compiled",
+        mandates_count=1,
+        profile="client",
+        state="FAILED",
+        drift_detected=False,
+        logger=logger,
+        telemetry_sink_cls=_BrokenSink,  # type: ignore[arg-type]
+    )
+
+    # Still best-effort at the API boundary — never raises, returns None.
+    assert result is None
+
+    marker_path = tmp_path / ".sdd" / "runtime" / "telemetry-degraded.jsonl"
+    assert marker_path.exists()
+    import json
+
+    record = json.loads(marker_path.read_text(encoding="utf-8").strip())
+    assert record["event"] == "governance.violation"
+    assert "sink boom" in record["reason"]
+
+
+def test_emit_ask_telemetry_non_sensitive_failure_does_not_write_marker(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_fake_sdd_runtime(monkeypatch)
+    monkeypatch.setattr(
+        telemetry_mod,
+        "resolve_compliance_events_path",
+        lambda workspace_root: tmp_path / "events.jsonl",
+    )
+
+    class _BrokenSink:
+        def __init__(self, jsonl_path: Path, logging_mode: str) -> None:
+            raise RuntimeError("sink boom")
+
+    telemetry_mod.emit_ask_telemetry(
+        "ask.finished",  # not in _SENSITIVE_EVENTS
+        command="ask",
+        workspace_root=tmp_path,
+        trace_id="trace-5",
+        agent_id="agent-5",
+        fingerprint="fp-5",
+        context_source="compiled",
+        mandates_count=1,
+        profile="client",
+        state="FAILED",
+        drift_detected=False,
+        telemetry_sink_cls=_BrokenSink,  # type: ignore[arg-type]
+    )
+
+    marker_path = tmp_path / ".sdd" / "runtime" / "telemetry-degraded.jsonl"
+    assert not marker_path.exists()
+
+
 def test_upsert_ask_session_success_and_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -58,6 +58,17 @@ class TestGovernanceFingerprinter:
         # Valid hex string should be decodable
         int(result, 16)  # This raises ValueError if not valid hex
 
+    def test_fingerprint_is_full_64_char_digest_not_truncated(self) -> None:
+        """SEC-08 regression: this domain's contract is a full, untruncated
+        sha256 digest used for integrity decisions — unlike the codebase's
+        other, shorter fingerprint domains (16-char cache/handshake keys,
+        8-char query hashes). A silent truncation here would collapse this
+        into a different, weaker domain without anyone noticing.
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` SEC-08.
+        """
+        result = GovernanceFingerprinter.generate([{"id": "M001", "title": "Test"}])
+        assert len(result) == 64
+
 
 class TestMarkdownParser:
     """Tests for Markdown content parsing."""

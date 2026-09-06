@@ -58,6 +58,36 @@ def test_cache_ttl_expiry_and_lru_eviction() -> None:
     assert c.get("a", "q3", 1, ["X"]) == 3
 
 
+def test_cache_key_varies_with_rounded_budget_utilization() -> None:
+    """CTX-06 regression: docs used to claim the cache key ignores budget
+    utilization entirely (a GREEN-computed hit could be replayed under
+    YELLOW). The key already includes `budget_utilization_pct` rounded to
+    one decimal place — a materially different utilization is a genuine
+    cache miss, not a stale zone-crossing hit.
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` CTX-06.
+    """
+    c = ContextCache()
+    c.set("a", "q", 1, ["X"], "computed-at-green", budget_utilization_pct=50.0)
+
+    # Same rounded bucket (50.04 rounds to 50.0) — still a hit.
+    assert (
+        c.get("a", "q", 1, ["X"], budget_utilization_pct=50.04) == "computed-at-green"
+    )
+
+    # Crossed into a different rounded bucket (and a different zone,
+    # GREEN < 70 vs YELLOW 70-90) — must be a genuine miss, not a replay of
+    # the GREEN-computed result.
+    assert c.get("a", "q", 1, ["X"], budget_utilization_pct=75.0) is None
+
+
+def test_cache_key_boundary_at_one_decimal_place() -> None:
+    """The key rounds to exactly one decimal place — 50.05 and 50.06 land in
+    different buckets (50.0 vs 50.1), not merged."""
+    key_low = ContextCache._make_key("a", "q", 1, ["X"], 50.04)
+    key_high = ContextCache._make_key("a", "q", 1, ["X"], 50.06)
+    assert key_low != key_high
+
+
 def test_cache_clear_resets_all() -> None:
     c = ContextCache()
     c.set("a", "q", 1, ["X"], 1)

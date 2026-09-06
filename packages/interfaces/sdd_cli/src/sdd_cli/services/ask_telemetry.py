@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import contextlib
+import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +16,7 @@ from sdd_runtime import (
     SessionState,
     TelemetrySink,
     get_otel_endpoint,
+    is_sensitive_event,
 )
 from sdd_runtime.otel import OtlpHttpExporter
 
@@ -65,6 +69,34 @@ def resolve_tokens(query: str, output_text: str) -> tuple[int | None, int | None
         return tokens_in, tokens_out, source
     except Exception:
         return None, None, "unknown"
+
+
+def _record_telemetry_degradation(
+    workspace_root: Path, event_name: str, exc: Exception
+) -> None:
+    """Append a durable record that a *sensitive* event failed to emit.
+
+    `emit_ask_telemetry` stays best-effort/non-blocking for every event —
+    `sdd ask`'s primary function must never crash because telemetry is
+    unavailable — but M007/M008 call for stronger obligations on sensitive
+    events than silent, invisible best-effort (TEL-02,
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`). A
+    `logger.debug` call is invisible in normal operation; this durable,
+    append-only marker survives the process and is inspectable later, so
+    the degradation is never silently lost even though emission itself is
+    not retried or escalated. Itself best-effort: a failure here must never
+    raise a *second* exception on top of the one already being handled.
+    """
+    with contextlib.suppress(Exception):
+        marker_path = workspace_root / ".sdd" / "runtime" / "telemetry-degraded.jsonl"
+        marker_path.parent.mkdir(parents=True, exist_ok=True)
+        record = {
+            "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "event": event_name,
+            "reason": str(exc),
+        }
+        with marker_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record) + "\n")
 
 
 def emit_ask_telemetry(
@@ -165,6 +197,8 @@ def emit_ask_telemetry(
     except Exception as exc:
         if logger is not None:
             logger.debug("Failed to emit ask telemetry: %s", exc)
+        if is_sensitive_event(event_name):
+            _record_telemetry_degradation(workspace_root, event_name, exc)
         return None
 
 

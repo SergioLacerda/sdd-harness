@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -13,6 +14,7 @@ except ImportError:  # pragma: no cover — fcntl is POSIX-only (no Windows)
     fcntl = None  # type: ignore[assignment]
 
 from .._events import RuntimeEvent
+from ..validator import TraceabilityValidator
 from ._constants import (
     _MANDATORY_EVENTS,
     _ZONE_BREACH_PCT,
@@ -28,6 +30,8 @@ from ._economy_enrichment import _enrich_economy
 
 if TYPE_CHECKING:
     from ..alerts import AlertDispatcher
+
+logger = logging.getLogger(__name__)
 
 
 class TelemetrySink:
@@ -76,6 +80,7 @@ class TelemetrySink:
         )
         # Fase 2: optional alert dispatcher (best-effort side-car)
         self._alert_dispatcher = alert_dispatcher
+        self._traceability_validator = TraceabilityValidator()
 
     def emit(self, event: RuntimeEvent) -> None:
         """Record *event* in memory and conditionally persist to JSONL."""
@@ -182,6 +187,21 @@ class TelemetrySink:
         # `flush()` call attempt to persist the same event object.
         if id(event) in self._persisted_event_ids:
             return
+        # TEL-01 (`.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
+        # `TraceabilityValidator` existed but was never invoked at the
+        # emission boundary, so a sensitive event missing its required
+        # trace/workspace/agent/source-refs fields would be persisted (and
+        # exported) exactly like a compliant one, with no visible signal.
+        # This does not block the write (telemetry stays best-effort per the
+        # sink's own design) — it makes the existing gap loudly observable
+        # instead of silent.
+        result = self._traceability_validator.validate_event(event)
+        if not result.valid:
+            logger.warning(
+                "Telemetry event %r is missing required traceability fields: %s",
+                event.event,
+                result.missing_fields,
+            )
         target = self._resolve_path(event)
         target.parent.mkdir(parents=True, exist_ok=True)
         with target.open("a", encoding="utf-8") as fh:

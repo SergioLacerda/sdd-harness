@@ -84,7 +84,10 @@ def test_emit_runtime_status_handles_missing_compiled_dir(
         )
     )
     fake.RuntimeEvent = lambda **kwargs: kwargs
-    fake.SessionManager = lambda state_dir: SimpleNamespace(upsert=lambda session: None)
+    fake.SessionManager = lambda state_dir: SimpleNamespace(
+        upsert=lambda session: None,
+        get=lambda workspace_id, agent_id, work_item_id: None,
+    )
     fake.SessionState = lambda **kwargs: kwargs
     fake.TelemetrySink = lambda jsonl_path, logging_mode: SimpleNamespace(
         emit=lambda event: None
@@ -131,7 +134,12 @@ def test_emit_runtime_status_emits_drift(monkeypatch, tmp_path: Path) -> None:
         )
     )
     fake.RuntimeEvent = lambda **kwargs: kwargs
-    fake.SessionManager = lambda state_dir: SimpleNamespace(upsert=lambda session: None)
+    fake.SessionManager = lambda state_dir: SimpleNamespace(
+        upsert=lambda session: None,
+        get=lambda workspace_id, agent_id, work_item_id: SimpleNamespace(
+            artifact_fingerprint="old-fp"
+        ),
+    )
     fake.SessionState = lambda **kwargs: kwargs
     fake.TelemetrySink = lambda jsonl_path, logging_mode: SimpleNamespace(
         emit=lambda event: events.append(event)
@@ -154,3 +162,122 @@ def test_emit_runtime_status_emits_drift(monkeypatch, tmp_path: Path) -> None:
     assert events[0]["event"] == "runtime.session.start"
     assert events[1]["event"] == "runtime.drift.detected"
     assert "spec_drift" in emitted[0]
+
+
+def test_emit_runtime_status_classifies_against_previous_session_not_current(
+    monkeypatch, tmp_path: Path
+) -> None:
+    """DRF-03 regression: `classify()` must receive the session persisted on
+    a *prior* call, never the session object just built from the current
+    artifact — comparing the artifact to a session built from itself always
+    reports "aligned" regardless of real drift.
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` DRF-03.
+    """
+    compiled = tmp_path / ".sdd" / "compiled"
+    compiled.mkdir(parents=True)
+
+    class _RealishSessionManager:
+        """Persists across calls within the test, like the real SessionManager."""
+
+        def __init__(self, state_dir):
+            self._sessions: dict[tuple, object] = {}
+
+        def get(self, workspace_id, agent_id, work_item_id):
+            return self._sessions.get((workspace_id, agent_id, work_item_id))
+
+        def upsert(self, session):
+            key = (
+                session["workspace_id"],
+                session["agent_id"],
+                session["work_item_id"],
+            )
+            self._sessions[key] = session
+
+    manager_holder: dict[str, _RealishSessionManager] = {}
+
+    def _make_manager(state_dir):
+        if "instance" not in manager_holder:
+            manager_holder["instance"] = _RealishSessionManager(state_dir)
+        return manager_holder["instance"]
+
+    classify_calls: list[dict] = []
+
+    def _classify(**kwargs):
+        classify_calls.append(kwargs)
+        session = kwargs["session"]
+        artifact = kwargs["artifact"]
+        session_fp = (
+            session["artifact_fingerprint"]
+            if isinstance(session, dict)
+            else session.artifact_fingerprint
+        )
+        return SimpleNamespace(
+            drift_detected=session_fp != artifact.fingerprint,
+            drift_type="fingerprint_mismatch"
+            if session_fp != artifact.fingerprint
+            else "none",
+            remediation_command="sdd governance compile",
+        )
+
+    current_fp = {"value": "fp-v1"}
+    fake = ModuleType("sdd_runtime")
+    fake.CompiledArtifact = SimpleNamespace(
+        from_sdd_compiled_dir=lambda compiled_dir, profile: SimpleNamespace(
+            fingerprint=current_fp["value"], profile=profile
+        )
+    )
+    fake.DriftDetector = lambda: SimpleNamespace(classify=_classify)
+    fake.GovernanceInjector = lambda: SimpleNamespace(
+        inject_from_path=lambda path: SimpleNamespace(
+            loaded=True,
+            artifact_fingerprint=current_fp["value"],
+            schema_version="1",
+            mandates_loaded=1,
+        )
+    )
+    fake.RuntimeEvent = lambda **kwargs: kwargs
+    fake.SessionManager = _make_manager
+    fake.SessionState = lambda **kwargs: kwargs
+    fake.TelemetrySink = lambda jsonl_path, logging_mode: SimpleNamespace(
+        emit=lambda event: None
+    )
+    monkeypatch.setitem(sys.modules, "sdd_runtime", fake)
+    monkeypatch.setattr(runtime_mod, "compiled_active_dir", lambda root: compiled)
+    monkeypatch.setattr(
+        runtime_mod,
+        "resolve_compliance_events_path",
+        lambda workspace_root: workspace_root / "events.jsonl",
+    )
+
+    # First call: no previous session exists yet — must not report drift.
+    first = runtime_mod._emit_runtime_status(
+        root=tmp_path,
+        ahp_state="HEALTHY",
+        workspace_profile="client",
+        current_profile="client",
+    )
+    assert first["detected"] is False
+    assert classify_calls == []  # no baseline to classify against yet
+
+    # Second call, same fingerprint: previous session now exists and matches.
+    second = runtime_mod._emit_runtime_status(
+        root=tmp_path,
+        ahp_state="HEALTHY",
+        workspace_profile="client",
+        current_profile="client",
+    )
+    assert second["detected"] is False
+    assert classify_calls[-1]["session"]["artifact_fingerprint"] == "fp-v1"
+
+    # Third call, artifact fingerprint changed: must now detect drift by
+    # comparing against the *previous* session (fp-v1), not the new one.
+    current_fp["value"] = "fp-v2"
+    third = runtime_mod._emit_runtime_status(
+        root=tmp_path,
+        ahp_state="HEALTHY",
+        workspace_profile="client",
+        current_profile="client",
+    )
+    assert third["detected"] is True
+    assert classify_calls[-1]["session"]["artifact_fingerprint"] == "fp-v1"
+    assert classify_calls[-1]["artifact"].fingerprint == "fp-v2"

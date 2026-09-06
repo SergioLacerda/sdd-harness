@@ -11,6 +11,7 @@ Covers:
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -262,6 +263,58 @@ class TestOtlpHttpExporter:
             attrs = OtelAttributes.from_event(evt)
             exporter.export(evt, attrs)  # Should not raise
 
+    def test_export_failure_is_counted(self) -> None:
+        """TEL-07 regression: a swallowed network error must still increment
+        `export_failure_count` — loss is silent to the caller (no raise) but
+        not invisible in-process.
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` TEL-07.
+        """
+        exporter = self._make_exporter()
+        assert exporter.export_failure_count == 0
+        with (
+            patch("urllib.request.urlopen", side_effect=OSError("connection refused")),
+            patch("urllib.request.Request", return_value=MagicMock()),
+        ):
+            evt = _event()
+            attrs = OtelAttributes.from_event(evt)
+            exporter.export(evt, attrs)
+            exporter.export(evt, attrs)
+        assert exporter.export_failure_count == 2
+
+    def test_export_success_does_not_increment_failure_count(self) -> None:
+        exporter = self._make_exporter()
+        mock_response = MagicMock()
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+        mock_response.read = MagicMock(return_value=b"")
+        with (
+            patch("urllib.request.urlopen", return_value=mock_response),
+            patch("urllib.request.Request", return_value=MagicMock()),
+        ):
+            evt = _event()
+            attrs = OtelAttributes.from_event(evt)
+            exporter.export(evt, attrs)
+        assert exporter.export_failure_count == 0
+
+    def test_timeout_bounds_worst_case_export_latency(self) -> None:
+        """TEL-07: `timeout` is the enforced latency ceiling for a single
+        `export()` call — a hung collector cannot stall the caller past it."""
+
+        exporter = OtlpHttpExporter(
+            endpoint="http://localhost:4318/v1/traces", timeout=1
+        )
+        with (
+            patch("urllib.request.urlopen", side_effect=TimeoutError("timed out")),
+            patch("urllib.request.Request", return_value=MagicMock()),
+        ):
+            evt = _event()
+            attrs = OtelAttributes.from_event(evt)
+            start = time.monotonic()
+            exporter.export(evt, attrs)  # Must not raise or hang
+            elapsed = time.monotonic() - start
+        assert elapsed < 1.0  # mocked timeout raises immediately, no real wait
+        assert exporter.export_failure_count == 1
+
     def test_shutdown_is_noop(self) -> None:
         exporter = self._make_exporter()
         exporter.shutdown()  # Should not raise
@@ -318,6 +371,33 @@ class TestBuildOtlpPayload:
         ]
         assert isinstance(span_attrs, list)
         assert all("key" in a and "value" in a for a in span_attrs)
+
+    def test_parent_span_id_native_field_set_when_parent_event_id_present(self) -> None:
+        """TEL-08 regression: `parent_event_id` is populated with the
+        parent's own `span_id` (see `_pipeline_runtime_telemetry.py`) — a
+        valid OTLP span id, not a separate identifier scheme. It must be
+        mapped onto the native `parentSpanId` span field so a real
+        collector can reconstruct the span tree, not left only as the
+        `sdd.parent_event_id` attribute.
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` TEL-08.
+        """
+        evt = _event(span_id="child-span")
+        evt.parent_event_id = "parent-span"
+        attrs = OtelAttributes.from_event(evt)
+        payload = _build_otlp_payload(evt, attrs)
+        span = payload["resourceSpans"][0]["scopeSpans"][0]["spans"][0]
+        assert span["parentSpanId"] == "parent-span"
+        # Backward-compat: the sdd.* attribute correlation is preserved too.
+        span_attrs = {a["key"]: a["value"] for a in span["attributes"]}
+        assert span_attrs["sdd.parent_event_id"]["stringValue"] == "parent-span"
+
+    def test_no_parent_span_id_field_for_root_span(self) -> None:
+        evt = _event()
+        assert evt.parent_event_id == ""
+        attrs = OtelAttributes.from_event(evt)
+        payload = _build_otlp_payload(evt, attrs)
+        span = payload["resourceSpans"][0]["scopeSpans"][0]["spans"][0]
+        assert "parentSpanId" not in span
 
     def test_scope_name_is_sdd_runtime(self) -> None:
         evt = _event()

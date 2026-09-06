@@ -31,6 +31,18 @@ _PATH_REFLECTION_CEILING: dict[str, int] = {
     "D": 1,
 }
 
+# The canonical PATH taxonomy (§cognition/context-loading/path-routing.md)
+# defines six paths, A-F, but only A-D have a reviewed retry/reflection
+# ceiling. `SDD_PATH_ID` has no production producer today (CTX-05,
+# `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`), so the
+# unrecognized-path branch below (`path_id` empty or any other placeholder
+# string) still safely defaults to PATH A's conservative ceiling — that
+# behavior is unchanged. What changes is PATH E and PATH F specifically:
+# an explicit path_id="E" or "F" is a real, named path with no defined
+# budget yet, and silently treating it as PATH A would misrepresent an
+# actual policy gap as a reviewed decision.
+_RECOGNIZED_PATHS_WITHOUT_CEILING: frozenset[str] = frozenset({"E", "F"})
+
 
 @dataclass
 class RetryBudget:
@@ -49,12 +61,34 @@ class RetryBudget:
 
     @property
     def retry_ceiling(self) -> int:
-        """The retry ceiling for the active PATH."""
+        """The retry ceiling for the active PATH.
+
+        Raises `ValueError` for `path_id` "E" or "F" — recognized paths
+        with no reviewed ceiling yet (CTX-05) — rather than silently
+        reusing PATH A's. Any other unrecognized `path_id` (including the
+        default `""`, since no production caller sets `SDD_PATH_ID` yet)
+        still defaults to PATH A, unchanged.
+        """
+        if self.path_id in _RECOGNIZED_PATHS_WITHOUT_CEILING:
+            raise ValueError(
+                f"PATH {self.path_id!r} has no reviewed retry ceiling defined "
+                "yet in _PATH_RETRY_CEILING (see CTX-05, "
+                ".analysis/refined/20260906-gaps-e-melhorias-review/backlog.md)"
+            )
         return _PATH_RETRY_CEILING.get(self.path_id, _PATH_RETRY_CEILING["A"])
 
     @property
     def reflection_ceiling(self) -> int:
-        """The reflection ceiling for the active PATH."""
+        """The reflection ceiling for the active PATH.
+
+        Same E/F policy as `retry_ceiling` above.
+        """
+        if self.path_id in _RECOGNIZED_PATHS_WITHOUT_CEILING:
+            raise ValueError(
+                f"PATH {self.path_id!r} has no reviewed reflection ceiling "
+                "defined yet in _PATH_REFLECTION_CEILING (see CTX-05, "
+                ".analysis/refined/20260906-gaps-e-melhorias-review/backlog.md)"
+            )
         return _PATH_REFLECTION_CEILING.get(self.path_id, _PATH_REFLECTION_CEILING["A"])
 
     def increment_retry(self) -> int:

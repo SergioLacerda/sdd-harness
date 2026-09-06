@@ -8,7 +8,22 @@ from typing import Any
 
 
 class GovernanceFingerprinter:
-    """Generates deterministic SHA-256 fingerprints for governance items."""
+    """Generates deterministic SHA-256 fingerprints for governance items.
+
+    Fingerprint domain (SEC-08,
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
+    purpose=integrity/identity of a governance-item set, algorithm=sha256,
+    normalization=sorted-by-id canonical JSON, length=full 64-char hex
+    digest (never truncated). This is the "full digest for integrity
+    decisions" domain the SEC-08 finding contrasts with the codebase's
+    other, shorter, differently-normalized hashes — e.g.
+    `ask_context_drift.compute_routing_signature` (16-char cache key,
+    explicitly not a signature) and `HandshakeCache.compute_spec_fingerprint`
+    (16-char governance-version fingerprint). Comparing a value from one
+    domain against another (mismatched purpose, algorithm, normalization,
+    or length) is a category error, not a meaningful equality check — see
+    DRF-02 for a concrete historical instance of that exact bug.
+    """
 
     HASH_ALGORITHM = "sha256"
 

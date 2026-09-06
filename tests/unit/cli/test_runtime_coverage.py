@@ -52,6 +52,15 @@ def _install_fake_sdd_runtime(  # noqa: C901
         def __init__(self, state_dir: Path) -> None:
             self.state_dir = state_dir
 
+        def get(self, workspace_id: str, agent_id: str, work_item_id: str) -> object:
+            # DRF-03 fix: `_emit_runtime_status` now classifies drift
+            # against the *previous* session, read before the new one is
+            # upserted — see `runtime_handler.py`. Returning a non-None
+            # stand-in here (any object; `_DriftDetector.classify` below
+            # ignores its contents) exercises that "previous session
+            # exists" branch instead of the "first session" one.
+            return types.SimpleNamespace(artifact_fingerprint="fp-previous")
+
         def upsert(self, session: object) -> None:
             self.session = session
 

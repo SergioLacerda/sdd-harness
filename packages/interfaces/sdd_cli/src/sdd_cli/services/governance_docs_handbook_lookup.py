@@ -50,6 +50,17 @@ def _entry_matches_lookup(
 
 
 def _handbook_match_payload(root: Path, entry: dict[str, Any]) -> dict[str, Any]:
+    """Build one lookup match payload.
+
+    CTX-07 (`.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
+    `load_policy` here is metadata carried through from the handbook entry —
+    this lookup does not itself apply any token ceiling, truncate content,
+    or rank matches by relevance beyond the `limit` cap and match order in
+    `lookup_runtime_handbook`. A caller that needs a token budget enforced
+    must apply `load_policy` itself before loading `runtime_doc`'s full
+    content; treating this payload's presence as proof a limit was already
+    enforced is a misreading of the contract.
+    """
     runtime_doc = str(entry.get("runtime_doc", ""))
     item = _load_handbook_item(root, runtime_doc) if runtime_doc else None
     return {
@@ -60,6 +71,7 @@ def _handbook_match_payload(root: Path, entry: dict[str, Any]) -> dict[str, Any]
         "mandate_refs": list(entry.get("mandate_refs", [])),
         "task_types": list(entry.get("task_types", [])),
         "operation_phases": list(entry.get("operation_phases", [])),
+        "risk_levels": list(entry.get("risk_levels", [])),
         "load_policy": item.get("load_policy", {}) if item else {},
         "summary": str(item.get("summary", "")) if item else "",
     }
@@ -74,7 +86,15 @@ def lookup_runtime_handbook(
     risk_level: str | None = None,
     limit: int = 5,
 ) -> HandbookLookupReport:
-    """Lookup consultive runtime handbook entries without scanning docs/."""
+    """Lookup consultive runtime handbook entries without scanning docs/.
+
+    Filters entries by task type, mandate refs, operation phase, and risk
+    level, capped to `limit` matches. This does not apply, or even inspect,
+    any match's `load_policy` token ceiling, and does not rank matches by
+    semantic relevance — it returns entries in index order up to `limit`.
+    Budget enforcement is the caller's responsibility (CTX-07,
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`).
+    """
     index_path = root / DEFAULT_HANDBOOK_DIR / "index.yaml"
     if not index_path.exists():
         return HandbookLookupReport(

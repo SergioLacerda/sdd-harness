@@ -86,6 +86,14 @@ def generate_runtime_handbook(
             "operation_phases": list(
                 entry.get("operation_phases", metadata.get("operation_phases", []))
             ),
+            # CTX-08 (`.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
+            # the lookup filters matches by `risk_levels`, but this generator
+            # never wrote the field, so any risk_level filter matched
+            # nothing. Sourced the same way as the sibling filter fields
+            # above (entry override, falling back to frontmatter metadata).
+            "risk_levels": list(
+                entry.get("risk_levels", metadata.get("risk_levels", []))
+            ),
             "load_policy": entry.get("load_policy", metadata.get("load_policy", {})),
             "summary": metadata.get("summary", ""),
         }
@@ -101,6 +109,7 @@ def generate_runtime_handbook(
                 "mandate_refs": item["mandate_refs"],
                 "task_types": item["task_types"],
                 "operation_phases": item["operation_phases"],
+                "risk_levels": item["risk_levels"],
             }
         )
 

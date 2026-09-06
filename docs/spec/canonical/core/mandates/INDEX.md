@@ -26,6 +26,20 @@ Define mandatory behavioral contracts that ALL agents MUST follow.
 | M019 | Governance Federation          | [M019_GOVERNANCE_FEDERATION.md](M019_GOVERNANCE_FEDERATION.md) |
 | M020 | Governed Compact Logging       | [M020_GOVERNED_COMPACT_LOGGING.md](M020_GOVERNED_COMPACT_LOGGING.md) |
 
+Not every canonical mandate is listed above — this index covers mandates
+whose canonical document lives directly under `core/mandates/`. Three
+mandates are documented elsewhere on purpose and are intentionally omitted
+here rather than silently missing:
+
+| ID   | Title                          | Canonical location |
+|------|--------------------------------|---------------------|
+| M001 | Clean Architecture             | [../../features/CLEAN_ARCHITECTURE.md](../../features/CLEAN_ARCHITECTURE.md) (selectable feature) |
+| M002 | Test-Driven Development (TDD)  | [../../features/TDD.md](../../features/TDD.md) (selectable feature) |
+| M006 | RFC Process for Breaking Changes | [../../guides/M006_RFC_PROCESS.md](../../guides/M006_RFC_PROCESS.md) |
+
+The full active mandate set is the union of this table and the one above —
+see `.sdd/source/mandates/mandates.md` for the canonical, generated register.
+
 ---
 
 ## Mandate Model

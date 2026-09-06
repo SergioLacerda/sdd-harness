@@ -82,7 +82,21 @@ class HandshakeCache:
         )
 
     def compute_spec_fingerprint(self) -> str:
-        """Compute a stable governance fingerprint for cache comparisons."""
+        """Compute a stable governance fingerprint for cache comparisons.
+
+        Fingerprint domain (SEC-08,
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
+        purpose=governance-version identity for cache/handshake comparisons,
+        algorithm=sha256, normalization=sorted-key JSON of the compiled
+        governance-core artifact with `_signature`/`fingerprint` keys
+        stripped, length=16-char truncated hex. This is a distinct domain
+        from `GovernanceFingerprinter.generate`'s full 64-char integrity
+        digest and from `ask_context_drift.compute_routing_signature`'s
+        16-char cache key — matching length alone does not make two hashes
+        comparable. See DRF-02 for a concrete historical bug caused by
+        comparing this fingerprint's sibling (`spec_fingerprint`, hashed
+        from *source* files) against a *compiled*-artifact hash.
+        """
         governance_core = self.extract_governance_core()
         if not governance_core:
             return ""

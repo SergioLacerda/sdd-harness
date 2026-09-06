@@ -178,6 +178,28 @@ class TestRetryBudget:
         budget = RetryBudget(path_id="D")
         assert budget.retry_ceiling == _PATH_RETRY_CEILING["D"]
 
+    def test_retry_budget_unset_path_id_defaults_to_a(self):
+        """The common real-world case — no `SDD_PATH_ID` producer exists in
+        production (CTX-05) — must keep silently defaulting to PATH A's
+        conservative ceiling; this is unchanged, deliberate behavior."""
+        budget = RetryBudget(path_id="")
+        assert budget.retry_ceiling == _PATH_RETRY_CEILING["A"]
+        assert budget.reflection_ceiling == _PATH_REFLECTION_CEILING["A"]
+
+    def test_retry_budget_path_e_and_f_raise_instead_of_silently_using_a(self):
+        """CTX-05 regression: PATH E and PATH F are recognized paths
+        (§cognition/context-loading/path-routing.md) with no reviewed
+        ceiling — silently reusing PATH A's ceiling for them would present
+        an unreviewed policy gap as a real decision.
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` CTX-05.
+        """
+        for path_id in ("E", "F"):
+            budget = RetryBudget(path_id=path_id)
+            with pytest.raises(ValueError, match=path_id):
+                _ = budget.retry_ceiling
+            with pytest.raises(ValueError, match=path_id):
+                _ = budget.reflection_ceiling
+
     def test_reflection_budget_path_a(self):
         """Should enforce reflection ceiling for PATH A."""
         budget = RetryBudget(path_id="A")
