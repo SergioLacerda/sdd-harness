@@ -102,4 +102,18 @@ def check_artifact_consistency(
         "fingerprint_core_salt"
     ):
         return False, "client fingerprint_core_salt mismatch"
+    # Internal consistency alone (declared count == actual count) passes even
+    # when both are 0 — a silent, empty client governance compile that
+    # `_governance_orchestrator_support.pipeline_checks()`'s "Client items >
+    # 0" check catches during `governance compile`/`generate`, but this
+    # `check_artifact_consistency()` path (also used by `governance
+    # validate`) never did, so a `validate`-only run over an already-compiled
+    # 0-item artifact reported healthy. See
+    # .analysis/pending/20260906-governance-validate-coverage-check.md.
+    client_items = client_json.get("items", [])
+    if isinstance(client_items, list) and len(client_items) == 0:
+        return (
+            False,
+            "client governance has 0 items (guideline compilation may have failed silently)",
+        )
     return True, "ok"

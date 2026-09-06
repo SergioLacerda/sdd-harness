@@ -1,6 +1,7 @@
 """Setup."""
 
 import sys
+from pathlib import Path
 
 import typer
 
@@ -12,7 +13,18 @@ from sdd_cli.utils.environment import (
 )
 
 app = typer.Typer(invoke_without_command=True)
-_REPO_ROOT = detect_repo_root()
+try:
+    # `sdd setup` only makes sense inside a checkout of this monorepo (it
+    # installs from packages/core/sdd_core, packages/interfaces/sdd_cli,
+    # etc., which don't exist in a real standalone client project). Under a
+    # true standalone install, detect_repo_root() correctly finds no repo
+    # markers and raises — that must not crash importing this module (which
+    # would otherwise make the whole `sdd` CLI's lazy command loader mark
+    # `setup` "unavailable" with an opaque error instead of the clear one
+    # `run_setup()` gives below).
+    _REPO_ROOT: Path | None = detect_repo_root()
+except RuntimeError:
+    _REPO_ROOT = None
 
 
 @app.callback(invoke_without_command=True)
@@ -44,7 +56,12 @@ def _validate_module_import(venv_python: str, module: str) -> bool:
 
 
 def _ensure_phase_0_marker() -> None:
-    """Create AHP phase-0 marker used by runtime validation."""
+    """Create AHP phase-0 marker used by runtime validation.
+
+    Only ever called from `run_setup()`, after its own `_REPO_ROOT is None`
+    guard — the assert documents that invariant for type checking.
+    """
+    assert _REPO_ROOT is not None
     runtime_dir = _REPO_ROOT / ".sdd" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     (runtime_dir / ".phase-0-complete").touch(exist_ok=True)
@@ -53,6 +70,14 @@ def _ensure_phase_0_marker() -> None:
 @app.command(name="run")
 def run_setup() -> None:  # noqa: C901
     """Setup SDD workspace."""
+    if _REPO_ROOT is None:
+        typer.echo(
+            "ERROR: 'sdd setup' must be run from within a checkout of the "
+            "SDD Harness repository (it installs the workspace's own "
+            "packages/* directories, which a standalone client project "
+            "does not have)."
+        )
+        raise typer.Exit(1)
 
     typer.echo("SDD Workspace Setup")
     typer.echo("======================")

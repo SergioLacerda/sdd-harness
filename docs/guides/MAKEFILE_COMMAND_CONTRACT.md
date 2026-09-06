@@ -16,6 +16,7 @@ Keep Makefile targets deterministic and compatible with governed execution polic
   - `lint-fix`
   - `test`
   - `release-dry-run`
+  - `release-prepare`
   - `clean`
 
 `release-dry-run` uses functional test validation without coverage gate

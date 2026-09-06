@@ -63,6 +63,42 @@ class TestDetectRepoRootAdvanced:
 class TestGetSddPathsVariations:
     """Tests for various SDD path configurations."""
 
+    def test_does_not_leak_file_fallback_repo_root(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """Regression test for the editable-install governance-content leak:
+        under an editable install, `detect_repo_root()`'s `__file__`-parents
+        fallback used to resolve to this harness's own checkout instead of
+        the caller's actual project. `get_sdd_paths` must pass
+        `allow_file_fallback=False` so a real cwd-search failure falls back
+        to `Path.cwd()` instead — see
+        .analysis/pending/20260906-editable-install-leak-repro.md."""
+        client_cwd = tmp_path / "client-project"
+        client_cwd.mkdir()
+        harness_like = tmp_path / "harness-checkout"
+        harness_like.mkdir()
+        monkeypatch.chdir(client_cwd)
+
+        with (
+            patch(
+                "sdd_core.utils._environment_repo.is_repo_root",
+                side_effect=lambda p: p == harness_like,
+            ),
+            patch(
+                "sdd_core.utils._environment_repo.__file__",
+                str(harness_like / "pkg" / "module.py"),
+            ),
+            patch("sdd_core.utils.environment.find_workspace_root", return_value=None),
+            patch(
+                "sdd_core.utils.environment.workspace_root_from_env",
+                return_value=None,
+            ),
+        ):
+            paths = get_sdd_paths()
+
+        assert paths["repo_root"] == client_cwd.resolve()
+        assert paths["repo_root"] != harness_like
+
     def test_returns_consistent_paths(self, tmp_path: Path) -> None:
         """get_sdd_paths should return consistent results."""
         (tmp_path / "generated").mkdir()

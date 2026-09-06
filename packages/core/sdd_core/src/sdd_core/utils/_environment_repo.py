@@ -29,22 +29,35 @@ def is_repo_root(path: Path) -> bool:
         return False
 
 
-def detect_repo_root() -> Path:
-    """Find the project root by searching from CWD and `__file__`."""
+def detect_repo_root(*, allow_file_fallback: bool = True) -> Path:
+    """Find the project root by searching from CWD and, optionally, `__file__`.
+
+    The `__file__`-parents fallback answers "where does this installed
+    package's code physically live," not "what project is the caller
+    operating on." Under an editable/dev install of this monorepo, that is
+    always this repository's own checkout — correct for this repo's own
+    self-hosted dev tooling (`sdd setup`, `sdd test`, `sdd lint`, ...), but
+    wrong for any governance/client-content operation invoked against an
+    unrelated project, where it silently leaks this repo's own content into
+    that project instead of resolving (or raising, so the caller can fall
+    back to `Path.cwd()`) the caller's actual working directory. Pass
+    `allow_file_fallback=False` from any such call site.
+    """
     cwd = Path.cwd().resolve()
     for candidate in (cwd, *cwd.parents):
         if is_repo_root(candidate):
             return candidate
 
-    try:
-        file_path = Path(__file__).resolve()
-    except NameError:
-        file_path = None
+    if allow_file_fallback:
+        try:
+            file_path = Path(__file__).resolve()
+        except NameError:
+            file_path = None
 
-    if file_path is not None:
-        for candidate in file_path.parents:
-            if is_repo_root(candidate):
-                return candidate
+        if file_path is not None:
+            for candidate in file_path.parents:
+                if is_repo_root(candidate):
+                    return candidate
 
     if "GITHUB_WORKSPACE" in os.environ:
         return Path(os.environ["GITHUB_WORKSPACE"]).resolve()

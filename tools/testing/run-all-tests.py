@@ -34,6 +34,33 @@ if str(_SDD_CORE_SRC) not in sys.path:
     sys.path.insert(0, str(_SDD_CORE_SRC))
 if str(_SDD_RUNTIME_SRC) not in sys.path:
     sys.path.insert(0, str(_SDD_RUNTIME_SRC))
+
+# Every workspace member's src/, mirroring pyproject.toml's
+# [tool.pytest.ini_options].pythonpath. Each per-package layer below invokes
+# pytest as its own subprocess against a single package's tests/ subdirectory
+# — pytest's config-file discovery then walks upward from *that* path and
+# can land on the package's own, pythonpath-less pyproject.toml (every
+# workspace member has one) instead of this root one, before ever reaching
+# this file. That silently drops the pythonpath list and breaks
+# sibling-package imports (e.g. sdd_cli's tests importing sdd_runtime) in any
+# environment where the workspace members aren't also editable-installed
+# (e.g. a plain `uv sync` at the repo root, which only installs shared dev
+# dependencies — no workspace member is a dependency of the root project
+# itself). Setting PYTHONPATH directly on each subprocess sidesteps pytest's
+# config discovery entirely, so it works regardless of which pyproject.toml
+# pytest resolves.
+_WORKSPACE_SRC_DIRS = [
+    REPO_ROOT,
+    REPO_ROOT / "packages" / "core" / "sdd_core" / "src",
+    REPO_ROOT / "packages" / "core" / "sdd_runtime" / "src",
+    REPO_ROOT / "packages" / "core" / "sdd_telemetry" / "src",
+    REPO_ROOT / "packages" / "features" / "sdd_integration" / "src",
+    REPO_ROOT / "packages" / "features" / "sdd_adapters" / "src",
+    REPO_ROOT / "packages" / "features" / "sdd_skills" / "src",
+    REPO_ROOT / "packages" / "features" / "sdd_pages" / "src",
+    REPO_ROOT / "packages" / "interfaces" / "sdd_wizard" / "src",
+    REPO_ROOT / "packages" / "interfaces" / "sdd_cli" / "src",
+]
 if str(_SDD_TELEMETRY_SRC) not in sys.path:
     sys.path.insert(0, str(_SDD_TELEMETRY_SRC))
 
@@ -158,6 +185,13 @@ def run_layer(
         cmd.append("-x")
 
     layer_env = os.environ.copy()
+    workspace_pythonpath = os.pathsep.join(str(p) for p in _WORKSPACE_SRC_DIRS)
+    existing_pythonpath = layer_env.get("PYTHONPATH", "")
+    layer_env["PYTHONPATH"] = (
+        f"{workspace_pythonpath}{os.pathsep}{existing_pythonpath}"
+        if existing_pythonpath
+        else workspace_pythonpath
+    )
     if coverage:
         # Use one coverage data file per layer run to avoid SQLite write collisions.
         layer_slug = layer.path.replace("/", "_")
