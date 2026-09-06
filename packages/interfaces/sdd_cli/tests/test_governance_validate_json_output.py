@@ -77,6 +77,10 @@ def test_governance_validate_json_bypasses_rich_tables(monkeypatch) -> None:
         "sdd_cli.services.governance_config_reader.check_no_conflicts", lambda _: True
     )
     monkeypatch.setattr(
+        "sdd_cli.services.governance_config_reader.check_root_seed_drift",
+        lambda _: (True, "no root-seed drift detected"),
+    )
+    monkeypatch.setattr(
         "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",
         lambda _: (True, ""),
     )
@@ -119,6 +123,10 @@ def test_governance_validate_json_uses_canonical_data_payload(
     )
     monkeypatch.setattr(
         "sdd_cli.services.governance_config_reader.check_no_conflicts", lambda _: True
+    )
+    monkeypatch.setattr(
+        "sdd_cli.services.governance_config_reader.check_root_seed_drift",
+        lambda _: (True, "no root-seed drift detected"),
     )
     monkeypatch.setattr(
         "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",

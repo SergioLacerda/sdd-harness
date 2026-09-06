@@ -35,12 +35,32 @@ class PathPolicyViolation(ValueError):
 
 
 def _repo_root() -> Path:
+    """Resolve the "repo root" context for path-policy decisions.
+
+    `allow_file_fallback=False`: under an editable/dev install of this
+    monorepo, `detect_repo_root()`'s default fallback resolves to wherever
+    the installed package's own code physically lives — this harness's own
+    checkout — regardless of which project is actually being operated on.
+    For `enforce_path_policy()` and `resolve_workspace_root()`, that leak
+    is not just a content-correctness issue: `enforce_path_policy()`
+    compares the caller's workspace against this "repo" to decide whether
+    a client's own workspace counts as `is_repo_workspace`, so resolving to
+    the harness's repo instead of the client's own directory makes that
+    comparison fail and incorrectly rejects legitimate client operations.
+    Falling back to `Path.cwd()` (the caller's actual working directory)
+    when no real repo/workspace marker is found is the correct behavior for
+    both a real standalone client and this harness's own dev loop (which
+    already finds itself via the cwd-based search in the common case).
+    """
     from sdd_core.utils.environment import detect_repo_root, find_workspace_root
 
     ws_root = find_workspace_root()
     if ws_root is not None:
         return ws_root
-    return detect_repo_root()
+    try:
+        return detect_repo_root(allow_file_fallback=False)
+    except RuntimeError:
+        return Path.cwd().resolve()
 
 
 def _workspace_root_from_env() -> Path | None:

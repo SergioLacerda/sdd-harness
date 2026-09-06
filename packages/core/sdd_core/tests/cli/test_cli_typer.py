@@ -367,6 +367,10 @@ class TestValidateCommand:
             lambda x: True,
         )
         monkeypatch.setattr(
+            "sdd_cli.services.governance_config_reader.check_root_seed_drift",
+            lambda x: (True, "no root-seed drift detected"),
+        )
+        monkeypatch.setattr(
             "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",
             lambda x: (True, ""),
         )
@@ -641,6 +645,10 @@ class TestCommandExecutions:
         monkeypatch.setattr(
             "sdd_cli.services.governance_config_reader.check_no_conflicts",
             lambda x: True,
+        )
+        monkeypatch.setattr(
+            "sdd_cli.services.governance_config_reader.check_root_seed_drift",
+            lambda x: (True, "no root-seed drift detected"),
         )
         monkeypatch.setattr(
             "sdd_cli.services.governance_artifact_handlers.check_artifact_consistency",

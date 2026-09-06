@@ -37,6 +37,43 @@ def test_repo_root_prefers_workspace_root(
     assert authority_mod._repo_root() == tmp_path
 
 
+def test_repo_root_disables_file_fallback_and_uses_cwd_when_not_found(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Regression test: `_repo_root()` used to call `detect_repo_root()` with
+    its default (file-fallback-enabled) behavior, which under an editable
+    install resolves to this harness's own checkout instead of the caller's
+    actual directory — breaking `enforce_path_policy()`'s `is_repo_workspace`
+    comparison for a real client workspace. It must pass
+    `allow_file_fallback=False` and fall back to `Path.cwd()` when no real
+    repo/workspace marker is found — see
+    .analysis/done/20260906-detect-repo-root-callsite-audit.md."""
+    monkeypatch.setattr("sdd_core.utils.environment.find_workspace_root", lambda: None)
+
+    def _raise_without_fallback(*, allow_file_fallback: bool = True) -> Path:
+        assert allow_file_fallback is False
+        raise RuntimeError("SDD Project root not found.")
+
+    monkeypatch.setattr(
+        "sdd_core.utils.environment.detect_repo_root", _raise_without_fallback
+    )
+    monkeypatch.chdir(tmp_path)
+
+    assert authority_mod._repo_root() == tmp_path.resolve()
+
+
+def test_repo_root_uses_detected_root_when_cwd_search_succeeds(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr("sdd_core.utils.environment.find_workspace_root", lambda: None)
+    monkeypatch.setattr(
+        "sdd_core.utils.environment.detect_repo_root",
+        lambda **kwargs: tmp_path,
+    )
+
+    assert authority_mod._repo_root() == tmp_path
+
+
 def test_resolve_workspace_root_uses_env_then_workspace_then_repo(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
