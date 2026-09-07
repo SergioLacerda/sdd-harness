@@ -316,6 +316,34 @@ check blocking for new violations going forward.
 - Implementation reference: `tools/architecture/validate_class_size.py`,
   `packages/interfaces/sdd_wizard/EXCEPTIONS.md` (grandfather-list pattern)
 
+### ADR-022: Managed-Block Convention for Shared-Namespace Seed Files (2026-09-06)
+
+**Decision:** sdd-generated content inside root-level, cross-tool-convention
+files (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`) lives inside a delimited
+`<!-- sdd:managed:begin/end -->` block. Generators read-merge-write instead
+of overwriting the whole file; `check_root_seed_drift` validates only the
+block's content — a file with no managed block is `unmanaged`, never a
+failure.
+
+**Rationale:**
+
+- These filenames are conventions other AI tools independently recognize;
+  sdd does not own the whole file, only what it itself generates
+- Generation of each file is an independent, wizard-selectable choice, so
+  git-tracked status (an earlier candidate enforcement axis) reflects an
+  accidental past selection, not a designed contract
+- A whole-file overwrite silently destroyed any content another tool/human
+  added to the same file; a whole-file fingerprint scan false-failed on
+  drift unrelated to sdd's own content
+
+**Links:**
+
+- [ADR-022-managed-block-seed-convention.md](ADR-022-managed-block-seed-convention.md)
+- `.analysis/refined/20260906-root-seed-githook-necessity/`
+- Implementation: `packages/core/sdd_core/src/sdd_core/utils/managed_block.py`
+
+---
+
 ## 🧾 Operational Appendices
 
 These artifacts support governance operations but are not ADRs:

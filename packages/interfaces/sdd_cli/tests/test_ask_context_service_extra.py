@@ -90,13 +90,23 @@ def test_load_ask_context_builds_dataclass(
 def test_check_root_seed_drift_detects_stale_root_seed(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """A stale seed file's fingerprint header must be caught, independent of check_fingerprint_drift."""
+    """A stale seed file's fingerprint header must be caught, independent of check_fingerprint_drift.
+
+    The header must live inside the sdd-managed block
+    (`.analysis/refined/20260906-root-seed-githook-necessity/design.md`) —
+    a bare header with no markers is `unmanaged` and never fails the check
+    (see `test_governance_config_reader.py`'s dedicated unmanaged-state
+    coverage for that case).
+    """
     (tmp_path / ".sdd").mkdir(parents=True)
     (tmp_path / ".sdd" / "metadata.json").write_text(
         '{"governance_fingerprint": "abc123"}', encoding="utf-8"
     )
     (tmp_path / "CLAUDE.md").write_text(
-        "# Governance fingerprint: deadbeef99\n", encoding="utf-8"
+        "<!-- sdd:managed:begin -->\n"
+        "# Governance fingerprint: deadbeef99\n"
+        "<!-- sdd:managed:end -->\n",
+        encoding="utf-8",
     )
 
     assert ask_context_drift_mod.check_root_seed_drift(tmp_path) is True
@@ -115,7 +125,10 @@ def test_check_root_seed_drift_and_check_fingerprint_drift_are_independent(
         '{"governance_fingerprint": "abc123"}', encoding="utf-8"
     )
     (tmp_path / "CLAUDE.md").write_text(
-        "# Governance fingerprint: deadbeef99\n", encoding="utf-8"
+        "<!-- sdd:managed:begin -->\n"
+        "# Governance fingerprint: deadbeef99\n"
+        "<!-- sdd:managed:end -->\n",
+        encoding="utf-8",
     )
     # No .sdd/runtime/governance-state.json — check_fingerprint_drift must stay
     # False (its own no-cached-state default), unaffected by the root-seed drift above.
