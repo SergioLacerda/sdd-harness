@@ -143,6 +143,13 @@ class TestDetectProfile:
         harness_like = tmp_path / "harness-checkout"
         harness_like.mkdir()
         monkeypatch.chdir(client_cwd)
+        # See the sibling regression test in test_environment_advanced.py:
+        # `GITHUB_WORKSPACE` is set by the CI runner itself whenever this
+        # suite runs inside sdd-harness's own GitHub Actions job. Left
+        # unmocked, `detect_repo_root(allow_file_fallback=False)` would
+        # still return this harness's own checkout via that separate
+        # fallback, masking the very regression this test exists to catch.
+        monkeypatch.delenv("GITHUB_WORKSPACE", raising=False)
 
         with (
             patch(

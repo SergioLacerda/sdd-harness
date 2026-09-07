@@ -78,6 +78,14 @@ class TestGetSddPathsVariations:
         harness_like = tmp_path / "harness-checkout"
         harness_like.mkdir()
         monkeypatch.chdir(client_cwd)
+        # `GITHUB_WORKSPACE` is set by the CI runner itself whenever this
+        # suite runs inside sdd-harness's own GitHub Actions job — that is
+        # correct information for the runner, but it is exactly the kind of
+        # ambient leak this test exists to catch if left unmocked: it would
+        # let `detect_repo_root` return this harness's own checkout path
+        # even with the file-parents fallback disabled, silently passing a
+        # test that is supposed to prove the opposite.
+        monkeypatch.delenv("GITHUB_WORKSPACE", raising=False)
 
         with (
             patch(

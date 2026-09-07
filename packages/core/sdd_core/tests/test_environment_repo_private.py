@@ -46,7 +46,9 @@ def test_detect_repo_root_uses_file_parents_when_cwd_fails(tmp_path: Path) -> No
         assert env_repo.detect_repo_root() == tmp_path
 
 
-def test_detect_repo_root_skips_file_fallback_when_disabled(tmp_path: Path) -> None:
+def test_detect_repo_root_skips_file_fallback_when_disabled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """`allow_file_fallback=False` must raise instead of leaking whatever
     repo `__file__` physically lives in — the fix for the editable-install
     governance-content leak (see
@@ -56,7 +58,15 @@ def test_detect_repo_root_skips_file_fallback_when_disabled(tmp_path: Path) -> N
     is an ancestor of the other) so the cwd-parents search cannot
     accidentally find `harness_like` on its own — only the (disabled)
     file-fallback could.
+
+    `GITHUB_WORKSPACE` is explicitly unset because the CI runner sets it
+    for real whenever this suite runs inside sdd-harness's own GitHub
+    Actions job — left unmocked, `detect_repo_root` would return that
+    (legitimately correct, but irrelevant here) path via its separate
+    `GITHUB_WORKSPACE` fallback instead of raising, masking this exact
+    regression.
     """
+    monkeypatch.delenv("GITHUB_WORKSPACE", raising=False)
     harness_like = tmp_path / "harness"
     fake_file = harness_like / "pkg" / "module.py"
     fake_file.parent.mkdir(parents=True)
