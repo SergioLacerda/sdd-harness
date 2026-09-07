@@ -316,14 +316,17 @@ check blocking for new violations going forward.
 - Implementation reference: `tools/architecture/validate_class_size.py`,
   `packages/interfaces/sdd_wizard/EXCEPTIONS.md` (grandfather-list pattern)
 
-### ADR-022: Managed-Block Convention for Shared-Namespace Seed Files (2026-09-06)
+### ADR-022: Managed-Block Convention for Shared-Namespace Seed Files (2026-09-06, extended 2026-09-07)
 
-**Decision:** sdd-generated content inside root-level, cross-tool-convention
-files (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`) lives inside a delimited
-`<!-- sdd:managed:begin/end -->` block. Generators read-merge-write instead
-of overwriting the whole file; `check_root_seed_drift` validates only the
-block's content — a file with no managed block is `unmanaged`, never a
-failure.
+**Decision:** sdd-generated content inside cross-tool-convention files
+lives inside a delimited `<!-- sdd:managed:begin/end -->` block. Generators
+read-merge-write instead of overwriting the whole file; `check_root_seed_drift`
+validates only `CLAUDE.md`/`GEMINI.md`/`AGENTS.md`'s block content — a file
+with no managed block is `unmanaged`, never a failure. Wave 2 (2026-09-07)
+applied the same writer fix, verbatim, to
+`.github/copilot-instructions.md` and
+`.gemini/antigravity/antigravity-instructions.md` — see the ADR's own Scope
+section for what remains deliberately out of scope and why.
 
 **Rationale:**
 

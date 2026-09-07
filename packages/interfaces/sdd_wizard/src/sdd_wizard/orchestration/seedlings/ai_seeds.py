@@ -102,7 +102,7 @@ class AISeedsGenerator(BaseSeedlingGenerator):
                 mandate_ids=self.mandate_ids,
                 generated_at=self.generated_at,
             )
-            write_text_utf8(
+            _write_root_seed_file(
                 antigravity_dir / "antigravity-instructions.md", redirector_content
             )
             seed_data = {
@@ -146,7 +146,7 @@ class AISeedsGenerator(BaseSeedlingGenerator):
                 )
             )
             content = build_copilot_instructions(fp_header)
-            write_text_utf8(copilot_dir / "copilot-instructions.md", content)
+            _write_root_seed_file(copilot_dir / "copilot-instructions.md", content)
             self.log(
                 "✅ Generated GitHub Copilot instructions (.github/copilot-instructions.md)"
             )

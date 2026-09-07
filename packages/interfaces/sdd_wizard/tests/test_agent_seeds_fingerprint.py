@@ -409,3 +409,81 @@ def test_claude_seed_returns_false_and_does_not_modify_file_on_malformed_markers
     gen = _make_ai_gen(tmp_path)
     assert gen.generate_claude_seed() is False
     assert claude_file.read_text(encoding="utf-8") == original
+
+
+# ---------------------------------------------------------------------------
+# Wave 2: managed-block preservation for copilot/antigravity
+# `.analysis/refined/20260907-managed-block-generalization/design.md`
+# ---------------------------------------------------------------------------
+
+
+def test_copilot_seed_preserves_hand_added_content_across_regeneration(
+    tmp_path: Path,
+) -> None:
+    gen1 = _make_ai_gen_with_fingerprint(tmp_path, "aaaaaaaa")
+    assert gen1.generate_copilot_seed()
+    copilot_file = tmp_path / ".github" / "copilot-instructions.md"
+    copilot_file.write_text(
+        copilot_file.read_text(encoding="utf-8") + _HAND_NOTE, encoding="utf-8"
+    )
+
+    gen2 = _make_ai_gen_with_fingerprint(tmp_path, "bbbbbbbb")
+    assert gen2.generate_copilot_seed()
+    content = copilot_file.read_text(encoding="utf-8")
+    assert "my own notes, unrelated to sdd" in content
+    assert "bbbbbbbb" in content
+    assert "aaaaaaaa" not in content
+
+
+def test_antigravity_seed_preserves_hand_added_content_across_regeneration(
+    tmp_path: Path,
+) -> None:
+    gen1 = _make_ai_gen_with_fingerprint(tmp_path, "aaaaaaaa")
+    assert gen1.generate_antigravity_seed()
+    antigravity_file = (
+        tmp_path / ".gemini" / "antigravity" / "antigravity-instructions.md"
+    )
+    antigravity_file.write_text(
+        antigravity_file.read_text(encoding="utf-8") + _HAND_NOTE, encoding="utf-8"
+    )
+
+    gen2 = _make_ai_gen_with_fingerprint(tmp_path, "bbbbbbbb")
+    assert gen2.generate_antigravity_seed()
+    content = antigravity_file.read_text(encoding="utf-8")
+    assert "my own notes, unrelated to sdd" in content
+    assert "bbbbbbbb" in content
+    assert "aaaaaaaa" not in content
+
+
+def test_copilot_seed_returns_false_and_does_not_modify_file_on_malformed_markers(
+    tmp_path: Path,
+) -> None:
+    copilot_dir = tmp_path / ".github"
+    copilot_dir.mkdir(parents=True)
+    copilot_file = copilot_dir / "copilot-instructions.md"
+    copilot_file.write_text(
+        "<!-- sdd:managed:begin -->\nstale content, no end marker\n",
+        encoding="utf-8",
+    )
+    original = copilot_file.read_text(encoding="utf-8")
+
+    gen = _make_ai_gen(tmp_path)
+    assert gen.generate_copilot_seed() is False
+    assert copilot_file.read_text(encoding="utf-8") == original
+
+
+def test_antigravity_seed_returns_false_and_does_not_modify_file_on_malformed_markers(
+    tmp_path: Path,
+) -> None:
+    antigravity_dir = tmp_path / ".gemini" / "antigravity"
+    antigravity_dir.mkdir(parents=True)
+    antigravity_file = antigravity_dir / "antigravity-instructions.md"
+    antigravity_file.write_text(
+        "<!-- sdd:managed:begin -->\nstale content, no end marker\n",
+        encoding="utf-8",
+    )
+    original = antigravity_file.read_text(encoding="utf-8")
+
+    gen = _make_ai_gen(tmp_path)
+    assert gen.generate_antigravity_seed() is False
+    assert antigravity_file.read_text(encoding="utf-8") == original

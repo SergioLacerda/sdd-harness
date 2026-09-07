@@ -86,15 +86,38 @@ block, and is it stale), never on git history.
 
 ## Scope
 
-Implemented for `CLAUDE.md`, `GEMINI.md`, `AGENTS.md` — the three
-generator keys among the wizard's ~17 that are root-level, cross-tool
-convention filenames (as opposed to sdd-exclusive paths like
-`.sdd/seedlings/*.json`, or tool-specific subdirectories like `.vscode/`,
-`.cursor/rules/`). `sdd_core.utils.managed_block`'s implementation is
-format-agnostic by design specifically so it can be reused for other
-generator keys without redesign; wiring those is deferred (see
-`.analysis/todo/riposte-captures.md`, mission_ref
-`20260906-root-seed-githook-necessity`) rather than done in this change.
+Implemented for five of the wizard's ~17 generator keys, in two waves:
+
+- **Wave 1** (this ADR's original change): `CLAUDE.md`, `GEMINI.md`,
+  `AGENTS.md` — root-level, cross-tool convention filenames.
+- **Wave 2** (`.analysis/refined/20260907-managed-block-generalization/`):
+  `.github/copilot-instructions.md` (`generate_copilot_seed`) and
+  `.gemini/antigravity/antigravity-instructions.md`
+  (`generate_antigravity_seed`) — same risk profile (a single, well-known
+  instructions filename an external tool reads directly), same fix, no
+  changes to `sdd_core.utils.managed_block` itself.
+
+Deliberately **not** covered, with reasons recorded rather than left
+ambiguous:
+
+- 10 other generator keys write exclusively under `.sdd/` (sdd's own
+  directory) — no plausible collision risk, so no managed block is needed.
+- `sovereign-factory` copies an open-ended set of distinctly-named
+  `SKILL.md` files into a shared directory — a directory-level
+  reconciliation problem, not a single-file managed-block problem; not
+  implemented speculatively.
+- `prompt-commands` delegates to `sdd_cli.generators.agent_seeds`, a
+  separate subsystem (writing `.cursor/rules/*.mdc`, `.gemini/commands.md`,
+  `.github/prompts/*.prompt.md`, `.codex/commands.md`) that neither wave
+  read. This is plausibly the highest real-world collision risk of
+  anything discussed here, precisely because it remains unverified —
+  captured as its own follow-up idea in
+  `.analysis/todo/riposte-captures.md` (mission_ref
+  `20260907-managed-block-generalization`) rather than guessed at.
+
+`sdd_core.utils.managed_block`'s implementation is format-agnostic by
+design specifically so it can be reused for other generator keys without
+redesign, as Wave 2 already did for Wave 1's implementation verbatim.
 
 ## Consequences
 
