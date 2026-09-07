@@ -291,6 +291,77 @@ def test_lookup_runtime_handbook_reports_none_without_docs_scan(tmp_path: Path) 
     assert report.diagnostic == "handbook_match=none"
 
 
+def test_generate_and_lookup_roundtrip_risk_levels(tmp_path: Path) -> None:
+    """CTX-08 regression: the generator used to never write `risk_levels`,
+    so `lookup_runtime_handbook`'s `risk_level` filter matched nothing for
+    any generated entry, regardless of the registry's declared risk.
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` CTX-08.
+    """
+    _runtime(tmp_path)
+    source = tmp_path / "docs" / "cognition" / "context-loading" / "context_flow.md"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "\n".join(
+            [
+                "---",
+                "governance_source:",
+                "  id: HBK-CONTEXT-LOADING",
+                "  title: Context Flow",
+                "  summary: Select minimal relevant context.",
+                "---",
+                "# Context Flow",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "docs" / "m001.md").write_text("# M001", encoding="utf-8")
+    (tmp_path / "docs" / "g01.md").write_text("# G01", encoding="utf-8")
+    _registry(
+        tmp_path,
+        [
+            {
+                "id": "M001",
+                "type": "mandate",
+                "status": "active",
+                "path": "docs/m001.md",
+            },
+            {
+                "id": "G01",
+                "type": "guideline",
+                "status": "active",
+                "path": "docs/g01.md",
+            },
+            {
+                "id": "HBK-CONTEXT-LOADING",
+                "type": "handbook",
+                "kind": "decision_model",
+                "status": "active",
+                "path": "docs/cognition/context-loading/context_flow.md",
+                "refs": ["M001"],
+                "task_types": ["planning"],
+                "operation_phases": ["context_loading"],
+                "risk_levels": ["high"],
+                "load_policy": {"mode": "selective", "max_tokens": 700},
+                "outputs": [".sdd/source/handbook/context-loading/context-flow.yaml"],
+            },
+        ],
+    )
+
+    generate_runtime_handbook(tmp_path)
+
+    index = yaml.safe_load(
+        (tmp_path / ".sdd/source/handbook/index.yaml").read_text(encoding="utf-8")
+    )
+    assert index["items"][0]["risk_levels"] == ["high"]
+
+    matching = lookup_runtime_handbook(tmp_path, risk_level="high")
+    assert matching.status == "matched"
+    assert matching.matches[0]["risk_levels"] == ["high"]
+
+    non_matching = lookup_runtime_handbook(tmp_path, risk_level="low")
+    assert non_matching.status == "none"
+
+
 def test_validate_governance_sources_missing_registry_file(tmp_path: Path) -> None:
     report = validate_governance_sources(tmp_path)
 

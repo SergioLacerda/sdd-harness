@@ -42,6 +42,7 @@ it.
 | Context budget is breached or near breach | [Context Budget Breach](context-budget-breach.md) |
 | A GitHub Actions job fails and the failure looks familiar | [CI Known Failure Triage](ci-known-failure-triage.md) |
 | Container Trivy scan reports stale Python package CVEs | [Container Trivy Vulnerability Remediation](container-trivy-vulnerability-remediation.md) |
+| Need to confirm whether a `pending/`/`refined/` package was actually implemented before closing it | [Verifying Implemented Demands](verifying-implemented-demands.md) |
 
 ## Existing Operational References
 

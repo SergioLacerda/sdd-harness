@@ -2,8 +2,10 @@
 
 import json
 import logging
+from pathlib import Path
 
-from sdd_core.utils.text_io import write_text_utf8
+from sdd_core.utils.managed_block import merge_managed_block
+from sdd_core.utils.text_io import read_text_utf8, write_text_utf8
 
 from ._ai_seed_templates import (
     CLAUDE_BOOTSTRAP_SCRIPT,
@@ -15,6 +17,22 @@ from ._renderer import build_fingerprint_header, render_agent_redirector
 from .base_generator import BaseSeedlingGenerator
 
 logger = logging.getLogger(__name__)
+
+
+def _write_root_seed_file(path: Path, block_body: str) -> None:
+    """Write *block_body* into *path*'s sdd-managed block, preserving the rest.
+
+    `path` is a root-level, cross-tool-convention filename (`CLAUDE.md`,
+    `GEMINI.md`, `AGENTS.md`) that other tools/agents/humans may also write
+    to — see
+    `.analysis/refined/20260906-root-seed-githook-necessity/design.md`.
+    Raises `MalformedManagedBlockError` if the existing file has unbalanced
+    markers; callers must let this propagate (report failure), never catch
+    it to fall back to a whole-file overwrite.
+    """
+    existing = read_text_utf8(path) if path.exists() else None
+    merged = merge_managed_block(existing, block_body)
+    write_text_utf8(path, merged)
 
 
 class AISeedsGenerator(BaseSeedlingGenerator):
@@ -37,7 +55,7 @@ class AISeedsGenerator(BaseSeedlingGenerator):
                 generated_at=self.generated_at,
             )
             write_text_utf8(gemini_dir / "gemini-instructions.md", redirector_content)
-            write_text_utf8(self.output_base / "GEMINI.md", redirector_content)
+            _write_root_seed_file(self.output_base / "GEMINI.md", redirector_content)
             settings = {"contextFileName": "GEMINI.md"}
             write_text_utf8(
                 gemini_dir / "settings.json", json.dumps(settings, indent=2) + "\n"
@@ -84,7 +102,7 @@ class AISeedsGenerator(BaseSeedlingGenerator):
                 mandate_ids=self.mandate_ids,
                 generated_at=self.generated_at,
             )
-            write_text_utf8(
+            _write_root_seed_file(
                 antigravity_dir / "antigravity-instructions.md", redirector_content
             )
             seed_data = {
@@ -128,7 +146,7 @@ class AISeedsGenerator(BaseSeedlingGenerator):
                 )
             )
             content = build_copilot_instructions(fp_header)
-            write_text_utf8(copilot_dir / "copilot-instructions.md", content)
+            _write_root_seed_file(copilot_dir / "copilot-instructions.md", content)
             self.log(
                 "✅ Generated GitHub Copilot instructions (.github/copilot-instructions.md)"
             )
@@ -150,7 +168,7 @@ class AISeedsGenerator(BaseSeedlingGenerator):
                 )
             )
             content = build_claude_md(fp_header)
-            write_text_utf8(skill_file, content)
+            _write_root_seed_file(skill_file, content)
             claude_dir.mkdir(parents=True, exist_ok=True)
             write_text_utf8(hook_file, CLAUDE_BOOTSTRAP_SCRIPT)
             hook_file.chmod(0o755)

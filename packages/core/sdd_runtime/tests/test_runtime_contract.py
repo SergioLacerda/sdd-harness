@@ -7,6 +7,7 @@ dependencies and verify behaviour that must remain stable across refactors.
 from __future__ import annotations
 
 import json
+import multiprocessing
 import tempfile
 from pathlib import Path
 
@@ -77,6 +78,22 @@ def _make_session(
         artifact_fingerprint=fingerprint,
         schema_version=schema_version,
         policy_set_version="3.0",
+    )
+
+
+def _upsert_session_in_subprocess(state_dir_str: str, agent_id: str) -> None:
+    """Target for a real OS subprocess — module-level so it is
+    importable/picklable by `multiprocessing` (fork or spawn)."""
+    mgr = SessionManager(state_dir=Path(state_dir_str))
+    mgr.upsert(
+        SessionState(
+            workspace_id="ws-1",
+            agent_id=agent_id,
+            work_item_id="task-1",
+            artifact_fingerprint=f"fp-{agent_id}",
+            schema_version="3.0",
+            policy_set_version="3.0",
+        )
     )
 
 
@@ -188,6 +205,90 @@ class TestSessionManager:
         mgr = SessionManager()
         with pytest.raises(RuntimeError, match="state_dir is required"):
             mgr._state_file()
+
+    def test_concurrent_upserts_from_two_managers_preserve_both(self) -> None:
+        """RUN-01 regression: two `SessionManager` instances (simulating two
+        processes) each constructed from the same on-disk state, upserting
+        *different* session keys, must not clobber one another — the second
+        upsert re-reads on-disk state before merging and writing.
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` RUN-01.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp)
+            mgr_a = SessionManager(state_dir=state_dir)
+            mgr_b = SessionManager(state_dir=state_dir)  # both start from empty disk
+
+            mgr_a.upsert(_make_session(fingerprint="fp-a"))
+            mgr_b.upsert(
+                SessionState(
+                    workspace_id="ws-2",
+                    agent_id="agent-2",
+                    work_item_id="task-2",
+                    artifact_fingerprint="fp-b",
+                    schema_version="3.0",
+                    policy_set_version="3.0",
+                )
+            )
+
+            # A fresh manager reading the final on-disk state must see BOTH
+            # upserts — the second writer must not have clobbered the first.
+            mgr_c = SessionManager(state_dir=state_dir)
+            assert mgr_c.get("ws-1", "agent-1", "task-1") is not None
+            assert mgr_c.get("ws-2", "agent-2", "task-2") is not None
+
+    def test_upsert_writes_atomically_no_partial_file_on_crash(self) -> None:
+        """RUN-01: the state file is written to a temp path and atomically
+        renamed into place — a reader can never observe a half-written
+        (invalid) JSON file, even if a crash happened mid-write."""
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp)
+            mgr = SessionManager(state_dir=state_dir)
+            mgr.upsert(_make_session())
+
+            state_file = state_dir / SessionManager._STATE_FILENAME
+            assert state_file.exists()
+            # No leftover temp files from the write.
+            assert list(state_dir.glob(f"{SessionManager._STATE_FILENAME}.tmp-*")) == []
+            # The persisted file is valid, complete JSON.
+            json.loads(state_file.read_text(encoding="utf-8"))
+
+    def test_real_multiprocess_upserts_to_different_keys_preserve_both(self) -> None:
+        """TST-01 regression: RUN-01's fix was previously only verified by
+        reconstructing `SessionManager` instances within a single test
+        process, never under real OS-process contention.
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` TST-01.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp)
+            ctx = multiprocessing.get_context("fork")
+            procs = [
+                ctx.Process(
+                    target=_upsert_session_in_subprocess,
+                    args=(str(state_dir), f"agent-{i}"),
+                )
+                for i in range(5)
+            ]
+            for p in procs:
+                p.start()
+            for p in procs:
+                p.join(timeout=30)
+                assert p.exitcode == 0
+
+            final = SessionManager(state_dir=state_dir)
+            for i in range(5):
+                session = final.get("ws-1", f"agent-{i}", "task-1")
+                assert session is not None
+                assert session.artifact_fingerprint == f"fp-agent-{i}"
+
+    def test_delete_persists_removal_and_does_not_resurrect_it(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp)
+            mgr = SessionManager(state_dir=state_dir)
+            mgr.upsert(_make_session())
+            mgr.delete("ws-1", "agent-1", "task-1")
+
+            mgr2 = SessionManager(state_dir=state_dir)
+            assert mgr2.get("ws-1", "agent-1", "task-1") is None
 
 
 # ─────────────────────────────────────────────────────────────────────────────

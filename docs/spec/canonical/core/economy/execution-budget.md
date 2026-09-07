@@ -92,6 +92,15 @@ Rule 3 ("MUST NOT load additional context once BREACH is reached") is enforced a
 has no live producer feeding it a real classification. `BudgetBreachError.path_id`
 is `None`/unset unless a caller supplies it explicitly.
 
+**Retry/reflection ceilings (`RetryBudget`):** only PATH A–D have a reviewed
+ceiling (`_PATH_RETRY_CEILING`/`_PATH_REFLECTION_CEILING` in
+`budget/_retry_budget.py`). An unset `path_id` (today's real-world default,
+per the paragraph above) still uses PATH A's conservative ceiling — that is
+unchanged. An explicit `path_id` of `"E"` or `"F"` instead raises
+`ValueError` rather than silently reusing PATH A's ceiling, since neither
+path has a reviewed budget defined yet (CTX-05,
+`.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`).
+
 ---
 
 ## 💾 Context Cache Interaction
@@ -99,10 +108,17 @@ is `None`/unset unless a caller supplies it explicitly.
 The `ContextCache` (LRU, 128 entries, 5-min TTL) has important economy implications:
 
 - Cache hits return pre-computed `context_bytes_loaded` values from a previous call
-- Cache hits do NOT re-trigger the YELLOW zone compression path
-- If a cached result was computed when budget utilization was GREEN, it will be returned as-is even if current utilization is YELLOW
-- **Policy:** Cache statistics and budget utilization are independent; always check current utilization when budget concerns exist
-- Implementation: `packages/core/sdd_runtime/src/sdd_runtime/cache.py:ContextCache`
+- The cache key already includes `budget_utilization_pct` rounded to one
+  decimal place (see `ContextCache._make_key`) — a lookup at a materially
+  different utilization is a cache **miss**, not a stale GREEN-computed hit
+  served under YELLOW. A hit can only replay a result computed within the
+  same 0.1-point utilization bucket.
+- **Policy:** because the key is utilization-bucketed rather than
+  zone-bucketed, two calls in the same zone (e.g. both YELLOW) but at
+  different rounded percentages are still independent cache entries —
+  always check current utilization when budget concerns exist; do not
+  assume a hit implies "same zone as now."
+- Implementation: `packages/core/sdd_runtime/src/sdd_runtime/cache/_context_cache.py:ContextCache`
 
 ---
 
@@ -111,11 +127,17 @@ The `ContextCache` (LRU, 128 entries, 5-min TTL) has important economy implicati
 The `ContextLoader` orchestrates compression via a pluggable `ProviderRegistry`:
 
 - Providers are attempted in configurable priority order
-- Default priority: `HttpProvider` → `AstProvider` → `TfidfProvider` → `LocalIntelligenceProvider`
+- `ContextLoader`'s own default (synchronous) chain: `AstProvider` →
+  `TfidfProvider` → `LocalIntelligenceProvider` (the registry's built-in,
+  always-available fallback). `HttpProvider` is async-only and is
+  intentionally **not** part of this default — it is incompatible with the
+  synchronous `ProviderRegistry` used here; an async caller invokes it
+  directly (or via `CompiledArtifact.from_sdd_compiled_dir_async`) instead
+  of going through `ContextLoader.registry`.
 - Each provider implements the `IntelligenceProvider` protocol: `compress_context(bundle) → CompressedContext`
 - The first available provider that returns a result is used
 - At YELLOW zone (70–90%), `ContextLoader` targets bringing utilization down to 70% after compression
-- Implementation: `packages/core/sdd_runtime/src/sdd_runtime/context.py:ContextLoader.__init__` and `load_result()`
+- Implementation: `packages/core/sdd_runtime/src/sdd_runtime/context/_loader.py:ContextLoader.__init__` and `registry`
 
 ---
 

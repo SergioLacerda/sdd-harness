@@ -96,7 +96,9 @@ def store_routing_decision(
             )
             decisions = dict(ordered[:_ROUTING_CACHE_MAX_ENTRIES])
         data["last_routing_decisions"] = decisions
-        _store_governance_state(workspace_root, data)
+        _store_governance_state(
+            workspace_root, data, changed_keys={"last_routing_decisions"}
+        )
     except Exception as exc:
         logger.debug("Failed to update routing decision cache: %s", exc)
 
@@ -129,6 +131,7 @@ def write_runtime_cache_and_routing_decision(
     try:
         data = _load_governance_state(workspace_root)
         data["last_ask"] = last_ask
+        changed_keys = {"last_ask"}
         if fingerprint:
             signature = compute_routing_signature(query, skill, fingerprint)
             decisions = data.get("last_routing_decisions")
@@ -148,6 +151,7 @@ def write_runtime_cache_and_routing_decision(
                 )
                 decisions = dict(ordered[:_ROUTING_CACHE_MAX_ENTRIES])
             data["last_routing_decisions"] = decisions
+            changed_keys.add("last_routing_decisions")
             if governance_snapshot is not None:
                 snapshots = data.get("snapshot_cache")
                 if not isinstance(snapshots, dict):
@@ -166,6 +170,7 @@ def write_runtime_cache_and_routing_decision(
                     )
                     snapshots = dict(ordered_snapshots[:_SNAPSHOT_CACHE_MAX_ENTRIES])
                 data["snapshot_cache"] = snapshots
-        _store_governance_state(workspace_root, data)
+                changed_keys.add("snapshot_cache")
+        _store_governance_state(workspace_root, data, changed_keys=changed_keys)
     except Exception as exc:
         logger.debug("Failed to update runtime cache/routing decision: %s", exc)

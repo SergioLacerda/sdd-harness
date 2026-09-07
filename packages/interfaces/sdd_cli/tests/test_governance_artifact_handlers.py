@@ -142,26 +142,46 @@ class TestValidatePayloadVsMetadata:
 
 
 def _write_artifacts(directory: Path) -> None:
+    """Write a consistent, non-empty core+client artifact pair.
+
+    Both sides carry >=1 item deliberately — an all-zero-items fixture would
+    accidentally double as "valid" input for the 0-client-items regression
+    check in `check_artifact_consistency` (see
+    `test_zero_client_items_returns_false` below for that check's own test).
+    """
     directory.mkdir(parents=True, exist_ok=True)
     (directory / "governance-core.json").write_text(
-        json.dumps({"items": [], "fingerprint": "core-fp"}), encoding="utf-8"
+        json.dumps(
+            {"items": [{"id": "M001", "type": "MANDATE"}], "fingerprint": "core-fp"}
+        ),
+        encoding="utf-8",
     )
     (directory / "governance-client.json").write_text(
         json.dumps(
-            {"items": [], "fingerprint": "client-fp", "fingerprint_core_salt": "salt"}
+            {
+                "items": [{"id": "G01", "type": "GUIDELINE"}],
+                "fingerprint": "client-fp",
+                "fingerprint_core_salt": "salt",
+            }
         ),
         encoding="utf-8",
     )
     (directory / "metadata-core.json").write_text(
-        json.dumps({"fingerprint": "core-fp", "item_count": 0, "items_by_type": {}}),
+        json.dumps(
+            {
+                "fingerprint": "core-fp",
+                "item_count": 1,
+                "items_by_type": {"MANDATE": 1},
+            }
+        ),
         encoding="utf-8",
     )
     (directory / "metadata-client-template.json").write_text(
         json.dumps(
             {
                 "fingerprint": "client-fp",
-                "item_count": 0,
-                "items_by_type": {},
+                "item_count": 1,
+                "items_by_type": {"GUIDELINE": 1},
                 "fingerprint_core_salt": "salt",
             }
         ),
@@ -269,3 +289,39 @@ class TestCheckArtifactConsistency:
             ok, reason = check_artifact_consistency(str(tmp_path))
         assert ok is True
         assert reason == "ok"
+
+    def test_zero_client_items_returns_false(self, tmp_path: Path) -> None:
+        """Regression test: internal consistency alone (declared count ==
+        actual count) used to pass even when both are 0 — a silent, empty
+        client governance compile that `governance validate` reported as
+        healthy. See
+        .analysis/pending/20260906-governance-validate-coverage-check.md."""
+        _write_artifacts(tmp_path)
+        (tmp_path / "governance-client.json").write_text(
+            json.dumps(
+                {
+                    "items": [],
+                    "fingerprint": "client-fp",
+                    "fingerprint_core_salt": "salt",
+                }
+            ),
+            encoding="utf-8",
+        )
+        (tmp_path / "metadata-client-template.json").write_text(
+            json.dumps(
+                {
+                    "fingerprint": "client-fp",
+                    "item_count": 0,
+                    "items_by_type": {},
+                    "fingerprint_core_salt": "salt",
+                }
+            ),
+            encoding="utf-8",
+        )
+        with patch(
+            "sdd_cli.services.governance_artifact_handlers.resolve_governance_compiled_dir",
+            return_value=tmp_path,
+        ):
+            ok, reason = check_artifact_consistency(str(tmp_path))
+        assert ok is False
+        assert "0 items" in reason

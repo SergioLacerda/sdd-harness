@@ -25,6 +25,20 @@ class TestRunSetup:
         (bin_dir / "sdd").write_text("#!/bin/sh\n", encoding="utf-8")
         (bin_dir / "sdd").chmod(0o755)
 
+    def test_run_setup_reports_clear_error_when_no_repo_root(self) -> None:
+        """Regression test: `sdd setup` used to crash at *import time* for a
+        real standalone install (no repo markers found), turning into an
+        opaque "command unavailable" error from the CLI's lazy loader
+        instead of this clear message — see
+        .analysis/pending/20260906-detect-repo-root-callsite-audit.md."""
+        from sdd_cli.main import app
+
+        with patch.object(setup_mod, "_REPO_ROOT", None):
+            result = runner.invoke(app, ["setup", "run"])
+
+        assert result.exit_code == 1
+        assert "must be run from within" in result.output
+
     def test_run_setup_happy_path(self, tmp_path: Path) -> None:
         from sdd_cli.main import app
 

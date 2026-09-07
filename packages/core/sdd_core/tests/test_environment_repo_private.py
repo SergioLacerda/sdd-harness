@@ -46,6 +46,66 @@ def test_detect_repo_root_uses_file_parents_when_cwd_fails(tmp_path: Path) -> No
         assert env_repo.detect_repo_root() == tmp_path
 
 
+def test_detect_repo_root_skips_file_fallback_when_disabled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`allow_file_fallback=False` must raise instead of leaking whatever
+    repo `__file__` physically lives in — the fix for the editable-install
+    governance-content leak (see
+    .analysis/pending/20260906-editable-install-leak-repro.md).
+
+    `harness_like` and the fake cwd are siblings under `tmp_path` (neither
+    is an ancestor of the other) so the cwd-parents search cannot
+    accidentally find `harness_like` on its own — only the (disabled)
+    file-fallback could.
+
+    `GITHUB_WORKSPACE` is explicitly unset because the CI runner sets it
+    for real whenever this suite runs inside sdd-harness's own GitHub
+    Actions job — left unmocked, `detect_repo_root` would return that
+    (legitimately correct, but irrelevant here) path via its separate
+    `GITHUB_WORKSPACE` fallback instead of raising, masking this exact
+    regression.
+    """
+    monkeypatch.delenv("GITHUB_WORKSPACE", raising=False)
+    harness_like = tmp_path / "harness"
+    fake_file = harness_like / "pkg" / "module.py"
+    fake_file.parent.mkdir(parents=True)
+    fake_file.write_text("", encoding="utf-8")
+    fake_cwd = tmp_path / "client" / "project"
+    fake_cwd.mkdir(parents=True)
+    with (
+        patch.object(Path, "cwd", return_value=fake_cwd),
+        patch(
+            "sdd_core.utils._environment_repo.is_repo_root",
+            side_effect=lambda p: p == harness_like,
+        ),
+        patch("sdd_core.utils._environment_repo.__file__", str(fake_file)),
+        pytest.raises(RuntimeError, match="SDD Project root not found"),
+    ):
+        env_repo.detect_repo_root(allow_file_fallback=False)
+
+
+def test_detect_repo_root_file_fallback_default_still_true(tmp_path: Path) -> None:
+    """Backward compatibility: omitting the flag preserves the pre-fix
+    behavior for the many self-hosted dev-tooling call sites that rely on
+    it intentionally (e.g. `sdd setup`, `sdd test`)."""
+    harness_like = tmp_path / "harness"
+    fake_file = harness_like / "pkg" / "module.py"
+    fake_file.parent.mkdir(parents=True)
+    fake_file.write_text("", encoding="utf-8")
+    fake_cwd = tmp_path / "client" / "project"
+    fake_cwd.mkdir(parents=True)
+    with (
+        patch.object(Path, "cwd", return_value=fake_cwd),
+        patch(
+            "sdd_core.utils._environment_repo.is_repo_root",
+            side_effect=lambda p: p == harness_like,
+        ),
+        patch("sdd_core.utils._environment_repo.__file__", str(fake_file)),
+    ):
+        assert env_repo.detect_repo_root() == harness_like
+
+
 def test_detect_repo_root_uses_github_workspace(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("GITHUB_WORKSPACE", str(tmp_path))
     with (

@@ -128,6 +128,48 @@ class TestDetectProfile:
         assert result["root"] == tmp_path
         assert result["profile"] == "client"
 
+    def test_get_profile_context_does_not_leak_file_fallback_root(
+        self, tmp_path, monkeypatch
+    ):
+        """Regression test for the editable-install governance-content leak:
+        under an editable install, `__file__` lives inside this harness's own
+        checkout, so `detect_repo_root()`'s file-parents fallback used to
+        resolve there instead of the caller's actual cwd. `get_profile_context`
+        must pass `allow_file_fallback=False` so it falls back to `Path.cwd()`
+        instead — see
+        .analysis/pending/20260906-editable-install-leak-repro.md."""
+        client_cwd = tmp_path / "client-project"
+        client_cwd.mkdir()
+        harness_like = tmp_path / "harness-checkout"
+        harness_like.mkdir()
+        monkeypatch.chdir(client_cwd)
+        # See the sibling regression test in test_environment_advanced.py:
+        # `GITHUB_WORKSPACE` is set by the CI runner itself whenever this
+        # suite runs inside sdd-harness's own GitHub Actions job. Left
+        # unmocked, `detect_repo_root(allow_file_fallback=False)` would
+        # still return this harness's own checkout via that separate
+        # fallback, masking the very regression this test exists to catch.
+        monkeypatch.delenv("GITHUB_WORKSPACE", raising=False)
+
+        with (
+            patch(
+                "sdd_core.utils._environment_repo.is_repo_root",
+                side_effect=lambda p: p == harness_like,
+            ),
+            patch(
+                "sdd_core.utils._environment_repo.__file__",
+                str(harness_like / "pkg" / "module.py"),
+            ),
+            patch(
+                "sdd_core.utils.environment.get_sdd_paths",
+                return_value={"root": client_cwd},
+            ),
+        ):
+            result = get_profile_context()
+
+        assert result["root"] == client_cwd
+        assert result["root"] != harness_like
+
 
 class TestResolveProfile:
     """Test strict profile resolution."""

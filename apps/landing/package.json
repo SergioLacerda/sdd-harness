@@ -13,19 +13,19 @@
     "cover": "vitest run --coverage"
   },
   "dependencies": {
-    "@astrojs/react": "^6.0.4",
-    "astro": "^7.2.9",
+    "@astrojs/react": "^6.0.5",
+    "astro": "^7.3.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@types/node": "^26.4.0",
+    "@types/node": "^26.4.1",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@types/react-dom": "^19.2.7",
+    "@vitest/coverage-v8": "^5.0.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.0.0"
+    "vitest": "^5.0.0"
   },
   "overrides": {
     "yaml": ">=2.8.3"

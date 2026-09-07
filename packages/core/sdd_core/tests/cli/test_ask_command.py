@@ -681,11 +681,26 @@ class TestAskComplianceIntegration:
 class TestCheckFingerprintDrift:
     """Tests for _check_fingerprint_drift() — B4 drift detection."""
 
-    def _write_state(self, tmp_path: Path, spec_fingerprint: str) -> Path:
+    def _write_state(self, tmp_path: Path, compiled_fingerprint_used: str) -> Path:
+        """Write governance-state.json with a same-domain compiled fingerprint.
+
+        `check_fingerprint_drift` only ever compares `loaded_fingerprint`
+        (a compiled-artifact hash) against `last_ask.compiled_fingerprint_used`
+        — the same domain. `spec_fingerprint` (a source-file hash) is a
+        different domain and was previously, incorrectly, used as a
+        fallback (DRF-02); it now yields "unverifiable" rather than a
+        cross-domain comparison, so tests here must use the same-domain
+        field to exercise real drift detection.
+        """
         state_dir = tmp_path / ".sdd" / "runtime"
         state_dir.mkdir(parents=True, exist_ok=True)
         state_file = state_dir / "governance-state.json"
-        write_text_utf8(state_file, json.dumps({"spec_fingerprint": spec_fingerprint}))
+        write_text_utf8(
+            state_file,
+            json.dumps(
+                {"last_ask": {"compiled_fingerprint_used": compiled_fingerprint_used}}
+            ),
+        )
         return state_file
 
     def test_no_drift_when_fingerprints_match(self, tmp_path: Path) -> None:
@@ -695,6 +710,20 @@ class TestCheckFingerprintDrift:
     def test_drift_detected_when_fingerprints_differ(self, tmp_path: Path) -> None:
         self._write_state(tmp_path, "aabbccdd")
         assert _check_fingerprint_drift(tmp_path, "11223344") is True
+
+    def test_spec_fingerprint_alone_is_unverifiable_not_drift(
+        self, tmp_path: Path
+    ) -> None:
+        """DRF-02 regression: a `spec_fingerprint`-only state (no same-domain
+        `compiled_fingerprint_used`) must never be compared against
+        `loaded_fingerprint` — that cross-domain comparison was the bug."""
+        state_dir = tmp_path / ".sdd" / "runtime"
+        state_dir.mkdir(parents=True, exist_ok=True)
+        write_text_utf8(
+            state_dir / "governance-state.json",
+            json.dumps({"spec_fingerprint": "zzzzzzzz"}),
+        )
+        assert _check_fingerprint_drift(tmp_path, "abc12345") is False
 
     def test_no_drift_when_state_file_absent(self, tmp_path: Path) -> None:
         # Missing state → cannot determine drift → safe assumption False
@@ -716,7 +745,7 @@ class TestCheckFingerprintDrift:
     def test_drift_field_present_in_ask_compliance_event(self, tmp_path: Path) -> None:
         """Integration: governance.ask event includes drift_detected=True when stale."""
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        # State with a DIFFERENT fingerprint to trigger drift
+        # State with a DIFFERENT same-domain compiled fingerprint to trigger drift
         self._write_state(tmp_path, "deadbeef")
         log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
 

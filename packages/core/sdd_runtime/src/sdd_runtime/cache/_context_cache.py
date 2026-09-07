@@ -44,6 +44,16 @@ class ContextCache:
 
         Returns:
             Hash-based cache key
+
+        Fingerprint domain (SEC-08,
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
+        purpose=in-memory LRU cache key (not an integrity or identity
+        fingerprint), algorithm=sha256, normalization=colon-joined request
+        params with `budget_utilization_pct` rounded to one decimal,
+        length=full 64-char hex (unlike the codebase's other, truncated
+        fingerprint domains — this one is not shortened, but it is still a
+        distinct domain: a cache key, comparable only to another cache key
+        built from `_make_key`, never to a governance/integrity fingerprint).
         """
         key_str = f"{artifact_id}:{query}:{max_items}:{','.join(sorted(item_types))}:{budget_utilization_pct:.1f}"
         return hashlib.sha256(key_str.encode()).hexdigest()

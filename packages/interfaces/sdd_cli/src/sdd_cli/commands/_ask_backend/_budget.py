@@ -48,7 +48,19 @@ def _guard_budget_breach() -> None:
 
 
 def _guard_handshake(workspace_root: Path) -> None:
-    """Enforce handshake requirement (M015) based on signature mode."""
+    """Enforce handshake requirement (M015) based on signature mode.
+
+    Resolution of ``is_valid`` is fail-open on unexpected errors (a broken
+    cache read or AHP construction failure must not itself block `ask`).
+    The *decision* to raise `typer.Exit` for a confirmed-invalid handshake
+    in strict mode happens outside that fail-open boundary — `typer.Exit`
+    is exception-based (`RuntimeError` subclass), so raising it from inside
+    the same `try` that fails open on `Exception` silently swallowed the
+    intended hard block. See
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` SEC-07.
+    """
+    sig_mode = "off"
+    is_valid: bool | None = None
     try:
         sig_mode = _signature_mode()
         cached_ahp = _get_cached_ahp()
@@ -60,20 +72,24 @@ def _guard_handshake(workspace_root: Path) -> None:
 
             ahp = AgentHandshakeProtocol(project_root=workspace_root)
             is_valid = ahp.is_handshake_valid(strict=sig_mode == "strict")
-        if not is_valid:
-            if sig_mode == "strict":
-                typer.echo(
-                    "BLOCK [ask]: Missing or incomplete handshake. "
-                    "Run 'sdd governance validate' to establish a session contract first.",
-                    err=True,
-                )
-                raise typer.Exit(3)
-            else:
-                if not _json_mode():
-                    typer.echo(
-                        "SOFT [ask]: No active handshake. "
-                        "Run 'sdd governance handshake --init' to formalize your session.",
-                        err=True,
-                    )
     except Exception as exc:
-        logger.debug("Handshake guard skipped: %s", exc)
+        logger.debug("Handshake guard resolution failed, failing open: %s", exc)
+        return
+
+    if is_valid:
+        return
+
+    if sig_mode == "strict":
+        typer.echo(
+            "BLOCK [ask]: Missing or incomplete handshake. "
+            "Run 'sdd governance validate' to establish a session contract first.",
+            err=True,
+        )
+        raise typer.Exit(3)
+
+    if not _json_mode():
+        typer.echo(
+            "SOFT [ask]: No active handshake. "
+            "Run 'sdd governance handshake --init' to formalize your session.",
+            err=True,
+        )

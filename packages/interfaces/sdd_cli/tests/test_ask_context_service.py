@@ -12,6 +12,7 @@ import pytest
 from sdd_cli.services.ask_context import get_profile_state
 from sdd_cli.services.ask_context_drift import (
     check_fingerprint_drift,
+    resolve_fingerprint_drift_status,
     write_runtime_cache,
 )
 
@@ -81,9 +82,28 @@ class TestCheckFingerprintDrift:
         state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
         state_path.parent.mkdir(parents=True)
         state_path.write_text(
-            json.dumps({"spec_fingerprint": "zzzzzzzz"}), encoding="utf-8"
+            json.dumps({"last_ask": {"compiled_fingerprint_used": "zzzzzzzz"}}),
+            encoding="utf-8",
         )
         assert check_fingerprint_drift(tmp_path, "abc12345") is True
+
+    def test_spec_fingerprint_alone_is_unverifiable_not_drift(
+        self, tmp_path: Path
+    ) -> None:
+        """DRF-02 regression: `spec_fingerprint` (a source-hash domain) must
+        never be compared against `loaded_fingerprint` (a compiled-artifact
+        domain) — a mismatch there is not evidence of drift, and reporting
+        it as one was the exact bug. With no same-domain reference
+        (`compiled_fingerprint_used`), the outcome is "unverifiable", which
+        `check_fingerprint_drift`'s boolean projects to False."""
+        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path.parent.mkdir(parents=True)
+        state_path.write_text(
+            json.dumps({"spec_fingerprint": "zzzzzzzz"}), encoding="utf-8"
+        )
+
+        assert check_fingerprint_drift(tmp_path, "abc12345") is False
+        assert resolve_fingerprint_drift_status(tmp_path, "abc12345") == "unverifiable"
 
     def test_no_drift_when_fingerprints_match(self, tmp_path: Path) -> None:
         state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"

@@ -14,6 +14,31 @@ runner = CliRunner()
 pytestmark = pytest.mark.unit
 
 
+class TestModuleImportRepoRootGuard:
+    def test_import_does_not_crash_when_detect_repo_root_raises(self) -> None:
+        """Regression test: a real standalone install has no repo markers,
+        so `detect_repo_root()` correctly raises RuntimeError — importing
+        this module must not propagate that (see
+        .analysis/pending/20260906-detect-repo-root-callsite-audit.md)."""
+        import importlib.util
+
+        module_path = Path(setup_mod.__file__)
+        spec = importlib.util.spec_from_file_location(
+            "test_setup_no_repo_root", module_path
+        )
+        assert spec is not None
+        assert spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+
+        with patch(
+            "sdd_cli.utils.environment.detect_repo_root",
+            side_effect=RuntimeError("SDD Project root not found"),
+        ):
+            spec.loader.exec_module(module)  # must not raise
+
+        assert module._REPO_ROOT is None
+
+
 class TestValidateModuleImport:
     def test_returns_true_on_success(self) -> None:
         mock_runner = MagicMock()

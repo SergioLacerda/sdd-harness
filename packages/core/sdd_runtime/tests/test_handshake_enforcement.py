@@ -73,11 +73,10 @@ def test_handshake_challenge_generation():
     assert isinstance(challenge.available_skills, list)
     assert challenge.task.get("description") == "Unit Test"
 
-    # Signature status is environment-dependent.
-    assert challenge.signature_status in [
-        "none",
-        "valid",
-        "invalid",
-        "mixed",
-        "verified",
-    ]
+    # Signature status is environment-dependent: "unavailable" (signature
+    # mode off), "unsigned" (no artifact/.sig), "verified", or a
+    # validate_artifact_signature() failure code (e.g. "SIG_INVALID").
+    status = challenge.signature_status
+    assert status in {"unavailable", "unsigned", "verified"} or status.startswith(
+        "SIG_"
+    )

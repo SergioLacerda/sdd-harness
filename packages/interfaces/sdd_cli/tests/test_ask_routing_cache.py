@@ -41,6 +41,20 @@ def test_compute_routing_signature_changes_with_query_skill_or_fingerprint() -> 
     )
 
 
+def test_compute_routing_signature_is_16_char_cache_key_domain() -> None:
+    """SEC-08 regression: this domain's contract is a 16-char truncated
+    cache key — distinct from `GovernanceFingerprinter`'s full 64-char
+    integrity digest and from `HandshakeCache.compute_spec_fingerprint`'s
+    own 16-char (but differently normalized) governance fingerprint. Same
+    length does not mean same domain; a length change here would silently
+    alter this function's own contract.
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` SEC-08.
+    """
+    sig = ask_context_drift_mod.compute_routing_signature("query", "skill", "fp1")
+    assert len(sig) == 16
+    int(sig, 16)  # valid hex
+
+
 def test_resolve_routing_decision_returns_none_on_cold_start(tmp_path: Path) -> None:
     """No prior `sdd ask` call recorded -> never cache against an unknown fingerprint."""
     assert (

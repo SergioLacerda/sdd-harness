@@ -89,6 +89,6 @@ def store_governance_snapshot(
             )
             entries = dict(ordered[:_SNAPSHOT_CACHE_MAX_ENTRIES])
         data["snapshot_cache"] = entries
-        _store_governance_state(workspace_root, data)
+        _store_governance_state(workspace_root, data, changed_keys={"snapshot_cache"})
     except Exception as exc:
         logger.debug("Failed to update governance snapshot cache: %s", exc)

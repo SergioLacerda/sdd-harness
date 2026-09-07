@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sdd_core.utils.managed_block import merge_managed_block
+from sdd_core.utils.text_io import read_text_utf8
 from sdd_wizard.templates.seedling_templates import (
     build_activation_guide,
     build_agent_instructions,
@@ -141,7 +143,9 @@ class SeedlingRenderer:
                 mandate_count=len(ctx.mandate_ids),
                 ids_preview=ids_preview,
             )
-            agents_file.write_text(content, encoding="utf-8")
+            existing = read_text_utf8(agents_file) if agents_file.exists() else None
+            merged = merge_managed_block(existing, content)
+            agents_file.write_text(merged, encoding="utf-8")
             ctx.log("✅ Generated AGENTS.md bootstrap contract")
             return True
         except Exception as e:

@@ -50,11 +50,14 @@ def test_guard_budget_breach_blocks_at_threshold(
     assert exc_info.value.exit_code == _BREACH_EXIT_CODE
 
 
-def test_guard_handshake_strict_invalid_prints_block_message(
+def test_guard_handshake_strict_invalid_raises_exit_and_prints_block_message(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    # _guard_handshake wraps its body in `except Exception`, so the
-    # internal `typer.Exit(3)` is swallowed; only the BLOCK message surfaces.
+    """Regression test for SEC-07: `typer.Exit(3)` used to be raised inside
+    the same `try` block as a broad `except Exception`, which silently
+    swallowed it (`typer.Exit` is `RuntimeError`-based). The strict-mode
+    block must actually propagate now — see
+    `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` SEC-07."""
     with (
         patch(
             "sdd_cli.commands._ask_backend._budget._signature_mode",
@@ -64,11 +67,28 @@ def test_guard_handshake_strict_invalid_prints_block_message(
             "sdd_cli.commands._ask_backend._budget._get_cached_ahp",
             return_value={"valid": False},
         ),
+        pytest.raises(typer.Exit) as exc_info,
+    ):
+        _guard_handshake(Path("/tmp"))
+
+    assert exc_info.value.exit_code == 3
+    captured = capsys.readouterr()
+    assert "BLOCK [ask]: Missing or incomplete handshake" in captured.err
+
+
+def test_guard_handshake_resolution_error_fails_open(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An unexpected error *resolving* handshake validity (not the block
+    decision itself) must still fail open — no exit, no message."""
+    with patch(
+        "sdd_cli.commands._ask_backend._budget._signature_mode",
+        side_effect=RuntimeError("boom"),
     ):
         _guard_handshake(Path("/tmp"))
 
     captured = capsys.readouterr()
-    assert "BLOCK [ask]: Missing or incomplete handshake" in captured.err
+    assert captured.err == ""
 
 
 def test_guard_handshake_soft_invalid_warns(capsys: pytest.CaptureFixture[str]) -> None:

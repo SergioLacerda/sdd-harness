@@ -66,7 +66,7 @@ from .telemetry import (
     create_sink,
     get_otel_endpoint,
 )
-from .validator import SchemaValidator, TraceabilityValidator
+from .validator import SchemaValidator, TraceabilityValidator, is_sensitive_event
 
 __all__ = [
     # Artifacts
@@ -147,6 +147,7 @@ __all__ = [
     # Validators
     "SchemaValidator",
     "TraceabilityValidator",
+    "is_sensitive_event",
     # Fase 2: Metrics and alerts
     "TokenEconomyCollector",
     "EconomySnapshot",

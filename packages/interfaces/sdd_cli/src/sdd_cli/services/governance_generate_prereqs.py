@@ -73,7 +73,10 @@ def generate_runtime_handbook_required(
     source_root = resolve_workspace_root() or output_base
     if not (source_root / DEFAULT_REGISTRY).exists():
         try:
-            repo_root = detect_repo_root()
+            # allow_file_fallback=False: this repo's own docs registry must
+            # never be substituted for a client workspace's registry under
+            # an editable/dev install — see _environment_repo.detect_repo_root.
+            repo_root = detect_repo_root(allow_file_fallback=False)
         except RuntimeError:
             repo_root = None
         if repo_root is not None and (repo_root / DEFAULT_REGISTRY).exists():

@@ -142,6 +142,23 @@ class TestContextLoaderInit:
         loader = ContextLoader(registry=mock_registry)
         assert loader.registry is mock_registry
 
+    def test_default_registry_chain_is_ast_then_tfidf_no_http(self) -> None:
+        """CTX-01 regression: documentation used to claim `HttpProvider` was
+        first in the default chain. `HttpProvider` is async-only and
+        incompatible with this synchronous `ProviderRegistry` — the actual
+        default is `[AstProvider, TfidfProvider]`, with the registry's own
+        built-in `LocalIntelligenceProvider` as its always-available
+        fallback when neither is available.
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` CTX-01.
+        """
+        from sdd_runtime.providers import AstProvider, TfidfProvider
+
+        loader = ContextLoader()
+        providers = loader.registry._providers
+
+        assert [type(p) for p in providers] == [AstProvider, TfidfProvider]
+        assert not any(type(p).__name__ == "HttpProvider" for p in providers)
+
 
 class TestContextLoaderLoad:
     """Test ContextLoader.load() method."""
@@ -475,6 +492,75 @@ class TestContextLoaderCompressionErrors:
         assert result.source == "artifact"
         assert result.compression_ratio is None  # No compression applied
         assert result.matched > 0  # But items were still loaded
+
+    def test_compression_failure_logs_at_warning_not_debug(
+        self, sample_artifact, caplog
+    ) -> None:
+        """CTX-04 regression: a genuine compression exception must be
+        visible at WARNING (DEBUG is invisible in normal operation) — the
+        loader still fails open (no raise), but the failure itself must not
+        be silent.
+        `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` CTX-04.
+        """
+        from unittest.mock import MagicMock
+
+        loader = ContextLoader()
+        mock_registry = MagicMock()
+        mock_registry.compress_context.side_effect = RuntimeError("boom")
+        loader._registry = mock_registry
+
+        request = ContextRequest(
+            query="M",
+            artifact=sample_artifact,
+            max_items=10,
+            budget_utilization_pct=95.0,  # RED zone — also attempts compression
+        )
+
+        with caplog.at_level("WARNING", logger="sdd_runtime.context._loader"):
+            loader.load_result(request)
+
+        assert any("Compression failed" in record.message for record in caplog.records)
+
+    def test_compression_failure_propagates_to_economy_compression_skip_event(
+        self, sample_artifact
+    ) -> None:
+        """CTX-04: a compression failure's `compression_ratio=None` at
+        YELLOW/RED utilization is exactly the condition
+        `TelemetrySink._maybe_emit_zone_event` uses to auto-emit
+        `economy.compression.skip` — verifying the existing downstream
+        signal actually fires, closing the loop from "silent failure" to an
+        explicit, non-silent telemetry event."""
+        from unittest.mock import MagicMock
+
+        from sdd_runtime import RuntimeEvent, TelemetrySink
+
+        loader = ContextLoader()
+        mock_registry = MagicMock()
+        mock_registry.compress_context.side_effect = RuntimeError("boom")
+        loader._registry = mock_registry
+
+        request = ContextRequest(
+            query="M",
+            artifact=sample_artifact,
+            max_items=10,
+            budget_utilization_pct=75.0,
+        )
+        result = loader.load_result(request)
+        assert result.compression_ratio is None
+
+        sink = TelemetrySink()
+        sink.emit(
+            RuntimeEvent(
+                event="governance.ask",
+                command="ask",
+                status="ok",
+                trace_id="t1",
+                budget_utilization_pct=request.budget_utilization_pct,
+                compression_ratio=result.compression_ratio,
+            )
+        )
+        events = [e.event for e in sink.list_events()]
+        assert "economy.compression.skip" in events
 
 
 # ---------------------------------------------------------------------------

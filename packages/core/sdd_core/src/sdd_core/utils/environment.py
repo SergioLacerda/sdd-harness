@@ -41,7 +41,11 @@ def get_sdd_paths(
 ) -> dict[str, Path]:
     """Resolve canonical SDD paths for the active workspace."""
     try:
-        resolved_repo_root = repo_root.resolve() if repo_root else detect_repo_root()
+        resolved_repo_root = (
+            repo_root.resolve()
+            if repo_root
+            else detect_repo_root(allow_file_fallback=False)
+        )
     except RuntimeError:
         resolved_repo_root = Path.cwd().resolve()
     env_workspace = workspace_root_from_env()
@@ -86,7 +90,7 @@ def get_sdd_paths(
 def get_profile_context(profile: SddProfile | None = None) -> dict[str, Any]:
     """Build a lightweight profile context payload."""
     try:
-        root = detect_repo_root()
+        root = detect_repo_root(allow_file_fallback=False)
     except RuntimeError:
         root = Path.cwd()
     active_profile = profile or detect_profile(root)

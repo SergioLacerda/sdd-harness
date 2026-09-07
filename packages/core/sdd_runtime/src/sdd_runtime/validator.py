@@ -30,6 +30,17 @@ _SENSITIVE_EVENTS = frozenset(
 )
 
 
+def is_sensitive_event(event_name: str) -> bool:
+    """Return True when *event_name* represents a sensitive governance decision.
+
+    Exposed so callers deciding a fail-open/fail-closed emission policy
+    (TEL-02) can classify an event by name alone, before a full
+    :class:`RuntimeEvent` (or its traceability fields) is even available —
+    e.g. inside an exception handler wrapping event construction itself.
+    """
+    return event_name in _SENSITIVE_EVENTS
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Schema compatibility
 # ─────────────────────────────────────────────────────────────────────────────

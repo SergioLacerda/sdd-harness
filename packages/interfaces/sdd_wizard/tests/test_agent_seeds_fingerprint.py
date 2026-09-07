@@ -316,3 +316,174 @@ def test_sovereign_factory_antigravity_contains_skill_md(tmp_path: Path) -> None
     assert not (tmp_path / ".antigravity").exists(), (
         "legacy .antigravity/ output must not be created"
     )
+
+
+# ---------------------------------------------------------------------------
+# T2: managed-block preservation across regeneration (root seed files only)
+# `.analysis/refined/20260906-root-seed-githook-necessity/design.md`
+# ---------------------------------------------------------------------------
+
+_HAND_NOTE = "\n<!-- my own notes, unrelated to sdd -->\n"
+
+
+def _make_ai_gen_with_fingerprint(tmp_path: Path, fingerprint: str) -> AISeedsGenerator:
+    seedlings_dir = tmp_path / ".sdd" / "seedlings"
+    seedlings_dir.mkdir(parents=True, exist_ok=True)
+    return AISeedsGenerator(
+        output_base=tmp_path,
+        seedlings_dir=seedlings_dir,
+        config={"language": "python", "adoption_level": "standard"},
+        spec_fingerprint=fingerprint,
+        mandate_ids=MANDATE_IDS,
+        active_categories=["testing"],
+        generated_at=GENERATED_AT,
+        verbose=False,
+    )
+
+
+def test_claude_md_preserves_hand_added_content_across_regeneration(
+    tmp_path: Path,
+) -> None:
+    gen1 = _make_ai_gen_with_fingerprint(tmp_path, "aaaaaaaa")
+    assert gen1.generate_claude_seed()
+    claude_file = tmp_path / "CLAUDE.md"
+    claude_file.write_text(
+        claude_file.read_text(encoding="utf-8") + _HAND_NOTE, encoding="utf-8"
+    )
+
+    gen2 = _make_ai_gen_with_fingerprint(tmp_path, "bbbbbbbb")
+    assert gen2.generate_claude_seed()
+    content = claude_file.read_text(encoding="utf-8")
+    assert "my own notes, unrelated to sdd" in content
+    assert "bbbbbbbb" in content
+    assert "aaaaaaaa" not in content
+
+
+def test_gemini_md_preserves_hand_added_content_across_regeneration(
+    tmp_path: Path,
+) -> None:
+    gen1 = _make_ai_gen_with_fingerprint(tmp_path, "aaaaaaaa")
+    assert gen1.generate_gemini_seed()
+    gemini_file = tmp_path / "GEMINI.md"
+    gemini_file.write_text(
+        gemini_file.read_text(encoding="utf-8") + _HAND_NOTE, encoding="utf-8"
+    )
+
+    gen2 = _make_ai_gen_with_fingerprint(tmp_path, "bbbbbbbb")
+    assert gen2.generate_gemini_seed()
+    content = gemini_file.read_text(encoding="utf-8")
+    assert "my own notes, unrelated to sdd" in content
+    assert "bbbbbbbb" in content
+    assert "aaaaaaaa" not in content
+
+
+def test_agents_md_preserves_hand_added_content_across_regeneration(
+    tmp_path: Path,
+) -> None:
+    gov1 = _make_gov_gen(tmp_path)
+    assert gov1.generate_agents_md()
+    agents_file = tmp_path / "AGENTS.md"
+    agents_file.write_text(
+        agents_file.read_text(encoding="utf-8") + _HAND_NOTE, encoding="utf-8"
+    )
+
+    gov2 = _make_gov_gen(tmp_path)
+    assert gov2.generate_agents_md()
+    content = agents_file.read_text(encoding="utf-8")
+    assert "my own notes, unrelated to sdd" in content
+
+
+def test_claude_seed_returns_false_and_does_not_modify_file_on_malformed_markers(
+    tmp_path: Path,
+) -> None:
+    """A hand-broken marker pair must fail the generator, never fall back to
+    a silent whole-file overwrite that would destroy whatever the markers
+    were protecting."""
+    claude_file = tmp_path / "CLAUDE.md"
+    claude_file.write_text(
+        "<!-- sdd:managed:begin -->\nstale content, no end marker\n",
+        encoding="utf-8",
+    )
+    original = claude_file.read_text(encoding="utf-8")
+
+    gen = _make_ai_gen(tmp_path)
+    assert gen.generate_claude_seed() is False
+    assert claude_file.read_text(encoding="utf-8") == original
+
+
+# ---------------------------------------------------------------------------
+# Wave 2: managed-block preservation for copilot/antigravity
+# `.analysis/refined/20260907-managed-block-generalization/design.md`
+# ---------------------------------------------------------------------------
+
+
+def test_copilot_seed_preserves_hand_added_content_across_regeneration(
+    tmp_path: Path,
+) -> None:
+    gen1 = _make_ai_gen_with_fingerprint(tmp_path, "aaaaaaaa")
+    assert gen1.generate_copilot_seed()
+    copilot_file = tmp_path / ".github" / "copilot-instructions.md"
+    copilot_file.write_text(
+        copilot_file.read_text(encoding="utf-8") + _HAND_NOTE, encoding="utf-8"
+    )
+
+    gen2 = _make_ai_gen_with_fingerprint(tmp_path, "bbbbbbbb")
+    assert gen2.generate_copilot_seed()
+    content = copilot_file.read_text(encoding="utf-8")
+    assert "my own notes, unrelated to sdd" in content
+    assert "bbbbbbbb" in content
+    assert "aaaaaaaa" not in content
+
+
+def test_antigravity_seed_preserves_hand_added_content_across_regeneration(
+    tmp_path: Path,
+) -> None:
+    gen1 = _make_ai_gen_with_fingerprint(tmp_path, "aaaaaaaa")
+    assert gen1.generate_antigravity_seed()
+    antigravity_file = (
+        tmp_path / ".gemini" / "antigravity" / "antigravity-instructions.md"
+    )
+    antigravity_file.write_text(
+        antigravity_file.read_text(encoding="utf-8") + _HAND_NOTE, encoding="utf-8"
+    )
+
+    gen2 = _make_ai_gen_with_fingerprint(tmp_path, "bbbbbbbb")
+    assert gen2.generate_antigravity_seed()
+    content = antigravity_file.read_text(encoding="utf-8")
+    assert "my own notes, unrelated to sdd" in content
+    assert "bbbbbbbb" in content
+    assert "aaaaaaaa" not in content
+
+
+def test_copilot_seed_returns_false_and_does_not_modify_file_on_malformed_markers(
+    tmp_path: Path,
+) -> None:
+    copilot_dir = tmp_path / ".github"
+    copilot_dir.mkdir(parents=True)
+    copilot_file = copilot_dir / "copilot-instructions.md"
+    copilot_file.write_text(
+        "<!-- sdd:managed:begin -->\nstale content, no end marker\n",
+        encoding="utf-8",
+    )
+    original = copilot_file.read_text(encoding="utf-8")
+
+    gen = _make_ai_gen(tmp_path)
+    assert gen.generate_copilot_seed() is False
+    assert copilot_file.read_text(encoding="utf-8") == original
+
+
+def test_antigravity_seed_returns_false_and_does_not_modify_file_on_malformed_markers(
+    tmp_path: Path,
+) -> None:
+    antigravity_dir = tmp_path / ".gemini" / "antigravity"
+    antigravity_dir.mkdir(parents=True)
+    antigravity_file = antigravity_dir / "antigravity-instructions.md"
+    antigravity_file.write_text(
+        "<!-- sdd:managed:begin -->\nstale content, no end marker\n",
+        encoding="utf-8",
+    )
+    original = antigravity_file.read_text(encoding="utf-8")
+
+    gen = _make_ai_gen(tmp_path)
+    assert gen.generate_antigravity_seed() is False
+    assert antigravity_file.read_text(encoding="utf-8") == original

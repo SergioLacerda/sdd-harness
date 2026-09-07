@@ -40,8 +40,13 @@ class ContextLoader:
 
         Args:
             registry: ProviderRegistry for context compression at YELLOW zone.
-                     If None, builds a default registry with priority chain:
-                     HttpProvider → AstProvider → TfidfProvider → LocalIntelligenceProvider.
+                     If None, builds this loader's actual default chain:
+                     AstProvider → TfidfProvider → LocalIntelligenceProvider
+                     (the registry's own always-available built-in fallback).
+                     `HttpProvider` is intentionally NOT part of this
+                     synchronous default (see the `registry` property below)
+                     — CTX-01,
+                     `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`.
         """
         self._registry: ProviderRegistry | None = registry
 
@@ -55,9 +60,15 @@ class ContextLoader:
         from ..intelligence import ProviderRegistry
         from ..providers import AstProvider, TfidfProvider
 
-        # HttpProvider is async-only and not compatible with the sync ProviderRegistry.
-        # Use CompiledArtifact.from_sdd_compiled_dir_async or HttpProvider directly
-        # in async callers.
+        # HttpProvider is async-only and not compatible with this synchronous
+        # ProviderRegistry, so it is never part of this default chain — an
+        # async caller must use CompiledArtifact.from_sdd_compiled_dir_async
+        # or invoke HttpProvider directly instead of going through
+        # ContextLoader.registry. `ProviderRegistry` itself always falls
+        # back to its built-in `LocalIntelligenceProvider` when neither
+        # AstProvider nor TfidfProvider is available, so the effective
+        # default chain is: AstProvider → TfidfProvider →
+        # LocalIntelligenceProvider.
         self._registry = ProviderRegistry([AstProvider(), TfidfProvider()])
         return self._registry
 
@@ -120,7 +131,9 @@ class ContextLoader:
         ]
         bytes_loaded = sum(len(line.encode()) for line in lines)
 
-        # Attempt compression if in YELLOW zone (70-90% utilization)
+        # Attempt compression at YELLOW/RED utilization (70-100%, exclusive
+        # of BREACH itself, which already raised above) — not only YELLOW's
+        # 70-90% sub-range.
         compression_ratio: float | None = None
         if (
             request.budget_utilization_pct is not None
@@ -151,7 +164,19 @@ class ContextLoader:
                         len(lines),
                     )
             except Exception as exc:
-                logger.debug("Compression failed at YELLOW zone: %s", exc)
+                # CTX-04 (`.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
+                # a genuine exception during compression is more significant
+                # than "no provider available" and must be visible at a
+                # level operators actually see (DEBUG is invisible in
+                # normal operation). Loading still proceeds uncompressed —
+                # this loader fails open by design, it does not block — but
+                # `compression_ratio` staying None at YELLOW/RED utilization
+                # is exactly the condition `TelemetrySink._maybe_emit_zone_event`
+                # checks to auto-emit `economy.compression.skip`, so a
+                # caller that feeds this result's `compression_ratio` and
+                # `budget_utilization_pct` into a `RuntimeEvent` still gets
+                # an explicit, non-silent signal downstream.
+                logger.warning("Compression failed at YELLOW/RED zone: %s", exc)
 
         return ContextResult(
             items=lines,

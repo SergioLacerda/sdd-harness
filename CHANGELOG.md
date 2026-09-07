@@ -15,11 +15,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 Before tagging a new release, verify:
 
 - [ ] `make release-dry-run` passes with no errors
-- [ ] `README.md` — version number and feature list are up to date
+- [ ] `make release-prepare VERSION=x.y.z` run and reviewed — renames `[Unreleased]` to `[x.y.z] — YYYY-MM-DD` in `CHANGELOG.md` and updates the pinned install tag in `README.md`
 - [ ] `readme-client.md` — client-facing install instructions reflect current CLI commands
 - [ ] `readme-detailed.md` — detailed architecture description matches current packages and structure
 - [ ] `readme-ia.md` — AI/agent context is accurate for the new release
-- [ ] `CHANGELOG.md` — `[Unreleased]` section renamed to `[x.y.z] — YYYY-MM-DD`
 - [ ] Git tag created: `git tag vX.Y.Z && git push origin vX.Y.Z`
 
 ---
