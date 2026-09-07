@@ -5,7 +5,7 @@ go 1.26
 toolchain go1.26.6
 
 require (
-	github.com/shamaton/msgpack/v2 v2.4.1
+	github.com/shamaton/msgpack/v2 v2.4.2
 	github.com/spf13/cobra v1.10.2
 )
 
