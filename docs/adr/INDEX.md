@@ -347,6 +347,31 @@ section for what remains deliberately out of scope and why.
 
 ---
 
+### ADR-023: Providentian Naming and Identity Contract (2026-09-07)
+
+**Decision:** Adopt "Providentian Agent Governance" / `provident` / `/provident` as the
+current standard for every new CLI, skill, and slash-command surface. `sdd`, `sdd ask`, and
+`/sdd-ask` continue only as a compatibility adapter under active deprecation, not a co-equal
+default. SDD stays the name of the specification/policy pack; kernel responsibilities stop
+being associated with `ask`.
+
+**Rationale:**
+
+- Both `ACHADOS_E_MELHORIAS_PROVIDENTIA.md` and `nova_arquitetura.txt.txt` diagnose `ask` as
+  having accumulated kernel responsibilities that don't semantically belong to a query
+  capability
+- `nova_arquitetura.txt.txt` §14 ("Fase 0") requires a naming ADR before any public rename
+- The landing-page migration mission already needed this vocabulary; renaming everything at
+  once (`ask_*` → `provident_*`) was explicitly rejected as a false simplification
+
+**Links:**
+
+- [ADR-023-providentian-naming-and-identity.md](ADR-023-providentian-naming-and-identity.md)
+- `docs/migration/2026-09-07-landing-page-providentia-migration.md`
+- `.analysis/refined/20260907-landing-page-providentia-migration/`
+
+---
+
 ## 🧾 Operational Appendices
 
 These artifacts support governance operations but are not ADRs:
