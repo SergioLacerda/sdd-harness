@@ -256,7 +256,7 @@ Your developers can now:
 |------|--------|--------|
 | 1 | Create directories | `.github/`, `.vscode/`, `.cursor/`, `scripts/`, `.sdd/` |
 | 2 | Copy templates | 8 template files populated |
-| 3 | Configure `.spec.config` | Points to sdd-harness |
+| 3 | Configure `.spec.config` | Points to providence |
 | 4 | Validate setup | Framework verified, `.sdd/` infrastructure created |
 | 5 | Commit to git | All changes saved to version control |
 

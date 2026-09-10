@@ -18,10 +18,10 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "sdd_core" / "src"
+_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "providence_core" / "src"
 if str(_SDD_CORE_SRC) not in sys.path:
     sys.path.insert(0, str(_SDD_CORE_SRC))
-from sdd_core.utils.text_io import read_text_utf8, write_text_utf8  # noqa: E402
+from providence_core.utils.text_io import read_text_utf8, write_text_utf8  # noqa: E402
 
 COMPILED = REPO_ROOT / "generated" / "master" / "compiled"
 _WORKSPACE_ROOT = Path(os.environ.get("SDD_WORKSPACE_ROOT", REPO_ROOT)).resolve()
@@ -59,22 +59,22 @@ def compile_governance() -> bool:
     """Compile governance artifacts using the project's own Python environment.
 
     Supports running via the 'sdd' binary (if installed) or falling back to
-    'python -m sdd_cli' with appropriate PYTHONPATH for workspace members.
+    'python -m providence_cli' with appropriate PYTHONPATH for workspace members.
     """
     import importlib
     import os
 
     SafeProcessRunner = importlib.import_module(
-        "sdd_core.utils.process"
+        "providence_core.utils.process"
     ).SafeProcessRunner
 
     # Identify workspace source directories to support uninstalled execution
     package_roots = [
-        REPO_ROOT / "packages/core/sdd_core/src",
-        REPO_ROOT / "packages/core/sdd_telemetry/src",
-        REPO_ROOT / "packages/features/sdd_integration/src",
-        REPO_ROOT / "packages/interfaces/sdd_wizard/src",
-        REPO_ROOT / "packages/interfaces/sdd_cli/src",
+        REPO_ROOT / "packages/core/providence_core/src",
+        REPO_ROOT / "packages/core/providence_telemetry/src",
+        REPO_ROOT / "packages/features/providence_integration/src",
+        REPO_ROOT / "packages/interfaces/providence_wizard/src",
+        REPO_ROOT / "packages/interfaces/providence_cli/src",
     ]
 
     # Build environment with PYTHONPATH including workspace sources
@@ -87,7 +87,9 @@ def compile_governance() -> bool:
 
     # Determine how to invoke the CLI
     sdd_bin = Path(sys.executable).with_name("sdd")
-    sdd_cmd = [str(sdd_bin)] if sdd_bin.exists() else [sys.executable, "-m", "sdd_cli"]
+    sdd_cmd = (
+        [str(sdd_bin)] if sdd_bin.exists() else [sys.executable, "-m", "providence_cli"]
+    )
 
     print("Compiling governance artifacts...")
     result_comp = SafeProcessRunner().run(
@@ -118,7 +120,7 @@ def update_snapshot(name: str, dry_run: bool = False) -> bool:
 
     if not compiled_path.exists():
         print(f"ERROR: Compiled artifact not found: {compiled_path}")
-        print("       Run: uv run sdd governance compile")
+        print("       Run: uv run providence governance compile")
         return False
 
     normalised = _normalise(json.loads(read_text_utf8(compiled_path)), volatile_keys)

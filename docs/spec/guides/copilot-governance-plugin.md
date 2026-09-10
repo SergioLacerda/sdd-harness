@@ -14,7 +14,7 @@ additive and does not touch that integration.
 
 ## What Soft/Standalone means
 
-- Works without SDD Harness, without network, without any runtime dependency in
+- Works without Providence, without network, without any runtime dependency in
   the consuming project.
 - Go-only for now (2026-08-18 scope decision) — see
   `.analysis/refined/20260818-plugin-language-scope-and-canonical-review/`.
@@ -22,7 +22,7 @@ additive and does not touch that integration.
   governance sources — so it is reusable in any project, the same design choice
   `DevinPluginGenerator.generate_standalone()` already makes. It never mentions
   "sdd" (verified by test).
-- Is never represented as equivalent to a connected, governed SDD Harness session.
+- Is never represented as equivalent to a connected, governed Providence session.
 
 ## Build
 
@@ -34,7 +34,7 @@ sdd copilot build
 Or from Python:
 
 ```python
-from sdd_adapters.copilot import CopilotStandaloneGenerator
+from providence_adapters.copilot import CopilotStandaloneGenerator
 
 CopilotStandaloneGenerator().generate_standalone(output_dir=repo_root)
 ```

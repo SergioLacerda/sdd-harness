@@ -62,7 +62,9 @@ def _command_specs_dict_from_stmt(stmt: ast.stmt) -> ast.Dict | None:
 
 def _extract_cli_commands(repo_root: Path) -> set[str]:
     """Extract CLI command keys from COMMAND_SPECS via static AST parsing."""
-    main_py = repo_root / "packages/interfaces/sdd_cli/src/sdd_cli/main.py"
+    main_py = (
+        repo_root / "packages/interfaces/providence_cli/src/providence_cli/main.py"
+    )
     if not main_py.exists():
         return set()
 
@@ -102,11 +104,11 @@ def _extract_runtime_skills(repo_root: Path) -> set[str]:
 def _extract_template_slashes(repo_root: Path) -> tuple[set[str], set[str]]:
     template_ai = (
         repo_root
-        / "packages/interfaces/sdd_wizard/src/sdd_wizard/templates/governance/sovereign-factory/agent-instructions.md"
+        / "packages/interfaces/providence_wizard/src/providence_wizard/templates/governance/sovereign-factory/agent-instructions.md"
     )
     template_prompts_dir = (
         repo_root
-        / "packages/interfaces/sdd_wizard/src/sdd_wizard/templates/governance/sovereign-factory/prompts"
+        / "packages/interfaces/providence_wizard/src/providence_wizard/templates/governance/sovereign-factory/prompts"
     )
 
     ai_slashes: set[str] = set()
@@ -171,7 +173,7 @@ def run_audit(repo_root: Path) -> AuditResult:
         rtype = route.get("type")
         if rtype == "cli":
             command_str = str(route.get("command", "")).strip()
-            # "sdd ask" -> command key "ask"
+            # "providence ask" -> command key "ask"
             cmd_key = (
                 command_str.split(" ", 1)[1]
                 if command_str.startswith("sdd ")
@@ -186,10 +188,10 @@ def run_audit(repo_root: Path) -> AuditResult:
 
     summary = {
         "authority": {
-            "cli": "packages/interfaces/sdd_cli",
+            "cli": "packages/interfaces/providence_cli",
             "skills_runtime_registry": ".sdd/skills/registry.json",
             "commands_runtime_registry": ".sdd/commands/registry.json",
-            "templates": "packages/interfaces/sdd_wizard/.../sovereign-factory",
+            "templates": "packages/interfaces/providence_wizard/.../sovereign-factory",
             "docs_scope": ["README.md", "docs/"],
         },
         "counts": {

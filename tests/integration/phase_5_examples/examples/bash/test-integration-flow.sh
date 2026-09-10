@@ -79,7 +79,7 @@ test_step_2_templates() {
     # Find framework root and templates directory
     local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     local framework_dir="$script_dir/../../../.."
-    local templates_dir="$framework_dir/packages/features/sdd_integration/src/sdd_integration/templates"
+    local templates_dir="$framework_dir/packages/features/providence_integration/src/providence_integration/templates"
 
     if [ ! -d "$templates_dir" ]; then
         echo "  ${YELLOW}⚠️${NC}  WARNING: Framework templates not found at $templates_dir"

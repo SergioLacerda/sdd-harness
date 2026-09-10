@@ -21,10 +21,10 @@ from tests.helpers.text_io import read_text_utf8
 
 # Add packages to path
 project_root = Path(__file__).parent.parent.parent.parent
-wizard_src = project_root / "packages/interfaces/sdd_wizard/src"
+wizard_src = project_root / "packages/interfaces/providence_wizard/src"
 sys.path.insert(0, str(wizard_src))
 
-from sdd_wizard.orchestration.intelligent_seedlings_generator import (  # noqa: E402
+from providence_wizard.orchestration.intelligent_seedlings_generator import (  # noqa: E402
     IntelligentSeedlingsGenerator,
 )
 
@@ -342,7 +342,7 @@ def test_phase6_integration() -> None:
     # Check that SeedlingsOrchestrator has the generate method
     print("\n✓ Test 1: Verify SeedlingsOrchestrator.generate method exists")
     try:
-        from sdd_wizard.orchestration.phase6_seedlings_orchestrator import (
+        from providence_wizard.orchestration.phase6_seedlings_orchestrator import (
             SeedlingsOrchestrator,
         )
 

@@ -154,13 +154,13 @@ Load context via:
 
 ```bash
 # Automated
-sdd ask "how do I implement a custom port?"  # Queries compiled governance
+providence ask "how do I implement a custom port?"  # Queries compiled governance
 
 # Manual
 # 1. Read search-keywords.md for topic
 # 2. Follow pointer to relevant doc
 # 3. Load that doc into context
-# 4. Check budget via: sdd runtime status
+# 4. Check budget via: providence runtime status
 ```
 
 ---

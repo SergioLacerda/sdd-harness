@@ -8,7 +8,7 @@
 
 ## Central Principle
 
-> Plugins connected to SDD Harness are autonomous within their own domain,
+> Plugins connected to Providence are autonomous within their own domain,
 > but governed at the boundary. They may use their own methods, heuristics,
 > and expertise, but must respect host mandates, execution contracts,
 > source-of-truth hierarchy, and artifact schemas when operating inside an

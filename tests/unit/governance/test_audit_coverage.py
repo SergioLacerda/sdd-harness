@@ -1,4 +1,4 @@
-"""Coverage tests for `sdd_core.governance.audit`."""
+"""Coverage tests for `providence_core.governance.audit`."""
 
 from __future__ import annotations
 
@@ -7,14 +7,14 @@ from types import SimpleNamespace
 
 import pytest
 
-from sdd_core.governance.audit import AuditIssue, GovernanceAuditor
+from providence_core.governance.audit import AuditIssue, GovernanceAuditor
 
 
 def test_init_uses_workspace_root_fallback(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(
-        "sdd_core.governance.audit.find_workspace_root", lambda: tmp_path
+        "providence_core.governance.audit.find_workspace_root", lambda: tmp_path
     )
     auditor = GovernanceAuditor()
     assert auditor.workspace_root == tmp_path
@@ -22,7 +22,9 @@ def test_init_uses_workspace_root_fallback(
 
 def test_perform_audit_without_workspace() -> None:
     monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setattr("sdd_core.governance.audit.find_workspace_root", lambda: None)
+    monkeypatch.setattr(
+        "providence_core.governance.audit.find_workspace_root", lambda: None
+    )
     try:
         report = GovernanceAuditor(workspace_root=None).perform_audit()
     finally:
@@ -90,11 +92,11 @@ def test_audit_signatures_legacy_and_none_and_invalid(
     metadata: dict[str, object] = {}
 
     monkeypatch.setattr(
-        "sdd_core.governance.audit._resolve_keyring_path",
+        "providence_core.governance.audit._resolve_keyring_path",
         lambda compiled_dir, strict=False: (None, "legacy", "warn"),
     )
     monkeypatch.setattr(
-        "sdd_core.governance.audit.validate_compiled_signatures",
+        "providence_core.governance.audit.validate_compiled_signatures",
         lambda compiled_dir, strict=False: [
             SimpleNamespace(ok=False),
             SimpleNamespace(ok=True),
@@ -118,11 +120,11 @@ def test_audit_signatures_none_keyring_source(
     metadata: dict[str, object] = {}
 
     monkeypatch.setattr(
-        "sdd_core.governance.audit._resolve_keyring_path",
+        "providence_core.governance.audit._resolve_keyring_path",
         lambda compiled_dir, strict=False: (None, "none", None),
     )
     monkeypatch.setattr(
-        "sdd_core.governance.audit.validate_compiled_signatures",
+        "providence_core.governance.audit.validate_compiled_signatures",
         lambda compiled_dir, strict=False: [],
     )
 

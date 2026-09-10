@@ -27,9 +27,9 @@ provider and operating model before code is written.
 
 ## Current Lifecycle
 
-1. `sdd governance keygen --key-id <id>` creates a private key and matching
+1. `providence governance keygen --key-id <id>` creates a private key and matching
    public key material.
-2. `sdd governance sign --key-id <id>` signs compiled governance artifacts with
+2. `providence governance sign --key-id <id>` signs compiled governance artifacts with
    the native Ed25519 backend.
 3. Signing writes `.sig` manifests beside compiled artifacts.
 4. The trusted keyring lives at `.sdd/trust/trusted-keys.json`.

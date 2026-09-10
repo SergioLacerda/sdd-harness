@@ -55,7 +55,7 @@ In autonomous agent systems, "black box" behavior is a catastrophic risk. This f
 
 ## 📊 Learning Signals Contract
 
-`sdd ask` derives a `learning_signals` block from the audit trail defined above
+`providence ask` derives a `learning_signals` block from the audit trail defined above
 (`.sdd/runtime/failure-ledger.jsonl` and `.sdd/runtime/compliance-events.jsonl`)
 and includes it in every JSON response (`data.learning_signals`).
 
@@ -75,7 +75,7 @@ and includes it in every JSON response (`data.learning_signals`).
 * `learning_signals` is **informational only**. It MUST NOT be used to derive
   `execution_gate` — that decision is governed exclusively by
   `intake_index_mode` and `hard_mode_invariants` (see `.sdd/skills/sdd-ask/skill.yaml`).
-* When `inputs.full` is set (`sdd ask --full`) or any signal count is non-zero,
+* When `inputs.full` is set (`providence ask --full`) or any signal count is non-zero,
   the agent SHOULD surface the non-zero signals to the user as a recommendation
   (e.g. "scope_violation: 2 in the last 7 days — review recent failure-ledger entries").
 * `scope_violation > 0` and `drift_recent_failures > 0` SHOULD be treated as a

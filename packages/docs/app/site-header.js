@@ -1,4 +1,4 @@
-/* SDD Harness — shared dynamic site header
+/* Providence — shared dynamic site header
  * Synced copy, loaded by MkDocs via extra_javascript (mkdocs.yml). Canonical
  * source: apps/landing/public/shared/site-header.js — MkDocs's docs_dir
  * (docs/) is the only place it can resolve extra_javascript assets from, so

@@ -53,7 +53,7 @@ Managed seed artifacts (e.g. `CLAUDE.md`, `.claude/`, `.gemini/`, `.cursor/`,
 
 ### Allowed Owners / Triggers
 
-1. `sdd governance generate` (governed generation path)
+1. `providence governance generate` (governed generation path)
 2. Wizard generation/deployment phases in governed flows
 3. Approved maintenance/reconciliation commands declared by governance
 

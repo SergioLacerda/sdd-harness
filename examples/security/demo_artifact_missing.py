@@ -21,7 +21,7 @@ import json
 import sys
 from pathlib import Path
 
-from sdd_runtime import CompiledArtifact, PolicyEngine, SchemaValidator, SessionState
+from providence_runtime import CompiledArtifact, PolicyEngine, SchemaValidator, SessionState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 METADATA_PATH = REPO_ROOT / ".sdd" / "metadata.json"

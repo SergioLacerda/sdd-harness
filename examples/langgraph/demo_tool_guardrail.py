@@ -22,7 +22,7 @@ from langchain_core.messages import (  # type: ignore[import-not-found]
 from langchain_core.tools import tool  # type: ignore[import-not-found]
 from langgraph.graph import END, StateGraph  # type: ignore[import-not-found]
 from langgraph.graph.message import add_messages  # type: ignore[import-not-found]
-from sdd_runtime import CompiledArtifact, PolicyEngine, SessionState
+from providence_runtime import CompiledArtifact, PolicyEngine, SessionState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 METADATA_PATH = REPO_ROOT / ".sdd" / "metadata.json"

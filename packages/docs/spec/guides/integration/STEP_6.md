@@ -149,7 +149,7 @@ Now that you know your adoption level, update `.spec.config`:
 
 ```ini
 [spec]
-spec_path = ../sdd-harness
+spec_path = ../providence
 ```
 
 ### New State (Add Your Level)
@@ -158,7 +158,7 @@ spec_path = ../sdd-harness
 
 ```ini
 [spec]
-spec_path = ../sdd-harness
+spec_path = ../providence
 adoption_level = lite
 ```
 
@@ -166,7 +166,7 @@ adoption_level = lite
 
 ```ini
 [spec]
-spec_path = ../sdd-harness
+spec_path = ../providence
 adoption_level = full
 ```
 
@@ -191,7 +191,7 @@ echo "adoption_level = full" >> .spec.config
 cat .spec.config
 # Should show both lines:
 # [spec]
-# spec_path = ../sdd-harness
+# spec_path = ../providence
 # adoption_level = lite  (or full)
 ```
 

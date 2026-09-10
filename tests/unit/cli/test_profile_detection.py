@@ -23,14 +23,14 @@ class TestDetectProfile:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """A bare workspace with no markers resolves to 'client'."""
-        from sdd_core.utils.environment import detect_profile
+        from providence_core.utils.environment import detect_profile
 
         result = detect_profile(root=tmp_path)
         assert result == "client"
 
     def test_detects_master_from_sdd_profile(self, tmp_path: Path) -> None:
         """Presence of .sdd/profile with type=master triggers master profile."""
-        from sdd_core.utils.environment import detect_profile
+        from providence_core.utils.environment import detect_profile
 
         sdd_dir = tmp_path / ".sdd"
         sdd_dir.mkdir()
@@ -45,7 +45,7 @@ class TestDetectProfile:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """SDD_PROFILE env var takes highest priority."""
-        from sdd_core.utils.environment import detect_profile
+        from providence_core.utils.environment import detect_profile
 
         # .sdd/profile says master
         sdd_dir = tmp_path / ".sdd"
@@ -64,7 +64,7 @@ class TestDetectProfile:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """SDD_PROFILE=master overrides even when workspace lacks markers."""
-        from sdd_core.utils.environment import detect_profile
+        from providence_core.utils.environment import detect_profile
 
         monkeypatch.setenv("SDD_PROFILE", "master")
         result = detect_profile(root=tmp_path)
@@ -72,7 +72,7 @@ class TestDetectProfile:
 
     def test_sdd_profile_client_explicit(self, tmp_path: Path) -> None:
         """.sdd/profile with type=client is respected."""
-        from sdd_core.utils.environment import detect_profile
+        from providence_core.utils.environment import detect_profile
 
         sdd_dir = tmp_path / ".sdd"
         sdd_dir.mkdir()
@@ -86,7 +86,7 @@ class TestDetectProfile:
 
     def test_sdd_profile_master_explicit(self, tmp_path: Path) -> None:
         """Explicit master in .sdd/profile is respected."""
-        from sdd_core.utils.environment import detect_profile
+        from providence_core.utils.environment import detect_profile
 
         sdd_dir = tmp_path / ".sdd"
         sdd_dir.mkdir()
@@ -99,7 +99,7 @@ class TestDetectProfile:
 
     def test_sdd_profile_invalid_type_falls_through(self, tmp_path: Path) -> None:
         """Invalid type in .sdd/profile causes fallback to client via WorkspaceNotInitializedError."""
-        from sdd_core.utils.environment import detect_profile
+        from providence_core.utils.environment import detect_profile
 
         sdd_dir = tmp_path / ".sdd"
         sdd_dir.mkdir()
@@ -113,7 +113,7 @@ class TestDetectProfile:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Invalid SDD_PROFILE env var falls through to lower priority sources."""
-        from sdd_core.utils.environment import detect_profile
+        from providence_core.utils.environment import detect_profile
 
         monkeypatch.setenv("SDD_PROFILE", "invalid")
         result = detect_profile(root=tmp_path)
@@ -123,7 +123,7 @@ class TestDetectProfile:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Verify full priority chain: env > filesystem > fallback."""
-        from sdd_core.utils.environment import detect_profile
+        from providence_core.utils.environment import detect_profile
 
         # Filesystem (.sdd/profile) -> master
         sdd_dir = tmp_path / ".sdd"
@@ -143,7 +143,7 @@ class TestDetectProfile:
 
 class TestGetProfileContext:
     def test_returns_dict_with_required_keys(self, tmp_path: Path) -> None:
-        from sdd_core.utils.environment import get_profile_context
+        from providence_core.utils.environment import get_profile_context
 
         ctx = get_profile_context(profile="client")
         assert "profile" in ctx
@@ -152,7 +152,7 @@ class TestGetProfileContext:
         assert "paths" in ctx
 
     def test_master_flags(self) -> None:
-        from sdd_core.utils.environment import get_profile_context
+        from providence_core.utils.environment import get_profile_context
 
         ctx = get_profile_context(profile="master")
         assert ctx["profile"] == "master"
@@ -160,7 +160,7 @@ class TestGetProfileContext:
         assert ctx["is_client"] is False
 
     def test_client_flags(self) -> None:
-        from sdd_core.utils.environment import get_profile_context
+        from providence_core.utils.environment import get_profile_context
 
         ctx = get_profile_context(profile="client")
         assert ctx["profile"] == "client"
@@ -170,33 +170,33 @@ class TestGetProfileContext:
 
 class TestProfilePolicy:
     def test_release_blocked_in_client(self) -> None:
-        from sdd_cli.utils.profile import get_adapter
+        from providence_cli.utils.profile import get_adapter
 
         adapter = get_adapter("client")
         assert "release" in adapter.blocked_commands
 
     def test_release_allowed_in_master(self) -> None:
-        from sdd_cli.utils.profile import get_adapter
+        from providence_cli.utils.profile import get_adapter
 
         adapter = get_adapter("master")
         assert "release" in adapter.allowed_commands
         assert "release" not in adapter.blocked_commands
 
     def test_wizard_warns_in_master(self) -> None:
-        from sdd_cli.utils.profile import get_adapter
+        from providence_cli.utils.profile import get_adapter
 
         adapter = get_adapter("master")
         assert "wizard" in adapter.warned_commands
 
     def test_wizard_allowed_in_client(self) -> None:
-        from sdd_cli.utils.profile import get_adapter
+        from providence_cli.utils.profile import get_adapter
 
         adapter = get_adapter("client")
         assert "wizard" in adapter.allowed_commands
         assert "wizard" not in adapter.warned_commands
 
     def test_unknown_profile_falls_back_to_client(self) -> None:
-        from sdd_cli.utils.profile import get_adapter
+        from providence_cli.utils.profile import get_adapter
 
         adapter = get_adapter("unknown_profile")
         assert adapter.profile == "client"
@@ -206,11 +206,12 @@ class TestProfilePolicy:
 
         import click
 
-        from sdd_cli.utils.profile import enforce_profile_policy
+        from providence_cli.utils.profile import enforce_profile_policy
 
         with (
             mock.patch(
-                "sdd_core.utils.environment.detect_profile", return_value="client"
+                "providence_core.utils.environment.detect_profile",
+                return_value="client",
             ),
             pytest.raises((SystemExit, click.exceptions.Exit)),
         ):
@@ -221,10 +222,10 @@ class TestProfilePolicy:
     ) -> None:
         import unittest.mock as mock
 
-        from sdd_cli.utils.profile import enforce_profile_policy
+        from providence_cli.utils.profile import enforce_profile_policy
 
         with mock.patch(
-            "sdd_core.utils.environment.detect_profile", return_value="master"
+            "providence_core.utils.environment.detect_profile", return_value="master"
         ):
             enforce_profile_policy("wizard", ctx=None)  # should not raise
 

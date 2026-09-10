@@ -90,8 +90,8 @@ git pull origin main  # Ensure up-to-date
 git checkout -b wip/feature-name
 
 # STEP 2: Make changes
-vim .sdd-core/CANONICAL/mandate.spec
-git add .sdd-core/
+vim .providence-core/CANONICAL/mandate.spec
+git add .providence-core/
 git commit -m "feat: Update mandate X"
 
 # STEP 3: Push (not merge!)
@@ -282,7 +282,7 @@ git push --dry-run origin
 $ git checkout main
 Switched to branch 'main'
 
-$ git add .sdd-core/CANONICAL/mandate.spec
+$ git add .providence-core/CANONICAL/mandate.spec
 $ git commit -m "feat: update mandate"
 
 ❌ /.git-hooks/pre-commit-adr-008:
@@ -300,7 +300,7 @@ $ echo $?
 $ git checkout -b wip/update-mandate
 Switched to new branch 'wip/update-mandate'
 
-$ git add .sdd-core/CANONICAL/mandate.spec
+$ git add .providence-core/CANONICAL/mandate.spec
 $ git commit -m "feat: update mandate"
 
 ✅ /.git-hooks/pre-commit-adr-008:

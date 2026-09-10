@@ -190,19 +190,19 @@ Processes, tools, and protocols for effective development.
 
 ### Governance Lifecycle
 
-- `sdd init` (workspace initialization)
-- `sdd governance compile`
-- `sdd governance validate`
-- `sdd governance generate`
-- `sdd governance score`
-- `sdd governance adherence`
-- `sdd runtime status` (AHP/GAP state)
-- `sdd lint spec`
-- `sdd ask` / `sdd ask --full` (governance query)
-- `sdd test run`
-- `sdd doctor` (diagnostics)
-- `sdd setup` (venv/dependencies)
-- `sdd release` (version management)
+- `providence init` (workspace initialization)
+- `providence governance compile`
+- `providence governance validate`
+- `providence governance generate`
+- `providence governance score`
+- `providence governance adherence`
+- `providence runtime status` (AHP/GAP state)
+- `providence lint spec`
+- `providence ask` / `providence ask --full` (governance query)
+- `providence test run`
+- `providence doctor` (diagnostics)
+- `providence setup` (venv/dependencies)
+- `providence release` (version management)
 
 ### Collaboration
 

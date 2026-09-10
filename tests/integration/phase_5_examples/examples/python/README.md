@@ -11,7 +11,7 @@
 ### INTEGRATION Flow Test
 
 ```bash
-cd /home/sergio/dev/sdd-harness
+cd /home/sergio/dev/providence
 
 python3 tests/integration/phase_5_examples/examples/python/example_integration_flow.py
 ```
@@ -173,7 +173,7 @@ def test_step_3_config(self):
     # Create file
     with open(spec_config, "w") as f:
         f.write("[spec]\n")
-        f.write("spec_path = ../sdd-harness\n")
+        f.write("spec_path = ../providence\n")
 
     # Verify contents
     with open(spec_config, "r") as f:
@@ -219,12 +219,12 @@ if __name__ == "__main__":
 ### FileNotFoundError
 
 ```
-FileNotFoundError: [Errno 2] No such file or directory: 'packages/features/sdd_integration/src/sdd_integration/templates/.spec.config'
+FileNotFoundError: [Errno 2] No such file or directory: 'packages/features/providence_integration/src/providence_integration/templates/.spec.config'
 ```
 
 **Solution:** Run from repo root:
 ```bash
-cd /home/sergio/dev/sdd-harness
+cd /home/sergio/dev/providence
 python3 tests/...
 ```
 

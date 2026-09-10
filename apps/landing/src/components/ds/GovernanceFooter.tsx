@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * SDD Harness — GovernanceFooter
+ * Providence — GovernanceFooter
  * The CLI's signature trailer line:
  *   SDD GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>
  * Status words are color-coded. Use on a dark (terminal) or light surface.

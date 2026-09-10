@@ -17,7 +17,7 @@ if [ ! -f "$KEYRING" ]; then
 else
     # 2. Run Governance Audit (Hardened Gate)
     echo "🔍 Performing Security Audit (P003)..."
-    if sdd governance audit --verbose; then
+    if providence governance audit --verbose; then
         echo "✅ Audit passed. Governance is hardened."
         export SDD_GOVERNANCE_MODE="hardened"
     else

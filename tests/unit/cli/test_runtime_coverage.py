@@ -12,17 +12,17 @@ from unittest.mock import MagicMock
 import pytest
 import typer
 
-from sdd_cli.commands import runtime as runtime_mod
-from sdd_cli.services.runtime_handler import _read_workspace_id
+from providence_cli.commands import runtime as runtime_mod
+from providence_cli.services.runtime_handler import _read_workspace_id
 
 
-def _install_fake_sdd_runtime(  # noqa: C901
+def _install_fake_providence_runtime(  # noqa: C901
     monkeypatch: pytest.MonkeyPatch,
     *,
     drift: bool = False,
     raise_on_inject: bool = False,
 ) -> None:
-    root_mod = types.ModuleType("sdd_runtime")
+    root_mod = types.ModuleType("providence_runtime")
 
     def format_governance_footer(*, drift: str, governance: str, profile: str) -> str:
         return f"footer:{drift}:{governance}:{profile}"
@@ -67,7 +67,7 @@ def _install_fake_sdd_runtime(  # noqa: C901
     class _DriftReport:
         drift_detected = drift
         drift_type = "fingerprint"
-        remediation_command = "sdd runtime status --force"
+        remediation_command = "providence runtime status --force"
 
     class _DriftDetector:
         def classify(self, session: object, artifact: object, current_profile: str):
@@ -95,7 +95,7 @@ def _install_fake_sdd_runtime(  # noqa: C901
     root_mod.SessionState = _SessionState
     root_mod.TelemetrySink = _TelemetrySink
 
-    monkeypatch.setitem(sys.modules, "sdd_runtime", root_mod)
+    monkeypatch.setitem(sys.modules, "providence_runtime", root_mod)
 
 
 def _make_root(tmp_path: Path) -> Path:
@@ -146,13 +146,13 @@ def test_status_import_error_branch(
     monkeypatch.setattr(runtime_mod, "enforce_path_policy", lambda root, **kwargs: root)
     monkeypatch.setitem(
         sys.modules,
-        "sdd_runtime",
-        types.ModuleType("sdd_runtime"),
+        "providence_runtime",
+        types.ModuleType("providence_runtime"),
     )
     real_import = builtins.__import__
 
     def _blocked_import(name: str, globals=None, locals=None, fromlist=(), level=0):
-        if name.startswith("sdd_core.governance.handshake"):
+        if name.startswith("providence_core.governance.handshake"):
             raise ImportError("blocked")
         return real_import(name, globals, locals, fromlist, level)
 
@@ -169,11 +169,11 @@ def test_emit_runtime_status_success_and_drift(
 ) -> None:
     root = _make_root(tmp_path)
     monkeypatch.setattr(
-        "sdd_cli.services.runtime_handler.compiled_active_dir",
+        "providence_cli.services.runtime_handler.compiled_active_dir",
         lambda root: root / ".sdd" / "compiled",
     )
     monkeypatch.setattr(
-        "sdd_cli.services.runtime_handler.resolve_compliance_events_path",
+        "providence_cli.services.runtime_handler.resolve_compliance_events_path",
         lambda workspace_root: workspace_root / "events.jsonl",
     )
     monkeypatch.setattr(
@@ -181,7 +181,7 @@ def test_emit_runtime_status_success_and_drift(
     )
     monkeypatch.setenv("SDD_AGENT_ID", "agent-1")
     monkeypatch.setenv("SDD_PATH_ID", "path-1")
-    _install_fake_sdd_runtime(monkeypatch, drift=True)
+    _install_fake_providence_runtime(monkeypatch, drift=True)
     drift = runtime_mod._emit_runtime_status(
         root=root,
         ahp_state="HEALTHY",
@@ -196,17 +196,17 @@ def test_emit_runtime_status_no_drift_and_generic_error(
 ) -> None:
     root = _make_root(tmp_path)
     monkeypatch.setattr(
-        "sdd_cli.services.runtime_handler.compiled_active_dir",
+        "providence_cli.services.runtime_handler.compiled_active_dir",
         lambda root: root / ".sdd" / "compiled",
     )
     monkeypatch.setattr(
-        "sdd_cli.services.runtime_handler.resolve_compliance_events_path",
+        "providence_cli.services.runtime_handler.resolve_compliance_events_path",
         lambda workspace_root: workspace_root / "events.jsonl",
     )
     monkeypatch.setattr(
         runtime_mod, "profile_active_path", lambda root: root / ".sdd" / "profile"
     )
-    _install_fake_sdd_runtime(monkeypatch, drift=False)
+    _install_fake_providence_runtime(monkeypatch, drift=False)
     assert runtime_mod._emit_runtime_status(
         root=root,
         ahp_state="PARTIAL",
@@ -220,17 +220,17 @@ def test_emit_runtime_status_filenotfound_and_exception(
 ) -> None:
     root = _make_root(tmp_path)
     monkeypatch.setattr(
-        "sdd_cli.services.runtime_handler.compiled_active_dir",
+        "providence_cli.services.runtime_handler.compiled_active_dir",
         lambda root: root / ".sdd" / "compiled-missing",
     )
     monkeypatch.setattr(
-        "sdd_cli.services.runtime_handler.resolve_compliance_events_path",
+        "providence_cli.services.runtime_handler.resolve_compliance_events_path",
         lambda workspace_root: workspace_root / "events.jsonl",
     )
     monkeypatch.setattr(
         runtime_mod, "profile_active_path", lambda root: root / ".sdd" / "profile"
     )
-    _install_fake_sdd_runtime(monkeypatch, raise_on_inject=True)
+    _install_fake_providence_runtime(monkeypatch, raise_on_inject=True)
     assert runtime_mod._emit_runtime_status(
         root=root,
         ahp_state="HEALTHY",

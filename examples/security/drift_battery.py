@@ -42,7 +42,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from sdd_runtime import CompiledArtifact, DriftDetector, SessionState
+from providence_runtime import CompiledArtifact, DriftDetector, SessionState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 METADATA_PATH = REPO_ROOT / ".sdd" / "metadata.json"
@@ -247,7 +247,7 @@ def print_delta(current: BatteryResult, previous: dict[str, Any]) -> None:
         print(
             f"[Battery] ARTIFACT CHANGED — {current.stale_drifted} stale sessions now drift."
         )
-        print("[Battery]   This is expected after sdd governance compile.")
+        print("[Battery]   This is expected after providence governance compile.")
         print(
             f"[Battery]   Drift rate increase: {delta_sign} — sessions need fingerprint refresh."
         )

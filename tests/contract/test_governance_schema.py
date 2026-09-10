@@ -17,7 +17,7 @@ from typing import Any, cast
 
 import pytest
 
-from sdd_cli.utils.sdd_authority import compiled_active_dir
+from providence_cli.utils.sdd_authority import compiled_active_dir
 from tests.helpers.text_io import read_text_utf8
 
 REPO_ROOT = Path(__file__).parent.parent.parent
@@ -72,7 +72,7 @@ def artifact() -> dict[str, Any]:
     if not artifact_path.exists():
         pytest.skip(
             f"Compiled artifact not found: {artifact_path}\n"
-            "Run: uv run sdd governance compile"
+            "Run: uv run providence governance compile"
         )
     return json.loads(read_text_utf8(artifact_path))  # type: ignore[no-any-return]
 
@@ -95,7 +95,7 @@ class TestGovernanceCoreSchema:
         """MUST: Compiled artifact is present and readable."""
         artifact_path = _artifact_path()
         assert artifact_path.exists(), (
-            f"Artifact missing: {artifact_path}\nRun: uv run sdd governance compile"
+            f"Artifact missing: {artifact_path}\nRun: uv run providence governance compile"
         )
 
     def test_top_level_structure(self, artifact: dict[str, Any]) -> None:
@@ -169,7 +169,7 @@ class TestGovernanceCoreSchema:
     @pytest.mark.slow
     def test_compilation_is_deterministic(self, artifact: dict[str, Any]) -> None:
         """MUST: Two consecutive compilations produce identical fingerprints."""
-        from sdd_core.governance_orchestrator import GovernanceOrchestrator
+        from providence_core.governance_orchestrator import GovernanceOrchestrator
 
         repo_root = Path(__file__).parent.parent.parent
         GovernanceOrchestrator(repo_root=str(repo_root)).run_full_pipeline()
@@ -257,7 +257,7 @@ def client_artifact() -> dict[str, Any]:
     if not artifact_path.exists():
         pytest.skip(
             f"Client artifact not found: {artifact_path}\n"
-            "Run: uv run sdd governance compile"
+            "Run: uv run providence governance compile"
         )
     return json.loads(read_text_utf8(artifact_path))  # type: ignore[no-any-return]
 
@@ -270,7 +270,7 @@ class TestGovernanceClientSchema:
         """MUST: Client artifact is present and readable."""
         artifact_path = _client_artifact_path()
         assert artifact_path.exists(), (
-            f"Artifact missing: {artifact_path}\nRun: uv run sdd governance compile"
+            f"Artifact missing: {artifact_path}\nRun: uv run providence governance compile"
         )
 
     def test_top_level_structure(self, client_artifact: dict[str, Any]) -> None:

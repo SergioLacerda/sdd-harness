@@ -6,7 +6,7 @@ Verification state: documented
 
 - A command works with `uv run sdd ...` but fails as plain `sdd ...`.
 - Local development appears to use an older CLI behavior.
-- A global `sdd-cli` install shadows the repository's `.venv` executable.
+- A global `providence-cli` install shadows the repository's `.venv` executable.
 - Bootstrap or setup commands fail with unexpected command-shape errors.
 
 ## Diagnosis
@@ -39,7 +39,7 @@ Verification state: documented
 2. If global shadowing keeps causing confusion, remove the global tool:
 
    ```bash
-   uv tool uninstall sdd-cli
+   uv tool uninstall providence-cli
    ```
 
 3. For client onboarding, install from a release wheelhouse or tag-pinned git URL.

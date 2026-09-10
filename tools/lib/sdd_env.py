@@ -6,7 +6,7 @@ from pathlib import Path
 def detect_repo_root() -> Path:
     """Detect the repository root directory."""
     try:
-        from sdd_core.utils.environment import detect_repo_root as _detect
+        from providence_core.utils.environment import detect_repo_root as _detect
 
         return _detect()
     except ImportError:
@@ -21,7 +21,7 @@ def detect_repo_root() -> Path:
 def get_sdd_paths() -> dict[str, Path]:
     """Get SDD-related directory paths."""
     try:
-        from sdd_core.utils.environment import get_sdd_paths as _get
+        from providence_core.utils.environment import get_sdd_paths as _get
 
         return _get()
     except ImportError:

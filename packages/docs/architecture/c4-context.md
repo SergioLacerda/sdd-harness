@@ -1,13 +1,13 @@
 # C4 Level 1 — System Context
 
-Who uses SDD Harness and what external systems does it interact with.
+Who uses Providence and what external systems does it interact with.
 
 ```mermaid
 graph TB
     humanDev["👤 Human Developer\n(defines specs, reviews AI proposals,\napproves governance changes)"]
     aiAgent["🤖 AI Agent\n(Claude / Cursor / VSCode Copilot)\n(executes governed tasks,\nrequests skills, submits proposals)"]
 
-    subgraph sddHarness["SDD Harness"]
+    subgraph sddHarness["Providence"]
         direction TB
         core["Governance Engine\n(compile specs → enforce at runtime)"]
     end
@@ -18,7 +18,7 @@ graph TB
 
     humanDev -->|"writes specs\ndocs/spec/canonical/"| sddHarness
     humanDev -->|"reviews & approves\nAI proposals"| sddHarness
-    aiAgent -->|"sdd ask / sdd run\nvia CLI or SDK"| sddHarness
+    aiAgent -->|"providence ask / sdd run\nvia CLI or SDK"| sddHarness
     sddHarness -->|"governance verdict\n(allow / block / escalate)"| aiAgent
     sddHarness -->|"compliance events\n(.sdd/runtime/compliance-events.jsonl)"| humanDev
     sddHarness <-->|"CI checks\n(lint, test, bandit, CodeQL)"| github

@@ -31,13 +31,13 @@ except ImportError:
 
 
 try:
-    from sdd_core.utils.process import SafeProcessRunner
+    from providence_core.utils.process import SafeProcessRunner
 except ImportError:
     _fallback_root = Path(__file__).resolve().parents[2]
-    _fallback_src = _fallback_root / "packages" / "core" / "sdd_core" / "src"
+    _fallback_src = _fallback_root / "packages" / "core" / "providence_core" / "src"
     if str(_fallback_src) not in sys.path:
         sys.path.insert(0, str(_fallback_src))
-    from sdd_core.utils.process import SafeProcessRunner
+    from providence_core.utils.process import SafeProcessRunner
 
 
 class GovernanceComplianceValidator:
@@ -47,9 +47,11 @@ class GovernanceComplianceValidator:
 
     def __init__(self, project_dir: Path | None = None) -> None:
         self.project_dir = Path(project_dir) if project_dir else detect_repo_root()
-        sdd_core_src = self.project_dir / "packages" / "core" / "sdd_core" / "src"
-        if str(sdd_core_src) not in sys.path:
-            sys.path.insert(0, str(sdd_core_src))
+        providence_core_src = (
+            self.project_dir / "packages" / "core" / "providence_core" / "src"
+        )
+        if str(providence_core_src) not in sys.path:
+            sys.path.insert(0, str(providence_core_src))
         self.paths = get_sdd_paths()
         self.integrity_requested: bool = False
 

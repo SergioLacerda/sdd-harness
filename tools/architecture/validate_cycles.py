@@ -15,12 +15,12 @@ import sys
 from pathlib import Path
 
 SDD_PREFIXES = (
-    "sdd_core",
-    "sdd_telemetry",
-    "sdd_integration",
-    "sdd_cli",
-    "sdd_wizard",
-    "sdd_runtime",
+    "providence_core",
+    "providence_telemetry",
+    "providence_integration",
+    "providence_cli",
+    "providence_wizard",
+    "providence_runtime",
 )
 
 SKIP_MARKERS = ("site-packages", ".venv", "__pycache__", ".egg", "tests")

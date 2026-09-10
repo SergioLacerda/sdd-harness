@@ -10,9 +10,9 @@ workspaces predating the `.sdd/` layout:
 
 | ID | Location | Legacy path | Canonical path |
 |----|----------|-------------|----------------|
-| L1 | `sdd_runtime/signatures.py` | `compiled/trusted-keys.json`, `compiled/audit/trusted-keys.json` | `.sdd/trust/trusted-keys.json` |
-| L2 | `sdd_core/governance/audit.py` | `generated/master/compiled/` | `.sdd/compiled/` |
-| L3 | `sdd_core/utils/loader.py` | `compiled/<filename>` | `compiled/audit/<filename>` |
+| L1 | `providence_runtime/signatures.py` | `compiled/trusted-keys.json`, `compiled/audit/trusted-keys.json` | `.sdd/trust/trusted-keys.json` |
+| L2 | `providence_core/governance/audit.py` | `generated/master/compiled/` | `.sdd/compiled/` |
+| L3 | `providence_core/utils/loader.py` | `compiled/<filename>` | `compiled/audit/<filename>` |
 
 These fallbacks were introduced to ease migration but have two failure modes:
 

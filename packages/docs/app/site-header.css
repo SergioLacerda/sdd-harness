@@ -1,4 +1,4 @@
-/* SDD Harness — shared dynamic site header
+/* Providence — shared dynamic site header
  * Mounted by site-header.js on Selector and Docs (MkDocs). The landing page
  * keeps its own React header unchanged; this module exists so those two
  * other static/MkDocs surfaces render the same visual language.

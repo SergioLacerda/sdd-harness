@@ -63,7 +63,7 @@ These files already exist in the wizard output. They are minimal redirectors:
 
 ```markdown
 # CLAUDE.md (example)
-This project is governed by SDD Harness.
+This project is governed by Providence.
 Start here: .sdd/agent-instructions.md
 ```
 
@@ -99,7 +99,7 @@ CLI      (low-level primitives)
 
 | Layer | Who uses it | What it does |
 |---|---|---|
-| CLI | humans, CI/CD, runtime | executes primitives (`sdd governance validate`) |
+| CLI | humans, CI/CD, runtime | executes primitives (`providence governance validate`) |
 | Command | agent (slash) | receives slash alias, delegates to skill |
 | Skill | agent | governs intent, protocol, budget — calls CLI as backend |
 
@@ -179,11 +179,11 @@ The 5 existing `.sdd/skills/` entries are the canonical test set for template va
 
 | Skill | Category | Risk | Allowed CLI |
 |---|---|---|---|
-| `compress-context` | economy | low | `sdd runtime status` |
-| `diagnose` | analysis | low | `sdd doctor run`, `sdd runtime status --force` |
-| `review-architecture` | architecture | high | `sdd governance score --verbose` |
-| `stabilize` | operations | medium | `sdd lint run`, `sdd test ci-validate` |
-| `validate-governance` | governance | medium | `sdd governance validate`, `sdd runtime status` |
+| `compress-context` | economy | low | `providence runtime status` |
+| `diagnose` | analysis | low | `providence doctor run`, `providence runtime status --force` |
+| `review-architecture` | architecture | high | `providence governance score --verbose` |
+| `stabilize` | operations | medium | `providence lint run`, `providence test ci-validate` |
+| `validate-governance` | governance | medium | `providence governance validate`, `providence runtime status` |
 
 All templates must render correctly for all 5 skills before the feature is considered done.
 
@@ -248,10 +248,10 @@ mode: agent
 
 ## Required behavior
 
-1. Run preflight: `sdd runtime status`
-2. Validate governance: `sdd governance validate`
+1. Run preflight: `providence runtime status`
+2. Validate governance: `providence governance validate`
 {% if skill.category in ["analysis", "governance"] %}
-3. For large inputs: `sdd organize "$QUERY"` before proceeding
+3. For large inputs: `providence organize "$QUERY"` before proceeding
 {% endif %}
 4. Execute: `{{ skill.cli_fallback[0] }}`
 5. Return `policy_result` and `next_actions`
@@ -328,7 +328,7 @@ Skills in the query/analysis family (`diagnose`, `validate-governance`, and Code
 
 ```
 If input or query is large (multi-file, multi-context):
-  → sdd organize "$QUERY"   (prepares indexed context)
+  → providence organize "$QUERY"   (prepares indexed context)
 Then proceed with the skill's primary CLI.
 ```
 
@@ -336,26 +336,26 @@ This formalizes existing ad-hoc behavior in `.codex/skills/sdd-ask.prompt.md` as
 
 ---
 
-## 9. New Python Package: `sdd_skills`
+## 9. New Python Package: `providence_skills`
 
-Extract `SkillEngine` from `packages/core/sdd_runtime/src/sdd_runtime/skills.py` into a dedicated package:
+Extract `SkillEngine` from `packages/core/providence_runtime/src/providence_runtime/skills.py` into a dedicated package:
 
 ```
-packages/features/sdd_skills/
-└── src/sdd_skills/
-    ├── engine.py      ← SkillEngine (moved from sdd_runtime)
+packages/features/providence_skills/
+└── src/providence_skills/
+    ├── engine.py      ← SkillEngine (moved from providence_runtime)
     └── loader.py      ← reads registry.json + skill.yaml
 ```
 
-**Why**: eliminates coupling between runtime (artifacts, context) and skill execution. `sdd_adapters` depends on `sdd_skills.loader` only, not on the full runtime.
+**Why**: eliminates coupling between runtime (artifacts, context) and skill execution. `providence_adapters` depends on `providence_skills.loader` only, not on the full runtime.
 
 ---
 
-## 10. New Python Package: `sdd_adapters`
+## 10. New Python Package: `providence_adapters`
 
 ```
-packages/features/sdd_adapters/
-└── src/sdd_adapters/
+packages/features/providence_adapters/
+└── src/providence_adapters/
     ├── adapter_generator.py    ← orchestrates generation per target
     ├── template_renderer.py    ← Jinja2 wrapper
     └── skill_loader.py         ← reads skills + commands registries
@@ -398,7 +398,7 @@ No new CLI command is created. Regeneration requires re-running the wizard.
 2. **Template contract**: each Jinja2 template renders without errors for all 5 skills
 3. **Integration**: run wizard full pipeline → verify adapter files appear in `generated/client/build/final-template/`
 4. **Synergy check**: verify no adapter file contains governance content (mandates, fingerprints) — adapters reference `.sdd/` only
-5. **Regression**: `sdd governance validate` + `sdd test run` green after changes
+5. **Regression**: `providence governance validate` + `providence test run` green after changes
 
 ---
 

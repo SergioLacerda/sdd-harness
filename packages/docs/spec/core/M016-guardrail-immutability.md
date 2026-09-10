@@ -113,6 +113,6 @@ The asymmetry is the key: a guardrail that got stronger is invisible (no inciden
 
 ## See Also
 
-- `packages/core/sdd_core/tests/execution/test_guardrail_code_review.py`
+- `packages/core/providence_core/tests/execution/test_guardrail_code_review.py`
 - `.sdd/source/mandates/mandates.md`
 - `.sdd/audit-trail/compliance-events.jsonl`

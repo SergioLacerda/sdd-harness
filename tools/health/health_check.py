@@ -17,9 +17,11 @@ class HealthCheckEngine:
     def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose
         self.project_root = self._find_project_root()
-        sdd_core_src = self.project_root / "packages" / "core" / "sdd_core" / "src"
-        if str(sdd_core_src) not in sys.path:
-            sys.path.insert(0, str(sdd_core_src))
+        providence_core_src = (
+            self.project_root / "packages" / "core" / "providence_core" / "src"
+        )
+        if str(providence_core_src) not in sys.path:
+            sys.path.insert(0, str(providence_core_src))
         self.results: dict[str, Any] = {
             "timestamp": datetime.now().isoformat(),
             "project_root": str(self.project_root),
@@ -58,7 +60,7 @@ class HealthCheckEngine:
 
     def check_git_status(self) -> tuple[bool, str]:
         try:
-            from sdd_core.utils.process import SafeProcessRunner
+            from providence_core.utils.process import SafeProcessRunner
 
             r = SafeProcessRunner().run(
                 ["git", "rev-parse", "--git-dir"],
@@ -96,10 +98,13 @@ class HealthCheckEngine:
     def check_sdd_compiled(self) -> tuple[bool, str]:
         compiled = self.project_root / ".sdd" / "compiled"
         if not compiled.is_dir():
-            return False, ".sdd/compiled/ not found — run: sdd governance compile"
+            return (
+                False,
+                ".sdd/compiled/ not found — run: providence governance compile",
+            )
         artifacts = list(compiled.glob("*.msgpack")) + list(compiled.glob("*.json"))
         if not artifacts:
-            return False, ".sdd/compiled/ is empty — run: sdd governance compile"
+            return False, ".sdd/compiled/ is empty — run: providence governance compile"
         return True, f".sdd/compiled/ has {len(artifacts)} artifact(s)"
 
     def check_venv(self) -> tuple[bool, str]:

@@ -23,9 +23,11 @@ class DiagnosticTestSuite:
     def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose
         self.project_root = self._find_project_root()
-        sdd_core_src = self.project_root / "packages" / "core" / "sdd_core" / "src"
-        if str(sdd_core_src) not in sys.path:
-            sys.path.insert(0, str(sdd_core_src))
+        providence_core_src = (
+            self.project_root / "packages" / "core" / "providence_core" / "src"
+        )
+        if str(providence_core_src) not in sys.path:
+            sys.path.insert(0, str(providence_core_src))
         self.results: dict[str, Any] = {
             "timestamp": datetime.now().isoformat(),
             "project_root": str(self.project_root),
@@ -105,7 +107,10 @@ class DiagnosticTestSuite:
     def _check_sdd_compiled(self) -> tuple[bool, str]:
         d = self.project_root / ".sdd" / "compiled"
         if not d.is_dir():
-            return False, ".sdd/compiled/ not initialized — run: sdd governance compile"
+            return (
+                False,
+                ".sdd/compiled/ not initialized — run: providence governance compile",
+            )
         artifacts = list(d.glob("*.msgpack")) + list(d.glob("*.json"))
         return True, f"{len(artifacts)} artifact(s) in .sdd/compiled/"
 
@@ -146,7 +151,7 @@ class DiagnosticTestSuite:
         return f.is_file(), (
             "CLAUDE.md found"
             if f.is_file()
-            else "CLAUDE.md missing — run: sdd governance generate"
+            else "CLAUDE.md missing — run: providence governance generate"
         )
 
     def _check_copilot_instructions(self) -> tuple[bool, str]:
@@ -154,7 +159,7 @@ class DiagnosticTestSuite:
         return f.is_file(), (
             "copilot-instructions.md found"
             if f.is_file()
-            else "Missing — run: sdd governance generate"
+            else "Missing — run: providence governance generate"
         )
 
     # ── Import tests ─────────────────────────────────────────────────────────
@@ -174,7 +179,7 @@ class DiagnosticTestSuite:
 
     def _check_git_status(self) -> tuple[bool, str]:
         try:
-            from sdd_core.utils.process import SafeProcessRunner
+            from providence_core.utils.process import SafeProcessRunner
 
             r = SafeProcessRunner().run(
                 ["git", "status"],
@@ -190,7 +195,7 @@ class DiagnosticTestSuite:
 
     def _check_git_main_branch(self) -> tuple[bool, str]:
         try:
-            from sdd_core.utils.process import SafeProcessRunner
+            from providence_core.utils.process import SafeProcessRunner
 
             r = SafeProcessRunner().run(
                 ["git", "branch", "--list", "main"],

@@ -1,6 +1,6 @@
 {
   "schema": "1.0",
-  "generated_by": "sdd-wizard",
+  "generated_by": "providence-wizard",
   "generated_at": "2026-07-06T21:28:50+00:00",
   "mandates": [
     {
@@ -36,7 +36,7 @@
       "summary_runtime": "Ensure every agent respects token budget zones and circuit-breaker thresholds to prevent context overflow, degraded output, and undetected budget breaches.",
       "requirements": null,
       "rationale": "Without enforced budget zones, agents silently overflow the context window, producing incomplete or hallucinated responses. Zone-based enforcement gives a graduated response: compression at YELLOW, explicit warning at RED, hard block at BREACH.",
-      "implementation_pattern": "- **Runtime module:** `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py`\n  - `TelemetrySink._maybe_emit_zone_event()` — zone detection and event emission\n  - `_ZONE_YELLOW_PCT = 70.0`, `_ZONE_RED_PCT = 90.0`, `_ZONE_BREACH_PCT = 100.0`\n- **Circuit breaker:** `packages/core/sdd_runtime/src/sdd_runtime/context.py`\n  - `RetryBudget` — retry ceiling enforcement\n- **Entropy scoring:** `packages/core/sdd_runtime/src/sdd_runtime/entropy.py`\n  - `EntropyScore.compute(retry_count, reflection_count, budget_utilization_pct)`",
+      "implementation_pattern": "- **Runtime module:** `packages/core/providence_runtime/src/providence_runtime/telemetry.py`\n  - `TelemetrySink._maybe_emit_zone_event()` — zone detection and event emission\n  - `_ZONE_YELLOW_PCT = 70.0`, `_ZONE_RED_PCT = 90.0`, `_ZONE_BREACH_PCT = 100.0`\n- **Circuit breaker:** `packages/core/providence_runtime/src/providence_runtime/context.py`\n  - `RetryBudget` — retry ceiling enforcement\n- **Entropy scoring:** `packages/core/providence_runtime/src/providence_runtime/entropy.py`\n  - `EntropyScore.compute(retry_count, reflection_count, budget_utilization_pct)`",
       "enforcement_steps": [
         "Verify current token budget zone before loading any additional context (GREEN < 70%, YELLOW 70–90%, RED > 90%, BREACH ≥ 100%)",
         "Apply compression before loading context when in YELLOW or RED zone",
@@ -59,7 +59,7 @@
       "summary_runtime": "Ensure 100% traceability of agentic decisions and governance compliance via structured telemetry and OpenTelemetry integration.",
       "requirements": null,
       "rationale": "Unrecorded governance decisions are a security risk. Telemetry provides the \"black box\" required to debug agent failures, audit compliance breaches, and optimize token economy efficiency across the entire ecosystem.",
-      "implementation_pattern": "- **Runtime module:** `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py`\n  - `RuntimeEvent` — standardized event envelope.\n  - `TelemetrySink` — collector and JSONL persistence.\n- **OTEL Bridge:** `packages/core/sdd_runtime/src/sdd_runtime/otel.py`\n  - `OtelBridge` — subclass for OTEL export.\n  - `OtlpHttpExporter` — OTLP-HTTP/JSON transport.",
+      "implementation_pattern": "- **Runtime module:** `packages/core/providence_runtime/src/providence_runtime/telemetry.py`\n  - `RuntimeEvent` — standardized event envelope.\n  - `TelemetrySink` — collector and JSONL persistence.\n- **OTEL Bridge:** `packages/core/providence_runtime/src/providence_runtime/otel.py`\n  - `OtelBridge` — subclass for OTEL export.\n  - `OtlpHttpExporter` — OTLP-HTTP/JSON transport.",
       "enforcement_steps": [
         "Confirm `runtime.session.start` event was emitted at agent initialization",
         "Confirm `governance.ask` event is emitted on every SDD context query",
@@ -69,7 +69,7 @@
         "Verify all governance metadata is mapped under the `sdd.*` OTEL attribute namespace"
       ],
       "validation": [
-        "Every `sdd ask` command generates at least one entry in `.sdd/compliance-events.jsonl` (written to the runtime state folder).",
+        "Every `providence ask` command generates at least one entry in `.sdd/compliance-events.jsonl` (written to the runtime state folder).",
         "Events contain a valid `artifact_fingerprint`.",
         "If an OTEL endpoint is configured, spans appear in the target observability platform with `sdd.*` attributes."
       ]

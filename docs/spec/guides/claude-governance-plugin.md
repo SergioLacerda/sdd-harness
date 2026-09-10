@@ -8,20 +8,20 @@ Claude Code's own real file conventions.
 
 This is a different mechanism from two pre-existing, unrelated Claude-specific
 integrations: the per-skill `AdapterGenerator` (writing `.claude/commands/*.md`
-from `.sdd/skills/`, wizard-integrated, SDD-branded), and the `sdd governance
+from `.sdd/skills/`, wizard-integrated, SDD-branded), and the `providence governance
 generate` wizard subsystem that produces this repository's own root `CLAUDE.md`.
 This projection is additive and does not touch either.
 
 ## What Soft/Standalone means
 
-- Works without SDD Harness, without network, without any runtime dependency in
+- Works without Providence, without network, without any runtime dependency in
   the consuming project.
 - Content is curated and generic — not parsed from this repository's own `.sdd/`
   governance sources — so it is reusable in any project, the same design choice
   `DevinPluginGenerator.generate_standalone()` and
   `CopilotStandaloneGenerator.generate_standalone()` already make. It never
   mentions "sdd" (verified by test).
-- Is never represented as equivalent to a connected, governed SDD Harness session.
+- Is never represented as equivalent to a connected, governed Providence session.
 
 ## Two scope decisions (see the mission ADR for full rationale)
 
@@ -45,7 +45,7 @@ sdd claude build
 Or from Python:
 
 ```python
-from sdd_adapters.claude import ClaudeStandaloneGenerator
+from providence_adapters.claude import ClaudeStandaloneGenerator
 
 ClaudeStandaloneGenerator().generate_standalone(output_dir=repo_root)
 ```

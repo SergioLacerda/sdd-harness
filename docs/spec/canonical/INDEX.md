@@ -62,4 +62,4 @@
 - **Live registry**: [.sdd/plugins/registry.yaml](../../../../.sdd/plugins/registry.yaml)
 
 ---
-**Note for Agents:** All mandates are strictly enforced via SHA-256 fingerprints compiled into the `.sdd/` control plane. Any modification to `core/meta/` requires running `sdd governance validate` to refresh the session signature.
+**Note for Agents:** All mandates are strictly enforced via SHA-256 fingerprints compiled into the `.sdd/` control plane. Any modification to `core/meta/` requires running `providence governance validate` to refresh the session signature.

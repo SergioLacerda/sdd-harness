@@ -1,4 +1,4 @@
-# SDD Harness — Examples
+# Providence — Examples
 
 Runnable demos showing SDD governance enforcement with popular agentic frameworks.
 
@@ -42,7 +42,7 @@ done
 
 # Drift accuracy battery (before/after a feature)
 uv run python examples/security/drift_battery.py --label "before-my-feature"
-# ... implement feature, sdd governance compile ...
+# ... implement feature, providence governance compile ...
 uv run python examples/security/drift_battery.py --label "after-my-feature"
 ```
 

@@ -9,7 +9,7 @@
 
 ## Context
 
-Path resolution across `sdd_core`, `sdd_runtime`, `sdd_cli`, and `sdd_compiler` was
+Path resolution across `providence_core`, `providence_runtime`, `providence_cli`, and `sdd_compiler` was
 ad-hoc: each module resolved workspace root, telemetry sinks, and keyring paths
 independently, with different fallback strategies and no shared contract. This caused
 tests to accidentally write to the real `.sdd/` tree, CI results to differ from local

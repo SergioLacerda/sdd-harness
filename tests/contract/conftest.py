@@ -2,10 +2,10 @@
 
 Recompiles governance artifacts before the contract test suite runs.
 This prevents stale-artifact failures when tests are invoked via
-'sdd test run', 'make check', or 'pytest tests/contract/' directly.
+'providence test run', 'make check', or 'pytest tests/contract/' directly.
 
 In CI, the bootstrap action already compiles and validates artifacts
-(sdd governance compile + sync). The fixture skips recompilation when
+(providence governance compile + sync). The fixture skips recompilation when
 valid artifacts are already present to avoid a redundant pipeline run
 that could fail due to env differences (e.g. missing .sdd/source/).
 """
@@ -21,7 +21,10 @@ from pathlib import Path
 
 import pytest
 
-from sdd_cli.utils.sdd_authority import compiled_active_dir, resolve_workspace_root
+from providence_cli.utils.sdd_authority import (
+    compiled_active_dir,
+    resolve_workspace_root,
+)
 
 _ITEM_ID_PATTERN = re.compile(r"^[A-Z]\d{2,3}$")
 
@@ -128,7 +131,7 @@ def _acquire_compile_lock(
 
 
 def _compile_fresh_governance(repo_root: Path, workspace_root: Path) -> None:
-    from sdd_core.governance_orchestrator import GovernanceOrchestrator
+    from providence_core.governance_orchestrator import GovernanceOrchestrator
 
     result = GovernanceOrchestrator(
         repo_root=str(repo_root),

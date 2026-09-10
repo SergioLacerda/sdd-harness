@@ -41,7 +41,7 @@ python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-a
 ```bash
 # Part 1: Get the spec_path from .spec.config
 $(grep spec_path .spec.config | cut -d' ' -f3)
-# Returns: ../sdd-harness (or your absolute path)
+# Returns: ../providence (or your absolute path)
 
 # Part 2: Run the script
 python [path-from-part-1]docs/spec/SCRIPTS/phase-0-agent-onboarding.py
@@ -53,11 +53,11 @@ python [path-from-part-1]docs/spec/SCRIPTS/phase-0-agent-onboarding.py
 If the command above doesn't work:
 
 ```bash
-# If sdd-harness is in sibling directory
-python ../sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
+# If providence is in sibling directory
+python ../providencedocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 
 # Or if you know the full path
-python /path/to/sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
+python /path/to/providencedocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 ---
@@ -69,7 +69,7 @@ The script will:
 1. **Verify Framework**
 
    ```
-   ✅ Found sdd-harness at: [path]
+   ✅ Found providence at: [path]
    ✅ CANONICAL/ structure verified
    ✅ Framework integrity check: PASS
    ```
@@ -189,7 +189,7 @@ python3 $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-
 ls -la .spec.config
 
 # If missing, copy it:
-cp ../sdd-harness/INTEGRATION/templates/.spec.config .
+cp ../providence/INTEGRATION/templates/.spec.config .
 
 # Then re-run validation
 python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-agent-onboarding.py
@@ -202,7 +202,7 @@ python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-a
 
 # Fix it:
 nano .spec.config
-# Edit: spec_path = ../sdd-harness
+# Edit: spec_path = ../providence
 
 # Then re-run validation
 python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-agent-onboarding.py
@@ -219,7 +219,7 @@ python $(grep spec_path .spec.config | cut -d' ' -f3)docs/spec/SCRIPTS/phase-0-a
 # 3. Answer best you can (doesn't block progress)
 
 # To try again later:
-python ../sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
+python ../providencedocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 ```
 
 ### Issue: Script Hangs or Never Completes
@@ -236,7 +236,7 @@ python ../sdd-harnessdocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 3. Run validation again
 
 # If still stuck, check:
-ls ../sdd-harnessdocs/spec/SCRIPTS/
+ls ../providencedocs/spec/SCRIPTS/
 # Should show: phase-0-agent-onboarding.py
 ```
 

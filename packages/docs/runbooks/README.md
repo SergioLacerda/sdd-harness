@@ -17,7 +17,7 @@ governance_source:
 
 # Runbooks
 
-Reusable operational procedures for SDD Harness maintainers and agents.
+Reusable operational procedures for Providence maintainers and agents.
 
 Runbooks are not the same as guides. `docs/guides/` contains tutorials,
 references, onboarding material, and topic guides. `docs/runbooks/` contains

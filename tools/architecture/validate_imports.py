@@ -24,11 +24,11 @@ FORBIDDEN: dict[str, set[str]] = {
 
 # Package prefixes that identify intra-project imports (underscore convention).
 SDD_PREFIXES = (
-    "sdd_core",
-    "sdd_telemetry",
-    "sdd_integration",
-    "sdd_cli",
-    "sdd_wizard",
+    "providence_core",
+    "providence_telemetry",
+    "providence_integration",
+    "providence_cli",
+    "providence_wizard",
 )
 
 ALLOWLIST_FILE = "tools/architecture/imports_allowlist.json"
@@ -62,11 +62,11 @@ def _target_layer(module: str) -> str | None:
     """Map a module name to its layer, or None if not an SDD module."""
     for prefix in SDD_PREFIXES:
         if module == prefix or module.startswith(prefix + "."):
-            if prefix in ("sdd_core", "sdd_telemetry"):
+            if prefix in ("providence_core", "providence_telemetry"):
                 return "core"
-            if prefix == "sdd_integration":
+            if prefix == "providence_integration":
                 return "features"
-            if prefix in ("sdd_cli", "sdd_wizard"):
+            if prefix in ("providence_cli", "providence_wizard"):
                 return "interfaces"
     return None
 

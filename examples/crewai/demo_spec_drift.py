@@ -15,7 +15,7 @@ import json
 import sys
 from pathlib import Path
 
-from sdd_runtime import DriftDetector
+from providence_runtime import DriftDetector
 
 try:
     from crewai import Agent, Crew, Task

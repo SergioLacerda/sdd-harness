@@ -31,8 +31,8 @@ PHASE 7: Checkpoint (document + deliver)
 ### Phase 0 — Initial state
 
 ```bash
-sdd runtime status --verbose   # Check workspace health
-sdd governance validate        # Confirm governance integrity
+providence runtime status --verbose   # Check workspace health
+providence governance validate        # Confirm governance integrity
 ```
 
 ### Phase 1 — Rules and mandates
@@ -49,17 +49,17 @@ It contains the mandate index with micro-descriptions and the **SELF-EVALUATION*
 ### Phase 5 — Implementation
 
 ```bash
-sdd test run          # Run tests on every significant change
-sdd lint run          # Lint before declaring done
+providence test run          # Run tests on every significant change
+providence lint run          # Lint before declaring done
 ```
 
 ### Phase 6 — Final validation
 
 ```bash
-sdd test run                    # Full suite
-sdd lint run                    # Static quality
-sdd governance validate         # Governance integrity
-sdd runtime status --verbose    # Final workspace state
+providence test run                    # Full suite
+providence lint run                    # Static quality
+providence governance validate         # Governance integrity
+providence runtime status --verbose    # Final workspace state
 ```
 
 ## Context management (LLM memory)

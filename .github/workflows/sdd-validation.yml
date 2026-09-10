@@ -39,7 +39,7 @@ jobs:
           enable-cache: true
 
       - name: Bootstrap SDD CLI
-        uses: ./.github/actions/bootstrap-sdd-cli
+        uses: ./.github/actions/bootstrap-providence-cli
 
       - name: Enforce CI command policy
         shell: bash
@@ -57,7 +57,7 @@ jobs:
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
           # Validate governance artifacts are properly structured
-          uv run python -m sdd_cli governance validate --skip-handshake
+          uv run python -m providence_cli governance validate --skip-handshake
 
           echo "✓ M001 Clean Architecture validated."
 
@@ -109,7 +109,7 @@ jobs:
 
           # Run compliance checks for token economy
           uv run pytest \
-            packages/core/sdd_runtime/tests/test_circuit_breaker.py \
+            packages/core/providence_runtime/tests/test_circuit_breaker.py \
             -v --tb=short -q
 
           echo "✓ M005 Token Economy Enforcement validated."

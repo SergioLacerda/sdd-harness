@@ -5,13 +5,13 @@ Generates a self-contained, distributable Devin plugin bundle from this reposito
 
 ## What Soft/Standalone means
 
-- Works without SDD Harness, without network, without any runtime Python/Go/Node dependency.
+- Works without Providence, without network, without any runtime Python/Go/Node dependency.
 - Reports `policy_source=embedded_snapshot` and `assurance=reduced` — both in `AGENTS.md`
   (always loaded) and via a `SessionStart` hook that injects the same disclosure into the
   agent's context at session start.
-- Is never represented as equivalent to a connected, Hard/Connected SDD Harness session.
+- Is never represented as equivalent to a connected, Hard/Connected Providence session.
 
-Hard/Connected mode (a live SDD Harness probe/handshake) is **not implemented**. It requires
+Hard/Connected mode (a live Providence probe/handshake) is **not implemented**. It requires
 a separate RFC — see `docs/spec/guides/RFC_PROCESS.md` — because it would introduce a new SDD
 external integration protocol.
 
@@ -26,7 +26,7 @@ sdd devin build
 Or from Python:
 
 ```python
-from sdd_adapters.devin import DevinPluginGenerator
+from providence_adapters.devin import DevinPluginGenerator
 
 DevinPluginGenerator().generate(output_dir=repo_root)
 # or: DevinPluginGenerator().generate(output_dir=repo_root, include_skills=False)
@@ -52,26 +52,26 @@ devin plugins install ./dist/devin-plugin
 |---|---|
 | `.devin-plugin/plugin.json` | Plugin manifest (name, version, license, skill paths) |
 | `AGENTS.md` | Always-on assurance/precedence disclosure + governance summary Tier A (index) |
-| `rules/sdd-harness-summary.md` | Governance summary Tier B (condensed detail), loaded contextually |
+| `rules/providence-summary.md` | Governance summary Tier B (condensed detail), loaded contextually |
 | `rules/sdd-soft-governance-behavior.md` | Curated, CLI-independent behavioral rules (git safety, escalation, mandate precedence) |
 | `skills/{name}/SKILL.md` | One per canonical SDD skill in `.sdd/skills/registry.json` — omitted entirely when built with `--no-skills` |
 | `hooks.json` + `hooks/session-start-assurance.sh` | Injects the Soft/Standalone disclosure into every session |
 | `metadata/provenance.json` | Plugin version, compiler version, source revision, embedded policy digest, embedded governance summary digest, soft governance ruleset version, profile |
 | `LICENSE` | Copied from the source project's root `LICENSE`, if present |
 
-## SDD Harness governance summary (mandates & guidelines)
+## Providence governance summary (mandates & guidelines)
 
-The plugin embeds a summary of SDD Harness itself — not just skills — so a session
+The plugin embeds a summary of Providence itself — not just skills — so a session
 using only the Soft/Standalone bundle (no governance skill, no live connection) still
 has a picture of the mandates and guidelines it operates under. This is a two-tier
 summary, kept deliberately separate from the skills digest:
 
-- **Tier A — index, always-on (`AGENTS.md`, "SDD Harness Summary" section):**
+- **Tier A — index, always-on (`AGENTS.md`, "Providence Summary" section):**
   governance fingerprint, workspace version, mandate count, and a plain list of
   mandate **IDs + titles only** — no descriptions, plus guideline **category names
   only** (one per `.sdd/source/guidelines/*.md` file). This is an index, not policy
   prose, so it stays small enough for content that's loaded every session.
-- **Tier B — condensed detail, contextual (`rules/sdd-harness-summary.md`):** one
+- **Tier B — condensed detail, contextual (`rules/providence-summary.md`):** one
   section per mandate and guideline category, with a condensed description **only
   when the canonical source has real content for it**. When a mandate's or
   guideline's canonical source is the placeholder `"No description available"`,
@@ -88,11 +88,11 @@ without a compensating benefit over the condensed Tier B.
 `AGENTS.md` also prints a coverage line — `Mandates with a source description: X/Y`
 — computed from the same parsed data, so the emptiness of Tier B (when the source
 has no descriptions) is visible at the always-on level, without opening
-`rules/sdd-harness-summary.md` to discover it.
+`rules/providence-summary.md` to discover it.
 
 **Staleness disclosure:** the governance summary has its own
 `embedded_governance_summary_digest` in `provenance.json`, printed in both `AGENTS.md`
-and `rules/sdd-harness-summary.md`. It is computed independently of
+and `rules/providence-summary.md`. It is computed independently of
 `embedded_policy_digest` (which stays skills-only) — changing skill content never
 changes the summary digest, and changing mandate/guideline content never changes the
 skills digest. Compare digests across two builds to tell which half of the embedded

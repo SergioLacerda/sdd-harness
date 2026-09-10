@@ -1,4 +1,4 @@
-"""Unit tests for `sdd init` command logic.
+"""Unit tests for `providence init` command logic.
 
 Tests call the init() Typer callback directly to bypass Typer's type registry,
 which does not support Literal[...] annotations in CliRunner.invoke().
@@ -12,19 +12,19 @@ from unittest.mock import MagicMock, patch
 import pytest
 import typer
 
-from sdd_cli.commands.init import init
+from providence_cli.commands.init import init
 
 pytestmark = pytest.mark.unit
 
 
 class TestInitCommand:
-    """sdd init creates .sdd/profile and handles edge cases."""
+    """providence init creates .sdd/profile and handles edge cases."""
 
     def test_creates_profile_in_clean_directory(self, tmp_path: Path) -> None:
         with (
-            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("providence_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_blocking_parent_workspace",
+                "providence_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -46,9 +46,9 @@ class TestInitCommand:
     def test_exits_1_if_already_initialized_without_force(self, tmp_path: Path) -> None:
         # Create profile first
         with (
-            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("providence_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_blocking_parent_workspace",
+                "providence_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -65,9 +65,9 @@ class TestInitCommand:
         # Second init without --force must exit 1
         with (
             pytest.raises(typer.Exit) as exc_info,
-            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("providence_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_blocking_parent_workspace",
+                "providence_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -85,9 +85,9 @@ class TestInitCommand:
 
     def test_force_overwrites_existing_profile(self, tmp_path: Path) -> None:
         with (
-            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("providence_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_blocking_parent_workspace",
+                "providence_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -116,9 +116,9 @@ class TestInitCommand:
 
     def test_default_name_equals_type(self, tmp_path: Path) -> None:
         with (
-            patch("sdd_cli.commands.init.Path.cwd", return_value=tmp_path),
+            patch("providence_cli.commands.init.Path.cwd", return_value=tmp_path),
             patch(
-                "sdd_cli.commands.init._find_blocking_parent_workspace",
+                "providence_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):
@@ -147,9 +147,9 @@ class TestInitCommand:
         )
         with (
             pytest.raises(typer.Exit) as exc_info,
-            patch("sdd_cli.commands.init.Path.cwd", return_value=child),
+            patch("providence_cli.commands.init.Path.cwd", return_value=child),
             patch(
-                "sdd_cli.commands.init._find_blocking_parent_workspace",
+                "providence_cli.commands.init._find_blocking_parent_workspace",
                 return_value=parent_root,
             ),
         ):
@@ -175,9 +175,9 @@ class TestInitCommand:
         child = parent_root / "child"
         (parent_root / ".sdd" / "bin").mkdir(parents=True)
         with (
-            patch("sdd_cli.commands.init.Path.cwd", return_value=child),
+            patch("providence_cli.commands.init.Path.cwd", return_value=child),
             patch(
-                "sdd_cli.commands.init._find_blocking_parent_workspace",
+                "providence_cli.commands.init._find_blocking_parent_workspace",
                 return_value=None,
             ),
         ):

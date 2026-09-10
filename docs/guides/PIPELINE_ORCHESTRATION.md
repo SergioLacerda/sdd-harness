@@ -14,7 +14,7 @@ The current orchestration contract applies to:
 - `sdd-converge`
 
 The implementation lives primarily in
-`packages/core/sdd_runtime/src/sdd_runtime/_skill_executor.py`.
+`packages/core/providence_runtime/src/providence_runtime/_skill_executor.py`.
 
 ## Execution Model
 

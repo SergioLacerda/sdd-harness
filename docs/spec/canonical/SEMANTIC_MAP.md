@@ -17,7 +17,7 @@ graph TD
         C -- produces --> D1[".sdd/compiled/ (Framework Core / Active Project)"]
     end
     subgraph "3. Runtime (Enforcement)"
-        E[sdd-core Loader] -- loads --> D1
+        E[providence-core Loader] -- loads --> D1
         E -- seeds --> F[Agent Context]
     end
     subgraph "4. Reality (Workspace)"
@@ -29,12 +29,12 @@ graph TD
 
 | Topic | Primary Documentation (Truth) | Core Implementation (Enforcement) |
 | :--- | :--- | :--- |
-| **Architectural Rules** | [core/mandates/INDEX.md](./core/mandates/INDEX.md) | `packages/core/sdd_core` |
+| **Architectural Rules** | [core/mandates/INDEX.md](./core/mandates/INDEX.md) | `packages/core/providence_core` |
 | **Code Generation** | [features/CUSTOMIZATION_GOVERNANCE.md](./features/CUSTOMIZATION_GOVERNANCE.md) | `packages/core/sdd_compiler` |
-| **Pipeline & Setup** | [specifications/testing.md](./specifications/testing.md) | `packages/features/sdd_integration` |
-| **CLI & Tools** | [specifications/security-model.md](./specifications/security-model.md) | `packages/interfaces/sdd_cli` |
-| **Wizard & Onboarding** | [guides/onboarding/README.md](../guides/onboarding/README.md) | `packages/interfaces/sdd_wizard` |
-| **Token Economy** | [core/economy/INDEX.md](./core/economy/INDEX.md) | `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py` |
+| **Pipeline & Setup** | [specifications/testing.md](./specifications/testing.md) | `packages/features/providence_integration` |
+| **CLI & Tools** | [specifications/security-model.md](./specifications/security-model.md) | `packages/interfaces/providence_cli` |
+| **Wizard & Onboarding** | [guides/onboarding/README.md](../guides/onboarding/README.md) | `packages/interfaces/providence_wizard` |
+| **Token Economy** | [core/economy/INDEX.md](./core/economy/INDEX.md) | `packages/core/providence_runtime/src/providence_runtime/telemetry.py` |
 
 ## 🏗️ Layered Logic Map
 
@@ -70,8 +70,8 @@ To ensure portability and single source of truth, all operational governance sta
 ## 🧭 Deep Navigation Tips for Agents
 
 1. **Context Loading**: When starting a task, first read `docs/spec/canonical/INDEX.md` for a high-level view, then jump to the specific `.md` file in `specifications/` related to the task.
-2. **Cross-Reference**: If a documentation file mentions a "Phase", refer to `packages/interfaces/sdd_wizard/orchestration/` to see the actual logic of that phase.
-3. **Governance Refresh**: If you modify the core specification, you MUST run `sdd governance validate` and then `sdd doctor run` to ensure the system hasn't drifted.
+2. **Cross-Reference**: If a documentation file mentions a "Phase", refer to `packages/interfaces/providence_wizard/orchestration/` to see the actual logic of that phase.
+3. **Governance Refresh**: If you modify the core specification, you MUST run `providence governance validate` and then `providence doctor run` to ensure the system hasn't drifted.
 4. **Truth Source**: Always trust the `.spec` and `.dsl` files over the compiled `.bin` artifacts if there is a discrepancy (as artifacts are just optimized derivatives).
 
 ## 📚 Historical Context (The Archive)

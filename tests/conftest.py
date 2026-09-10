@@ -131,7 +131,7 @@ def _canonical_compiled_valid() -> bool:
     """
     import json as _json
 
-    from sdd_cli.utils.sdd_authority import compiled_active_dir
+    from providence_cli.utils.sdd_authority import compiled_active_dir
 
     compiled_dir = compiled_active_dir()
     canonical = compiled_dir / "governance-core.json"
@@ -198,7 +198,7 @@ def _sync_compiled_dirs(master_compiled: Path, client_compiled: Path) -> None:
 
 
 def _ensure_test_workspace() -> Path:
-    from sdd_core.utils.environment import write_profile
+    from providence_core.utils.environment import write_profile
 
     os.environ["SDD_WORKSPACE_ROOT"] = str(_TEST_WORKSPACE_ROOT)
     os.environ["SDD_TEST_ISOLATED_WORKSPACE"] = "1"
@@ -210,8 +210,8 @@ def _ensure_test_workspace() -> Path:
 def _bootstrap_governance(
     repo_root: Path, workspace_root: Path, paths: dict[str, Path]
 ) -> None:
-    from sdd_core.deployment_manager import DeploymentManager
-    from sdd_core.governance_orchestrator import GovernanceOrchestrator
+    from providence_core.deployment_manager import DeploymentManager
+    from providence_core.governance_orchestrator import GovernanceOrchestrator
 
     orchestrator = GovernanceOrchestrator(
         repo_root=str(repo_root),
@@ -254,7 +254,7 @@ def pytest_sessionstart(session: object) -> None:  # noqa: ARG001
         )
     workspace_root = _ensure_test_workspace()
 
-    from sdd_core.utils.environment import get_sdd_paths
+    from providence_core.utils.environment import get_sdd_paths
 
     paths = get_sdd_paths(repo_root=root, workspace_root=workspace_root)
     required = [
@@ -268,7 +268,7 @@ def pytest_sessionstart(session: object) -> None:  # noqa: ARG001
     global _SDD_SNAPSHOT_START
 
     if _canonical_compiled_valid() or _governance_artifacts_valid(paths):
-        # .sdd/compiled/ populated by `sdd governance compile` (CI bootstrap path),
+        # .sdd/compiled/ populated by `providence governance compile` (CI bootstrap path),
         # or legacy generated/ artifacts present — skip rebuild.
         _SDD_SNAPSHOT_START = _snapshot_repo_sdd_tree()
         return

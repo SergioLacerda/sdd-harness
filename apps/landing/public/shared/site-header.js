@@ -1,8 +1,8 @@
-/* SDD Harness — shared dynamic site header
+/* Providence — shared dynamic site header
  * Canonical source. Served as-is by Astro at /shared/site-header.js.
  * Selector ships a synced copy at
- * packages/interfaces/sdd_wizard/src/sdd_wizard/templates/selector/site-header.js
- * (sdd_wizard is packaged independently via importlib.resources, so it
+ * packages/interfaces/providence_wizard/src/providence_wizard/templates/selector/site-header.js
+ * (providence_wizard is packaged independently via importlib.resources, so it
  * cannot reach across to apps/landing at build time — keep both in sync
  * manually when editing). MkDocs references this file via extra_javascript.
  *

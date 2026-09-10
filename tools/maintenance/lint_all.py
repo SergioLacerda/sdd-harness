@@ -19,7 +19,7 @@ if sys.platform == "win32":
 
 # Repo root is two levels up from tools/maintenance/
 REPO_ROOT = Path(__file__).resolve().parents[2]
-_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "sdd_core" / "src"
+_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "providence_core" / "src"
 if str(_SDD_CORE_SRC) not in sys.path:
     sys.path.insert(0, str(_SDD_CORE_SRC))
 
@@ -34,7 +34,7 @@ LINT_LAYERS = [
 
 def run_step(name: str, cmd: list[str]) -> bool:
     """Run a linting step and return True if successful."""
-    from sdd_core.utils.process import SafeProcessRunner
+    from providence_core.utils.process import SafeProcessRunner
 
     print(f"\n--- {name} ---")
     result = SafeProcessRunner().run(cmd, cwd=REPO_ROOT, capture_output=False)

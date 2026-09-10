@@ -365,7 +365,7 @@ export const INSTALL_CONTENT: Record<Lang, InstallCopy> = {
   pt: {
     eyebrow: 'instalação',
     title: 'Guia de instalação',
-    intro: 'Instale o sdd-cli a partir de um release publicado e rode o wizard interativo no repositório-alvo.',
+    intro: 'Instale o providence-cli a partir de um release publicado e rode o wizard interativo no repositório-alvo.',
     step1Title: 'Obter o CLI', step1Num: 'passo 1',
     step2Title: 'Configurar a governança', step2Num: 'passo 2',
     step2Intro: 'No repositório-alvo, invoque o wizard:',
@@ -374,7 +374,7 @@ export const INSTALL_CONTENT: Record<Lang, InstallCopy> = {
   en: {
     eyebrow: 'installation',
     title: 'Install guide',
-    intro: 'Install sdd-cli from a published release and run the interactive wizard in your target repository.',
+    intro: 'Install providence-cli from a published release and run the interactive wizard in your target repository.',
     step1Title: 'Get the CLI', step1Num: 'step 1',
     step2Title: 'Configure governance', step2Num: 'step 2',
     step2Intro: 'In your target repository, run the wizard:',

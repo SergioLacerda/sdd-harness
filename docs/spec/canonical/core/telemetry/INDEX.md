@@ -65,6 +65,6 @@ When OpenTelemetry export is active, agents MUST provide valid `trace_id` and `s
 
 ## ⚙️ Runtime Binding
 
-- **Source**: `packages/core/sdd_runtime/src/sdd_runtime/telemetry.py`
-- **OTEL Bridge**: `packages/core/sdd_runtime/src/sdd_runtime/otel.py`
+- **Source**: `packages/core/providence_runtime/src/providence_runtime/telemetry.py`
+- **OTEL Bridge**: `packages/core/providence_runtime/src/providence_runtime/otel.py`
 - **Default Sink Path**: `.sdd/audit-trail/compliance-events.jsonl`

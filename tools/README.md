@@ -180,10 +180,10 @@ make lint-fix
 To comply with the "Human-in-the-loop" mandate (P003), governance changes must be signed with an Ed25519 key:
 ```bash
 # 1. Generate your auditor key (one-time)
-sdd governance keygen --key-id human-sergio
+providence governance keygen --key-id human-sergio
 
 # 2. Sign the source governance configuration
-sdd governance sign --source --key-id human-sergio
+providence governance sign --source --key-id human-sergio
 ```
 
 ---

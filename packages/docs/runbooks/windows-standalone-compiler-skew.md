@@ -4,7 +4,7 @@ Verification state: documented
 
 ## Symptoms
 
-- `sdd init --default` fails on Windows during governance generation.
+- `providence init --default` fails on Windows during governance generation.
 - Validation reports `core_fingerprint_valid: invalid core fingerprint: empty`.
 - Generated metadata lacks a valid `fingerprint`.
 - The CLI and `sdd-compile.exe` appear to use different artifact schemas.
@@ -14,7 +14,7 @@ Verification state: documented
 1. Run the read-only compiler diagnostic first:
 
    ```powershell
-   sdd doctor compiler
+   providence doctor compiler
    ```
 
 2. Inspect generated metadata:
@@ -39,7 +39,7 @@ Verification state: documented
 
    ```powershell
    Remove-Item -Recurse -Force "$env:USERPROFILE\.sdd\bin"
-   sdd governance generate --verbose
+   providence governance generate --verbose
    ```
 
 2. Prefer a release wheelhouse install when possible.
@@ -47,14 +47,14 @@ Verification state: documented
 
    ```powershell
    $env:SDD_COMPILE_BIN = "C:\path\to\sdd-compile-windows-amd64.exe"
-   sdd governance generate --verbose
+   providence governance generate --verbose
    ```
 
 4. Re-run:
 
    ```powershell
-   sdd governance validate
-   sdd runtime status
+   providence governance validate
+   providence runtime status
    ```
 
 ## Rollback
@@ -65,16 +65,16 @@ Verification state: documented
 
 ## Post-Incident
 
-- Attach `sdd doctor compiler` output to the support issue.
+- Attach `providence doctor compiler` output to the support issue.
 - Update release notes if a new version-skew class is confirmed.
 
 ## Evidence To Attach
 
-- `sdd doctor compiler` JSON
+- `providence doctor compiler` JSON
 - `metadata-core.json`
 - compiler version
 - installed CLI version
-- `sdd governance generate --verbose` output
+- `providence governance generate --verbose` output
 
 ## Sources
 

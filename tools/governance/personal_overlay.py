@@ -93,7 +93,7 @@ def _load_skills_from_registry(
     project_root: Path,
     registry_path: Path,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
-    """Load governed skills from the .sdd skills registry. Returns (skills, drift_events)."""
+    """Load governed skills from the .providence skills registry. Returns (skills, drift_events)."""
     skills: list[dict[str, Any]] = []
     drift: list[dict[str, str]] = []
     registry, err = _load_json(registry_path)

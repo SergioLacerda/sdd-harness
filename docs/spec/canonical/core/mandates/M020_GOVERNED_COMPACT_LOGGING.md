@@ -65,4 +65,4 @@ for audit.
 - M005: Token Economy Enforcement (compact IO reduces token usage)
 - M007: Telemetry Enforcement (DEBUG/TRACE structured JSON routing)
 - M011: English Language Standard (all canonical IO types and tests in English)
-- `packages/core/sdd_core/src/sdd_core/output/canonical_event.py` (`CanonicalLogEvent`, `CanonicalGovernanceInput`, `ProfileRenderer`)
+- `packages/core/providence_core/src/providence_core/output/canonical_event.py` (`CanonicalLogEvent`, `CanonicalGovernanceInput`, `ProfileRenderer`)

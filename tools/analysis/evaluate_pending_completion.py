@@ -24,10 +24,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from sdd_core.utils.text_io import read_text_utf8, write_text_utf8
+from providence_core.utils.text_io import read_text_utf8, write_text_utf8
 
 # Configuração
-ANALYSIS_DIR = Path("/home/sergio/dev/sdd-harness/.analysis")
+ANALYSIS_DIR = Path("/home/sergio/dev/providence/.analysis")
 PENDING_DIR = ANALYSIS_DIR / "pending"
 DONE_DIR = ANALYSIS_DIR / "done"
 WORKFLOW_LOG = ANALYSIS_DIR / ".completion_audit.log"

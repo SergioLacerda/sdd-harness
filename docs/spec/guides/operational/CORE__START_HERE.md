@@ -181,7 +181,7 @@ PHASE 7: Checkpoint (5-10 min)
 Before continuing, confirm:
 
 - ✅ You have `.spec.config` in project root
-- ✅ It points to sdd-harness (check: `cat .spec.config`)
+- ✅ It points to providence (check: `cat .spec.config`)
 - ✅ You have `.sdd/runtime/` directory
 - ✅ PHASE 0 has been run (creates `.sdd/` infrastructure)
 

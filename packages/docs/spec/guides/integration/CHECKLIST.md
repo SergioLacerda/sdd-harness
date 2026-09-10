@@ -90,8 +90,8 @@ ls -la | grep "^\."
 **Goal:** Copy SDD template files to your project
 
 ```bash
-# From sdd-harness root:
-cd /path/to/sdd-harness
+# From providence root:
+cd /path/to/providence
 
 # Copy all templates
 cp -r INTEGRATION/templates/* /path/to/your-project/
@@ -124,7 +124,7 @@ cat .spec.config | head -5
 
 ## ✅ Step 3: Configure .spec.config
 
-**Goal:** Point to sdd-harness (2 lines to edit!)
+**Goal:** Point to providence (2 lines to edit!)
 
 ```bash
 cd /path/to/your-project
@@ -133,7 +133,7 @@ cd /path/to/your-project
 nano .spec.config  # or your favorite editor
 
 # Edit lines:
-# Line 2: spec_path = ../sdd-harness
+# Line 2: spec_path = ../providence
 #         (or absolute path if not sibling directory)
 ```
 
@@ -141,15 +141,15 @@ nano .spec.config  # or your favorite editor
 
 ```ini
 [spec]
-spec_path = ../sdd-harness
-# spec_path = /home/sergio/dev/sdd-harness  # alternative: absolute path
+spec_path = ../providence
+# spec_path = /home/sergio/dev/providence  # alternative: absolute path
 ```
 
 **Verify:**
 
 ```bash
 cat .spec.config | grep spec_path
-# Should show: spec_path = ../sdd-harness
+# Should show: spec_path = ../providence
 ```
 
 **Stuck?** → See [STEP_3.md](./STEP_3.md)
@@ -235,7 +235,7 @@ git status
 
 After all 5 steps:
 
-- ✅ `.spec.config` points to sdd-harness
+- ✅ `.spec.config` points to providence
 - ✅ All SDD templates are in place
 - ✅ `.sdd/` infrastructure created
 - ✅ Changes committed to git

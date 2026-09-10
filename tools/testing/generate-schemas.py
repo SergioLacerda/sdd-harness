@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "sdd_core" / "src"
+_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "providence_core" / "src"
 if str(_SDD_CORE_SRC) not in sys.path:
     sys.path.insert(0, str(_SDD_CORE_SRC))
 

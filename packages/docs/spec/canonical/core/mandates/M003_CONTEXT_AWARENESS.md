@@ -62,7 +62,7 @@ The cache must contain:
 
 ## Skill-Oriented Reinforcement (Normative)
 
-- [ ] When a capability-oriented skill exists for the task, agents SHOULD prefer `sdd skills run <skill>` over ad-hoc command guessing.
+- [ ] When a capability-oriented skill exists for the task, agents SHOULD prefer `providence skills run <skill>` over ad-hoc command guessing.
 - [ ] If no suitable skill exists, agents MAY fall back to low-level CLI primitives with explicit context synchronization first.
 - [ ] The selected execution mode (skill or primitive fallback) MUST be recorded in session context for downstream auditability.
 

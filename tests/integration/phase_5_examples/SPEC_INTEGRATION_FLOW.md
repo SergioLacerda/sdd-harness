@@ -52,7 +52,7 @@ All 5 directories exist and are accessible
 Templates exist in framework and can be located
 
 ### Requirements:
-Verify these files exist in `packages/features/sdd_integration/src/sdd_integration/templates/`:
+Verify these files exist in `packages/features/providence_integration/src/providence_integration/templates/`:
 - [ ] `.spec.config`
 - [ ] `.github/copilot-instructions.md`
 - [ ] `.vscode/ai-rules.md`
@@ -84,7 +84,7 @@ All 7 template files found and readable
 ### Requirements:
 - [ ] Create `.spec.config` file in test project
 - [ ] Write: `[spec]` section
-- [ ] Write: `spec_path = ../sdd-harness` (or appropriate path)
+- [ ] Write: `spec_path = ../providence` (or appropriate path)
 - [ ] File is readable
 
 ### Success criteria:

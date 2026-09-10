@@ -47,7 +47,7 @@ SPEC (framework-agnostic)
 ### Python (Reference Implementation)
 
 ```bash
-cd /home/sergio/dev/sdd-harness
+cd /home/sergio/dev/providence
 
 # Run INTEGRATION test
 python3 tests/integration/phase_5_examples/examples/python/example_integration_flow.py
@@ -59,7 +59,7 @@ python3 tests/integration/phase_5_examples/examples/python/example_execution_flo
 ### JavaScript/Node.js
 
 ```bash
-cd /home/sergio/dev/sdd-harness
+cd /home/sergio/dev/providence
 
 # Make sure Node.js 14+ is installed
 node --version
@@ -74,7 +74,7 @@ node tests/integration/phase_5_examples/examples/javascript/test-execution-flow.
 ### Bash/Shell
 
 ```bash
-cd /home/sergio/dev/sdd-harness
+cd /home/sergio/dev/providence
 
 # Make scripts executable
 chmod +x tests/integration/phase_5_examples/examples/bash/*.sh
@@ -89,7 +89,7 @@ bash tests/integration/phase_5_examples/examples/bash/test-execution-flow.sh
 ### Go (Coming Soon)
 
 ```bash
-cd /home/sergio/dev/sdd-harness
+cd /home/sergio/dev/providence
 
 # Run INTEGRATION test
 go run tests/integration/phase_5_examples/examples/go/test_integration_flow.go

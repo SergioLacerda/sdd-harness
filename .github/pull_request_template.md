@@ -28,7 +28,7 @@ test file touched in the same diff.
 
 ### Health & Compliance
 
-- [ ] `uv run python -m sdd_cli governance validate --skip-handshake` passes
+- [ ] `uv run python -m providence_cli governance validate --skip-handshake` passes
 - [ ] No governance violations or mandate breaks
 
 ### Code Quality

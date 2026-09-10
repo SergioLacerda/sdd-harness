@@ -1,6 +1,6 @@
-"""RuntimeAnalyzer: guardrails analyzer for the sdd_runtime package.
+"""RuntimeAnalyzer: guardrails analyzer for the providence_runtime package.
 
-Migrated from the standalone `tools/analysis/analyze_sdd_runtime.py` script
+Migrated from the standalone `tools/analysis/analyze_providence_runtime.py` script
 onto the guardrails core framework (see
 `.analysis/pending/guardrails-framework-design.md`, Phase 2).
 """
@@ -13,7 +13,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from sdd_core.utils.text_io import write_json_utf8, write_text_utf8
+from providence_core.utils.text_io import write_json_utf8, write_text_utf8
 from tools.guardrails.core.analyzer import GuardrailAnalyzer
 from tools.guardrails.core.config import AnalysisConfig
 from tools.guardrails.core.dimension import AnalysisDimension
@@ -29,7 +29,7 @@ try:
     from tools.lib.sdd_env import detect_repo_root
 except ImportError:
     try:
-        from sdd_core.utils.environment import detect_repo_root
+        from providence_core.utils.environment import detect_repo_root
     except ImportError:
 
         def detect_repo_root() -> Path:
@@ -78,7 +78,7 @@ def find_circular_deps(
             modules = [imp.module]
 
         for mod in modules:
-            if "sdd_runtime" in mod and mod != f"sdd_runtime.{file_name}":
+            if "providence_runtime" in mod and mod != f"providence_runtime.{file_name}":
                 circular.append(mod)
 
     return circular
@@ -272,7 +272,7 @@ def _standardization_reporter(result: DimensionResult, template: ReportTemplate)
 
 
 class RuntimeAnalyzer(GuardrailAnalyzer):
-    """Analyzes the sdd_runtime package across three quality dimensions."""
+    """Analyzes the providence_runtime package across three quality dimensions."""
 
     def __init__(
         self,
@@ -285,9 +285,9 @@ class RuntimeAnalyzer(GuardrailAnalyzer):
             detect_repo_root()
             / "packages"
             / "core"
-            / "sdd_runtime"
+            / "providence_runtime"
             / "src"
-            / "sdd_runtime"
+            / "providence_runtime"
         )
         super().__init__(config, output_dir)
 
@@ -295,7 +295,7 @@ class RuntimeAnalyzer(GuardrailAnalyzer):
         return self._target_dir
 
     def get_analysis_name(self) -> str:
-        return "sdd_runtime"
+        return "providence_runtime"
 
     def get_dimensions(self) -> list[AnalysisDimension]:
         return [

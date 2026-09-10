@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from sdd_cli.services.onboarding import OnboardingOrchestrator
+from providence_cli.services.onboarding import OnboardingOrchestrator
 
 pytestmark = pytest.mark.integration
 

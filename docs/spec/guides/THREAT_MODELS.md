@@ -2,7 +2,7 @@
 
 **Status:** Complete (2026-05-11)
 
-**Overview:** Systematic threat analysis using STRIDE methodology for all 7 core packages in the sdd-harness system.
+**Overview:** Systematic threat analysis using STRIDE methodology for all 7 core packages in the providence system.
 
 ---
 
@@ -28,7 +28,7 @@ Each threat model follows this structure:
 
 ---
 
-## sdd_core — Centralized Environment & Contracts
+## providence_core — Centralized Environment & Contracts
 
 ### Trust Boundary
 
@@ -170,7 +170,7 @@ Mitigation: Validate compile state structure; use deterministic hash comparison
 
 ---
 
-## sdd_runtime — Context Loading & Budget Enforcement
+## providence_runtime — Context Loading & Budget Enforcement
 
 ### Trust Boundary
 
@@ -246,7 +246,7 @@ Mitigation: TTL = 5min; cache key is deterministic (no collisions); cache evicti
 
 ---
 
-## sdd_telemetry — Event Logging & Token Tracking
+## providence_telemetry — Event Logging & Token Tracking
 
 ### Trust Boundary
 
@@ -323,7 +323,7 @@ Mitigation: Use append-only semantics; file permissions prevent owner modificati
 
 ---
 
-## sdd_integration — Artifact Validation & Deployment
+## providence_integration — Artifact Validation & Deployment
 
 ### Trust Boundary
 
@@ -401,7 +401,7 @@ Mitigation: Atomic operations (rename); backup to separate directory; manifest l
 
 ---
 
-## sdd_cli — User Input Handling & Command Execution
+## providence_cli — User Input Handling & Command Execution
 
 ### Trust Boundary
 
@@ -450,7 +450,7 @@ Mitigation: Whitelist profile values; reject unknown values
 
 ```
 Attacker creates symlink: /home/user/project/.sdd -> /etc/sensitive-data
-User runs sdd ask from project directory
+User runs providence ask from project directory
 CLI loads wrong governance
 Mitigation: Validate symlink destination; reject if outside workspace bounds
 ```
@@ -478,7 +478,7 @@ Mitigation: Rich auto-escapes terminal output; --json uses json.dumps() (safe)
 
 ---
 
-## sdd_wizard — Artifact Loading & State Persistence
+## providence_wizard — Artifact Loading & State Persistence
 
 ### Trust Boundary
 
@@ -559,11 +559,11 @@ Mitigation: Error handling; display "Artifact corrupted, rebuild with sdd compil
 
 ### Scenario 1: Supply Chain Compromise
 
-**Attack:** Attacker compromises the sdd-harness GitHub account or PyPI account.
+**Attack:** Attacker compromises the providence GitHub account or PyPI account.
 
 **Threat Path:**
 
-1. Attacker publishes poisoned wheel (sdd-core 1.0.1) to PyPI
+1. Attacker publishes poisoned wheel (providence-core 1.0.1) to PyPI
 2. Users install poisoned version
 3. Poisoned code loads artifacts from attacker's server instead of local
 4. Attacker gains visibility into all governance contexts
@@ -586,7 +586,7 @@ Mitigation: Error handling; display "Artifact corrupted, rebuild with sdd compil
 
 **Threat Path:**
 
-1. User runs `pip install sdd-core==1.0.0`
+1. User runs `pip install providence-core==1.0.0`
 2. Attacker performs MITM attack, serves poisoned wheel
 3. Poisoned code is installed and executed
 
@@ -606,8 +606,8 @@ Mitigation: Error handling; display "Artifact corrupted, rebuild with sdd compil
 
 **Threat Path:**
 
-1. System running sdd-core 1.0.0, sdd-runtime 0.1.0 (unsynced versions)
-2. User upgrades only sdd-core to 1.0.1
+1. System running providence-core 1.0.0, providence-runtime 0.1.0 (unsynced versions)
+2. User upgrades only providence-core to 1.0.1
 3. New version has incompatible artifact format
 4. Runtime fails to load artifact; system degraded
 
@@ -649,13 +649,13 @@ Mitigation: Error handling; display "Artifact corrupted, rebuild with sdd compil
 
 | Component | Next Review | Owner |
 |-----------|-------------|-------|
-| sdd_core | 2026-11-11 | @SergioLacerda |
+| providence_core | 2026-11-11 | @SergioLacerda |
 | sdd_compiler | 2026-11-11 | @SergioLacerda |
-| sdd_runtime | 2026-11-11 | @SergioLacerda |
-| sdd_telemetry | 2026-11-11 | @SergioLacerda |
-| sdd_integration | 2026-11-11 | @SergioLacerda |
-| sdd_cli | 2026-11-11 | @SergioLacerda |
-| sdd_wizard | 2026-11-11 | @SergioLacerda |
+| providence_runtime | 2026-11-11 | @SergioLacerda |
+| providence_telemetry | 2026-11-11 | @SergioLacerda |
+| providence_integration | 2026-11-11 | @SergioLacerda |
+| providence_cli | 2026-11-11 | @SergioLacerda |
+| providence_wizard | 2026-11-11 | @SergioLacerda |
 
 Update threat models every 6 months or when a new security incident occurs.
 

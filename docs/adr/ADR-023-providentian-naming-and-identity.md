@@ -41,7 +41,7 @@ Adopt the following canonical vocabulary:
 
 **Legacy terms** — active deprecation, not an indefinitely co-equal default:
 
-- `sdd`, `sdd ask`, `/sdd-ask` stop being the reference pattern for any new work — no new
+- `sdd`, `providence ask`, `/sdd-ask` stop being the reference pattern for any new work — no new
   skill, command, or integration is modeled on them starting with this ADR.
 - They continue to exist **only as a compatibility adapter** for existing dependents, with
   structured deprecation warnings and usage telemetry (per
@@ -65,7 +65,7 @@ via the already-refined migration mission
 skill definition, or CLI-facing surface going forward, per the paragraph above.
 
 **Surfaces not authorized by this ADR:** repository rename, Python/Go package renames, the
-default executable, the root README — these remain SDD Harness until a separate, explicit
+default executable, the root README — these remain Providence until a separate, explicit
 decision.
 
 ## Consequences
@@ -87,7 +87,7 @@ decision.
 - Naming the new pattern "current standard" ahead of the backend kernel existing means
   `provident`/`/provident` can appear in prompts and screens (landing page, skills) without
   a runtime implementation of their own yet — anyone who literally tries `provident` falls
-  back to `sdd ask` until SQ-2 lands. This must be signaled as "preview" wherever no real
+  back to `providence ask` until SQ-2 lands. This must be signaled as "preview" wherever no real
   `provident` binary exists yet (e.g. `instalacao.astro`), not treated as a bug.
 - Does not resolve a removal deadline for the legacy aliases; that is set when SQ-2 (backend
   reorganization) actually starts.

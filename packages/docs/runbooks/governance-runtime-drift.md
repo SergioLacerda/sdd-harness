@@ -17,8 +17,8 @@ Verification state: documented
 4. Check runtime health:
 
    ```bash
-   uv run sdd runtime status --force
-   uv run sdd governance validate
+   uv run providence runtime status --force
+   uv run providence governance validate
    ```
 
 5. Treat disagreement between registry outputs and `.sdd/` as build drift, not as
@@ -30,14 +30,14 @@ Verification state: documented
 2. Regenerate runtime outputs:
 
    ```bash
-   uv run sdd governance generate --full-bootstrap
+   uv run providence governance generate --full-bootstrap
    ```
 
 3. Re-run validation:
 
    ```bash
-   uv run sdd governance validate
-   uv run sdd runtime status --force
+   uv run providence governance validate
+   uv run providence runtime status --force
    ```
 
 4. If the change affects agent entrypoints, regenerate skills/seeds as required by
@@ -58,8 +58,8 @@ Verification state: documented
 ## Evidence To Attach
 
 - `git diff -- docs/`
-- `uv run sdd governance validate` output
-- `uv run sdd runtime status --force` output
+- `uv run providence governance validate` output
+- `uv run providence runtime status --force` output
 - source registry entry from `docs/spec/canonical/governance-sources.yaml`
 
 ## Sources

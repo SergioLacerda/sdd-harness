@@ -1,6 +1,6 @@
-"""TelemetryAnalyzer: guardrails analyzer for the sdd_telemetry package.
+"""TelemetryAnalyzer: guardrails analyzer for the providence_telemetry package.
 
-Migrated from the standalone `tools/analysis/analyze_sdd_telemetry.py` script
+Migrated from the standalone `tools/analysis/analyze_providence_telemetry.py` script
 onto the guardrails core framework (see
 `.analysis/pending/guardrails-framework-design.md`, Phase 3).
 """
@@ -13,7 +13,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from sdd_core.utils.text_io import write_json_utf8, write_text_utf8
+from providence_core.utils.text_io import write_json_utf8, write_text_utf8
 from tools.guardrails.core.analyzer import GuardrailAnalyzer
 from tools.guardrails.core.config import AnalysisConfig
 from tools.guardrails.core.dimension import AnalysisDimension
@@ -28,7 +28,7 @@ try:
     from tools.lib.sdd_env import detect_repo_root
 except ImportError:
     try:
-        from sdd_core.utils.environment import detect_repo_root
+        from providence_core.utils.environment import detect_repo_root
     except ImportError:
 
         def detect_repo_root() -> Path:
@@ -323,7 +323,7 @@ def _dimension_title(name: str) -> str:
 
 
 class TelemetryAnalyzer(GuardrailAnalyzer):
-    """Analyzes the sdd_telemetry package across three dimensions."""
+    """Analyzes the providence_telemetry package across three dimensions."""
 
     def __init__(
         self,
@@ -335,9 +335,9 @@ class TelemetryAnalyzer(GuardrailAnalyzer):
             detect_repo_root()
             / "packages"
             / "core"
-            / "sdd_telemetry"
+            / "providence_telemetry"
             / "src"
-            / "sdd_telemetry"
+            / "providence_telemetry"
         )
         super().__init__(config, output_dir)
 
@@ -345,7 +345,7 @@ class TelemetryAnalyzer(GuardrailAnalyzer):
         return self._target_dir
 
     def get_analysis_name(self) -> str:
-        return "sdd_telemetry"
+        return "providence_telemetry"
 
     def get_dimensions(self) -> list[AnalysisDimension]:
         return [
