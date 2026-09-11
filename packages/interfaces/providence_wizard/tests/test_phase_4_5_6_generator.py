@@ -96,7 +96,11 @@ class TestGenerateSeedlings:
         assert result["errors"] == []
         assert generator.config["prompt_submit_hook_agents"] == ["claude"]
         assert (
-            generator.output_base / ".providence" / "runtime" / "hooks" / "prompt-submit.py"
+            generator.output_base
+            / ".providence"
+            / "runtime"
+            / "hooks"
+            / "prompt-submit.py"
         ).exists()
         assert (generator.output_base / ".claude" / "settings.json").exists()
         assert not (generator.output_base / ".codex" / "config.toml").exists()

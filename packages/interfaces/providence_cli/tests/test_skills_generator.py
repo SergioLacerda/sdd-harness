@@ -46,7 +46,9 @@ class TestGenerateSkillsRegistry:
         assert data["schema_version"] == "1.1.0"
         assert any(skill["name"] == "sdd-ask" for skill in data["skills"])
         for skill in data["skills"]:
-            assert skill["skill_yaml"] == f".providence/skills/{skill['name']}/skill.yaml"
+            assert (
+                skill["skill_yaml"] == f".providence/skills/{skill['name']}/skill.yaml"
+            )
 
     def test_skill_yaml_round_trips(self, tmp_path: Path) -> None:
         generate_skills_registry(str(tmp_path), {})

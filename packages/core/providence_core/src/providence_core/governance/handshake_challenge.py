@@ -66,7 +66,9 @@ class HandshakeChallenge:
         if signature_mode not in {"warn", "strict"}:
             return "unavailable"
 
-        gov_path = self.project_root / ".providence" / "compiled" / "governance-core.json"
+        gov_path = (
+            self.project_root / ".providence" / "compiled" / "governance-core.json"
+        )
         if not gov_path.exists():
             return "unsigned"
         sig_path = gov_path.with_suffix(gov_path.suffix + ".sig")

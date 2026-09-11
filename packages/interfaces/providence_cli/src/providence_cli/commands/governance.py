@@ -163,7 +163,8 @@ def sign(
     key_id: str = typer.Option("auditor-01", help="Key ID to use for signing"),
     key_path: str | None = typer.Option(None, help="Path to private key (.key file)"),  # noqa: UP045
     compiled_dir: str | None = typer.Option(
-        None, help="Directory containing artifacts to sign (default: .providence/compiled)"
+        None,
+        help="Directory containing artifacts to sign (default: .providence/compiled)",
     ),  # noqa: UP045
     source: bool = typer.Option(
         False,

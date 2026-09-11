@@ -76,7 +76,7 @@ def _record_telemetry_degradation(
 ) -> None:
     """Append a durable record that a *sensitive* event failed to emit.
 
-    `emit_ask_telemetry` stays best-effort/non-blocking for every event 
+    `emit_ask_telemetry` stays best-effort/non-blocking for every event
     `providence ask`'s primary function must never crash because telemetry is
     unavailable  but M007/M008 call for stronger obligations on sensitive
     events than silent, invisible best-effort (TEL-02,
@@ -88,7 +88,9 @@ def _record_telemetry_degradation(
     raise a *second* exception on top of the one already being handled.
     """
     with contextlib.suppress(Exception):
-        marker_path = workspace_root / ".providence" / "runtime" / "telemetry-degraded.jsonl"
+        marker_path = (
+            workspace_root / ".providence" / "runtime" / "telemetry-degraded.jsonl"
+        )
         marker_path.parent.mkdir(parents=True, exist_ok=True)
         record = {
             "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),

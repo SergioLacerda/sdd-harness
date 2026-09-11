@@ -88,7 +88,9 @@ def skill(
 
     ws_root = find_workspace_root()
     if ws_root is None:
-        typer.echo("ERROR: Not inside an SDD workspace (.providence/ not found)", err=True)
+        typer.echo(
+            "ERROR: Not inside an SDD workspace (.providence/ not found)", err=True
+        )
         raise typer.Exit(1)
 
     templates_dir = _get_templates_dir(ws_root)
@@ -147,7 +149,9 @@ def command(
 
     ws_root = find_workspace_root()
     if ws_root is None:
-        typer.echo("ERROR: Not inside an SDD workspace (.providence/ not found)", err=True)
+        typer.echo(
+            "ERROR: Not inside an SDD workspace (.providence/ not found)", err=True
+        )
         raise typer.Exit(1)
 
     templates_dir = _get_templates_dir(ws_root)

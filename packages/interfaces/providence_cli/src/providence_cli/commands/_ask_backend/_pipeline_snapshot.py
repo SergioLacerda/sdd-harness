@@ -35,7 +35,7 @@ def build_governed_ask_snapshot(
     double. When `phase_timer` is supplied, the handbook lookup is
     additionally measured as its own `ask.runtime.handbook` phase. Because
     that phase is typically nested inside a caller's own
-    `ask.governance.snapshot` span, its duration is counted in both 
+    `ask.governance.snapshot` span, its duration is counted in both
     a known, documented limitation of `PhaseTimer.phase_total_ms()` /
     `unattributed_ms()` not being nesting-aware. The handbook lookup is a
     small fraction of the overall snapshot build, so the effect is minor.
@@ -124,7 +124,7 @@ def build_governed_ask_snapshot(
             "diagnostic": handbook_lookup.diagnostic,
             "matches": handbook_lookup.matches,
         },
-        # Internal plumbing for the end-of-call write site (design.md D-A) 
+        # Internal plumbing for the end-of-call write site (design.md D-A)
         # None on a cache hit (nothing new to persist), the fresh compiled-
         # governance fields on a miss. Never surfaced in text/JSON output;
         # downstream consumers only read known top-level fields by name.

@@ -180,8 +180,9 @@ def test_generate_for_antigravity_keeps_registry_command_targets_truthful(
     assert result.success is True
     assert command_surface.exists()
     assert skill_surface.exists()
-    assert ".providence/commands/sdd-organize/command.yaml" in command_surface.read_text(
-        encoding="utf-8"
+    assert (
+        ".providence/commands/sdd-organize/command.yaml"
+        in command_surface.read_text(encoding="utf-8")
     )
 
 

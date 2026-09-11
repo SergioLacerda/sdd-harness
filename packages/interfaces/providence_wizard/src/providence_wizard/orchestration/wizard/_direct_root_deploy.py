@@ -91,7 +91,7 @@ def deploy_to_root(
     Rules:
     - New file  copied, classified "created".
     - Existing file, identical bytes  "unchanged" (no write).
-    - Existing file, different bytes, previously managed by this generator 
+    - Existing file, different bytes, previously managed by this generator
       overwritten, classified "updated".
     - Existing file, different bytes, NOT previously managed  left alone,
       classified "skipped" (never clobber a file this generator doesn't own).

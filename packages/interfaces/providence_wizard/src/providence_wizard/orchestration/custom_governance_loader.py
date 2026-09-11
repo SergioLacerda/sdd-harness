@@ -73,9 +73,7 @@ def validate_custom_governance_file(path: Path) -> tuple[bool, list[str]]:
         return False, [f'{path}: missing or invalid top-level "items" array']
 
     if not items:
-        return False, [
-            f'{path}: "items" array is empty  at least one item is required'
-        ]
+        return False, [f'{path}: "items" array is empty  at least one item is required']
 
     seen_ids: set[str] = set()
     errors: list[str] = []

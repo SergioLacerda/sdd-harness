@@ -178,7 +178,8 @@ def reconcile_registries(
 
     if not check_only:
         _atomic_write_json(
-            workspace_root / ".providence" / "commands" / "registry.json", commands_registry
+            workspace_root / ".providence" / "commands" / "registry.json",
+            commands_registry,
         )
         _atomic_write_json(
             workspace_root / ".providence" / "skills" / "registry.json", skills_registry

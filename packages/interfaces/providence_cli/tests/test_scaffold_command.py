@@ -186,9 +186,9 @@ class TestScaffoldSkill:
 
     def test_critical_risk_uses_high_token_budget(self, tmp_path: Path) -> None:
         _make_skill_templates(tmp_path)
-        (tmp_path / ".providence" / "templates" / "skill" / "skill.yaml.tpl").write_text(
-            "token_budget: {{ token_budget }}\n", encoding="utf-8"
-        )
+        (
+            tmp_path / ".providence" / "templates" / "skill" / "skill.yaml.tpl"
+        ).write_text("token_budget: {{ token_budget }}\n", encoding="utf-8")
         with patch(
             "providence_cli.commands.scaffold.find_workspace_root",
             return_value=tmp_path,
@@ -245,9 +245,9 @@ class TestScaffoldCommand:
 
     def test_command_routes_to_defaults_to_name(self, tmp_path: Path) -> None:
         _make_command_templates(tmp_path)
-        (tmp_path / ".providence" / "templates" / "command" / "command.yaml.tpl").write_text(
-            "skill_id: {{ skill_id }}\n", encoding="utf-8"
-        )
+        (
+            tmp_path / ".providence" / "templates" / "command" / "command.yaml.tpl"
+        ).write_text("skill_id: {{ skill_id }}\n", encoding="utf-8")
         with patch(
             "providence_cli.commands.scaffold.find_workspace_root",
             return_value=tmp_path,

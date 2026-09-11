@@ -131,7 +131,7 @@ def build_audit_summary_data(
         "total_events": len(events),
         "total_drifts": len(drifts),
         # Denominator is ask-events-only (matching window_correlation's shape
-        # in _audit_window_support.py), not the entire raw event stream 
+        # in _audit_window_support.py), not the entire raw event stream
         # non-ask events (compile, lifecycle) would otherwise dilute the rate.
         "drift_rate_pct": round((len(drifts) * 100.0 / ask_events_count), 2)
         if ask_events_count

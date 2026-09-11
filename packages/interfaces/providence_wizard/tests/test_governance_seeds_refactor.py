@@ -74,7 +74,9 @@ def test_templates_module_has_verification_script_template() -> None:
 def test_generate_activation_guide_uses_template(tmp_path: Path) -> None:
     gen = _make_gen(tmp_path)
     assert gen.generate_activation_guide() is True
-    guide = read_text_utf8(tmp_path / ".providence" / "seedlings" / "ACTIVATION_GUIDE.md")
+    guide = read_text_utf8(
+        tmp_path / ".providence" / "seedlings" / "ACTIVATION_GUIDE.md"
+    )
     assert "# Governance Activation Guide" in guide
     assert f"<!-- Governance fingerprint: {FINGERPRINT} -->" in guide
     assert "M001" in guide

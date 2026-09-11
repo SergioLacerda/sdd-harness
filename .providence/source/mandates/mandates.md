@@ -1,11 +1,11 @@
 # Mandates - SDD v3.0
 
-âš¡ IA-FIRST DESIGN NOTICE
+ IA-FIRST DESIGN NOTICE
 - **Status**: Architecture-level governance rules
 - **Optimization**: Optimized for AI agent parsing
 - **Version**: 3.0
 - **Language**: all
-- **Generated**: 2026-09-10T20:48:10.344409
+- **Generated**: 2026-09-10T21:16:54.683830
 
 ## Core Mandates
 

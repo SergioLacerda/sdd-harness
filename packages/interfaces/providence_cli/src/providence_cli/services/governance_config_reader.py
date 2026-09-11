@@ -85,7 +85,7 @@ def check_root_seed_drift(path: str) -> tuple[bool, str]:
     against metadata.json.
 
     Root seed files (AGENTS.md, CLAUDE.md, GEMINI.md) are shared-namespace
-    filenames  conventions other AI tools/agents independently recognize 
+    filenames  conventions other AI tools/agents independently recognize
     so sdd only ever reads, writes, or validates its own delimited
     `<!-- sdd:managed:begin/end -->` region inside them, never the whole
     file (see

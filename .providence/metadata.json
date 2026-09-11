@@ -1,11 +1,11 @@
 {
   "version": "3.0",
-  "generated_at": "2026-09-10T20:48:10.501650",
+  "generated_at": "2026-09-11T00:17:00.485239Z",
   "language": "all",
   "language_context": {
-    "preferred_human_language": "Portugu\u00c3\u00aas (Brasil)",
-    "preferred_chat_language": "Portugu\u00c3\u00aas (Brasil)",
-    "preferred_ui_language": "Portugu\u00c3\u00aas (Brasil)",
+    "preferred_human_language": "Portugus (Brasil)",
+    "preferred_chat_language": "Portugus (Brasil)",
+    "preferred_ui_language": "Portugus (Brasil)",
     "preferred_local_docs_language": "English"
   },
   "language_policy": {
@@ -36,26 +36,26 @@
   "categories": [
     "other"
   ],
-  "governance_fingerprint": "194680d14eb23e07",
+  "governance_fingerprint": "51b9d3e88856d9f2",
   "fingerprints": {
-    "combined": "194680d14eb23e07",
+    "combined": "51b9d3e88856d9f2",
     "mandates": {
-      "M001": "5f4f03bf40f26137",
-      "M002": "36d095b07f639422",
-      "M003": "d84941fa45d49141",
-      "M005": "db7c6059d9efd800",
-      "M006": "3b755d44e27ac834",
-      "M007": "dc6630711f360e03",
-      "M008": "de664dfe7c25c420",
-      "M009": "5a47a1015ecb74f2",
-      "M010": "2046a1dadeb5e4a5",
-      "M011": "b8a34b9ffb448aa9",
-      "M015": "de6c2b03784fe127",
-      "M016": "a847458d5fcbc462",
-      "M017": "5d94dc192f3aae3e",
-      "M018": "b7522f7e93d1019b",
-      "M019": "12e9fe933a1b5ac0",
-      "M020": "71ffd257b79a6ae6"
+      "M001": "11693e056d10209b",
+      "M002": "5d180205045faa4c",
+      "M003": "e93bb7c07815c755",
+      "M005": "9e219fea698a72a0",
+      "M006": "fd78cf53f9bf3c99",
+      "M007": "007905849f5013cf",
+      "M008": "3be9740ac7d9e7fd",
+      "M009": "0863c1f6e35ef0ce",
+      "M010": "d18218e48ba3f8dd",
+      "M011": "406b1c5fcb312aef",
+      "M015": "06c412f44fd86591",
+      "M016": "727a88b4c07484a5",
+      "M017": "bf9c093cbcde8b80",
+      "M018": "fc05fe534eb354fd",
+      "M019": "54e69ba7bf2272f5",
+      "M020": "41a6fa80d7a95d43"
     }
   },
   "mandates": {

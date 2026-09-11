@@ -55,7 +55,7 @@ def test_build_runtime_readme_interpolates_all_args() -> None:
 
 
 def test_build_runtime_readme_preserves_literal_braces_in_code_samples() -> None:
-    """The template's Python code samples use literal `{...}` dict syntax 
+    """The template's Python code samples use literal `{...}` dict syntax
     the split must not accidentally interpolate or mangle those braces.
     """
     output = build_runtime_readme(**_ARGS)

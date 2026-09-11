@@ -91,7 +91,9 @@ class TestEnsureContextCache:
     def test_creates_cache_file(self, tmp_path: Path) -> None:
         ensure_context_cache(tmp_path, ".providence/context-cache.md")
         assert (tmp_path / ".providence" / "context-cache.md").exists()
-        content = (tmp_path / ".providence" / "context-cache.md").read_text(encoding="utf-8")
+        content = (tmp_path / ".providence" / "context-cache.md").read_text(
+            encoding="utf-8"
+        )
         assert "Current Objective" in content
 
     def test_does_not_overwrite_existing(self, tmp_path: Path) -> None:

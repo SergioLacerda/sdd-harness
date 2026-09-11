@@ -94,7 +94,9 @@ def test_governance_reconcile_registries_json_success(tmp_path: Path) -> None:
         assert data["summary"]["skills"]["removed"] == 1
 
         commands_registry = json.loads(
-            (root / ".providence" / "commands" / "registry.json").read_text(encoding="utf-8")
+            (root / ".providence" / "commands" / "registry.json").read_text(
+                encoding="utf-8"
+            )
         )
         ids = [entry["id"] for entry in commands_registry["commands"]]
         assert ids == ["sdd-alpha", "sdd-zeta"]

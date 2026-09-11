@@ -145,5 +145,7 @@ def normalize_compile_context(
 ) -> tuple[dict[str, Any], dict[str, Any], str]:
     phase_1 = result.get("phase_1", {})
     phase_2 = result.get("phase_2", {})
-    compiled_path = str(workspace_root / ".providence" / "compiled") if workspace_root else ""
+    compiled_path = (
+        str(workspace_root / ".providence" / "compiled") if workspace_root else ""
+    )
     return phase_1, phase_2, compiled_path

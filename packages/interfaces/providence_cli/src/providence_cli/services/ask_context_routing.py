@@ -125,7 +125,7 @@ def write_runtime_cache_and_routing_decision(
     longer reintroduces a redundant disk read either.
 
     `governance_snapshot`, when supplied, is persisted under `snapshot_cache`
-    the same way `store_governance_snapshot` does standalone (design.md D-A) 
+    the same way `store_governance_snapshot` does standalone (design.md D-A)
     folded into this same write rather than opening a third read/write path.
     """
     try:

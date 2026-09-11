@@ -130,9 +130,9 @@ class TestOutputValidatorAllPresent:
     ) -> None:
         _create_all_required(tmp_path)
         (tmp_path / ".providence" / "runtime" / "hooks").mkdir(parents=True)
-        (tmp_path / ".providence" / "runtime" / "hooks" / "prompt-submit.py").write_text(
-            "#!/usr/bin/env python3\n", encoding="utf-8"
-        )
+        (
+            tmp_path / ".providence" / "runtime" / "hooks" / "prompt-submit.py"
+        ).write_text("#!/usr/bin/env python3\n", encoding="utf-8")
         (tmp_path / ".codex").mkdir(exist_ok=True)
         (tmp_path / ".codex" / "config.toml").write_text(
             CENTRAL_PROMPT_SUBMIT_COMMAND, encoding="utf-8"

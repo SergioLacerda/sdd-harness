@@ -133,7 +133,7 @@ def test_empty_trace_id_still_produces_valid_uuid_in_event(
 
     RuntimeEvent.span_id has a default_factory; trace_id is a required field.
     The test verifies emit_ask_telemetry does not crash and emits an event with
-    a non-empty trace_id (even if the value is the empty string passed by caller 
+    a non-empty trace_id (even if the value is the empty string passed by caller
     the contract is that the sink records whatever is given, not that it generates one).
     This test validates the path doesn't raise.
     """

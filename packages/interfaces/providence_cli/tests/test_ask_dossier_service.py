@@ -101,7 +101,7 @@ def test_build_and_output_dossier_raises_on_breach(tmp_path: Path) -> None:
             logger=logging.getLogger(__name__),
             typer_module=typer_module,
         )
-    # handle_dossier_error prints the breach message before exiting 
+    # handle_dossier_error prints the breach message before exiting
     # confirms the breach was actually surfaced, not silently swallowed.
     assert typer_module.echo.called
     assert "Budget breach" in str(typer_module.echo.call_args_list[0])

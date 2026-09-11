@@ -117,7 +117,7 @@ def test_prompt_submit_hook_generator_all_three_agents_together(
 def test_phase6_output_validator_imports_stay_in_sync_with_prompt_submit_hooks() -> (
     None
 ):
-    """Regression (SQ-001): guards the hidden cross-module coupling Ranger found 
+    """Regression (SQ-001): guards the hidden cross-module coupling Ranger found
     phase6_output_validator.py imports these three names directly from
     prompt_submit_hooks.py; if they were ever renamed here without updating that
     import, this test fails loudly instead of the coupling breaking silently."""

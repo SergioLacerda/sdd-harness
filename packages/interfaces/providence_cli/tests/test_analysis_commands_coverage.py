@@ -23,7 +23,9 @@ def _write_mission(path: Path, days_ago: int = 0) -> None:
 
 def _make_analysis_workspace(tmp_path: Path) -> Path:
     for state in ("todo", "pending", "refined", "done"):
-        (tmp_path / ".providence" / "analysis" / state).mkdir(parents=True, exist_ok=True)
+        (tmp_path / ".providence" / "analysis" / state).mkdir(
+            parents=True, exist_ok=True
+        )
     return tmp_path
 
 
@@ -40,7 +42,9 @@ class TestAnalysisCommands:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         workspace = _make_analysis_workspace(tmp_path)
-        _write_mission(workspace / ".providence" / "analysis" / "todo" / "mission-todo.md")
+        _write_mission(
+            workspace / ".providence" / "analysis" / "todo" / "mission-todo.md"
+        )
         _write_mission(
             workspace / ".providence" / "analysis" / "pending" / "mission-pending.md"
         )

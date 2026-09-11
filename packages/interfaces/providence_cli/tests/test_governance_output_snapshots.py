@@ -21,53 +21,57 @@ class _FakeAHP:
         return True
 
 
+_LIGHT_BOX_CHARS = frozenset(
+    "\u2500\u2502\u250c\u2510\u2514\u2518\u251c\u2524\u252c\u2534\u253c"
+)
+
 _BORDER_NORMALIZE = str.maketrans(
     {
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
-        "": "",
+        "\u2501": "\u2500",
+        "\u2503": "\u2502",
+        "\u250f": "\u250c",
+        "\u2513": "\u2510",
+        "\u2517": "\u2514",
+        "\u251b": "\u2518",
+        "\u2521": "\u251c",
+        "\u2529": "\u2524",
+        "\u2533": "\u252c",
+        "\u253b": "\u2534",
+        "\u2547": "\u253c",
+        "\u2550": "\u2500",
+        "\u2551": "\u2502",
+        "\u2554": "\u250c",
+        "\u2557": "\u2510",
+        "\u255a": "\u2514",
+        "\u255d": "\u2518",
+        "\u2560": "\u251c",
+        "\u2563": "\u2524",
+        "\u2566": "\u252c",
+        "\u2569": "\u2534",
+        "\u256c": "\u253c",
+        "\u256d": "\u250c",
+        "\u256e": "\u2510",
+        "\u2570": "\u2514",
+        "\u256f": "\u2518",
     }
 )
 
 
 def _normalize_snapshot_text(text: str) -> str:
-    # 1. Normalize box-drawing char variants (heavy/arc  light equivalents).
+    # 1. Normalize box-drawing char variants to light equivalents.
     normalized = text.translate(_BORDER_NORMALIZE)
-    # 2. Collapse runs of  to a single sentinel. Box border lines like
-    #     differ by 12 chars across platforms because terminal
-    #    width detection varies (Windows uses ctypes, Linux uses shutil).
-    normalized = re.sub(r"{2,}", "", normalized)
+    horizontal = "\u2500"
+    vertical = "\u2502"
+    # 2. Collapse runs of horizontal borders to a single sentinel.
+    normalized = re.sub(f"{horizontal}{{2,}}", horizontal, normalized)
     # 3. Strip padding spaces before closing box vertical chars on content lines
-    #    ( text         text). The padding is terminal-width-dependent.
-    normalized = re.sub(r" +()", r"\1", normalized)
+    #    (| text         |). The padding is terminal-width-dependent.
+    normalized = re.sub(f" +({vertical})", r"\1", normalized)
     # 4. Normalize centered/plain heading lines outside box borders. Rich may
     #    center table titles with variable left padding depending on console width.
     lines: list[str] = []
     for line in normalized.splitlines():
-        if (
-            "" not in line
-            and "" not in line
-            and "" not in line
-            and "" not in line
-            and "" not in line
-            and "" not in line
-            and "" not in line
-            and "" not in line
-            and "" not in line
-            and "" not in line
-        ):
+        if not any(ch in _LIGHT_BOX_CHARS for ch in line):
             lines.append(line.strip())
         else:
             lines.append(line.rstrip())
@@ -78,9 +82,6 @@ def _normalize_snapshot_text(text: str) -> str:
 def _assert_snapshot(name: str, actual: str) -> None:
     expected = read_text_utf8(SNAPSHOT_DIR / name)
     assert _normalize_snapshot_text(actual) == _normalize_snapshot_text(expected)
-
-
-_LIGHT_BOX_CHARS = frozenset("")
 
 
 def test_border_normalize_covers_all_snapshot_chars() -> None:

@@ -17,7 +17,9 @@ def _write_mission(path: Path, days_ago: int = 0) -> None:
 
 def _make_analysis_workspace(tmp_path: Path) -> Path:
     for state in ("todo", "pending", "refined", "done"):
-        (tmp_path / ".providence" / "analysis" / state).mkdir(parents=True, exist_ok=True)
+        (tmp_path / ".providence" / "analysis" / state).mkdir(
+            parents=True, exist_ok=True
+        )
     return tmp_path
 
 
@@ -29,7 +31,10 @@ def test_parse_duration_variants() -> None:
 
 
 def test_analysis_root_builds_expected_path(tmp_path: Path) -> None:
-    assert analysis_helpers._analysis_root(tmp_path) == tmp_path / ".providence" / "analysis"
+    assert (
+        analysis_helpers._analysis_root(tmp_path)
+        == tmp_path / ".providence" / "analysis"
+    )
 
 
 def test_collect_missions_skips_non_markdown_and_missing_dirs(tmp_path: Path) -> None:

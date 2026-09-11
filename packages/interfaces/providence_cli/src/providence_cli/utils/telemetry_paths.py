@@ -14,7 +14,7 @@ def resolve_compliance_events_path(*, workspace_root: Path | None = None) -> Pat
 
     Recognizes ``SDD_COMPLIANCE_EVENTS_PATH`` (this function's own historical
     override), and also ``SDD_COMPLIANCE_LOG``/``SDD_TELEMETRY_PATH``  the
-    other two env vars that resolve the same file elsewhere in the product 
+    other two env vars that resolve the same file elsewhere in the product
     via the shared `resolve_compliance_log_override`, so setting any one of
     the three is honored consistently. ``SDD_COMPLIANCE_LOG=disabled`` is not
     meaningful for this call site (there is no "no path" return here); it

@@ -55,7 +55,9 @@ class HandshakeCache:
 
     def extract_governance_core(self) -> dict[str, Any] | None:
         """Load the compiled governance core artifact when available."""
-        candidate = self.project_root / ".providence" / "compiled" / "governance-core.json"
+        candidate = (
+            self.project_root / ".providence" / "compiled" / "governance-core.json"
+        )
         if not candidate.exists():
             return None
         try:

@@ -100,6 +100,7 @@ packages/core/sdd_core/src/sdd_core/_native/
 # OS
 .DS_Store
 Thumbs.db
+NUL
 
 # SDD Profiles - generated via CLI; ignore runtime contents but keep safe/canonical files
 # Git cannot re-include files inside a directory ignored with dir/, so use dir/*.

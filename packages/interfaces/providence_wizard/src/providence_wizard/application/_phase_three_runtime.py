@@ -164,9 +164,7 @@ class PhaseThreeRuntime:
         )
 
     def _emit_seedling_warning(self, output_path: Path) -> None:
-        self._context._emit(
-            "\n  Phase 6 (Seedlings) had issues, but Phase 3 succeeded"
-        )
+        self._context._emit("\n  Phase 6 (Seedlings) had issues, but Phase 3 succeeded")
         self._context._emit(
             f"   You can manually run Phase 6 or copy files from {output_path}"
         )

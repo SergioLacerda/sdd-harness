@@ -122,7 +122,10 @@ class OtelAttributes:
                 "sdd.economy.budget_utilization_pct",
                 self.providence_economy_budget_utilization_pct,
             ),
-            ("sdd.economy.compression_ratio", self.providence_economy_compression_ratio),
+            (
+                "sdd.economy.compression_ratio",
+                self.providence_economy_compression_ratio,
+            ),
             ("sdd.economy.retry_count", self.providence_economy_retry_count),
             (
                 "sdd.economy.reflection_count",

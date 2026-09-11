@@ -19,7 +19,7 @@ def phase2_instructions_message(
 def phase3_completed_message() -> str:
     """Phase3 Completed Message."""
     return r"""
- COMPLETE WIZARD FLOW FINISHED! 
+ COMPLETE WIZARD FLOW FINISHED!
 
 
 YOUR GOVERNANCE PROJECT IS READY
@@ -63,7 +63,7 @@ YOUR GOVERNANCE PROJECT IS READY
    1) active mandates loaded, 2) current fingerprint, 3) any drift/blockers,
    4) next governed action using `sdd-*` commands only.
 
-   Then complete the M015 bidirectional handshake yourself (do not skip 
+   Then complete the M015 bidirectional handshake yourself (do not skip
    this must be a genuine attestation, not a mechanical copy-paste):
 
      1. providence governance handshake --init

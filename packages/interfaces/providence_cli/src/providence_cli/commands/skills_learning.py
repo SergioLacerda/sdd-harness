@@ -136,7 +136,9 @@ def learning_status(
     """Show supervised learning status and recent impact metrics."""
     ws_root = resolve_workspace_root()
     emit_learning_status(
-        build_learning_status(ws_root / ".providence" / "runtime", window_days=window_days),
+        build_learning_status(
+            ws_root / ".providence" / "runtime", window_days=window_days
+        ),
         output_json=_ctx_json(),
         emit_fn=_emit_skills_json,
     )

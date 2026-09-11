@@ -6,6 +6,7 @@ Mirror in providence_cli/generators/_shared.py  keep output format in sync.
 
 from __future__ import annotations
 
+
 def build_fingerprint_header(
     fingerprint: str,
     mandate_ids: list[str],

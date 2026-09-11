@@ -378,4 +378,6 @@ class TestDefaultEventsPath:
         ):
             result = _default_events_path()
 
-        assert result == tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
+        assert (
+            result == tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
+        )

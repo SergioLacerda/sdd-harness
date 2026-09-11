@@ -10,7 +10,7 @@ timing signal being tested is whether the hit path skips that call entirely
 (already proven by call-count assertions in `test_ask_governance_snapshot_
 cache.py`), not the real duration of a live compiled-governance load.
 
-Report-only beyond the sanity assertion (no hard millisecond budget yet) 
+Report-only beyond the sanity assertion (no hard millisecond budget yet)
 design.md D3's own risk note defers a hard budget assertion (T-BM4) until a
 real baseline exists from `tests/perf/benchmark_ask_cold_invocation.py`.
 """

@@ -53,7 +53,7 @@ def _handbook_match_payload(root: Path, entry: dict[str, Any]) -> dict[str, Any]
     """Build one lookup match payload.
 
     CTX-07 (`.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
-    `load_policy` here is metadata carried through from the handbook entry 
+    `load_policy` here is metadata carried through from the handbook entry
     this lookup does not itself apply any token ceiling, truncate content,
     or rank matches by relevance beyond the `limit` cap and match order in
     `lookup_runtime_handbook`. A caller that needs a token budget enforced

@@ -2,7 +2,7 @@
 
 Split out of `_pipeline_runtime._sync_ask_runtime` (T1,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`):
-these two functions are the side-effecting halves of that function's body 
+these two functions are the side-effecting halves of that function's body
 neither result is read after the call, so both extract cleanly with no
 return value.
 """

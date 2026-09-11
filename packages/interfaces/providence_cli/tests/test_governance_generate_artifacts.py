@@ -77,7 +77,9 @@ class TestRunBootstrapSigning:
         ):
             run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)
 
-        keygen_fn.assert_called_once_with(key_id="dev-01", output_dir=".providence/trust")
+        keygen_fn.assert_called_once_with(
+            key_id="dev-01", output_dir=".providence/trust"
+        )
         sign_fn.assert_called_once_with(
             key_id="dev-01", key_path=None, compiled_dir=None, source=False
         )
@@ -107,7 +109,9 @@ class TestRunBootstrapSigning:
             run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)
 
         assert exc_info.value.exit_code == 1
-        keygen_fn.assert_called_once_with(key_id="dev-01", output_dir=".providence/trust")
+        keygen_fn.assert_called_once_with(
+            key_id="dev-01", output_dir=".providence/trust"
+        )
         sign_fn.assert_called_once_with(
             key_id="dev-01", key_path=None, compiled_dir=None, source=False
         )

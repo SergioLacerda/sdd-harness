@@ -158,7 +158,9 @@ def test_generate_runtime_handbook_writes_index_and_item(tmp_path: Path) -> None
                 "task_types": ["planning"],
                 "operation_phases": ["context_loading"],
                 "load_policy": {"mode": "selective", "max_tokens": 700},
-                "outputs": [".providence/source/handbook/context-loading/context-flow.yaml"],
+                "outputs": [
+                    ".providence/source/handbook/context-loading/context-flow.yaml"
+                ],
             },
         ],
     )
@@ -167,9 +169,9 @@ def test_generate_runtime_handbook_writes_index_and_item(tmp_path: Path) -> None
 
     assert tmp_path / ".providence/source/handbook/index.yaml" in written
     item = yaml.safe_load(
-        (tmp_path / ".providence/source/handbook/context-loading/context-flow.yaml").read_text(
-            encoding="utf-8"
-        )
+        (
+            tmp_path / ".providence/source/handbook/context-loading/context-flow.yaml"
+        ).read_text(encoding="utf-8")
     )
     assert item["id"] == "HBK-CONTEXT-LOADING"
     assert item["source_doc"] == "docs/cognition/context-loading/context_flow.md"
@@ -219,7 +221,9 @@ def test_validate_governance_sources_detects_missing_handbook_output(
                 "path": "docs/cognition/context-loading/context_flow.md",
                 "refs": ["M001"],
                 "load_policy": {"max_tokens": 700},
-                "outputs": [".providence/source/handbook/context-loading/context-flow.yaml"],
+                "outputs": [
+                    ".providence/source/handbook/context-loading/context-flow.yaml"
+                ],
             },
         ],
     )
@@ -346,7 +350,9 @@ def test_generate_and_lookup_roundtrip_risk_levels(tmp_path: Path) -> None:
                 "operation_phases": ["context_loading"],
                 "risk_levels": ["high"],
                 "load_policy": {"mode": "selective", "max_tokens": 700},
-                "outputs": [".providence/source/handbook/context-loading/context-flow.yaml"],
+                "outputs": [
+                    ".providence/source/handbook/context-loading/context-flow.yaml"
+                ],
             },
         ],
     )
@@ -354,7 +360,9 @@ def test_generate_and_lookup_roundtrip_risk_levels(tmp_path: Path) -> None:
     generate_runtime_handbook(tmp_path)
 
     index = yaml.safe_load(
-        (tmp_path / ".providence/source/handbook/index.yaml").read_text(encoding="utf-8")
+        (tmp_path / ".providence/source/handbook/index.yaml").read_text(
+            encoding="utf-8"
+        )
     )
     assert index["items"][0]["risk_levels"] == ["high"]
 

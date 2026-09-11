@@ -181,7 +181,9 @@ def validate(
             self._log_bypass_attempt()
             print(" Manual bypass is disabled in governance policies")
             print("   Enforcement level: " + enforcement)
-            print("   To enable: Set manual_bypass_allowed=true in .providence/metadata.json")
+            print(
+                "   To enable: Set manual_bypass_allowed=true in .providence/metadata.json"
+            )
             return self.AgentHandshakeResult(state="NOT_CONNECTED", confidence=0)
 
     # Continue with normal validation...

@@ -60,7 +60,8 @@ def get_sdd_paths(
     ).strip().lower() in {"1", "true", "yes", "on"}
     source_spec = (
         resolved_workspace_root / ".providence" / "source"
-        if not isolated and (resolved_workspace_root / ".providence" / "source").exists()
+        if not isolated
+        and (resolved_workspace_root / ".providence" / "source").exists()
         else generated / "client" / "build" / "docs-meta"
     )
     return {

@@ -93,7 +93,7 @@ def test_check_root_seed_drift_detects_stale_root_seed(
     """A stale seed file's fingerprint header must be caught, independent of check_fingerprint_drift.
 
     The header must live inside the sdd-managed block
-    (`.analysis/refined/20260906-root-seed-githook-necessity/design.md`) 
+    (`.analysis/refined/20260906-root-seed-githook-necessity/design.md`)
     a bare header with no markers is `unmanaged` and never fails the check
     (see `test_governance_config_reader.py`'s dedicated unmanaged-state
     coverage for that case).

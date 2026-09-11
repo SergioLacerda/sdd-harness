@@ -18,7 +18,9 @@ pytestmark = pytest.mark.unit
 
 def _write_metadata(root: Path, **fields: object) -> None:
     (root / ".providence").mkdir(parents=True, exist_ok=True)
-    (root / ".providence" / "metadata.json").write_text(json.dumps(fields), encoding="utf-8")
+    (root / ".providence" / "metadata.json").write_text(
+        json.dumps(fields), encoding="utf-8"
+    )
 
 
 def _write_seed(root: Path, name: str, fingerprint: str) -> None:
@@ -32,7 +34,7 @@ def _write_seed(root: Path, name: str, fingerprint: str) -> None:
 
 
 def _write_unmanaged_seed(root: Path, name: str, fingerprint: str) -> None:
-    """Write a seed file in the pre-managed-block format (no markers) 
+    """Write a seed file in the pre-managed-block format (no markers)
     the realistic state of every already-deployed root seed file
     immediately after this fix ships."""
     (root / name).write_text(

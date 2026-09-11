@@ -17,7 +17,9 @@ def test_resolve_governance_inputs_falls_back_to_first_candidate(
     core_path, client_path = _resolve_governance_inputs(tmp_path, paths, output_base)
 
     assert core_path == tmp_path / ".providence" / "compiled" / "governance-core.json"
-    assert client_path == tmp_path / ".providence" / "compiled" / "governance-client.json"
+    assert (
+        client_path == tmp_path / ".providence" / "compiled" / "governance-client.json"
+    )
 
 
 def test_load_governance_returns_error_result_when_core_missing(

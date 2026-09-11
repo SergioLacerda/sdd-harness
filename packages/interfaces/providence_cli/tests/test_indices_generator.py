@@ -36,7 +36,9 @@ class TestGenerateSkillIndex:
 
     def test_index_json_contains_expected_fields(self, tmp_path: Path) -> None:
         generate_skill_index(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".providence" / "indices" / "skills.index.json")
+        content = read_text_utf8(
+            tmp_path / ".providence" / "indices" / "skills.index.json"
+        )
         data = json.loads(content)
         assert data["schema_version"] == "1.0.0"
         assert data["index_type"] == "skills"
@@ -49,7 +51,9 @@ class TestGenerateSkillIndex:
 
     def test_skills_sorted_by_name(self, tmp_path: Path) -> None:
         generate_skill_index(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".providence" / "indices" / "skills.index.json")
+        content = read_text_utf8(
+            tmp_path / ".providence" / "indices" / "skills.index.json"
+        )
         data = json.loads(content)
         names = [s["name"] for s in data["skills"]]
         assert names == sorted(names)
@@ -90,7 +94,9 @@ class TestGenerateCliCommandsIndex:
         self, tmp_path: Path
     ) -> None:
         generate_cli_commands_index(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".providence" / "indices" / "cli.commands.json")
+        content = read_text_utf8(
+            tmp_path / ".providence" / "indices" / "cli.commands.json"
+        )
         data = json.loads(content)
         assert data["schema_version"] == "1.0.0"
         assert data["index_type"] == "cli_commands"

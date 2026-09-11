@@ -75,9 +75,7 @@ def _generate_spec_file(
             output_path=spec_output,
             generated_by="providence-wizard",
         )
-        emitter(
-            f"   Spec file: {result['mandates_written']} mandates  {spec_output}"
-        )
+        emitter(f"   Spec file: {result['mandates_written']} mandates  {spec_output}")
     except Exception as exc:
         emitter(f"    Spec file generation skipped: {exc}")
 

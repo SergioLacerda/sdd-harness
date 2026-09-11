@@ -173,7 +173,9 @@ def test_all_bootstrap_files_reference_agent_instructions(tmp_path: Path) -> Non
     ]
     for f in files:
         content = f.read_text(encoding="utf-8")
-        assert ".providence/agent-instructions.md" in content, f"missing redirect in {f.name}"
+        assert ".providence/agent-instructions.md" in content, (
+            f"missing redirect in {f.name}"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -206,7 +208,9 @@ def test_claude_seed_has_no_inline_mandate_descriptions(tmp_path: Path) -> None:
 def test_agent_instructions_contains_fingerprint(tmp_path: Path) -> None:
     gov = _make_gov_gen(tmp_path)
     assert gov.generate_agnostic_agent_instructions()
-    content = (tmp_path / ".providence" / "agent-instructions.md").read_text(encoding="utf-8")
+    content = (tmp_path / ".providence" / "agent-instructions.md").read_text(
+        encoding="utf-8"
+    )
     assert FINGERPRINT in content
     assert "Fingerprint" in content or "fingerprint" in content
 
@@ -224,7 +228,9 @@ def test_agent_instructions_from_config_standalone(tmp_path: Path) -> None:
         ],
     }
     assert generate_agent_instructions_from_config(tmp_path, config)
-    content = (tmp_path / ".providence" / "agent-instructions.md").read_text(encoding="utf-8")
+    content = (tmp_path / ".providence" / "agent-instructions.md").read_text(
+        encoding="utf-8"
+    )
     assert FINGERPRINT in content
     assert "M001" in content
 
@@ -238,7 +244,8 @@ def test_agent_prep_seed_has_fingerprint(tmp_path: Path) -> None:
     gen = _make_ide_gen(tmp_path)
     assert gen.generate_agent_prep_seed()
     with open(
-        tmp_path / ".providence" / "seedlings" / "agent-prep.seed.json", encoding="utf-8"
+        tmp_path / ".providence" / "seedlings" / "agent-prep.seed.json",
+        encoding="utf-8",
     ) as f:
         data = json.load(f)
     assert data.get("governance_fingerprint") == FINGERPRINT
@@ -268,7 +275,8 @@ def test_personal_overlay_seed_has_fingerprint(tmp_path: Path) -> None:
     gen = _make_ide_gen(tmp_path)
     assert gen.generate_personal_overlay_seed()
     with open(
-        tmp_path / ".providence" / "seedlings" / "personal-overlay.seed.json", encoding="utf-8"
+        tmp_path / ".providence" / "seedlings" / "personal-overlay.seed.json",
+        encoding="utf-8",
     ) as f:
         data = json.load(f)
     assert data.get("governance_fingerprint") == FINGERPRINT
@@ -283,9 +291,9 @@ def test_personal_overlay_seed_has_fingerprint(tmp_path: Path) -> None:
 def test_activation_guide_has_fingerprint(tmp_path: Path) -> None:
     gov = _make_gov_gen(tmp_path)
     assert gov.generate_activation_guide()
-    content = (tmp_path / ".providence" / "seedlings" / "ACTIVATION_GUIDE.md").read_text(
-        encoding="utf-8"
-    )
+    content = (
+        tmp_path / ".providence" / "seedlings" / "ACTIVATION_GUIDE.md"
+    ).read_text(encoding="utf-8")
     assert FINGERPRINT in content
     assert "<!-- Governance fingerprint:" in content
 

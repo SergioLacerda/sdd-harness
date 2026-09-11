@@ -615,10 +615,13 @@ class TestIDESeedsGeneratorMethods:
         content = json.loads(seed_file.read_text(encoding="utf-8"))
         assert "agent_configuration" in content
         assert content["load_compiled_from"] == ".providence"
-        assert content["agent_configuration"]["quick_access"]["compiled"] == ".providence"
+        assert (
+            content["agent_configuration"]["quick_access"]["compiled"] == ".providence"
+        )
         assert ".providence/metadata.json" in content["required_context"]
         assert (
-            ".providence/seedlings/personal-overlay.seed.json" in content["required_context"]
+            ".providence/seedlings/personal-overlay.seed.json"
+            in content["required_context"]
         )
         assert "ide_hooks" in content
 
@@ -879,7 +882,9 @@ class TestGovernanceSeedsGeneratorMethods:
         assert "providence skills list" in content
         assert "providence skills describe sdd-validate-governance" in content
         assert "providence ask --full" in content
-        assert "Copy-Item -Path .providence\\seedlings -Destination . -Recurse" in content
+        assert (
+            "Copy-Item -Path .providence\\seedlings -Destination . -Recurse" in content
+        )
         assert "Activation Checklist" in content
         assert "providence governance hook disable" in content
 
@@ -1201,9 +1206,9 @@ class TestBaseSeedlingGeneratorIsolation:
             environment.find_workspace_root = original
 
 
-# 
+#
 # GovernanceSeedsGenerator  Additional Coverage Tests
-# 
+#
 
 
 class TestGovernanceSeedsGeneratorGeneratePromptCommands:

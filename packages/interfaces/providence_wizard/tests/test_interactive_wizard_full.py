@@ -172,8 +172,7 @@ class TestAskUserPreferences:
             == "Portugus (Brasil)"
         )
         assert (
-            config["language_context"]["preferred_chat_language"]
-            == "Portugus (Brasil)"
+            config["language_context"]["preferred_chat_language"] == "Portugus (Brasil)"
         )
         assert (
             config["language_context"]["preferred_ui_language"] == "Portugus (Brasil)"

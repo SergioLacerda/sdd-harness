@@ -342,7 +342,7 @@ exclude_lines = [
 # source_root is a sub-path of [tool.sdd.paths].spec_root ("docs/spec").
 # If spec_root changes, update source_root accordingly.
 source_root = "docs/spec/canonical/core/policies"
-compiled_output = ".sdd/compiled"
+compiled_output = ".providence/compiled"
 
 [tool.sdd.codegen]
 # generated_paths mirrors [tool.sdd.paths].generated_root for tool-exclusion contexts (ruff, mypy).
@@ -350,8 +350,8 @@ generated_paths = ["generated/", "build/"]
 immutable_generated = true
 
 [tool.sdd.runtime]
-context_root = ".sdd"
-cache_file = ".sdd/runtime/.sdd-cache.md"
+context_root = ".providence"
+cache_file = ".providence/runtime/.sdd-cache.md"
 token_budget_ceiling = 100000
 context_compression_threshold = 70
 context_compression_target = 50

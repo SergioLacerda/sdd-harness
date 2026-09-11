@@ -164,7 +164,9 @@ class TestLoadCustomGovernanceFile:
 
         assert ok is False
         assert errors
-        assert not (output_base / ".providence" / "source" / "governance-core.json").exists()
+        assert not (
+            output_base / ".providence" / "source" / "governance-core.json"
+        ).exists()
 
     def test_staged_file_converges_with_governance_loader(self, tmp_path: Path) -> None:
         """Proves Scenario A/B convergence: GovernanceLoader reads the staged

@@ -21,7 +21,10 @@ from providence_cli.services._runtime_handler_support import (
     runtime_context,
 )
 from providence_cli.shared.constants import RUNTIME_DIR as _RUNTIME_DIR
-from providence_cli.utils.providence_authority import compiled_active_dir, profile_active_path
+from providence_cli.utils.providence_authority import (
+    compiled_active_dir,
+    profile_active_path,
+)
 from providence_cli.utils.telemetry_paths import resolve_compliance_events_path
 
 logger = logging.getLogger(__name__)
@@ -147,7 +150,7 @@ def _emit_runtime_status(
         drift_detected = False
         if artifact is not None:
             if previous_session is None:
-                # First session for this (workspace, agent, work item) key 
+                # First session for this (workspace, agent, work item) key
                 # there is no prior baseline to classify against.
                 drift_info = {
                     "detected": False,
@@ -200,8 +203,6 @@ def _emit_runtime_status(
         logger.debug("providence_runtime: compiled artifact not found  %s", exc)
 
     except Exception as exc:  # noqa: BLE001
-        logger.debug(
-            "providence_runtime: non-critical failure in status emit  %s", exc
-        )
+        logger.debug("providence_runtime: non-critical failure in status emit  %s", exc)
 
     return drift_info
