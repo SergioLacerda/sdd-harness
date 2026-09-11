@@ -47,7 +47,7 @@ if "$PYTHON_BIN" "$HEALTH_SCRIPT" >/dev/null 2>&1; then
     echo -e "${GREEN}✓ Cache warmed${NC}"
 else
     echo -e "${RED}✗ Health check failed after merge — governance may need recompile${NC}"
-    echo -e "  Run: sdd governance compile && sdd runtime status"
+    echo -e "  Run: providence governance compile && providence runtime status"
     exit 1
 fi
 

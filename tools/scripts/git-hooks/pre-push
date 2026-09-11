@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pre-push Hook — SDD Architecture Framework
+# Pre-push Hook — Providence Architecture Framework
 #
 # Validates health and governance before pushing to remote.
 # Skip only in genuine emergencies: git push --no-verify
@@ -37,15 +37,19 @@ if ! PYTHON_BIN="$(python3 "$PROJECT_ROOT/tools/maintenance/make_tasks.py" check
     exit 1
 fi
 
-# ── Resolve sdd CLI ──────────────────────────────────────────────────────────
-SDD_CMD=""
-if [ -x "$PROJECT_ROOT/.venv/bin/sdd" ]; then
-    SDD_CMD="$PROJECT_ROOT/.venv/bin/sdd"
-elif command -v sdd >/dev/null 2>&1; then
-    SDD_CMD="sdd"
+# ── Resolve Providence CLI ───────────────────────────────────────────────────
+PROVIDENCE_CMD=""
+if [ -x "$PROJECT_ROOT/.venv/Scripts/providence.exe" ]; then
+    PROVIDENCE_CMD="$PROJECT_ROOT/.venv/Scripts/providence.exe"
+elif [ -x "$PROJECT_ROOT/.venv/bin/providence" ]; then
+    PROVIDENCE_CMD="$PROJECT_ROOT/.venv/bin/providence"
+elif command -v providence >/dev/null 2>&1; then
+    PROVIDENCE_CMD="providence"
+elif command -v uv >/dev/null 2>&1; then
+    PROVIDENCE_CMD="uv run providence"
 else
-    echo -e "${RED}ERROR: sdd CLI not found.${NC}"
-    echo "Run ./setup.sh or: pip install -e packages/interfaces/sdd_cli"
+    echo -e "${RED}ERROR: providence CLI not found.${NC}"
+    echo "Run ./setup.sh or: uv sync"
     exit 1
 fi
 
@@ -72,7 +76,7 @@ fi
 
 # ── Governance validation ────────────────────────────────────────────────────
 echo -e "${YELLOW}→ Running governance validation...${NC}"
-if GOV_OUTPUT=$("$SDD_CMD" governance validate 2>&1); then
+if GOV_OUTPUT=$($PROVIDENCE_CMD governance validate 2>&1); then
     echo -e "${GREEN}✓ Governance validation passed${NC}"
 else
     echo -e "${RED}GOVERNANCE VALIDATION FAILED${NC}"
