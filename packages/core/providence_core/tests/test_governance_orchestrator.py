@@ -52,8 +52,8 @@ class TestGovernanceOrchestratorInit:
             mock_paths.return_value = {
                 "root": tmp_path,
                 "source_spec": tmp_path / "docs" / "spec",
-                "master_compiled": tmp_path / ".sdd" / "compiled",
-                "master_build": tmp_path / ".sdd" / "build",
+                "master_compiled": tmp_path / ".providence" / "compiled",
+                "master_build": tmp_path / ".providence" / "build",
             }
             orchestrator = GovernanceOrchestrator()
             assert orchestrator.repo_root == tmp_path
@@ -67,8 +67,8 @@ class TestGovernanceOrchestratorInit:
             mock_paths.return_value = {
                 "root": tmp_path,
                 "source_spec": tmp_path / "docs" / "spec",
-                "master_compiled": tmp_path / ".sdd" / "compiled",
-                "master_build": tmp_path / ".sdd" / "build",
+                "master_compiled": tmp_path / ".providence" / "compiled",
+                "master_build": tmp_path / ".providence" / "build",
             }
             orchestrator = GovernanceOrchestrator(repo_root=custom_root)
             assert orchestrator.repo_root == Path(custom_root)
@@ -108,8 +108,8 @@ class TestGovernanceOrchestratorInit:
             mock_paths.return_value = {
                 "root": tmp_path,
                 "source_spec": tmp_path / "docs" / "spec",
-                "master_compiled": tmp_path / ".sdd" / "compiled",
-                "master_build": tmp_path / ".sdd" / "build",
+                "master_compiled": tmp_path / ".providence" / "compiled",
+                "master_build": tmp_path / ".providence" / "build",
             }
             orchestrator = GovernanceOrchestrator(spec_path=custom_spec)
             assert orchestrator.spec == Path(custom_spec)
@@ -123,8 +123,8 @@ class TestGovernanceOrchestratorInit:
             mock_paths.return_value = {
                 "root": tmp_path,
                 "source_spec": tmp_path / "docs" / "spec",
-                "master_compiled": tmp_path / ".sdd" / "compiled",
-                "master_build": tmp_path / ".sdd" / "build",
+                "master_compiled": tmp_path / ".providence" / "compiled",
+                "master_build": tmp_path / ".providence" / "build",
             }
             orchestrator = GovernanceOrchestrator(emit=emit_fn)
             assert orchestrator._emit == emit_fn
@@ -134,8 +134,8 @@ class TestGovernanceOrchestratorInit:
         with patch(
             "providence_core.governance_orchestrator.get_sdd_paths"
         ) as mock_paths:
-            compiled = tmp_path / ".sdd" / "compiled"
-            build = tmp_path / ".sdd" / "build"
+            compiled = tmp_path / ".providence" / "compiled"
+            build = tmp_path / ".providence" / "build"
             mock_paths.return_value = {
                 "root": tmp_path,
                 "source_spec": tmp_path / "docs" / "spec",
@@ -188,8 +188,8 @@ class TestOutMethod:
             mock_paths.return_value = {
                 "root": tmp_path,
                 "source_spec": tmp_path / "docs" / "spec",
-                "master_compiled": tmp_path / ".sdd" / "compiled",
-                "master_build": tmp_path / ".sdd" / "build",
+                "master_compiled": tmp_path / ".providence" / "compiled",
+                "master_build": tmp_path / ".providence" / "build",
             }
             with patch("providence_core.governance_orchestrator.logger") as mock_logger:
                 orchestrator = GovernanceOrchestrator()
@@ -205,8 +205,8 @@ class TestOutMethod:
             mock_paths.return_value = {
                 "root": tmp_path,
                 "source_spec": tmp_path / "docs" / "spec",
-                "master_compiled": tmp_path / ".sdd" / "compiled",
-                "master_build": tmp_path / ".sdd" / "build",
+                "master_compiled": tmp_path / ".providence" / "compiled",
+                "master_build": tmp_path / ".providence" / "build",
             }
             orchestrator = GovernanceOrchestrator(emit=emit_fn)
             orchestrator._out("test message")
@@ -250,8 +250,8 @@ class TestValidateFullPipeline:
             mock_paths.return_value = {
                 "root": tmp_path,
                 "source_spec": tmp_path / "docs" / "spec",
-                "master_compiled": tmp_path / ".sdd" / "compiled",
-                "master_build": tmp_path / ".sdd" / "build",
+                "master_compiled": tmp_path / ".providence" / "compiled",
+                "master_build": tmp_path / ".providence" / "build",
             }
             orchestrator = GovernanceOrchestrator()
 
@@ -283,8 +283,8 @@ class TestValidateFullPipeline:
             mock_paths.return_value = {
                 "root": tmp_path,
                 "source_spec": tmp_path / "docs" / "spec",
-                "master_compiled": tmp_path / ".sdd" / "compiled",
-                "master_build": tmp_path / ".sdd" / "build",
+                "master_compiled": tmp_path / ".providence" / "compiled",
+                "master_build": tmp_path / ".providence" / "build",
             }
             orchestrator = GovernanceOrchestrator()
 
@@ -516,11 +516,13 @@ class TestRunPhase2:
             result = orch._run_phase_2()
 
         assert result["success"] is True
-        assert (tmp_path / ".sdd" / "compiled" / "governance-core.json").exists()
-        assert (tmp_path / ".sdd" / "compiled" / "governance-client.json").exists()
-        assert (tmp_path / ".sdd" / "compiled" / "metadata-core.json").exists()
+        assert (tmp_path / ".providence" / "compiled" / "governance-core.json").exists()
         assert (
-            tmp_path / ".sdd" / "compiled" / "metadata-client-template.json"
+            tmp_path / ".providence" / "compiled" / "governance-client.json"
+        ).exists()
+        assert (tmp_path / ".providence" / "compiled" / "metadata-core.json").exists()
+        assert (
+            tmp_path / ".providence" / "compiled" / "metadata-client-template.json"
         ).exists()
 
 

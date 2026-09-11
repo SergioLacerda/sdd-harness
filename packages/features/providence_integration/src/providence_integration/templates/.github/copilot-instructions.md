@@ -11,9 +11,9 @@ This workspace uses SDD governance. Treat this file as the first bootstrap for C
 
 ## Workspace Governance Inputs
 
-- Mandatory mandates live in `.sdd/source/mandates/mandates.md`
-- Active guidelines live in `.sdd/source/guidelines/`
-- Project metadata and fingerprints live in `.sdd/metadata.json`
+- Mandatory mandates live in `.providence/source/mandates/mandates.md`
+- Active guidelines live in `.providence/source/guidelines/`
+- Project metadata and fingerprints live in `.providence/metadata.json`
 - Runtime health is tracked by `providence runtime status`
 
 ## Operating Rules

@@ -39,7 +39,7 @@ exist."**
 | CI workflow files | 13 | `.github/workflows/*.yml` count, confirmed in Strategist mission `20260807-critique-project-todo-gap-eval` | Measured |
 | Max synchronous gates per PR | TBD | Requires enumerating blocking jobs per workflow trigger | Needs measurement |
 | Pipeline P50/P95 wall-clock time | TBD | Requires CI run-history mining (GitHub Actions API) | Needs measurement |
-| Number of generated artifacts | TBD | Requires enumerating `.sdd/compiled/*`, release assets, docs build outputs | Needs measurement |
+| Number of generated artifacts | TBD | Requires enumerating `.providence/compiled/*`, release assets, docs build outputs | Needs measurement |
 | Number of canonical governance sources | TBD | `docs/spec/canonical/governance-sources.yaml` entry count — quick to derive, not run this pass | Needs measurement |
 | Product-code : enforcement-code ratio | TBD | Requires a `cloc`-style split of `packages/` vs. `tools/ci/` + `tools/architecture/` + `tools/guardrails/` | Needs measurement |
 | Supported modes/configurations | TBD | e.g. Strategist personas, signature modes, output profiles — not enumerated this pass | Needs measurement |

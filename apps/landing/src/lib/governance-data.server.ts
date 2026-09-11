@@ -1,5 +1,5 @@
 /**
- * Server-only: reads real governance stats from `.sdd/metadata.json` at
+ * Server-only: reads real governance stats from `.providence/metadata.json` at
  * build time. Import this only from `.astro` frontmatter (never from a
  * client-hydrated component) — it uses Node built-ins that don't exist in
  * the browser bundle.
@@ -56,7 +56,7 @@ const REPO_ROOT =
   process.env.SDD_REPO_ROOT ??
   findRepoRootByGitMarker(MODULE_DIR) ??
   LEGACY_REPO_ROOT;
-const METADATA_PATH = path.join(REPO_ROOT, '.sdd', 'metadata.json');
+const METADATA_PATH = path.join(REPO_ROOT, '.providence', 'metadata.json');
 
 function shortenFingerprint(fingerprint: string): string {
   if (fingerprint.length <= 12) return fingerprint;
@@ -65,7 +65,7 @@ function shortenFingerprint(fingerprint: string): string {
 
 /**
  * Loads real governance stats. Falls back to placeholder stats (with a
- * build warning) if `.sdd/metadata.json` isn't present — mirrors the
+ * build warning) if `.providence/metadata.json` isn't present — mirrors the
  * fallback behavior of `selector_compiler.py`, which never ships fake data
  * as if it were real.
  */
@@ -93,7 +93,7 @@ export function loadGovernanceStats(): GovernanceStats {
     };
   } catch (err) {
     console.warn(
-      `[governance-data] .sdd/metadata.json not readable at ${METADATA_PATH} ` +
+      `[governance-data] .providence/metadata.json not readable at ${METADATA_PATH} ` +
         `(${(err as Error).message}). Run 'sdd governance generate' before building ` +
         'for production. Falling back to placeholder stats.',
     );

@@ -44,7 +44,7 @@ On branch main
 
 Untracked files:
   (use "git add <file>..." to include in what will be committed)
-        .sdd/
+        .providence/
         .cursor/
         .github/
         .pre-commit-config.yaml
@@ -59,7 +59,7 @@ nothing added to commit but untracked files present (tracking will be proposed)
 
 ```bash
 # Stage all SDD-related files
-git add .spec.config .github/ .vscode/ .cursor/ .pre-commit-config.yaml scripts/ .sdd/
+git add .spec.config .github/ .vscode/ .cursor/ .pre-commit-config.yaml scripts/ .providence/
 ```
 
 ### Step 3: Verify Staging
@@ -82,8 +82,8 @@ Changes to be committed:
         new file:   .cursor/rules/spec.mdc
         new file:   .pre-commit-config.yaml
         new file:   .github/setup-precommit-hook.sh
-        new file:   .sdd/context-aware/...
-        new file:   .sdd/runtime/...
+        new file:   .providence/context-aware/...
+        new file:   .providence/runtime/...
         (many more files)
 ```
 
@@ -112,8 +112,8 @@ git commit -m "feat: Integrate SDD framework governance"
  create mode 100644 .cursor/rules/spec.mdc
  create mode 100644 .pre-commit-config.yaml
  create mode 100644 .github/setup-precommit-hook.sh
- create mode 100644 .sdd/context-aware/...
- create mode 100644 .sdd/runtime/...
+ create mode 100644 .providence/context-aware/...
+ create mode 100644 .providence/runtime/...
 ```
 
 ---
@@ -147,8 +147,8 @@ git show HEAD --stat | tail -1
 # Should show: ~45 files changed, ~5000+ insertions
 
 # Check specific folders
-git show HEAD --name-only | grep "^\.sdd/" | wc -l
-# Should show: ~20-30 files in .sdd/
+git show HEAD --name-only | grep "^\.providence/" | wc -l
+# Should show: ~20-30 files in .providence/
 ```
 
 ---
@@ -166,7 +166,7 @@ git add .gitignore README.md (or main project files)
 git commit -m "Initial commit"
 
 # Then come back to Step 5
-git add .spec.config .github/ .vscode/ .cursor/ .pre-commit-config.yaml scripts/ .sdd/
+git add .spec.config .github/ .vscode/ .cursor/ .pre-commit-config.yaml scripts/ .providence/
 git commit -m "feat: Integrate SDD framework governance"
 ```
 
@@ -254,10 +254,10 @@ Your developers can now:
 
 | Step | Action | Result |
 |------|--------|--------|
-| 1 | Create directories | `.github/`, `.vscode/`, `.cursor/`, `scripts/`, `.sdd/` |
+| 1 | Create directories | `.github/`, `.vscode/`, `.cursor/`, `scripts/`, `.providence/` |
 | 2 | Copy templates | 8 template files populated |
 | 3 | Configure `.spec.config` | Points to providence |
-| 4 | Validate setup | Framework verified, `.sdd/` infrastructure created |
+| 4 | Validate setup | Framework verified, `.providence/` infrastructure created |
 | 5 | Commit to git | All changes saved to version control |
 
 **Time invested:** 20-30 minutes
@@ -269,7 +269,7 @@ Your developers can now:
 
 - [ ] Git commit created: `git log -1`
 - [ ] `.spec.config` correctly configured: `cat .spec.config`
-- [ ] `.sdd/` infrastructure exists: `ls -la .sdd/`
+- [ ] `.providence/` infrastructure exists: `ls -la .providence/`
 - [ ] Pre-commit hooks in place: `ls -la .pre-commit-config.yaml`
 - [ ] All files staged and committed: `git status` shows "nothing to commit"
 - [ ] Ready for developers: Share the project repo

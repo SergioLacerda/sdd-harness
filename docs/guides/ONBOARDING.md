@@ -53,7 +53,7 @@ uv run providence init --default
 `providence init --type client --name local-dev --language en --force` and
 runs the full chain:
 
-1. Workspace profile (`.sdd/profile`)
+1. Workspace profile (`.providence/profile`)
 2. `providence governance generate --full-bootstrap`
 3. `providence skills --full-bootstrap --regenerate-seeds`
 4. `providence runtime status --force`

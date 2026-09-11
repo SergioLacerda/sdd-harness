@@ -19,8 +19,8 @@ Run pre-delivery quality gates (lint + CI-validate) to confirm the workspace is 
 
 ## Required protocol
 
-1. Load `.sdd/agent-instructions.md`
-2. Confirm skill is registered in `.sdd/skills/registry.json` as `sdd-stabilize`
+1. Load `.providence/agent-instructions.md`
+2. Confirm skill is registered in `.providence/skills/registry.json` as `sdd-stabilize`
 3. Run preflight: `sdd runtime status`
 4. Run lint: `sdd lint run`
 5. Run CI-validate: `sdd test ci-validate`

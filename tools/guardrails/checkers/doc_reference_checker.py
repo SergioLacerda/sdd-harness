@@ -33,7 +33,7 @@ except ImportError:
         def detect_repo_root() -> Path:
             current = Path.cwd()
             for parent in [current, *current.parents]:
-                if (parent / ".sdd").exists():
+                if (parent / ".providence").exists():
                     return parent
             return current
 

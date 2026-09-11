@@ -19,8 +19,8 @@ Assess and drive the workspace toward systemic alignment with the governance spe
 
 ## Required protocol
 
-1. Load `.sdd/agent-instructions.md`
-2. Confirm skill is registered in `.sdd/skills/registry.json` as `sdd-converge`
+1. Load `.providence/agent-instructions.md`
+2. Confirm skill is registered in `.providence/skills/registry.json` as `sdd-converge`
 3. Query current governance state: `sdd ask "current alignment delta"`
 4. Assess the full delta: what diverges from the spec target?
 5. Score alignment: estimate `alignment_score` (0.0–1.0)

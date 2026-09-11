@@ -29,6 +29,6 @@ Implement a **Fail-Closed** bidirectional handshake protocol (Mandate M015) that
 
 ## Implementation Notes
 
-- Handshake state is persisted in `.sdd/runtime/handshake-response.json`.
+- Handshake state is persisted in `.providence/runtime/handshake-response.json`.
 - `AgentHandshakeProtocol` in `providence_core` is the authority for challenge/response logic.
 - Integration into `providence ask` and `providence ask-full` ensures all primary entry points are guarded.

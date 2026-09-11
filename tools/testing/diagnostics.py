@@ -105,14 +105,14 @@ class DiagnosticTestSuite:
         return d.is_dir(), f"{'Found' if d.is_dir() else 'Not found'} at {d}"
 
     def _check_sdd_compiled(self) -> tuple[bool, str]:
-        d = self.project_root / ".sdd" / "compiled"
+        d = self.project_root / ".providence" / "compiled"
         if not d.is_dir():
             return (
                 False,
-                ".sdd/compiled/ not initialized — run: providence governance compile",
+                ".providence/compiled/ not initialized — run: providence governance compile",
             )
         artifacts = list(d.glob("*.msgpack")) + list(d.glob("*.json"))
-        return True, f"{len(artifacts)} artifact(s) in .sdd/compiled/"
+        return True, f"{len(artifacts)} artifact(s) in .providence/compiled/"
 
     def _check_git_dir(self) -> tuple[bool, str]:
         d = self.project_root / ".git"
@@ -221,7 +221,7 @@ class DiagnosticTestSuite:
         )
         self._run("docs/ root", self._check_docs_root, "structure")
         self._run(
-            "Compiled governance (.sdd/compiled/)",
+            "Compiled governance (.providence/compiled/)",
             self._check_sdd_compiled,
             "structure",
             optional=True,

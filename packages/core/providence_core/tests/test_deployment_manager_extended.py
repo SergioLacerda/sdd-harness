@@ -107,7 +107,7 @@ class TestDeploymentManagerRuntimePaths:
     """Tests for runtime path configuration."""
 
     def test_runtime_compiled_path_structure(self, tmp_path: Path) -> None:
-        """Runtime compiled path should follow .sdd/compiled structure."""
+        """Runtime compiled path should follow .providence/compiled structure."""
         with patch("providence_core.deployment_manager.get_sdd_paths") as mock_paths:
             mock_paths.return_value = {
                 "root": tmp_path,
@@ -116,7 +116,7 @@ class TestDeploymentManagerRuntimePaths:
             }
             manager = DeploymentManager()
 
-            assert ".sdd" in str(manager.runtime_compiled)
+            assert ".providence" in str(manager.runtime_compiled)
             assert "compiled" in str(manager.runtime_compiled)
 
     def test_runtime_audit_path_exists(self, tmp_path: Path) -> None:
@@ -130,7 +130,7 @@ class TestDeploymentManagerRuntimePaths:
             manager = DeploymentManager()
 
             assert "audit" in str(manager.runtime_audit)
-            assert ".sdd" in str(manager.runtime_audit)
+            assert ".providence" in str(manager.runtime_audit)
 
 
 class TestDeploymentManagerInitialization:
@@ -142,7 +142,7 @@ class TestDeploymentManagerInitialization:
         client_compiled.mkdir(parents=True, exist_ok=True)
 
         with patch("providence_core.deployment_manager.get_sdd_paths") as mock_paths:
-            compiled = tmp_path / ".sdd" / "compiled"
+            compiled = tmp_path / ".providence" / "compiled"
             mock_paths.return_value = {
                 "root": tmp_path,
                 "client_compiled": client_compiled,

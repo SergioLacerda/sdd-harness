@@ -512,7 +512,7 @@ def test_parse_json_empty_stdout_with_no_stderr_omits_stderr_line() -> None:
 def test_cache_dir_is_under_home_sdd_bin(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("SDD_CACHE_DIR", raising=False)
     monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
-    assert compiler_runner._cache_dir() == Path.home() / ".sdd" / "bin"
+    assert compiler_runner._cache_dir() == Path.home() / ".providence" / "bin"
 
 
 def test_cache_dir_honors_sdd_cache_dir_override(
@@ -920,7 +920,7 @@ def test_sign_raises_actionable_error_when_binary_missing_subcommand() -> None:
     # The binary's own self-reported version (queried via `version`) is a distinct
     # value (the sdd-compile release version) and must not be used to reconstruct
     # the cache path.
-    binary_path = Path("/home/user/.sdd/bin/1.0.0/sdd-compile-linux-amd64")
+    binary_path = Path("/home/user/.providence/bin/1.0.0/sdd-compile-linux-amd64")
     runner = CompilerRunner.__new__(CompilerRunner)
     runner._binary = binary_path  # type: ignore[attr-defined]
     runner._runner = SimpleNamespace(run=_fake_run)  # type: ignore[attr-defined]

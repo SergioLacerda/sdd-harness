@@ -20,7 +20,7 @@ pytestmark = pytest.mark.unit
 
 
 def _write_profile(tmp_path: Path, profile_type: str = "client") -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     sdd_dir.mkdir(exist_ok=True)
     (sdd_dir / "profile").write_text(
         f"[sdd]\ntype = {profile_type}\nname = test\n", encoding="utf-8"
@@ -28,7 +28,7 @@ def _write_profile(tmp_path: Path, profile_type: str = "client") -> None:
 
 
 def _write_governance_core(tmp_path: Path, items: list[Any] | None = None) -> Path:
-    compiled_dir = tmp_path / ".sdd" / "compiled"
+    compiled_dir = tmp_path / ".providence" / "compiled"
     compiled_dir.mkdir(parents=True, exist_ok=True)
     data = {"items": items or [], "fingerprint": "abc123"}
     path = compiled_dir / "governance-core.json"
@@ -37,7 +37,7 @@ def _write_governance_core(tmp_path: Path, items: list[Any] | None = None) -> Pa
 
 
 def _write_cache(tmp_path: Path, state: str = "HEALTHY", minutes_old: int = 0) -> None:
-    cache_dir = tmp_path / ".sdd" / "runtime"
+    cache_dir = tmp_path / ".providence" / "runtime"
     cache_dir.mkdir(parents=True, exist_ok=True)
     ts = (datetime.now() - timedelta(minutes=minutes_old)).isoformat()
     cache = {
@@ -78,8 +78,11 @@ class TestHandshakeProtocolInit:
     def test_cache_paths_initialized(self, tmp_path: Path) -> None:
         """Should initialize cache file paths correctly."""
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
-        assert ahp.cache_dir == tmp_path / ".sdd" / "runtime"
-        assert ahp.cache_file == tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        assert ahp.cache_dir == tmp_path / ".providence" / "runtime"
+        assert (
+            ahp.cache_file
+            == tmp_path / ".providence" / "runtime" / "governance-state.json"
+        )
 
     def test_initial_state_is_not_connected(self, tmp_path: Path) -> None:
         """Should start with NOT_CONNECTED state."""
@@ -105,7 +108,7 @@ class TestSemanticTriggering:
             "arquivo",
             "governance",
             "mandates",
-            ".sdd",
+            ".providence",
             "architecture",
         ]
         for user_input in technical_inputs:
@@ -139,60 +142,64 @@ class TestLayer1Discovery:
     """Tests for DISCOVERY layer validation."""
 
     def test_discovery_detects_sdd_directory(self, tmp_path: Path) -> None:
-        """Layer 1 should detect .sdd/ directory."""
-        (tmp_path / ".sdd").mkdir()
+        """Layer 1 should detect .providence/ directory."""
+        (tmp_path / ".providence").mkdir()
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         state, results = ahp._layer_1_discovery()
         assert state == "CONNECTED"
-        assert any(r.name == ".sdd/ directory" and r.passed for r in results)
+        assert any(r.name == ".providence/ directory" and r.passed for r in results)
 
     def test_discovery_missing_sdd_directory(self, tmp_path: Path) -> None:
-        """Layer 1 should fail when .sdd/ is missing."""
+        """Layer 1 should fail when .providence/ is missing."""
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         state, results = ahp._layer_1_discovery()
         assert state == "NOT_CONNECTED"
-        assert any(r.name == ".sdd/ directory" and not r.passed for r in results)
+        assert any(r.name == ".providence/ directory" and not r.passed for r in results)
 
     def test_discovery_detects_profile_file(self, tmp_path: Path) -> None:
-        """Layer 1 should detect .sdd/profile file."""
-        sdd_dir = tmp_path / ".sdd"
+        """Layer 1 should detect .providence/profile file."""
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text("[sdd]\ntype=client\n", encoding="utf-8")
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         state, results = ahp._layer_1_discovery()
-        assert any(r.name == ".sdd/profile" and r.passed for r in results)
+        assert any(r.name == ".providence/profile" and r.passed for r in results)
 
 
 class TestLayer2LinkValidation:
     """Tests for LINK VALIDATION layer."""
 
     def test_link_validation_reads_profile(self, tmp_path: Path) -> None:
-        """Layer 2 should parse .sdd/profile."""
-        sdd_dir = tmp_path / ".sdd"
+        """Layer 2 should parse .providence/profile."""
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text("[sdd]\ntype=client\n", encoding="utf-8")
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         state, results = ahp._layer_2_link_validation()
-        assert any(r.name == ".sdd/profile readable" and r.passed for r in results)
+        assert any(
+            r.name == ".providence/profile readable" and r.passed for r in results
+        )
 
     def test_link_validation_validates_profile_type(self, tmp_path: Path) -> None:
         """Layer 2 should validate profile type is master or client."""
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text("[sdd]\ntype=master\n", encoding="utf-8")
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         state, results = ahp._layer_2_link_validation()
-        assert any(r.name == ".sdd/profile type valid" and r.passed for r in results)
+        assert any(
+            r.name == ".providence/profile type valid" and r.passed for r in results
+        )
 
     def test_link_validation_rejects_invalid_profile_type(self, tmp_path: Path) -> None:
         """Layer 2 should fail on invalid profile type."""
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text("[sdd]\ntype=invalid\n", encoding="utf-8")
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         state, results = ahp._layer_2_link_validation()
         assert any(
-            r.name == ".sdd/profile type valid" and not r.passed for r in results
+            r.name == ".providence/profile type valid" and not r.passed for r in results
         )
 
     def test_link_validation_detects_packages_framework(self, tmp_path: Path) -> None:
@@ -207,16 +214,16 @@ class TestLayer3RuntimeValidation:
     """Tests for RUNTIME VALIDATION layer."""
 
     def test_runtime_validates_ai_runtime_directory(self, tmp_path: Path) -> None:
-        """Layer 3 should check .sdd/runtime/ directory."""
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        """Layer 3 should check .providence/runtime/ directory."""
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         state, results = ahp._layer_3_runtime_validation()
-        assert any(r.name == ".sdd/runtime/" and r.passed for r in results)
+        assert any(r.name == ".providence/runtime/" and r.passed for r in results)
 
     def test_runtime_validates_state_cache(self, tmp_path: Path) -> None:
         """Layer 3 should check governance-state.json cache."""
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         (runtime_dir / "governance-state.json").write_text("{}", encoding="utf-8")
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
@@ -224,8 +231,8 @@ class TestLayer3RuntimeValidation:
         assert any(r.name == "state cache" and r.passed for r in results)
 
     def test_runtime_validates_phase_0_marker(self, tmp_path: Path) -> None:
-        """Layer 3 should check PHASE 0 completion marker in .sdd/runtime/ (canonical path)."""
-        providence_runtime_dir = tmp_path / ".sdd" / "runtime"
+        """Layer 3 should check PHASE 0 completion marker in .providence/runtime/ (canonical path)."""
+        providence_runtime_dir = tmp_path / ".providence" / "runtime"
         providence_runtime_dir.mkdir(parents=True)
         (providence_runtime_dir / ".phase-0-complete").touch()
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
@@ -398,7 +405,7 @@ class TestSemanticTriggeringAdditional:
 
 class TestLayer1DiscoveryAdditional:
     def test_governance_core_json_check_present(self, tmp_path: Path) -> None:
-        (tmp_path / ".sdd").mkdir()
+        (tmp_path / ".providence").mkdir()
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         _, results = ahp._layer_1_discovery()
         names = [r.name for r in results]
@@ -431,13 +438,13 @@ class TestLayer3RuntimeValidationAdditional:
         assert state == "NOT_INITIALIZED"
 
     def test_runtime_dir_without_state_returns_partial(self, tmp_path: Path) -> None:
-        (tmp_path / ".sdd" / "runtime").mkdir(parents=True)
+        (tmp_path / ".providence" / "runtime").mkdir(parents=True)
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
         state, _ = ahp._layer_3_runtime_validation()
         assert state == "PARTIAL"
 
     def test_full_runtime_returns_ready(self, tmp_path: Path) -> None:
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         (runtime_dir / "governance-state.json").write_text("{}", encoding="utf-8")
         (runtime_dir / ".phase-0-complete").write_text("done", encoding="utf-8")
@@ -463,7 +470,7 @@ class TestLayer4GovernanceHealth:
         assert state in ("HEALTHY", "DEGRADED")
 
     def test_invalid_governance_json_governance_not_valid(self, tmp_path: Path) -> None:
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True)
         (compiled_dir / "governance-core.json").write_text("not json", encoding="utf-8")
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
@@ -574,11 +581,11 @@ class TestValidate:
         assert report.cached is False
 
     def test_validate_saves_cache_on_fresh_run(self, tmp_path: Path) -> None:
-        # NOT_CONNECTED is never cached; create .sdd/ so state is non-NOT_CONNECTED
+        # NOT_CONNECTED is never cached; create .providence/ so state is non-NOT_CONNECTED
         _write_profile(tmp_path, "client")
         ahp = AgentHandshakeProtocol(project_root=tmp_path, cache_ttl_minutes=5)
         ahp.validate(output_mode="silent", force_recheck=True)
-        cache_file = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        cache_file = tmp_path / ".providence" / "runtime" / "governance-state.json"
         assert cache_file.exists()
 
     def test_validate_with_full_setup_returns_healthy(self, tmp_path: Path) -> None:
@@ -586,7 +593,7 @@ class TestValidate:
         _write_profile(tmp_path, "client")
         _write_governance_core(tmp_path, [{"id": "M001", "type": "MANDATE"}])
         (tmp_path / "packages").mkdir()
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         (runtime_dir / "governance-state.json").write_text("{}", encoding="utf-8")
         (runtime_dir / ".phase-0-complete").write_text("done", encoding="utf-8")

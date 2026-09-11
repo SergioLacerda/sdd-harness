@@ -12,12 +12,12 @@ export UV_CACHE_DIR="${UV_CACHE_DIR:-$REPO_ROOT/.uv-cache}"
 
 # Same workspace src dirs as [tool.pytest.ini_options].pythonpath in
 # pyproject.toml (and Makefile's WORKSPACE_PYTHONPATH). `uv run python -m
-# sdd_cli ...` below relies on uv's own sync-freshness cache to have sdd_cli
+# providence_cli ...` below relies on uv's own sync-freshness cache to have providence_cli
 # installed as an editable --- if something external touches .venv without
 # going through uv (e.g. a reset/reprovisioned .venv), that cache can be
 # stale and `uv run` will not repair it. Exporting this directly makes the
 # `-m` invocation resolve regardless of uv's sync state.
-WORKSPACE_PYTHONPATH="$REPO_ROOT/packages/core/sdd_core/src:$REPO_ROOT/packages/core/sdd_runtime/src:$REPO_ROOT/packages/core/sdd_telemetry/src:$REPO_ROOT/packages/features/sdd_integration/src:$REPO_ROOT/packages/features/sdd_adapters/src:$REPO_ROOT/packages/features/sdd_skills/src:$REPO_ROOT/packages/features/sdd_pages/src:$REPO_ROOT/packages/interfaces/sdd_wizard/src:$REPO_ROOT/packages/interfaces/sdd_cli/src"
+WORKSPACE_PYTHONPATH="$REPO_ROOT/packages/core/providence_core/src:$REPO_ROOT/packages/core/providence_runtime/src:$REPO_ROOT/packages/core/providence_telemetry/src:$REPO_ROOT/packages/features/providence_integration/src:$REPO_ROOT/packages/features/providence_adapters/src:$REPO_ROOT/packages/features/providence_skills/src:$REPO_ROOT/packages/features/providence_pages/src:$REPO_ROOT/packages/interfaces/providence_wizard/src:$REPO_ROOT/packages/interfaces/providence_cli/src"
 
 echo "SDD Guardrail: Pre-commit Validation"
 echo "Branch: $CURRENT_BRANCH"
@@ -59,15 +59,15 @@ if [ "${SDD_AGENT_MODE:-}" = "true" ]; then
     exit 1
 fi
 
-# 3. Cache staleness check (.providence/runtime/.sdd-cache.md)
-CACHE_FILE="$REPO_ROOT/.providence/runtime/.sdd-cache.md"
+# 3. Cache staleness check (.providence/runtime/.providence-cache.md)
+CACHE_FILE="$REPO_ROOT/.providence/runtime/.providence-cache.md"
 if [ ! -f "$CACHE_FILE" ]; then
     if is_protected_branch; then
-        echo "GUARDRAIL L2 FAILURE: Missing .providence/runtime/.sdd-cache.md."
-        echo "FIX: Create .providence/runtime/.sdd-cache.md to maintain traceability."
+        echo "GUARDRAIL L2 FAILURE: Missing .providence/runtime/.providence-cache.md."
+        echo "FIX: Create .providence/runtime/.providence-cache.md to maintain traceability."
         exit 1
     fi
-    echo "WARNING L2: Missing .providence/runtime/.sdd-cache.md on non-protected branch."
+    echo "WARNING L2: Missing .providence/runtime/.providence-cache.md on non-protected branch."
 else
     last_mod=$(file_mtime "$CACHE_FILE")
     now=$(date +%s)
@@ -75,11 +75,11 @@ else
 
     if [ "$age" -gt 3600 ]; then
         if is_protected_branch; then
-            echo "GUARDRAIL L2 FAILURE: .providence/runtime/.sdd-cache.md is stale ($((age / 60)) min ago)."
+            echo "GUARDRAIL L2 FAILURE: .providence/runtime/.providence-cache.md is stale ($((age / 60)) min ago)."
             echo "FIX: Update the cache and run the Validation Quiz before committing."
             exit 1
         fi
-        echo "WARNING L2: .providence/runtime/.sdd-cache.md is stale ($((age / 60)) min ago)."
+        echo "WARNING L2: .providence/runtime/.providence-cache.md is stale ($((age / 60)) min ago)."
     fi
 fi
 
@@ -108,7 +108,7 @@ fi
 # 5. Validation Quiz check
 if [ -f "$CACHE_FILE" ] && ! grep -q "Validation Quiz" "$CACHE_FILE"; then
     if is_protected_branch; then
-        echo "GUARDRAIL L3 FAILURE: No 'Validation Quiz' entry in .providence/runtime/.sdd-cache.md."
+        echo "GUARDRAIL L3 FAILURE: No 'Validation Quiz' entry in .providence/runtime/.providence-cache.md."
         echo "FIX: Complete the two-question quiz and record it in the cache."
         exit 1
     fi
@@ -194,10 +194,10 @@ if echo "$STAGED_FILES" | grep -E '^docs/spec/.*\.md$' >/dev/null 2>&1; then
     echo "Running canonical spec lint (anchor/style parity with CI)..."
     if command -v uv >/dev/null 2>&1; then
         if ! PYTHONPATH="$WORKSPACE_PYTHONPATH${PYTHONPATH:+:$PYTHONPATH}" \
-            uv run python -m sdd_cli lint spec --validate-all-anchors --strict-anchor-style; then
+            uv run python -m providence_cli lint spec --validate-all-anchors --strict-anchor-style; then
             echo "GUARDRAIL FAILURE: Canonical spec lint failed."
             echo "FIX: Resolve spec lint errors before committing. If the error above is"
-            echo "'No module named sdd_cli' rather than an actual lint finding, your .venv"
+            echo "'No module named providence_cli' rather than an actual lint finding, your .venv"
             echo "is not synced --- run 'make install' (or 'uv sync --all-groups"
             echo "--all-packages --extra test') and retry."
             exit 1

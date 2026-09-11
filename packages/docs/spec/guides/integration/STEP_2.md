@@ -69,7 +69,7 @@ ls -la .github/
 ls -la .vscode/
 ls -la .cursor/
 ls -la scripts/
-ls -la .sdd/
+ls -la .providence/
 ```
 
 **Expected files:**
@@ -83,13 +83,13 @@ ls -la .sdd/
 | `.cursor/rules/spec.mdc` | `.cursor/` | ~250 lines |
 | `.pre-commit-config.yaml` | project root | ~30 lines |
 | `.github/setup-precommit-hook.sh` | `scripts/` | ~50 lines |
-| `.sdd/README.md` | `.sdd/` | ~100 lines |
+| `.providence/README.md` | `.providence/` | ~100 lines |
 
 ### Quick Verification Script
 
 ```bash
 # Run this to verify all files
-for file in .spec.config .github/copilot-instructions.md .vscode/ai-rules.md .cursor/rules/spec.mdc .pre-commit-config.yaml .github/setup-precommit-hook.sh .sdd/README.md; do
+for file in .spec.config .github/copilot-instructions.md .vscode/ai-rules.md .cursor/rules/spec.mdc .pre-commit-config.yaml .github/setup-precommit-hook.sh .providence/README.md; do
   if [ -f "$file" ]; then
     echo "✅ $file"
   else
@@ -138,9 +138,9 @@ done
 - **Run:** After copying (optional) or during Step 4
 - **Usage:** `bash .github/setup-precommit-hook.sh`
 
-### `.sdd/README.md`
+### `.providence/README.md`
 
-- **Purpose:** Explains .sdd/ directory structure
+- **Purpose:** Explains .providence/ directory structure
 - **Used by:** Developers during PHASE 0
 - **Don't edit yet:** PHASE 0 will create infrastructure
 
@@ -212,7 +212,7 @@ After copying, you should have approximately:
 ```bash
 # Count files in each directory
 find . -type f ! -path './.git/*' ! -path './.github/*' -o -path './.github/*' | wc -l
-# Should show: ~8 files across .github/, .vscode/, .cursor/, scripts/, .sdd/
+# Should show: ~8 files across .github/, .vscode/, .cursor/, scripts/, .providence/
 ```
 
 ---

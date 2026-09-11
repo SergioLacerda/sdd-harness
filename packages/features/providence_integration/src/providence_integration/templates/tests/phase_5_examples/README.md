@@ -166,7 +166,7 @@ examples/bash/test-integration-flow.sh
 ✅ Created directory: .vscode/
 ✅ Created directory: .cursor/
 ✅ Created directory: scripts/
-✅ Created directory: .sdd/
+✅ Created directory: .providence/
 ✅ STEP 1 PASSED: All directories created
 ```
 
@@ -201,7 +201,7 @@ done
 Tests the 5-step INTEGRATION onboarding process:
 
 1. **STEP 1:** Setup project structure
-   - Creates: `.github/`, `.vscode/`, `.cursor/`, `scripts/`, `.sdd/`
+   - Creates: `.github/`, `.vscode/`, `.cursor/`, `scripts/`, `.providence/`
 
 2. **STEP 2:** Copy templates
    - Validates: `INTEGRATION/templates/` has all 8 template files
@@ -210,7 +210,7 @@ Tests the 5-step INTEGRATION onboarding process:
    - Creates: `.spec.config` with `spec_path` pointing to framework
 
 4. **STEP 4:** Run validation
-   - Creates: `.sdd/context-aware/`, `.sdd/runtime/`
+   - Creates: `.providence/context-aware/`, `.providence/runtime/`
 
 5. **STEP 5:** Commit to git
    - Verifies: All files ready for `git add`
@@ -258,7 +258,7 @@ Tests the 7-phase EXECUTION workflow structure:
    - Validates link format in key files
 
 7. **AI-First Design**
-   - `.sdd-index.md`, `README.md`, `.spec.config` at root
+   - `.providence-index.md`, `README.md`, `.spec.config` at root
 
 **Expected Result:**
 ```
@@ -377,7 +377,7 @@ cd /tmp/test-project
 # - Step 5: Verify git staging
 
 # Verify success
-ls -la .spec.config .sdd/context-aware/
+ls -la .spec.config .providence/context-aware/
 ```
 
 ### EXECUTION Flow Manual Test

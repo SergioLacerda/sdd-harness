@@ -6,7 +6,7 @@ A deterministic regression harness for governance drift detection.
 Run before and after implementing a feature to measure impact on drift accuracy.
 
 How it works:
-  1. Loads the REAL current artifact fingerprint (.sdd/metadata.json)
+  1. Loads the REAL current artifact fingerprint (.providence/metadata.json)
   2. Runs a fixed, deterministic battery of 100 sessions:
        - 70 CLEAN  : carry the current artifact fingerprint (must not drift)
        - 15 STALE  : carry the fingerprint saved from the LAST run (drift if artifact changed)
@@ -45,7 +45,7 @@ from typing import Any
 from providence_runtime import CompiledArtifact, DriftDetector, SessionState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-METADATA_PATH = REPO_ROOT / ".sdd" / "metadata.json"
+METADATA_PATH = REPO_ROOT / ".providence" / "metadata.json"
 DEFAULT_SNAP = REPO_ROOT / "examples" / "security" / "drift_battery_snapshot.json"
 
 SECTION = "\n" + "=" * 60
@@ -286,7 +286,9 @@ def main() -> None:
     print(SECTION)
 
     if not METADATA_PATH.exists():
-        print("[Battery] ERROR: .sdd/metadata.json not found. Run from repo root.")
+        print(
+            "[Battery] ERROR: .providence/metadata.json not found. Run from repo root."
+        )
         sys.exit(1)
 
     artifact = load_artifact()

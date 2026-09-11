@@ -19,11 +19,11 @@ Audit the workspace architecture against SDD mandates and governance policies. I
 
 ## Required protocol
 
-1. Load `.sdd/agent-instructions.md`
-2. Confirm skill is registered in `.sdd/skills/registry.json` as `sdd-review-architecture`
+1. Load `.providence/agent-instructions.md`
+2. Confirm skill is registered in `.providence/skills/registry.json` as `sdd-review-architecture`
 3. Run preflight: `sdd runtime status`
 4. Run governance score: `sdd governance score --verbose`
-5. Cross-reference findings against `.sdd/source/governance-core.json`
+5. Cross-reference findings against `.providence/source/governance-core.json`
 6. Return `policy_result` and `next_actions`
 
 ## Allowed CLI

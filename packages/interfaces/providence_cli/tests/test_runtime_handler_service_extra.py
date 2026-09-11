@@ -20,7 +20,7 @@ def test_read_workspace_id_and_profile_from_ini(tmp_path: Path, monkeypatch) -> 
 
 def test_check_cache_staleness_and_footer_status(tmp_path: Path) -> None:
     assert runtime_status_mod._check_cache_staleness(tmp_path)["missing"] is True
-    cache = tmp_path / ".providence" / "runtime" / ".sdd-cache.md"
+    cache = tmp_path / ".providence" / "runtime" / ".providence-cache.md"
     cache.parent.mkdir(parents=True)
     cache.write_text("x", encoding="utf-8")
     info = runtime_status_mod._check_cache_staleness(tmp_path)

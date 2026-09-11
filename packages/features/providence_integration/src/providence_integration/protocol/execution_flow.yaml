@@ -28,16 +28,16 @@ steps:
   - id: copy_config
     type: filesystem.copy
     inputs:
-      from: ../templates/.sdd/.spec.config
-      to: workspace/.sdd
+      from: ../templates/.providence/.spec.config
+      to: workspace/.providence
     asserts:
       - type: fs.exists
-        path: workspace/.sdd/.spec.config
+        path: workspace/.providence/.spec.config
 
   - id: validate_config
     type: config.validate
     inputs:
-      file: workspace/.sdd/.spec.config
+      file: workspace/.providence/.spec.config
     asserts:
       - type: config.has_key
         key: spec_path

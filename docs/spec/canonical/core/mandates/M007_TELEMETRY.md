@@ -54,7 +54,7 @@ Unrecorded governance decisions are a security risk. Telemetry provides the "bla
 
 ## ✅ Validation
 
-- [ ] Every `providence ask` command generates at least one entry in `.sdd/compliance-events.jsonl` (written to the runtime state folder).
+- [ ] Every `providence ask` command generates at least one entry in `.providence/compliance-events.jsonl` (written to the runtime state folder).
 - [ ] Events contain a valid `artifact_fingerprint`.
 - [ ] If an OTEL endpoint is configured, spans appear in the target observability platform with `sdd.*` attributes.
 

@@ -55,7 +55,7 @@ def test_loads_canonical_skill_from_disk(tmp_path: Path) -> None:
     except ImportError:
         pytest.skip("PyYAML required")
 
-    skills_dir = tmp_path / ".sdd" / "skills"
+    skills_dir = tmp_path / ".providence" / "skills"
     _write_skill_yaml(skills_dir, "sdd-diagnose", _MINIMAL_YAML)
     (skills_dir / "registry.json").write_text(
         json.dumps({"skills": [{"name": "sdd-diagnose"}]}), encoding="utf-8"
@@ -71,7 +71,7 @@ def test_ignores_non_canonical_names_on_disk(tmp_path: Path) -> None:
     except ImportError:
         pytest.skip("PyYAML required")
 
-    skills_dir = tmp_path / ".sdd" / "skills"
+    skills_dir = tmp_path / ".providence" / "skills"
     _write_skill_yaml(skills_dir, "diagnose", _MINIMAL_YAML)
     _write_skill_yaml(skills_dir, "sdd-diagnose", _MINIMAL_YAML)
     (skills_dir / "registry.json").write_text(
@@ -90,7 +90,7 @@ def test_skips_malformed_yaml_gracefully(tmp_path: Path) -> None:
     except ImportError:
         pytest.skip("PyYAML required")
 
-    skills_dir = tmp_path / ".sdd" / "skills"
+    skills_dir = tmp_path / ".providence" / "skills"
     (skills_dir / "sdd-diagnose").mkdir(parents=True)
     (skills_dir / "sdd-diagnose" / "skill.yaml").write_text(
         ": bad: yaml: [[[", encoding="utf-8"

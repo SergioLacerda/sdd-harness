@@ -34,7 +34,7 @@ def _mock_should_use_organize(tmp_path: Path) -> typing.Iterator[None]:
         "chunks": [],
         "retrieval_policy": "indexed_only",
     }
-    dummy_path = tmp_path / ".sdd" / "runtime" / "ask-intake" / "dummy.json"
+    dummy_path = tmp_path / ".providence" / "runtime" / "ask-intake" / "dummy.json"
     with (
         patch(
             "providence_cli.commands._ask_backend._should_use_organize",
@@ -58,7 +58,7 @@ def _write_compiled_mandates(
     workspace_root: Path,
     mandates: list[dict[str, object]] | None = None,
 ) -> Path:
-    compiled = workspace_root / ".sdd" / "compiled"
+    compiled = workspace_root / ".providence" / "compiled"
     compiled.mkdir(parents=True, exist_ok=True)
     payload = {
         "items": mandates if mandates is not None else [{"id": "M001"}],
@@ -88,7 +88,7 @@ class TestLoadCompiledGovernance:
         assert count == 0
 
     def test_loads_governance_core_json(self, tmp_path: Path) -> None:
-        compiled = tmp_path / ".sdd" / "compiled"
+        compiled = tmp_path / ".providence" / "compiled"
         compiled.mkdir(parents=True)
         gc = compiled / "governance-core.json"
         gc.write_text(
@@ -100,7 +100,7 @@ class TestLoadCompiledGovernance:
             ),
             encoding="utf-8",
         )
-        # Mock out runtime path so JSON fallback inside .sdd/compiled is exercised
+        # Mock out runtime path so JSON fallback inside .providence/compiled is exercised
         with patch(
             "providence_cli.services.ask_context._load_governance_via_runtime",
             return_value=None,
@@ -111,7 +111,7 @@ class TestLoadCompiledGovernance:
         assert count == 2
 
     def test_prefers_mandate_compiled_json(self, tmp_path: Path) -> None:
-        compiled = tmp_path / ".sdd" / "compiled"
+        compiled = tmp_path / ".providence" / "compiled"
         compiled.mkdir(parents=True)
         gc = compiled / "governance-core.json"
         gc.write_text(
@@ -177,7 +177,7 @@ class TestAskCommand:
 
     def test_ask_emits_compliance_event(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}, {"id": "M002"}])
-        log_path = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        log_path = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
 
         with (
             patch(
@@ -196,7 +196,7 @@ class TestAskCommand:
         ):
             runner.invoke(app, ["test query"])
 
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        log = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
         assert log.exists(), "compliance-events.jsonl must be written"
         events = [json.loads(line) for line in read_text_utf8(log).splitlines() if line]
         ask_events = [e for e in events if e.get("event") == "governance.ask"]
@@ -239,7 +239,7 @@ class TestAskCommand:
         self, tmp_path: Path
     ) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
         now = datetime.now(timezone.utc).isoformat()
         entries = [
@@ -290,7 +290,7 @@ class TestAskCommand:
 
     def test_ask_telemetry_includes_learning_signal_flags(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
         now = datetime.now(timezone.utc).isoformat()
         write_text_utf8(
@@ -337,7 +337,7 @@ class TestAskCommand:
             )
             + "\n",
         )
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        log = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
         with (
             patch(
                 "providence_cli.commands._ask_backend._resolve_workspace_root",
@@ -364,7 +364,7 @@ class TestAskCommand:
 
     def test_ask_json_emits_scope_violation_signal(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
         now = datetime.now(timezone.utc).isoformat()
         write_text_utf8(
@@ -419,7 +419,7 @@ class TestAskCommand:
 
     def test_ask_json_emits_drift_signal(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
         now = datetime.now(timezone.utc).isoformat()
         write_text_utf8(
@@ -528,7 +528,7 @@ class TestAskFullCommand:
 
     def test_ask_full_event_contains_trace_id_and_steps(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        log = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
 
         with (
             patch(
@@ -585,7 +585,7 @@ class TestAskFullCommand:
     ) -> None:
         import configparser
 
-        sdd_compiled = tmp_path / ".sdd" / "compiled"
+        sdd_compiled = tmp_path / ".providence" / "compiled"
         sdd_compiled.mkdir(parents=True)
         (sdd_compiled / "governance-core.json").write_text(
             json.dumps(
@@ -607,7 +607,7 @@ class TestAskFullCommand:
             encoding="utf-8",
         )
 
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir(exist_ok=True)
         parser = configparser.ConfigParser()
         parser["sdd"] = {"type": "client", "workspace_id": "ws-1"}
@@ -620,7 +620,7 @@ class TestAskFullCommand:
             {"validate": lambda self, **_: ("HEALTHY", object())},
         )()
 
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        log = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
         with (
             patch(
                 "providence_cli.commands._ask_backend._resolve_workspace_root",
@@ -657,7 +657,7 @@ class TestAskComplianceIntegration:
 
     def test_event_persisted_to_jsonl(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        log = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
 
         with (
             patch(
@@ -695,7 +695,7 @@ class TestCheckFingerprintDrift:
         cross-domain comparison, so tests here must use the same-domain
         field to exercise real drift detection.
         """
-        state_dir = tmp_path / ".sdd" / "runtime"
+        state_dir = tmp_path / ".providence" / "runtime"
         state_dir.mkdir(parents=True, exist_ok=True)
         state_file = state_dir / "governance-state.json"
         write_text_utf8(
@@ -720,7 +720,7 @@ class TestCheckFingerprintDrift:
         """DRF-02 regression: a `spec_fingerprint`-only state (no same-domain
         `compiled_fingerprint_used`) must never be compared against
         `loaded_fingerprint` — that cross-domain comparison was the bug."""
-        state_dir = tmp_path / ".sdd" / "runtime"
+        state_dir = tmp_path / ".providence" / "runtime"
         state_dir.mkdir(parents=True, exist_ok=True)
         write_text_utf8(
             state_dir / "governance-state.json",
@@ -737,7 +737,7 @@ class TestCheckFingerprintDrift:
         assert _check_fingerprint_drift(tmp_path, "") is False
 
     def test_no_drift_when_state_has_no_fingerprint(self, tmp_path: Path) -> None:
-        state_dir = tmp_path / ".sdd" / "runtime"
+        state_dir = tmp_path / ".providence" / "runtime"
         state_dir.mkdir(parents=True, exist_ok=True)
         write_text_utf8(
             state_dir / "governance-state.json",
@@ -750,7 +750,7 @@ class TestCheckFingerprintDrift:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])
         # State with a DIFFERENT same-domain compiled fingerprint to trigger drift
         self._write_state(tmp_path, "deadbeef")
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        log = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
 
         with (
             patch(
@@ -780,7 +780,7 @@ class TestCheckFingerprintDrift:
 
 class TestTrySddCompiledDir:
     def test_skips_invalid_json_and_uses_next_valid_file(self, tmp_path: Path) -> None:
-        sdd_compiled = tmp_path / ".sdd" / "compiled"
+        sdd_compiled = tmp_path / ".providence" / "compiled"
         sdd_compiled.mkdir(parents=True)
         # Create first canonical file with invalid JSON
         (sdd_compiled / "governance-client.json").write_text(
@@ -805,7 +805,7 @@ class TestAuxHelpers:
     def test_get_profile_state_reads_profile_type(self, tmp_path: Path) -> None:
         import configparser
 
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir(parents=True)
         profile = configparser.ConfigParser()
         profile["sdd"] = {"type": "client"}

@@ -4,16 +4,16 @@ Verification state: documented
 
 ## Symptoms
 
-- `.sdd/` runtime files disagree with authored docs.
+- `.providence/` runtime files disagree with authored docs.
 - Governance validation reports stale or mismatched generated output.
-- Agents cite `.sdd/` behavior that no longer matches `docs/`.
+- Agents cite `.providence/` behavior that no longer matches `docs/`.
 - A generated seed or runtime file appears to be the only place a rule exists.
 
 ## Diagnosis
 
 1. Read `docs/governance-runtime-model.md`.
 2. Identify the authored source in `docs/spec/canonical/governance-sources.yaml`.
-3. Compare the source entry's declared outputs with the generated `.sdd/` files.
+3. Compare the source entry's declared outputs with the generated `.providence/` files.
 4. Check runtime health:
 
    ```bash
@@ -21,8 +21,8 @@ Verification state: documented
    uv run providence governance validate
    ```
 
-5. Treat disagreement between registry outputs and `.sdd/` as build drift, not as
-   permission to edit `.sdd/` directly.
+5. Treat disagreement between registry outputs and `.providence/` as build drift, not as
+   permission to edit `.providence/` directly.
 
 ## Resolution Steps
 
@@ -46,7 +46,7 @@ Verification state: documented
 ## Rollback
 
 1. Revert the authored `docs/` source change.
-2. Regenerate `.sdd/` from the restored source.
+2. Regenerate `.providence/` from the restored source.
 3. Re-run governance validation.
 
 ## Post-Incident

@@ -130,7 +130,7 @@ NOT:
 
 ## DEC-2026-006: File-Based Buffering (No Network) (2026-04-01)
 
-**Decision:** Write events to local .sdd/runtime/telemetry.jsonl, not remote server
+**Decision:** Write events to local .providence/runtime/telemetry.jsonl, not remote server
 
 **Rationale:**
 - Simplicity: No network, auth, TLS complexity

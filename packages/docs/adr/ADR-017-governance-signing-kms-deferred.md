@@ -12,7 +12,7 @@
 Governance artifacts can be signed with Ed25519 keys. Current signing uses the
 native `sdd-compile` backend through `CompilerRunner.sign()`, with private keys
 read from a local key path and trusted public keys stored in
-`.sdd/trust/trusted-keys.json`.
+`.providence/trust/trusted-keys.json`.
 
 The residual A7 work asked for a KMS and rotation decision before any provider
 integration code.
@@ -32,7 +32,7 @@ provider and operating model before code is written.
 2. `providence governance sign --key-id <id>` signs compiled governance artifacts with
    the native Ed25519 backend.
 3. Signing writes `.sig` manifests beside compiled artifacts.
-4. The trusted keyring lives at `.sdd/trust/trusted-keys.json`.
+4. The trusted keyring lives at `.providence/trust/trusted-keys.json`.
 5. Runtime validation resolves the keyring and validates compiled artifact
    signatures according to the configured signature mode.
 

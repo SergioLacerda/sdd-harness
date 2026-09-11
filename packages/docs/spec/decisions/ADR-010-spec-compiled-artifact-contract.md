@@ -130,7 +130,7 @@ convention `<ID>_<SLUG>.md` where:
 
 - Deserialises to the same structure as the compiled JSON
 - Used at runtime by `AgentHandshakeProtocol` Layer 1 and Layer 4
-- File integrity is verified by checking `fingerprint` against `.sdd/profile core_hash[:16]`
+- File integrity is verified by checking `fingerprint` against `.providence/profile core_hash[:16]`
 
 ### 5. Compiler Invariants (breaking change definition)
 

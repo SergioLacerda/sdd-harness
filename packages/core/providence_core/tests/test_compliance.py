@@ -37,7 +37,7 @@ pytestmark = pytest.mark.unit
 
 
 def _log(tmp_path: Path) -> Path:
-    return tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+    return tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
 
 
 class TestLoggingModeResolution:
@@ -452,7 +452,7 @@ class TestComputeGovernanceAdherence:
     """compute_governance_adherence returns a structured 0-100 score."""
 
     def _write_state(self, tmp_path: Path, **kwargs: object) -> Path:
-        state_dir = tmp_path / ".sdd" / "runtime"
+        state_dir = tmp_path / ".providence" / "runtime"
         state_dir.mkdir(parents=True, exist_ok=True)
         state_file = state_dir / "governance-state.json"
         state_file.write_text(
@@ -595,7 +595,7 @@ class TestComputeGovernanceAdherence:
 
     def test_structural_true_when_fingerprints_match(self, tmp_path: Path) -> None:
         # Create a fake compiled governance-core.json with a fingerprint
-        artifact_dir = tmp_path / ".sdd" / "compiled"
+        artifact_dir = tmp_path / ".providence" / "compiled"
         artifact_dir.mkdir(parents=True)
         fp = "499f7ce0da5ec85f"
         (artifact_dir / "governance-core.json").write_text(
@@ -625,7 +625,7 @@ class TestLogAskEvent:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("SDD_LOGGING_MODE", "active")
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        log = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
         log_ask_event(
             event=ASK_COMMAND,
             command="ask",
@@ -647,7 +647,7 @@ class TestLogAskEvent:
         assert record["details"]["query_hash"] == "abc123"
 
     def test_log_ask_full_event_with_trace_id(self, tmp_path: Path) -> None:
-        log = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        log = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
         log_ask_event(
             event=ASK_FULL_COMMAND,
             command="ask-full",
@@ -779,7 +779,7 @@ class TestGetCompiledFingerprint:
             GovernanceAdherenceScorer,
         )
 
-        artifact_dir = tmp_path / ".sdd" / "compiled"
+        artifact_dir = tmp_path / ".providence" / "compiled"
         artifact_dir.mkdir(parents=True)
         fp = "abc123def456"
         (artifact_dir / "governance-core.json").write_text(
@@ -797,7 +797,7 @@ class TestGetCompiledFingerprint:
             GovernanceAdherenceScorer,
         )
 
-        artifact_dir = tmp_path / ".sdd" / "compiled"
+        artifact_dir = tmp_path / ".providence" / "compiled"
         artifact_dir.mkdir(parents=True)
         (artifact_dir / "governance-core.json").write_text(
             json.dumps({"items": [{"id": "M001"}]}),
@@ -873,7 +873,7 @@ class TestReadAllEventsException:
 
 class TestComputeGovernanceAdherenceNoStatePath:
     def test_resolves_state_via_find_workspace_root(self, tmp_path: Path) -> None:
-        state_dir = tmp_path / ".sdd" / "runtime"
+        state_dir = tmp_path / ".providence" / "runtime"
         state_dir.mkdir(parents=True)
         (state_dir / "governance-state.json").write_text(
             json.dumps({"last_check": datetime.now().isoformat()}),
@@ -913,7 +913,7 @@ class TestGetCompiledFingerprintNoRoot:
             GovernanceAdherenceScorer,
         )
 
-        artifact_dir = tmp_path / ".sdd" / "compiled"
+        artifact_dir = tmp_path / ".providence" / "compiled"
         artifact_dir.mkdir(parents=True)
         # Write a binary file that can't be parsed as JSON
         (artifact_dir / "governance-core.json").write_bytes(b"\xff\xfe bad")

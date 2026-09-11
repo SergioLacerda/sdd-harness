@@ -79,7 +79,7 @@ def _extract_cli_commands(repo_root: Path) -> set[str]:
 def _extract_runtime_commands(
     repo_root: Path,
 ) -> tuple[set[str], dict[str, dict[str, Any]]]:
-    reg = _load_json(repo_root / ".sdd/commands/registry.json")
+    reg = _load_json(repo_root / ".providence/commands/registry.json")
     entries = reg.get("commands", []) if isinstance(reg, dict) else []
     by_slash: dict[str, dict[str, Any]] = {}
     for entry in entries:
@@ -92,7 +92,7 @@ def _extract_runtime_commands(
 
 
 def _extract_runtime_skills(repo_root: Path) -> set[str]:
-    reg = _load_json(repo_root / ".sdd/skills/registry.json")
+    reg = _load_json(repo_root / ".providence/skills/registry.json")
     entries = reg.get("skills", []) if isinstance(reg, dict) else []
     out: set[str] = set()
     for entry in entries:
@@ -189,8 +189,8 @@ def run_audit(repo_root: Path) -> AuditResult:
     summary = {
         "authority": {
             "cli": "packages/interfaces/providence_cli",
-            "skills_runtime_registry": ".sdd/skills/registry.json",
-            "commands_runtime_registry": ".sdd/commands/registry.json",
+            "skills_runtime_registry": ".providence/skills/registry.json",
+            "commands_runtime_registry": ".providence/commands/registry.json",
             "templates": "packages/interfaces/providence_wizard/.../sovereign-factory",
             "docs_scope": ["README.md", "docs/"],
         },

@@ -96,16 +96,19 @@ class HealthCheckEngine:
         )
 
     def check_sdd_compiled(self) -> tuple[bool, str]:
-        compiled = self.project_root / ".sdd" / "compiled"
+        compiled = self.project_root / ".providence" / "compiled"
         if not compiled.is_dir():
             return (
                 False,
-                ".sdd/compiled/ not found — run: providence governance compile",
+                ".providence/compiled/ not found — run: providence governance compile",
             )
         artifacts = list(compiled.glob("*.msgpack")) + list(compiled.glob("*.json"))
         if not artifacts:
-            return False, ".sdd/compiled/ is empty — run: providence governance compile"
-        return True, f".sdd/compiled/ has {len(artifacts)} artifact(s)"
+            return (
+                False,
+                ".providence/compiled/ is empty — run: providence governance compile",
+            )
+        return True, f".providence/compiled/ has {len(artifacts)} artifact(s)"
 
     def check_venv(self) -> tuple[bool, str]:
         venv = self.project_root / ".venv"

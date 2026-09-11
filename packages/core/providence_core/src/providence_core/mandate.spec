@@ -55,7 +55,7 @@ mandate M007 {
 mandate M008 {
   type: "HARD MANDATE"
   title: "Audit Integrity"
-  description: "Preserve and protect the integrity of the audit trail (.sdd/audit-trail/compliance-events.jsonl) to ensure forensic capability, regulatory compliance, and accountability for all governance-aware operations."
+  description: "Preserve and protect the integrity of the audit trail (.providence/audit-trail/compliance-events.jsonl) to ensure forensic capability, regulatory compliance, and accountability for all governance-aware operations."
   category: "security"
   rationale: "If governance fails, replaying and understanding what happened requires an immutable log. Regulators require immutable audit trails, and agents must not be able to hide violations after the fact."
 }

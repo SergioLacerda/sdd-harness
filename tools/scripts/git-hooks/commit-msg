@@ -33,7 +33,7 @@ fi
 
 # ── 3. P002 Honest Critique — BLOCKING ───────────────────────────────────────
 # If the state file lists known risks/debt, the commit message must acknowledge them.
-CACHE_FILE=".sdd-local/state.md"
+CACHE_FILE=".providence-local/state.md"
 if [ -f "$CACHE_FILE" ] && grep -qiE "Risk|Debt|Blocker|Known issue" "$CACHE_FILE"; then
     if ! echo "$commit_msg" | grep -qiE "risk|debt|known.?issue|limitation|wip|partial|caveat"; then
         echo "GUARDRAIL FAILURE (P002 — Honest Critique):"

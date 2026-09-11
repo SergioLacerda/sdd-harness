@@ -86,7 +86,7 @@ def test_audit_signatures_legacy_and_none_and_invalid(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     auditor = GovernanceAuditor(workspace_root=tmp_path)
-    compiled_dir = tmp_path / ".sdd" / "compiled"
+    compiled_dir = tmp_path / ".providence" / "compiled"
     compiled_dir.mkdir(parents=True)
     issues: list[AuditIssue] = []
     metadata: dict[str, object] = {}
@@ -115,7 +115,7 @@ def test_audit_signatures_none_keyring_source(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     auditor = GovernanceAuditor(workspace_root=tmp_path)
-    (tmp_path / ".sdd" / "compiled").mkdir(parents=True)
+    (tmp_path / ".providence" / "compiled").mkdir(parents=True)
     issues: list[AuditIssue] = []
     metadata: dict[str, object] = {}
 
@@ -150,7 +150,7 @@ def test_audit_signatures_missing_compiled_dir(tmp_path: Path) -> None:
 def test_audit_paths_and_env_branches(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    trust_dir = tmp_path / ".sdd" / "trust"
+    trust_dir = tmp_path / ".providence" / "trust"
     trust_dir.mkdir(parents=True, exist_ok=True)
     trust_dir.chmod(0o777)
 

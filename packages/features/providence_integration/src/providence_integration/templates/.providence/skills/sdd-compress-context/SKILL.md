@@ -19,8 +19,8 @@ Reduce the token footprint of the current session context while preserving all g
 
 ## Required protocol
 
-1. Load `.sdd/agent-instructions.md`
-2. Confirm skill is registered in `.sdd/skills/registry.json` as `sdd-compress-context`
+1. Load `.providence/agent-instructions.md`
+2. Confirm skill is registered in `.providence/skills/registry.json` as `sdd-compress-context`
 3. Check current status: `sdd runtime status`
 4. Apply compression: identify and summarize low-value context
 5. Preserve: governance mandates, active task state, critical decisions

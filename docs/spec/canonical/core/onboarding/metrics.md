@@ -20,7 +20,7 @@ match exactly.
 | KPI | Definition | Threshold | Violation Signal |
 |-----|-----------|-----------|-----------------|
 | `governance.session.handshake_active` | Session has an active handshake (`providence runtime status` returns `drift=none`) | `true` | Handshake absent → degraded governance; run `providence governance handshake --init` |
-| `governance.onboarding.bootstrap_complete` | `.sdd/agent-instructions.md` was read in the current session bootstrap | `true` | Agent operating without governance context → stale or wrong behavior |
+| `governance.onboarding.bootstrap_complete` | `.providence/agent-instructions.md` was read in the current session bootstrap | `true` | Agent operating without governance context → stale or wrong behavior |
 | `governance.drift.profile_mismatch_count` | Count of profile-mismatch drift events emitted in the current session | `0` | Any value > 0 → profile enforcement failure; check `providence runtime status` |
 | `governance.session.first_ask_latency_ms` | Time (ms) from session start to first successful `providence ask` invocation | Informative | No hard threshold; use as baseline for regression detection |
 

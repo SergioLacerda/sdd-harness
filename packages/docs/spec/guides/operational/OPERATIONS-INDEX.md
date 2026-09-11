@@ -179,7 +179,7 @@ Quarterly: System update + disaster recovery drill
     └── DEPLOYMENT_MANIFEST.json
 
 generated/client/build/final-template/
-└── .sdd/
+└── .providence/
     ├── compiled/
     │   ├── governance-core.compiled.msgpack
     │   ├── governance-client-template.compiled.msgpack

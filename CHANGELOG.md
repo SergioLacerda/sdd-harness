@@ -238,14 +238,14 @@ Before tagging a new release, verify:
   applied to drift *counts*.
 - Fixed the release smoke test creating its client project
   (`git-smoke-project`) inside the checked-out repository, which is itself
-  an SDD workspace (`.sdd/` is committed) — `providence init`'s nested-workspace
+  an SDD workspace (`.providence/` is committed) — `providence init`'s nested-workspace
   guard could treat the checkout as a blocking parent workspace. Both
   `release.yml` and `release-dry-run.yml` now create the smoke project
   under `$RUNNER_TEMP` instead. Also fixed two related regressions
   surfaced by the same investigation: `providence init`'s parent-workspace guard
-  now requires `.sdd/profile` to exist before treating a directory as a
-  blocking workspace (a bare `.sdd/`, such as the compiler-binary cache at
-  `~/.sdd/bin`, no longer falsely blocks `providence init`), and
+  now requires `.providence/profile` to exist before treating a directory as a
+  blocking workspace (a bare `.providence/`, such as the compiler-binary cache at
+  `~/.providence/bin`, no longer falsely blocks `providence init`), and
   `ask_telemetry`'s fallback token estimator no longer returns `0` — which
   downstream telemetry cannot distinguish from "no measurement" — for
   non-empty query/output text shorter than 4 characters; it now floors at
@@ -363,7 +363,7 @@ Before tagging a new release, verify:
 ## [1.0.1] — 2026-07-10
 
 ### Fixed
-- Fixed release workflows to invoke the canonical `providence governance compile --profile client` command and prepare `generated/client/build/final-template/.sdd` before copying generated governance artifacts.
+- Fixed release workflows to invoke the canonical `providence governance compile --profile client` command and prepare `generated/client/build/final-template/.providence` before copying generated governance artifacts.
 - Added release wheelhouse dependencies for offline `pip install --no-index --find-links dist providence-cli` smoke tests on Linux and Windows.
 - Fixed standalone `providence init --default` compiler execution by authorizing official platform-suffixed `sdd-compile-*` release assets as governed compiler binaries.
 - Fixed wizard cleanup reporting when standalone install smoke uses a project root outside the generated client build directory.
@@ -373,14 +373,14 @@ Before tagging a new release, verify:
 ## [0.1.0] — 2026-05-09
 
 ### Added
-- `providence init` command — initialises workspace `.sdd/profile` (INI, schema v1) with `--type`, `--name`, `--force` flags; guards against nested workspace creation
+- `providence init` command — initialises workspace `.providence/profile` (INI, schema v1) with `--type`, `--name`, `--force` flags; guards against nested workspace creation
 - `providence runtime status` command — shows AHP (Agent Handshake Protocol) + GAP (Governance Activation Protocol) state with exit codes per AHP state
 - `providence governance score` subcommand — weighted governance score formula (profile 30 + artifacts 30 + AHP confidence 20 + core_hash 20 = 100); `--verbose` table, `--threshold` gate
 - `providence doctor run --score-threshold` — aborts if score falls below threshold before running spec diagnostics
 - `providence governance generate` now writes `.github/copilot-instructions.md` from real governance content (MANDATEs, GUIDELINEs, DECISIONs)
-- `providence governance compile` now persists `core_hash[:16]` into `.sdd/profile` after compilation
+- `providence governance compile` now persists `core_hash[:16]` into `.providence/profile` after compilation
 - `governance_gate()` injected into `LazyCommandGroup.invoke()` — runs AHP on every CLI invocation (exempt: `init`, `version`, `help`)
-- `providence_core.governance.compliance` — append-only JSONL audit log at `.sdd/runtime/compliance-events.jsonl`; events: `WORKSPACE_INIT`, `GOVERNANCE_CHECKED`, `COMPILE_COMPLETE`, `VIOLATION`
+- `providence_core.governance.compliance` — append-only JSONL audit log at `.providence/runtime/compliance-events.jsonl`; events: `WORKSPACE_INIT`, `GOVERNANCE_CHECKED`, `COMPILE_COMPLETE`, `VIOLATION`
 - `providence_core.governance.handshake` — canonical AHP implementation migrated from `tools/`; `tools/governance/agent_handshake.py` becomes a thin wrapper
 - `providence_core.utils.environment`: `WorkspaceNotInitializedError`, `ProfileContext`, `find_workspace_root()`, `resolve_profile()`, `write_profile()`
 - `SECURITY.md` — vulnerability disclosure policy and response timeline
@@ -402,7 +402,7 @@ Before tagging a new release, verify:
 ### Removed
 - `pylint` dependency and `[tool.pylint.*]` configuration (superseded by ruff)
 - `"build"` removed from `[tool.uv.workspace].members` (dead entry, namespace collision risk)
-- `.spec.config` as profile source — replaced by `.sdd/profile` (INI schema v1)
+- `.spec.config` as profile source — replaced by `.providence/profile` (INI schema v1)
 
 ### Fixed
 - AHP `_extract_governance_core()` now searches `generated/*/compiled/` (was wrong path)

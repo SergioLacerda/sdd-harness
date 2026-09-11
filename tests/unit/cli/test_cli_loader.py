@@ -108,7 +108,7 @@ class TestResolveCompiledDir:
     def test_finds_sdd_compiled_subdir(self, tmp_path: Path) -> None:
         from providence_cli.utils.loader import _resolve_compiled_dir
 
-        sdd_compiled = tmp_path / ".sdd" / "compiled"
+        sdd_compiled = tmp_path / ".providence" / "compiled"
         _make_required_files(sdd_compiled)
         mock_paths: dict[str, Any] = {
             "client_compiled": tmp_path / "no_client",
@@ -124,7 +124,7 @@ class TestResolveCompiledDir:
     def test_rejects_sdd_base_dir_without_compiled_subdir(self, tmp_path: Path) -> None:
         from providence_cli.utils.loader import _resolve_compiled_dir
 
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         _make_required_files(sdd_dir)
         mock_paths: dict[str, Any] = {
             "client_compiled": tmp_path / "no_client",

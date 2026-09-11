@@ -92,7 +92,7 @@ nav:
     - Runtime API Integration: guides/RUNTIME_API_INTEGRATION.md
     - Frontend Selector: guides/FRONTEND_SELECTOR.md
     - Agent Entry Point Guide: guides/AGENT_GUIDE.md
-    - .sdd/ Folder Reference: guides/SDD_FOLDER_REFERENCE.md
+    - .providence/ Folder Reference: guides/SDD_FOLDER_REFERENCE.md
   - Reference:
     - CLI Commands: spec/reference/commands/cli.md
     - Security Policy: spec/reference/SECURITY.md

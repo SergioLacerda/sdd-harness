@@ -134,7 +134,10 @@ def _check_legacy_patterns(canonical_dir: Path, repo_root: Path) -> int:
         (re.compile(r"(?<!\.providence)/runtime/"), "Legacy '/runtime/' reference"),
         (re.compile(r"/REALITY/"), "Legacy '/REALITY/' reference"),
         (re.compile(r"/DEVELOPMENT/"), "Legacy '/DEVELOPMENT/' reference"),
-        (re.compile(r"sdd-generated"), "Legacy 'sdd-generated' reference"),
+        (
+            re.compile(r"providence-generated"),
+            "Legacy 'providence-generated' reference",
+        ),
     ]
     errors = 0
     for file in canonical_dir.rglob("*.md"):

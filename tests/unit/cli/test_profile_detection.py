@@ -29,10 +29,10 @@ class TestDetectProfile:
         assert result == "client"
 
     def test_detects_master_from_sdd_profile(self, tmp_path: Path) -> None:
-        """Presence of .sdd/profile with type=master triggers master profile."""
+        """Presence of .providence/profile with type=master triggers master profile."""
         from providence_core.utils.environment import detect_profile
 
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text(
             "[sdd]\nversion = 1\ntype = master\nname = test\nworkspace_id = abc\ncore_hash =\n",
@@ -47,8 +47,8 @@ class TestDetectProfile:
         """SDD_PROFILE env var takes highest priority."""
         from providence_core.utils.environment import detect_profile
 
-        # .sdd/profile says master
-        sdd_dir = tmp_path / ".sdd"
+        # .providence/profile says master
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text(
             "[sdd]\nversion = 1\ntype = master\nname = test\nworkspace_id = abc\ncore_hash =\n",
@@ -71,10 +71,10 @@ class TestDetectProfile:
         assert result == "master"
 
     def test_sdd_profile_client_explicit(self, tmp_path: Path) -> None:
-        """.sdd/profile with type=client is respected."""
+        """.providence/profile with type=client is respected."""
         from providence_core.utils.environment import detect_profile
 
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text(
             "[sdd]\nversion = 1\ntype = client\nname = test\nworkspace_id = abc\ncore_hash =\n",
@@ -85,10 +85,10 @@ class TestDetectProfile:
         assert result == "client"
 
     def test_sdd_profile_master_explicit(self, tmp_path: Path) -> None:
-        """Explicit master in .sdd/profile is respected."""
+        """Explicit master in .providence/profile is respected."""
         from providence_core.utils.environment import detect_profile
 
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text(
             "[sdd]\nversion = 1\ntype = master\nname = test\nworkspace_id = abc\ncore_hash =\n",
@@ -98,10 +98,10 @@ class TestDetectProfile:
         assert result == "master"
 
     def test_sdd_profile_invalid_type_falls_through(self, tmp_path: Path) -> None:
-        """Invalid type in .sdd/profile causes fallback to client via WorkspaceNotInitializedError."""
+        """Invalid type in .providence/profile causes fallback to client via WorkspaceNotInitializedError."""
         from providence_core.utils.environment import detect_profile
 
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text(
             "[sdd]\nversion = 1\ntype = unknown_value\n", encoding="utf-8"
@@ -125,8 +125,8 @@ class TestDetectProfile:
         """Verify full priority chain: env > filesystem > fallback."""
         from providence_core.utils.environment import detect_profile
 
-        # Filesystem (.sdd/profile) -> master
-        sdd_dir = tmp_path / ".sdd"
+        # Filesystem (.providence/profile) -> master
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         (sdd_dir / "profile").write_text(
             "[sdd]\nversion = 1\ntype = master\nname = test\nworkspace_id = abc\ncore_hash =\n",

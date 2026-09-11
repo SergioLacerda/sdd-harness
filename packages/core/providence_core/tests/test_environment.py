@@ -33,7 +33,7 @@ class TestFindWorkspaceRoot:
     def test_returns_none_when_no_sdd_dir(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        # A real ancestor of tmp_path (e.g. a cached ~/.sdd/bin compiler
+        # A real ancestor of tmp_path (e.g. a cached ~/.providence/bin compiler
         # download) could otherwise leak in and make this test flaky, since
         # find_workspace_root walks all the way up to the filesystem root.
         monkeypatch.setattr(Path, "parents", property(lambda self: ()))
@@ -41,12 +41,12 @@ class TestFindWorkspaceRoot:
         assert result is None
 
     def test_finds_sdd_dir_in_start(self, tmp_path: Path) -> None:
-        (tmp_path / ".sdd").mkdir()
+        (tmp_path / ".providence").mkdir()
         result = find_workspace_root(start=tmp_path)
         assert result == tmp_path
 
     def test_finds_sdd_dir_in_parent(self, tmp_path: Path) -> None:
-        (tmp_path / ".sdd").mkdir()
+        (tmp_path / ".providence").mkdir()
         nested = tmp_path / "a" / "b" / "c"
         nested.mkdir(parents=True)
         result = find_workspace_root(start=nested)
@@ -77,7 +77,7 @@ class TestResolveProfile:
             resolve_profile(root=tmp_path)
 
     def test_reads_valid_profile_file(self, tmp_path: Path) -> None:
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         profile_path = sdd_dir / "profile"
         write_text_utf8(
@@ -92,7 +92,7 @@ class TestResolveProfile:
         assert ctx.core_hash == "ff00"
 
     def test_raises_for_invalid_type_in_profile(self, tmp_path: Path) -> None:
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         profile_path = sdd_dir / "profile"
         profile_path.write_text("[sdd]\ntype = unknown\n", encoding="utf-8")
@@ -106,7 +106,7 @@ class TestWriteProfile:
 
     def test_writes_profile_file(self, tmp_path: Path) -> None:
         ctx = write_profile(tmp_path, "client", "test-workspace")
-        profile_path = tmp_path / ".sdd" / "profile"
+        profile_path = tmp_path / ".providence" / "profile"
         assert profile_path.exists()
         assert ctx.type == "client"
         assert ctx.name == "test-workspace"
@@ -114,7 +114,7 @@ class TestWriteProfile:
 
     def test_creates_sdd_dir(self, tmp_path: Path) -> None:
         write_profile(tmp_path, "master", "master-ws")
-        assert (tmp_path / ".sdd").is_dir()
+        assert (tmp_path / ".providence").is_dir()
 
     def test_profile_is_readable_after_write(self, tmp_path: Path) -> None:
         write_profile(tmp_path, "client", "my-client")
@@ -125,14 +125,18 @@ class TestWriteProfile:
     def test_writes_and_reads_back_language(self, tmp_path: Path) -> None:
         ctx = write_profile(tmp_path, "client", "test-workspace", "pt-BR")
         assert ctx.language == "pt-BR"
-        profile_text = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
+        profile_text = (tmp_path / ".providence" / "profile").read_text(
+            encoding="utf-8"
+        )
         assert "language = pt-BR" in profile_text
         assert resolve_profile(root=tmp_path).language == "pt-BR"
 
     def test_no_language_key_when_not_passed(self, tmp_path: Path) -> None:
         ctx = write_profile(tmp_path, "client", "test-workspace")
         assert ctx.language is None
-        profile_text = (tmp_path / ".sdd" / "profile").read_text(encoding="utf-8")
+        profile_text = (tmp_path / ".providence" / "profile").read_text(
+            encoding="utf-8"
+        )
         assert "language" not in profile_text
         assert resolve_profile(root=tmp_path).language is None
 
@@ -468,12 +472,12 @@ class TestGetSddPaths:
     def test_prefers_sdd_source_over_generated(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Should prefer .sdd/source when it exists."""
+        """Should prefer .providence/source when it exists."""
         gen = tmp_path / "generated"
         gen.mkdir()
         monkeypatch.delenv("SDD_WORKSPACE_ROOT", raising=False)
 
-        sdd_source = tmp_path / ".sdd" / "source"
+        sdd_source = tmp_path / ".providence" / "source"
         sdd_source.mkdir(parents=True)
 
         with (
@@ -494,7 +498,7 @@ class TestGetSddPaths:
     ) -> None:
         """Should use workspace root when framework repo root is unavailable."""
         workspace_root = tmp_path / "client-project"
-        (workspace_root / ".sdd" / "source").mkdir(parents=True)
+        (workspace_root / ".providence" / "source").mkdir(parents=True)
         monkeypatch.delenv("SDD_WORKSPACE_ROOT", raising=False)
 
         with (
@@ -509,12 +513,12 @@ class TestGetSddPaths:
         ):
             paths = get_sdd_paths()
             assert paths["root"] == workspace_root
-            assert paths["source_spec"] == workspace_root / ".sdd" / "source"
+            assert paths["source_spec"] == workspace_root / ".providence" / "source"
 
     def test_falls_back_to_cwd_when_repo_and_workspace_missing(
         self, tmp_path: Path, monkeypatch
     ) -> None:
-        """Should use cwd for onboarding flows before `.sdd` exists."""
+        """Should use cwd for onboarding flows before `.providence` exists."""
         monkeypatch.chdir(tmp_path)
         monkeypatch.delenv("SDD_WORKSPACE_ROOT", raising=False)
 

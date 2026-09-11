@@ -38,12 +38,12 @@ such distinction existed in the file format.
 
 ## Decision
 
-Introduce a **managed-block convention**: sdd-generated content in a
+Introduce a **managed-block convention**: providence-generated content in a
 shared-namespace file lives inside a single delimited region,
 
 ```
 <!-- sdd:managed:begin -->
-...sdd-generated content, including the fingerprint header...
+...providence-generated content, including the fingerprint header...
 <!-- sdd:managed:end -->
 ```
 
@@ -100,7 +100,7 @@ Implemented for five of the wizard's ~17 generator keys, in two waves:
 Deliberately **not** covered, with reasons recorded rather than left
 ambiguous:
 
-- 10 other generator keys write exclusively under `.sdd/` (sdd's own
+- 10 other generator keys write exclusively under `.providence/` (sdd's own
   directory) — no plausible collision risk, so no managed block is needed.
 - `sovereign-factory` copies an open-ended set of distinctly-named
   `SKILL.md` files into a shared directory — a directory-level

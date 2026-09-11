@@ -333,7 +333,7 @@ class TestRunConfigValidate:
         from providence_integration.runners.config_runner import run_config_validate
 
         context: dict[str, Any] = {"working_dir": tmp_path}
-        inputs = make_config_validate_inputs({"file": ".sdd/profile"})
+        inputs = make_config_validate_inputs({"file": ".providence/profile"})
         run_config_validate(inputs, context, tmp_path)
         assert context["config"] == {}
 
@@ -362,7 +362,7 @@ class TestRunConfigValidate:
     def test_default_file_path_used_when_not_specified(self, tmp_path: Path) -> None:
         from providence_integration.runners.config_runner import run_config_validate
 
-        # Default is .sdd/profile — missing → empty config
+        # Default is .providence/profile — missing → empty config
         context: dict[str, Any] = {"working_dir": tmp_path}
         inputs = make_config_validate_inputs({})
         run_config_validate(inputs, context, tmp_path)
@@ -371,7 +371,7 @@ class TestRunConfigValidate:
     def test_creates_real_sdd_profile(self, tmp_path: Path) -> None:
         from providence_integration.runners.config_runner import run_config_validate
 
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         profile = sdd_dir / "profile"
         profile.write_text("[sdd]\ntype = client\nname = test\n", encoding="utf-8")

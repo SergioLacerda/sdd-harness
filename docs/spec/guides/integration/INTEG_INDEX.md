@@ -32,7 +32,7 @@ Follow in order (20-30 minutes total):
 
 4. **[STEP_4.md](./STEP_4.md)**
    - Run validation script
-   - Check .sdd/ infrastructure created
+   - Check .providence/ infrastructure created
    - ~5 minutes
 
 5. **[STEP_5.md](./STEP_5.md)**
@@ -53,7 +53,7 @@ Follow in order (20-30 minutes total):
 | `.cursor/rules/spec.mdc` | Cursor IDE rules | `your-project/.cursor/` |
 | `.pre-commit-config.yaml` | Git hooks | `your-project/` |
 | `.github/setup-precommit-hook.sh` | Hook setup | `your-project/scripts/` |
-| `ai/README.md` | AI infrastructure guide | `your-project/.sdd/` |
+| `ai/README.md` | AI infrastructure guide | `your-project/.providence/` |
 
 ---
 
@@ -68,8 +68,8 @@ After completing all 5 steps, verify:
 ✅ .cursor/rules/spec.mdc copied
 ✅ .pre-commit-config.yaml in place
 ✅ .github/setup-precommit-hook.sh executable
-✅ .sdd/context-aware/ created (empty, ready)
-✅ .sdd/runtime/ created (with search indices)
+✅ .providence/context-aware/ created (empty, ready)
+✅ .providence/runtime/ created (with search indices)
 ✅ All changes git-staged
 ✅ Ready to commit
 ```
@@ -99,7 +99,7 @@ python ../providencedocs/spec/SCRIPTS/phase-0-agent-onboarding.py
 **Commit:**
 
 ```bash
-git add .spec.config .github/ .vscode/ .cursor/ .pre-commit-config.yaml scripts/ .sdd/
+git add .spec.config .github/ .vscode/ .cursor/ .pre-commit-config.yaml scripts/ .providence/
 git commit -m "feat: Integrate SDD framework governance"
 ```
 

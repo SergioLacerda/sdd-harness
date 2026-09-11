@@ -43,7 +43,7 @@ except ImportError:
 class GovernanceComplianceValidator:
     """Validates governance file integrity and compliance rules."""
 
-    GOVERNANCE_FILE = ".sdd/source/governance-core.json"
+    GOVERNANCE_FILE = ".providence/source/governance-core.json"
 
     def __init__(self, project_dir: Path | None = None) -> None:
         self.project_dir = Path(project_dir) if project_dir else detect_repo_root()
@@ -57,7 +57,7 @@ class GovernanceComplianceValidator:
 
         # Canonical names (relative to project/repo root)
         self.SOURCE_GOVERNANCE = self.GOVERNANCE_FILE
-        self.SIGNATURE_FILE = ".sdd/source/.governance-signature.json"
+        self.SIGNATURE_FILE = ".providence/source/.governance-signature.json"
 
         self.governance_file = self._resolve_governance_file()
         self.signature_file = self.project_dir / self.SIGNATURE_FILE
@@ -75,7 +75,7 @@ class GovernanceComplianceValidator:
         return Path(candidates[0])
 
     def _is_project_governance(self, data: dict[str, Any]) -> bool:
-        """Return True when validating generated project governance under .sdd/source."""
+        """Return True when validating generated project governance under .providence/source."""
         required = {"seedlings", "authority", "policies", "phases"}
         return required.issubset(data.keys())
 
@@ -141,13 +141,13 @@ class GovernanceComplianceValidator:
                 ]
 
             # 2. Verify Ed25519 signature using openssl
-            # We need the public key. We look in .sdd/trust/
+            # We need the public key. We look in .providence/trust/
             key_id = manifest.get("key_id", "unknown")
-            pub_key = self.project_dir / ".sdd" / "trust" / f"{key_id}.pub.pem"
+            pub_key = self.project_dir / ".providence" / "trust" / f"{key_id}.pub.pem"
 
             if not pub_key.exists():
                 return [
-                    f"Integrity Failure: public key for '{key_id}' not found in .sdd/trust/"
+                    f"Integrity Failure: public key for '{key_id}' not found in .providence/trust/"
                 ]
 
             # Use openssl pkeyutl to verify (World Class standard)

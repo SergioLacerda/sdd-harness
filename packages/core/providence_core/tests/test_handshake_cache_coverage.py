@@ -16,7 +16,7 @@ class TestLoadCache:
 
     def test_load_cache_returns_none_on_invalid_json(self, tmp_path):
         """Verify load_cache returns None when cache file contains invalid JSON."""
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         cache_dir.mkdir(parents=True)
         cache_file = cache_dir / "governance-state.json"
         cache_file.write_text("not valid json", encoding="utf-8")
@@ -35,7 +35,7 @@ class TestLoadCache:
 
     def test_load_cache_returns_none_on_expired_ttl(self, tmp_path):
         """Verify load_cache returns None when cache has expired."""
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         cache_dir.mkdir(parents=True)
         cache_file = cache_dir / "governance-state.json"
 
@@ -62,7 +62,7 @@ class TestLoadCache:
 
     def test_load_cache_returns_none_on_bad_timestamp(self, tmp_path):
         """Verify load_cache returns None when last_check timestamp is invalid."""
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         cache_dir.mkdir(parents=True)
         cache_file = cache_dir / "governance-state.json"
 
@@ -91,7 +91,7 @@ class TestSaveCache:
 
     def test_save_cache_recovers_from_corrupt_existing_cache(self, tmp_path):
         """Verify save_cache succeeds even when existing cache is corrupted."""
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         cache_dir.mkdir(parents=True)
         cache_file = cache_dir / "governance-state.json"
 
@@ -118,7 +118,7 @@ class TestSaveCache:
 
     def test_save_cache_silent_on_permission_error(self, tmp_path):
         """Verify save_cache handles permission errors gracefully."""
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         cache_file = cache_dir / "governance-state.json"
 
         cache = HandshakeCache(
@@ -137,14 +137,14 @@ class TestSaveCache:
 
 
 class TestExtractSkillProfile:
-    """Test skill profile extraction from canonical .sdd/profile."""
+    """Test skill profile extraction from canonical .providence/profile."""
 
     def test_extract_skill_profile_missing_profile(self, tmp_path):
-        """Verify extract_skill_profile returns 'default' when .sdd/profile is absent."""
+        """Verify extract_skill_profile returns 'default' when .providence/profile is absent."""
 
         cache = HandshakeCache(
-            cache_file=tmp_path / ".sdd" / "runtime" / "governance-state.json",
-            cache_dir=tmp_path / ".sdd" / "runtime",
+            cache_file=tmp_path / ".providence" / "runtime" / "governance-state.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
             cache_ttl=timedelta(minutes=30),
             project_root=tmp_path,
             agent_id="test-agent",
@@ -155,14 +155,14 @@ class TestExtractSkillProfile:
         assert result == "default"
 
     def test_extract_skill_profile_invalid_profile_file(self, tmp_path):
-        """Verify extract_skill_profile returns 'default' when .sdd/profile is invalid."""
-        sdd_dir = tmp_path / ".sdd"
+        """Verify extract_skill_profile returns 'default' when .providence/profile is invalid."""
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir(parents=True)
         (sdd_dir / "profile").write_text("not-an-ini", encoding="utf-8")
 
         cache = HandshakeCache(
-            cache_file=tmp_path / ".sdd" / "runtime" / "governance-state.json",
-            cache_dir=tmp_path / ".sdd" / "runtime",
+            cache_file=tmp_path / ".providence" / "runtime" / "governance-state.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
             cache_ttl=timedelta(minutes=30),
             project_root=tmp_path,
             agent_id="test-agent",
@@ -173,14 +173,14 @@ class TestExtractSkillProfile:
         assert result == "default"
 
     def test_extract_skill_profile_reads_profile_type(self, tmp_path):
-        """Verify extract_skill_profile resolves type from canonical .sdd/profile."""
-        sdd_dir = tmp_path / ".sdd"
+        """Verify extract_skill_profile resolves type from canonical .providence/profile."""
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir(parents=True)
         (sdd_dir / "profile").write_text("[sdd]\ntype = master\n", encoding="utf-8")
 
         cache = HandshakeCache(
-            cache_file=tmp_path / ".sdd" / "runtime" / "governance-state.json",
-            cache_dir=tmp_path / ".sdd" / "runtime",
+            cache_file=tmp_path / ".providence" / "runtime" / "governance-state.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
             cache_ttl=timedelta(minutes=30),
             project_root=tmp_path,
             agent_id="test-agent",
@@ -196,7 +196,7 @@ class TestResolveTTLMinutes:
 
     def test_resolve_ttl_master_profile(self, tmp_path):
         """Verify resolve_ttl_minutes returns 480 for master profile."""
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
 
         profile_file = sdd_dir / "profile"
@@ -206,8 +206,8 @@ class TestResolveTTLMinutes:
             parser.write(f)
 
         cache = HandshakeCache(
-            cache_file=tmp_path / ".sdd" / "runtime" / "governance-state.json",
-            cache_dir=tmp_path / ".sdd" / "runtime",
+            cache_file=tmp_path / ".providence" / "runtime" / "governance-state.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
             cache_ttl=timedelta(minutes=30),
             project_root=tmp_path,
             agent_id="test-agent",
@@ -222,7 +222,7 @@ class TestResolveTTLMinutes:
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("{invalid toml", encoding="utf-8")
 
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         profile_file = sdd_dir / "profile"
         parser = configparser.ConfigParser()
@@ -231,8 +231,8 @@ class TestResolveTTLMinutes:
             parser.write(f)
 
         cache = HandshakeCache(
-            cache_file=tmp_path / ".sdd" / "runtime" / "governance-state.json",
-            cache_dir=tmp_path / ".sdd" / "runtime",
+            cache_file=tmp_path / ".providence" / "runtime" / "governance-state.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
             cache_ttl=timedelta(minutes=30),
             project_root=tmp_path,
             agent_id="test-agent",
@@ -251,8 +251,8 @@ class TestResolveTTLMinutes:
         )
 
         cache = HandshakeCache(
-            cache_file=tmp_path / ".sdd" / "runtime" / "governance-state.json",
-            cache_dir=tmp_path / ".sdd" / "runtime",
+            cache_file=tmp_path / ".providence" / "runtime" / "governance-state.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
             cache_ttl=timedelta(minutes=30),
             project_root=tmp_path,
             agent_id="test-agent",

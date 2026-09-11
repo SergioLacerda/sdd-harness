@@ -333,7 +333,7 @@ def test_prune_cache_keeps_regular_files(tmp_path: Path) -> None:
 
 def test_run_prune_uses_resolved_keep_set(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("SDD_COMPILE_BIN", raising=False)
-    cache_dir = Path("/tmp/sdd-cache")
+    cache_dir = Path("/tmp/providence-cache")
     captured: dict[str, object] = {}
 
     monkeypatch.setattr(

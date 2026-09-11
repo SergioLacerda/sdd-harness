@@ -52,7 +52,7 @@ def test_run_config_validate_defaults_and_parses(tmp_path: Path) -> None:
     run_config_validate(SimpleNamespace(file=None), ctx, tmp_path)
     assert ctx["config"] == {}
 
-    profile = tmp_path / ".sdd" / "profile"
+    profile = tmp_path / ".providence" / "profile"
     profile.parent.mkdir(parents=True)
     profile.write_text("[main]\nrepo = yes\n", encoding="utf-8")
     run_config_validate(SimpleNamespace(file=None), ctx, tmp_path)

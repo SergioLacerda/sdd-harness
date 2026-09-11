@@ -7,7 +7,7 @@ set -e
 echo "🛡️ Starting SDD Sovereign Container..."
 
 # 1. Keyring Pre-flight
-TRUST_DIR="/app/.sdd/trust"
+TRUST_DIR="/app/.providence/trust"
 KEYRING="$TRUST_DIR/trusted-keys.json"
 
 if [ ! -f "$KEYRING" ]; then
@@ -47,7 +47,7 @@ fi
 
 # 4. Test isolation for container CI health checks
 # When running `make check` inside the container, execute tests from a shadow
-# copy of the repository so any `.sdd` runtime/trust mutations stay in /tmp.
+# copy of the repository so any `.providence` runtime/trust mutations stay in /tmp.
 if [ "${1:-}" = "make" ] && [ "${2:-}" = "check" ]; then
     SHADOW_ROOT="/tmp/sdd-shadow-repo"
     rm -rf "$SHADOW_ROOT"

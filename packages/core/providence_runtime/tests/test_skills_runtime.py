@@ -101,7 +101,7 @@ def test_load_skills_from_disk_ignores_non_canonical_names(tmp_path: Path) -> No
     if registry_module.yaml is None:
         pytest.skip("PyYAML is required for disk skill loading test")
 
-    skills_dir = tmp_path / ".sdd" / "skills"
+    skills_dir = tmp_path / ".providence" / "skills"
     (skills_dir / "diagnose").mkdir(parents=True)
     (skills_dir / "sdd-diagnose").mkdir(parents=True)
     (skills_dir / "registry.json").write_text(
@@ -140,9 +140,9 @@ def test_load_skills_from_disk_preserves_config_payload(tmp_path: Path) -> None:
     if registry_module.yaml is None:
         pytest.skip("PyYAML is required for disk skill loading test")
 
-    skills_dir = tmp_path / ".sdd" / "skills" / "sdd-pipeline"
+    skills_dir = tmp_path / ".providence" / "skills" / "sdd-pipeline"
     skills_dir.mkdir(parents=True)
-    (tmp_path / ".sdd" / "skills" / "registry.json").write_text(
+    (tmp_path / ".providence" / "skills" / "registry.json").write_text(
         json.dumps({"skills": [{"name": "sdd-pipeline"}]}),
         encoding="utf-8",
     )
@@ -343,7 +343,7 @@ def test_converge_rule_approval_and_ttl_expiration(tmp_path: Path) -> None:
     engine = SkillEngine(project_root=tmp_path)
     store = SupervisedLearningStore(tmp_path)
     store._write_json(  # type: ignore[attr-defined]
-        tmp_path / ".sdd" / "runtime" / "rule-candidates.json",
+        tmp_path / ".providence" / "runtime" / "rule-candidates.json",
         {
             "candidates": [
                 {
@@ -385,7 +385,7 @@ def test_negative_learning_rolls_back_rule(tmp_path: Path) -> None:
 
     store = SupervisedLearningStore(tmp_path)
     store._write_json(  # type: ignore[attr-defined]
-        tmp_path / ".sdd" / "runtime" / "rule-registry.json",
+        tmp_path / ".providence" / "runtime" / "rule-registry.json",
         {
             "rules": [
                 {
@@ -411,7 +411,7 @@ def test_negative_learning_rolls_back_rule(tmp_path: Path) -> None:
         rollback_flag=True,
     )
     registry = json.loads(
-        (tmp_path / ".sdd" / "runtime" / "rule-registry.json").read_text(
+        (tmp_path / ".providence" / "runtime" / "rule-registry.json").read_text(
             encoding="utf-8"
         )
     )

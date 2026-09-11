@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "generated_at": "2026-09-11T00:17:00.485239Z",
+  "generated_at": "2026-09-11T02:27:50.004894Z",
   "language": "all",
   "language_context": {
     "preferred_human_language": "Portugus (Brasil)",
@@ -36,26 +36,26 @@
   "categories": [
     "other"
   ],
-  "governance_fingerprint": "51b9d3e88856d9f2",
+  "governance_fingerprint": "de6df9af764512ec",
   "fingerprints": {
-    "combined": "51b9d3e88856d9f2",
+    "combined": "de6df9af764512ec",
     "mandates": {
       "M001": "11693e056d10209b",
       "M002": "5d180205045faa4c",
-      "M003": "e93bb7c07815c755",
+      "M003": "c8c0712190f8e675",
       "M005": "9e219fea698a72a0",
       "M006": "fd78cf53f9bf3c99",
       "M007": "007905849f5013cf",
-      "M008": "3be9740ac7d9e7fd",
+      "M008": "b2e2dc37c6031aee",
       "M009": "0863c1f6e35ef0ce",
       "M010": "d18218e48ba3f8dd",
       "M011": "406b1c5fcb312aef",
-      "M015": "06c412f44fd86591",
+      "M015": "4ef8144e8caf46b6",
       "M016": "727a88b4c07484a5",
       "M017": "bf9c093cbcde8b80",
       "M018": "fc05fe534eb354fd",
-      "M019": "54e69ba7bf2272f5",
-      "M020": "41a6fa80d7a95d43"
+      "M019": "b0fbffeda050f8e6",
+      "M020": "6538f9283a14e88b"
     }
   },
   "mandates": {

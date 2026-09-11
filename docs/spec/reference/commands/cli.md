@@ -8,7 +8,7 @@ The SDD CLI operates in one of two profiles: **master** (framework development) 
 
 1. `--profile` flag (highest priority)
 2. `SDD_PROFILE` environment variable
-3. `.sdd/profile` (`[sdd] type = master|client`)
+3. `.providence/profile` (`[sdd] type = master|client`)
 4. If workspace is not initialized, fail with actionable message (`providence init`)
 
 ```bash
@@ -86,10 +86,10 @@ providence test run --cov-fail-under 80
 
 - `providence audit`: Governance drift + telemetry summary (existing behavior).
 - `providence audit view --since YYYY-MM-DD --event-type VIOLATION`: filtered event viewer for compliance events.
-- `providence audit export --format=csv > compliance_report.csv`: deterministic CSV export to stdout, plus evidence manifest via `--manifest-file` (default `.sdd/runtime/compliance-export.manifest.json`).
+- `providence audit export --format=csv > compliance_report.csv`: deterministic CSV export to stdout, plus evidence manifest via `--manifest-file` (default `.providence/runtime/compliance-export.manifest.json`).
 - `providence audit legacy-check [--phase-date YYYY-MM-DD]`: staged legacy policy enforcement (Q3 2026 warn, Q4 2026 block).
-- `providence audit bootstrap-check`: validates AGENTS/CLAUDE bootstrap contract drift against `.sdd` authority model.
-- `providence audit compliance-pack --out-dir .sdd/runtime/compliance-pack`: generates external-review evidence bundle.
+- `providence audit bootstrap-check`: validates AGENTS/CLAUDE bootstrap contract drift against `.providence` authority model.
+- `providence audit compliance-pack --out-dir .providence/runtime/compliance-pack`: generates external-review evidence bundle.
 
 ### Maintenance and Tooling
 
@@ -160,7 +160,7 @@ If `drift=detected` or `governance=partial`, run `providence governance compile`
 providence ask "diagnose failing tests"
 
 # Full telemetry (confidence gate, drift check)
-providence ask "implementar plano: .sdd/skills/sdd-ask/skill.yaml" --full
+providence ask "implementar plano: .providence/skills/sdd-ask/skill.yaml" --full
 
 # Cheap profile for automated hook callers
 providence ask "diagnose failing tests" --intake-only
@@ -174,7 +174,7 @@ Skills are V6-schema governed capabilities (`schema_version: 1.1.0`). Each skill
 - `providence skills describe <name>` — return full skill metadata including V6 fields.
 - `providence skills run <name>` — execute governed skill pipeline.
 - `providence skills export` — export skill definitions to `json/openai/langchain/crewai/autogen`.
-- `providence skills --full-bootstrap` — regenerate all `skill.yaml` files and `registry.json` from the canonical Python `_REGISTRY`. **Overwrites** any manual edits to `.sdd/skills/` — V6 fields must be set in `_REGISTRY` (`packages/core/providence_runtime/src/providence_runtime/skills.py`) to survive bootstrap.
+- `providence skills --full-bootstrap` — regenerate all `skill.yaml` files and `registry.json` from the canonical Python `_REGISTRY`. **Overwrites** any manual edits to `.providence/skills/` — V6 fields must be set in `_REGISTRY` (`packages/core/providence_runtime/src/providence_runtime/skills.py`) to survive bootstrap.
 - `providence skills learning-candidates` — generate/list supervised `RuleCandidate` entries from `FailureLedger`.
 - `providence skills learning-approve <candidate-id> --rationale ... [--ttl-days N]` — human approval path; activates rule in registry.
 - `providence skills learning-reject <candidate-id> --rationale ...` — human rejection path; keeps candidate history without activation.
@@ -211,7 +211,7 @@ Skill output schema (`skill_output.schema.yaml`):
 
 - `status`: `ok | error | degraded`
 - `confidence.overall`: float `[0.0, 1.0]`
-- `error.category`: taxonomy key (see `.sdd/skills/contracts/skill_output.schema.yaml`)
+- `error.category`: taxonomy key (see `.providence/skills/contracts/skill_output.schema.yaml`)
 - `next_skill`: id of recommended next skill, or `null`
 
 Governance footer contract:
@@ -262,8 +262,8 @@ sdd --json skills learning-impact rr-def456 \
 
 Generate new skills and slash commands from V6-compliant canonical templates.
 
-- `sdd scaffold skill <name>` — create a new skill under `.sdd/skills/<name>/` with `skill.yaml` and `SKILL.md`.
-- `sdd scaffold command <name>` — create a new slash command under `.sdd/commands/<name>/` with `command.yaml`.
+- `sdd scaffold skill <name>` — create a new skill under `.providence/skills/<name>/` with `skill.yaml` and `SKILL.md`.
+- `sdd scaffold command <name>` — create a new slash command under `.providence/commands/<name>/` with `command.yaml`.
 
 Options for `sdd scaffold skill`:
 
@@ -285,7 +285,7 @@ sdd scaffold skill my-skill --category analysis --risk low \
 sdd scaffold command my-skill --routes-to my-skill
 ```
 
-Templates live in `.sdd/templates/` (deployed by wizard from `providence_integration`). To add a skill to the canonical registry so it survives `--full-bootstrap`, add a `SkillDefinition` entry to `packages/core/providence_runtime/src/providence_runtime/skills.py`.
+Templates live in `.providence/templates/` (deployed by wizard from `providence_integration`). To add a skill to the canonical registry so it survives `--full-bootstrap`, add a `SkillDefinition` entry to `packages/core/providence_runtime/src/providence_runtime/skills.py`.
 
 ### Wizard
 
@@ -303,7 +303,7 @@ Templates live in `.sdd/templates/` (deployed by wizard from `providence_integra
 | `--from-file <path>` | Supply a custom mandates/guidelines JSON instead of generating one (validated before use) |
 | `--non-interactive` | Resolve preferences/agent selection without prompting (reuses an existing `wizard-config.json` or falls back to defaults) |
 
-The wizard deploys `.sdd/templates/` to the target project, enabling `sdd scaffold skill` in generated workspaces.
+The wizard deploys `.providence/templates/` to the target project, enabling `sdd scaffold skill` in generated workspaces.
 
 ### Documentation Artifacts
 

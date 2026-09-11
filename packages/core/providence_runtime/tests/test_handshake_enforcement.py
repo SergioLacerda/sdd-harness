@@ -9,7 +9,7 @@ from providence_core.governance.handshake import AgentHandshakeProtocol
 def test_skill_enforcement_blocks_unauthorized_skill(tmp_path: Path):
     # Setup temporary project root
     project_root = tmp_path
-    ai_dir = project_root / ".sdd" / "runtime"
+    ai_dir = project_root / ".providence" / "runtime"
     ai_dir.mkdir(parents=True)
 
     # Create a handshake response that DOES NOT include 'sdd-diagnose'
@@ -37,7 +37,7 @@ def test_skill_enforcement_blocks_unauthorized_skill(tmp_path: Path):
 def test_skill_enforcement_allows_authorized_skill(tmp_path: Path):
     # Setup temporary project root
     project_root = tmp_path
-    ai_dir = project_root / ".sdd" / "runtime"
+    ai_dir = project_root / ".providence" / "runtime"
     ai_dir.mkdir(parents=True)
 
     # Create a handshake response that DOES include 'sdd-diagnose'

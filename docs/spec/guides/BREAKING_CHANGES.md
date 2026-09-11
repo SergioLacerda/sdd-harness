@@ -37,7 +37,7 @@ Any change that could require users to update their code or governance artifacts
 
 ### Policies
 
-- Changing storage paths (e.g., `.sdd/` directory moved to `.sdd/runtime/`)
+- Changing storage paths (e.g., `.providence/` directory moved to `.providence/runtime/`)
 - Changing artifact serialization format (e.g., JSON → msgpack without backwards compat)
 
 ---

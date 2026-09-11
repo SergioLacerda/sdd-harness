@@ -154,7 +154,7 @@ providence ask "test" --verbose
 
 ## DEC-2026-008: Workspace Auto-Detection (Walk-Up) (2026-03-20)
 
-**Decision:** CLI auto-detects workspace by walking up from CWD looking for .sdd/
+**Decision:** CLI auto-detects workspace by walking up from CWD looking for .providence/
 
 **Rationale:**
 - UX: User doesn't specify workspace path, just works

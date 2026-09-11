@@ -28,7 +28,7 @@ python3 tests/integration/phase_5_examples/examples/python/example_integration_f
   ✅ Created directory: .vscode/
   ✅ Created directory: .cursor/
   ✅ Created directory: scripts/
-  ✅ Created directory: .sdd/
+  ✅ Created directory: .providence/
   ✅ STEP 1 PASSED: All directories created
 
 📋 TEST STEP 2: Copy Templates
@@ -41,15 +41,15 @@ python3 tests/integration/phase_5_examples/examples/python/example_integration_f
   ✅ STEP 3 PASSED: .spec.config valid
 
 📋 TEST STEP 4: Run Validation
-  ✅ Created: .sdd/context-aware/
-  ✅ Created: .sdd/runtime/
+  ✅ Created: .providence/context-aware/
+  ✅ Created: .providence/runtime/
   ✅ STEP 4 PASSED: Validation structure created
 
 📋 TEST STEP 5: Commit to Git
   ✅ File ready to commit: .spec.config
   ✅ File ready to commit: .github/copilot-instructions.md
   ✅ File ready to commit: .vscode/ai-rules.md
-  ✅ File ready to commit: .sdd/README.md
+  ✅ File ready to commit: .providence/README.md
   ✅ STEP 5 PASSED: All files ready for git commit
 
 ================================================================================

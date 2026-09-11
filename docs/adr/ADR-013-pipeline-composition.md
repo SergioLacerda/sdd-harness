@@ -95,6 +95,6 @@ termination rules, timeout escalation, retry bookkeeping, and freeze-mode exit.
 - `packages/core/providence_runtime/src/providence_runtime/_skill_executor.py`
 - `packages/core/providence_runtime/src/providence_runtime/_skill_contracts.py`
 - `packages/core/providence_runtime/src/providence_runtime/skills.py`
-- `.sdd/skills/sdd-pipeline/skill.yaml`
+- `.providence/skills/sdd-pipeline/skill.yaml`
 - `docs/guides/PIPELINE_ORCHESTRATION.md`
 - `.analysis/pending/providence_cli_skills/05-IMPLEMENTATION_ROADMAP.md`

@@ -83,8 +83,8 @@ def test_do_update_cache_writes_new_cache(monkeypatch, tmp_path: Path, capsys) -
     )
     runtime_cmd._do_update_cache(tmp_path)
     out = capsys.readouterr().out
-    cache = tmp_path / ".providence" / "runtime" / ".sdd-cache.md"
-    assert ".sdd-cache.md refreshed" in out
+    cache = tmp_path / ".providence" / "runtime" / ".providence-cache.md"
+    assert ".providence-cache.md refreshed" in out
     assert cache.exists()
     assert "Validation Quiz" in cache.read_text(encoding="utf-8")
 
@@ -95,7 +95,7 @@ def test_do_update_cache_appends_validation_quiz_to_existing_cache(
     gov = tmp_path / ".providence" / "compiled" / "governance-core.json"
     gov.parent.mkdir(parents=True)
     gov.write_text("{}", encoding="utf-8")
-    cache = tmp_path / ".providence" / "runtime" / ".sdd-cache.md"
+    cache = tmp_path / ".providence" / "runtime" / ".providence-cache.md"
     cache.parent.mkdir(parents=True)
     cache.write_text("# SDD Cache\n\nInitialized by: previous run\n", encoding="utf-8")
 

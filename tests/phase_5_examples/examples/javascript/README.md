@@ -37,7 +37,7 @@ node tests/integration/phase_5_examples/examples/javascript/test-integration-flo
   ✅ Created directory: .vscode/
   ✅ Created directory: .cursor/
   ✅ Created directory: scripts/
-  ✅ Created directory: .sdd/
+  ✅ Created directory: .providence/
   ✅ STEP 1 PASSED: All directories created
 
 ... (steps 2-5) ...

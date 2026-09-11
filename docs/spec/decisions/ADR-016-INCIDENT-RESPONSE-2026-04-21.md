@@ -205,7 +205,7 @@ exit 0
 
 ### 4. Test Suite (Validation)
 
-File: `.sdd-migration/tests/test_adr008_enforcement.py`
+File: `.providence-migration/tests/test_adr008_enforcement.py`
 
 ```python
 def test_agent_cannot_commit_to_main():
@@ -345,7 +345,7 @@ $ echo $?
 | Local Hook | Pre-commit block on main | ✅ Ready | Installed at `.git-hooks/pre-commit-adr-008` |
 | GitHub Protection | Require PR + architect review | ⏳ TODO | Architect needs to enable (Repo Settings) |
 | CI/CD Workflow | Check WIP branch naming | ⏳ TODO | Add to GitHub Actions |
-| Test Suite | Verify ADR-008 compliance | ✅ Ready | Tests in `.sdd-migration/tests/` |
+| Test Suite | Verify ADR-008 compliance | ✅ Ready | Tests in `.providence-migration/tests/` |
 
 ---
 

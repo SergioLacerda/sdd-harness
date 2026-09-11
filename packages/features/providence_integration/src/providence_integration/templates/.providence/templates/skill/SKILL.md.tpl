@@ -27,8 +27,8 @@ schema_version: "1.1.0"
 
 ## Required protocol
 
-1. Load `.sdd/agent-instructions.md`
-2. Confirm skill is registered in `.sdd/skills/registry.json` as `{{ name }}`
+1. Load `.providence/agent-instructions.md`
+2. Confirm skill is registered in `.providence/skills/registry.json` as `{{ name }}`
 3. Validate execution_contract is present before proceeding
 4. Run preflight: `sdd runtime status`
 5. Check circuit breaker state for this skill
@@ -41,7 +41,7 @@ schema_version: "1.1.0"
 
 ## Output format
 
-Return YAML conforming to `.sdd/skills/contracts/skill_output.schema.yaml`:
+Return YAML conforming to `.providence/skills/contracts/skill_output.schema.yaml`:
 ```yaml
 status: ok | error | degraded
 result:
@@ -62,4 +62,4 @@ next_skill: null
 - Do not invent SDD commands not listed in Allowed CLI
 - Do not skip the preflight check
 - Do not execute without a valid execution_contract
-- Declare degraded mode if `.sdd/skills/registry.json` is unavailable
+- Declare degraded mode if `.providence/skills/registry.json` is unavailable

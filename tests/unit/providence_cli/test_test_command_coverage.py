@@ -282,10 +282,10 @@ class TestReviewGolden:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         root = tmp_path
-        artifact = root / ".sdd" / "compiled" / "governance-core.json"
+        artifact = root / ".providence" / "compiled" / "governance-core.json"
         artifact.parent.mkdir(parents=True, exist_ok=True)
         artifact.write_text("{}", encoding="utf-8")
-        golden = root / ".sdd" / "runtime" / "golden-ast.json"
+        golden = root / ".providence" / "runtime" / "golden-ast.json"
         golden.parent.mkdir(parents=True, exist_ok=True)
 
         class _Diff:
@@ -330,7 +330,7 @@ class TestReviewGolden:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         root = tmp_path
-        artifact = root / ".sdd" / "compiled" / "governance-core.json"
+        artifact = root / ".providence" / "compiled" / "governance-core.json"
         artifact.parent.mkdir(parents=True, exist_ok=True)
         artifact.write_text("{}", encoding="utf-8")
 
@@ -362,7 +362,7 @@ class TestReviewGolden:
         _install_golden_ast(monkeypatch, current_ast=_AST(), golden_ast=_AST())
         monkeypatch.setattr(test_mod, "detect_repo_root", lambda: root)
 
-        golden = root / ".sdd" / "runtime" / "golden-ast.json"
+        golden = root / ".providence" / "runtime" / "golden-ast.json"
         test_mod.review_golden(
             update=False, fail_on_breaking=True, artifact=artifact, golden=golden
         )
@@ -394,10 +394,10 @@ class TestReviewGolden:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         root = tmp_path
-        artifact = root / ".sdd" / "compiled" / "governance-core.json"
+        artifact = root / ".providence" / "compiled" / "governance-core.json"
         artifact.parent.mkdir(parents=True, exist_ok=True)
         artifact.write_text("{}", encoding="utf-8")
-        golden = root / ".sdd" / "runtime" / "golden-ast.json"
+        golden = root / ".providence" / "runtime" / "golden-ast.json"
         golden.parent.mkdir(parents=True, exist_ok=True)
         golden.write_text("{}", encoding="utf-8")
         monkeypatch.setattr(test_mod, "detect_repo_root", lambda: root)
@@ -420,10 +420,10 @@ class TestReviewGolden:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         root = tmp_path
-        artifact = root / ".sdd" / "compiled" / "governance-core.json"
+        artifact = root / ".providence" / "compiled" / "governance-core.json"
         artifact.parent.mkdir(parents=True, exist_ok=True)
         artifact.write_text("{}", encoding="utf-8")
-        golden = root / ".sdd" / "runtime" / "golden-ast.json"
+        golden = root / ".providence" / "runtime" / "golden-ast.json"
         golden.parent.mkdir(parents=True, exist_ok=True)
         golden.write_text("{}", encoding="utf-8")
 
@@ -466,10 +466,10 @@ class TestReviewGolden:
                 update=False, fail_on_breaking=True, artifact=None, golden=None
             )
 
-        artifact = root / ".sdd" / "compiled" / "governance-core.json"
+        artifact = root / ".providence" / "compiled" / "governance-core.json"
         artifact.parent.mkdir(parents=True, exist_ok=True)
         artifact.write_text("{}", encoding="utf-8")
-        golden = root / ".sdd" / "runtime" / "golden-ast.json"
+        golden = root / ".providence" / "runtime" / "golden-ast.json"
 
         class _BreakingDiff:
             breaking_changes = [

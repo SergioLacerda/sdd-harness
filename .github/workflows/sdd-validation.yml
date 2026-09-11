@@ -92,10 +92,10 @@ jobs:
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
           # Verify SDD cache exists
-          if [ -f ".sdd/runtime/.sdd-cache.md" ]; then
+          if [ -f ".providence/runtime/.providence-cache.md" ]; then
             echo "✓ SDD context cache found"
           else
-            echo "⚠ Warning: SDD cache not found (.sdd/runtime/.sdd-cache.md)"
+            echo "⚠ Warning: SDD cache not found (.providence/runtime/.providence-cache.md)"
           fi
 
           echo "✓ M003 Context Awareness validated."

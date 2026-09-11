@@ -40,7 +40,7 @@
 - Environment variables: Fragile, hard to debug
 
 **Implementation:**
-- `resolve_profile()`: Walk up from CWD looking for .sdd/profile
+- `resolve_profile()`: Walk up from CWD looking for .providence/profile
 - Fail fast with WorkspaceNotInitializedError (not silent fallback)
 - Support override via SDD_PROFILE env var or --profile flag
 
@@ -66,7 +66,7 @@
 
 **Status:** ACTIVE
 **Owner:** @SergioLacerda
-**Alternative considered:** Use .sdd/config.yaml → rejected, TOML preferred
+**Alternative considered:** Use .providence/config.yaml → rejected, TOML preferred
 
 ---
 
@@ -200,13 +200,13 @@ required (it rewrote files in place without committing, leaving the tree
 
 ## DEC-2026-010: No Runtime Configuration Files (Environment-Driven) (2026-05-08)
 
-**Decision:** Configuration via .sdd/profile (workspace), env vars (runtime), CLI flags (explicit)
+**Decision:** Configuration via .providence/profile (workspace), env vars (runtime), CLI flags (explicit)
 
 **Rationale:**
-- .sdd/profile: Persistent workspace config (located via walk-up)
+- .providence/profile: Persistent workspace config (located via walk-up)
 - Env vars: CI/CD, containerized environments
 - CLI flags: One-off overrides, highest priority
-- NO: ~/.sddrc, /etc/sdd/config, or XML bloat
+- NO: ~/.providencerc, /etc/sdd/config, or XML bloat
 
 **Trade-offs:**
 - Pro: Simple, Unix-like

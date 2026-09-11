@@ -16,7 +16,7 @@ binary through `CompilerRunner`. The binary is resolved in this order:
 3. `sdd-compile` on `PATH`
 4. Binary packaged inside the `providence-core` wheel (`providence_core/_native/`)
 5. Download from GitHub Releases matching the installed `providence-cli` version
-   (SHA256-verified, cached under `%USERPROFILE%\.sdd\bin`)
+   (SHA256-verified, cached under `%USERPROFILE%\.providence\bin`)
 
 ## First Diagnostic Step: `providence doctor compiler`
 
@@ -28,9 +28,9 @@ providence doctor compiler
 
 It prints a read-only JSON report covering everything the manual runbook below
 inspects by hand: which binary was resolved and by which rule, its version, the
-CLI↔binary version handshake state, the `%USERPROFILE%\.sdd\bin` cache contents,
+CLI↔binary version handshake state, the `%USERPROFILE%\.providence\bin` cache contents,
 whether the installed wheel bundles `_native` binaries, and a dry validation of
-`.sdd\compiled`. A `handshake.status` of anything other than `ok` /
+`.providence\compiled`. A `handshake.status` of anything other than `ok` /
 `skipped_dev_binary`, or stale entries in `cache.entries`, usually identifies the
 problem immediately. Attach this JSON to any escalation.
 
@@ -72,7 +72,7 @@ metadata schema does not match the validator — almost always an outdated binar
 ### 2. Identify the binary actually used and its version
 
 ```powershell
-$bin = Get-ChildItem -Recurse "$env:USERPROFILE\.sdd\bin" -Filter "sdd-compile*.exe" |
+$bin = Get-ChildItem -Recurse "$env:USERPROFILE\.providence\bin" -Filter "sdd-compile*.exe" |
        Select-Object -First 1 -ExpandProperty FullName
 & $bin version
 ```
@@ -89,7 +89,7 @@ Compare the reported version with the installed CLI version (`pip show providenc
 The download cache is keyed by version but stale entries survive upgrades:
 
 ```powershell
-Remove-Item -Recurse -Force "$env:USERPROFILE\.sdd\bin"
+Remove-Item -Recurse -Force "$env:USERPROFILE\.providence\bin"
 providence governance generate --verbose
 ```
 
@@ -117,11 +117,11 @@ depends entirely on the release download path. In that case verify (step 2) that
 downloaded tag matches the installed CLI version — dev-scheme package versions fall back
 to the nearest base release tag, which can produce exactly this schema skew.
 
-## Symptom: `invalid_governance_path: ...\.sdd\compiled`
+## Symptom: `invalid_governance_path: ...\.providence\compiled`
 
-`providence governance generate` refuses a `.sdd\compiled` directory left in an inconsistent
+`providence governance generate` refuses a `.providence\compiled` directory left in an inconsistent
 state by a previously failed run. Re-run after resolving the compiler failure above; if
-the error persists, remove the stale `.sdd\compiled` directory and regenerate.
+the error persists, remove the stale `.providence\compiled` directory and regenerate.
 
 ## Debugging Downloads
 

@@ -12,8 +12,8 @@ def run_config_validate(
     """Run Config Validate."""
     del spec_dir
     working_dir = context.get("working_dir", Path.cwd())
-    # Default to .sdd/profile (replaces legacy .spec.config)
-    config_file = working_dir / (inputs.file or ".sdd/profile")
+    # Default to .providence/profile (replaces legacy .spec.config)
+    config_file = working_dir / (inputs.file or ".providence/profile")
 
     if not config_file.exists():
         context["config"] = {}

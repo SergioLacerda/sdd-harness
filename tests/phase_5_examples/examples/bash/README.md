@@ -41,7 +41,7 @@ bash tests/integration/phase_5_examples/examples/bash/test-integration-flow.sh
   ✅ Created directory: .vscode/
   ✅ Created directory: .cursor/
   ✅ Created directory: scripts/
-  ✅ Created directory: .sdd/
+  ✅ Created directory: .providence/
   ✅ STEP 1 PASSED: All directories created
 
 ... (steps 2-5) ...

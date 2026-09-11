@@ -146,7 +146,7 @@ Common types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 Examples:
 ```
 feat(compiler): add fingerprint caching for incremental builds
-fix(cli): handle missing .sdd/profile gracefully
+fix(cli): handle missing .providence/profile gracefully
 docs(contributing): add governance compliance steps
 ```
 

@@ -60,7 +60,7 @@ jobs:
             --mode enforce \
             --json-out .artifacts/core_compiler_runtime_contract_gate.json
 
-      - name: Repository .sdd mutation guard
+      - name: Repository .providence mutation guard
         if: always()
         shell: bash
         run: |
@@ -131,7 +131,7 @@ jobs:
             packages/interfaces/providence_cli/tests/test_governance_output_snapshots.py \
             packages/core/providence_core/tests/execution/test_guardrail_code_review.py
 
-      - name: Repository .sdd mutation guard
+      - name: Repository .providence mutation guard
         if: always()
         shell: bash
         run: |
@@ -234,7 +234,7 @@ jobs:
             .artifacts/enforcement_ladder_digest.json
             .artifacts/enforcement_ladder_digest.md
 
-      - name: Repository .sdd mutation guard
+      - name: Repository .providence mutation guard
         if: always()
         shell: bash
         run: |
@@ -288,7 +288,7 @@ jobs:
             packages/interfaces/providence_wizard/tests/test_seedlings_generators.py \
             tests/integration/wizard/test_seedlings_e2e.py
 
-      - name: Repository .sdd mutation guard
+      - name: Repository .providence mutation guard
         if: always()
         shell: bash
         run: |
@@ -330,7 +330,7 @@ jobs:
         shell: bash
         run: make coverage-strict
 
-      - name: Repository .sdd mutation guard
+      - name: Repository .providence mutation guard
         if: always()
         shell: bash
         run: |
@@ -378,7 +378,7 @@ jobs:
         run: |
           uv run python -m providence_cli governance validate --skip-handshake
 
-      - name: Repository .sdd mutation guard
+      - name: Repository .providence mutation guard
         if: always()
         shell: bash
         run: |
@@ -433,7 +433,7 @@ jobs:
         if: always()
         run: rm -f .dockerignore
 
-      - name: Repository .sdd mutation guard
+      - name: Repository .providence mutation guard
         shell: bash
         run: |
           uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
@@ -481,7 +481,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Repository .sdd mutation guard
+      - name: Repository .providence mutation guard
         if: always()
         shell: bash
         run: |

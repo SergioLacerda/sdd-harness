@@ -228,7 +228,7 @@ For integration-grade observability, always prefer:
 
 Recommended export flow:
 
-1. Keep `.sdd/runtime/compliance-events.jsonl` as append-only local audit trail.
+1. Keep `.providence/runtime/compliance-events.jsonl` as append-only local audit trail.
 2. Forward copies to central SIEM/observability pipeline.
 3. Correlate SDD events with framework run/session IDs.
 

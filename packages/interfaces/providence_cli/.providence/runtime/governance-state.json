@@ -10,13 +10,13 @@
   "state": "HEALTHY",
   "checks": [
     {
-      "name": ".sdd/ directory",
+      "name": ".providence/ directory",
       "passed": true,
-      "message": "Found at /home/sergio/dev/sdd-harness/packages/interfaces/sdd_cli/.sdd",
+      "message": "Found at /home/sergio/dev/sdd-harness/packages/interfaces/sdd_cli/.providence",
       "layer": "DISCOVERY"
     },
     {
-      "name": ".sdd/profile",
+      "name": ".providence/profile",
       "passed": false,
       "message": "Missing \u2014 run 'sdd init'",
       "layer": "DISCOVERY"
@@ -28,13 +28,13 @@
       "layer": "DISCOVERY"
     },
     {
-      "name": ".sdd/profile readable",
+      "name": ".providence/profile readable",
       "passed": false,
       "message": "Invalid or missing",
       "layer": "LINK_VALIDATION"
     },
     {
-      "name": ".sdd/profile type valid",
+      "name": ".providence/profile type valid",
       "passed": false,
       "message": "type field missing or invalid",
       "layer": "LINK_VALIDATION"
@@ -46,7 +46,7 @@
       "layer": "LINK_VALIDATION"
     },
     {
-      "name": ".sdd/runtime/",
+      "name": ".providence/runtime/",
       "passed": true,
       "message": "Initialized",
       "layer": "RUNTIME_VALIDATION"

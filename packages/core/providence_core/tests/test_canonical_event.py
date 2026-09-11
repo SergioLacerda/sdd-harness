@@ -110,7 +110,7 @@ class TestCanonicalLogEvent:
             event_type="finding",
             summary="detector unreliable",
             decision="block refactor",
-            artifact_path=".sdd/runtime/diagnosis/foo.md",
+            artifact_path=".providence/runtime/diagnosis/foo.md",
             next_action="fix detector",
         )
         result = event.simple_output()

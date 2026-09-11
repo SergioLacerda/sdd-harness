@@ -29,13 +29,13 @@ This policy applies to:
 
 ### Test Context
 
-1. Repository-root `.sdd` MUST NOT be mutated by tests.
+1. Repository-root `.providence` MUST NOT be mutated by tests.
 2. Test writes MUST target isolated roots (`tmp_path`, `SDD_TEST_OUTPUT_DIR`, or shadow workspace).
 3. Path overrides MUST NOT bypass isolation guarantees.
 
 ### Runtime Context
 
-1. Runtime mutations under `.sdd` are allowed only through governed flows.
+1. Runtime mutations under `.providence` are allowed only through governed flows.
 2. Signature and trust behavior MUST follow `SDD_SIGNATURE_MODE` and keyring precedence rules.
 3. Non-governed runtime mutation attempts MUST be blocked or flagged.
 
@@ -100,6 +100,6 @@ change artifacts.
 ## Delivery Checklist
 
 - [ ] Context (`test` / `runtime` / `dev/prod`) identified before side effects
-- [ ] No repository-root `.sdd` mutation from tests
+- [ ] No repository-root `.providence` mutation from tests
 - [ ] Seed writes performed only by approved owners/triggers
 - [ ] Path variable usage complies with precedence/fallback rules

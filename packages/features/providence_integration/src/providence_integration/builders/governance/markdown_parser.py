@@ -78,7 +78,7 @@ class MarkdownParser:
         return None
 
     # ------------------------------------------------------------------
-    # Individual canonical file extraction (for .sdd/spec generation)
+    # Individual canonical file extraction (for .providence/spec generation)
     # These methods operate on single-mandate files (# Mandate: Title format)
     # ------------------------------------------------------------------
 

@@ -357,7 +357,7 @@ class TestPolicyEngine:
 
     def test_handshake_guard_blocks_undeclared_skill(self, tmp_path: Path) -> None:
         engine = PolicyEngine()
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
         (runtime_dir / "handshake-response.json").write_text(
             json.dumps(
@@ -380,7 +380,7 @@ class TestPolicyEngine:
 
     def test_handshake_guard_allows_declared_skill(self, tmp_path: Path) -> None:
         engine = PolicyEngine()
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
         (runtime_dir / "handshake-response.json").write_text(
             json.dumps(
@@ -398,7 +398,7 @@ class TestPolicyEngine:
 
     def test_handshake_guard_fails_open_on_invalid_json(self, tmp_path: Path) -> None:
         engine = PolicyEngine()
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
         (runtime_dir / "handshake-response.json").write_text(
             "{not-valid-json",

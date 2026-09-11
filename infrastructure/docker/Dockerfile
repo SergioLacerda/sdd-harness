@@ -91,7 +91,7 @@ COPY --from=go-builder /build/sdd-compile /usr/local/bin/sdd-compile
 COPY --from=builder /app/.venv /app/.venv
 
 # Overlay pre-compiled governance artifacts from builder (not in git)
-COPY --from=builder --chown=sdd:sdd /app/.sdd/compiled /app/.sdd/compiled
+COPY --from=builder --chown=sdd:sdd /app/.providence/compiled /app/.providence/compiled
 
 COPY --chown=sdd:sdd infrastructure/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh && \

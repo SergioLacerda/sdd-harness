@@ -53,6 +53,6 @@ See [examples/security/README.md](security/README.md) for full documentation.
 ## Notes
 
 - All demos exit with code `0` — the block/detection is the expected, correct behavior.
-- Demos read from `.sdd/` in the repo root. Run them from the repo root directory.
+- Demos read from `.providence/` in the repo root. Run them from the repo root directory.
 - Optional framework extras are defined in `pyproject.toml` under `[project.optional-dependencies]`.
 - `examples/security/drift_battery_snapshot.json` is local state — do not commit it.

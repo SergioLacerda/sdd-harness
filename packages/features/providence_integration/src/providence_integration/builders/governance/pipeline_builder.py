@@ -219,7 +219,7 @@ class PipelineBuilder:
         else:
             self.client_items = []
 
-        # Enrich core_items with rich spec content from .sdd/spec/mandates.json
+        # Enrich core_items with rich spec content from .providence/spec/mandates.json
         self._merge_spec_content()
 
         # Phase 2: Deterministic Fingerprinting
@@ -258,7 +258,7 @@ class PipelineBuilder:
         )
 
     def _merge_spec_content(self) -> None:
-        """Merge rich spec fields from .sdd/spec/mandates.json into core_items."""
+        """Merge rich spec fields from .providence/spec/mandates.json into core_items."""
         if not self.spec_mandates_path or not self.spec_mandates_path.exists():
             return
         try:
@@ -288,7 +288,7 @@ class PipelineBuilder:
         """Extract rich content from individual canonical M*.md files and write mandates.json.
 
         This is called by the wizard when generating a client template. The output is
-        written to .sdd/spec/mandates.json in the template and later consumed by
+        written to .providence/spec/mandates.json in the template and later consumed by
         _merge_spec_content() during providence governance compile on the client.
 
         Returns a summary dict with counts.

@@ -35,7 +35,7 @@ done
 ### Purpose
 
 Run before and after implementing a feature to detect governance drift regressions.
-Unlike the simulation demos, this tool measures **real accuracy** against the actual `.sdd/metadata.json` artifact.
+Unlike the simulation demos, this tool measures **real accuracy** against the actual `.providence/metadata.json` artifact.
 
 ### Battery composition (100 sessions, fixed)
 
@@ -97,6 +97,6 @@ uv run python examples/security/demo_drift_benchmark.py --sessions 1000 --runs 1
 
 ## Notes
 
-- All demos require `.sdd/metadata.json` (run `providence governance compile` if missing).
+- All demos require `.providence/metadata.json` (run `providence governance compile` if missing).
 - Demos 2, 3, 5, and 6 are self-contained and do not read governance files.
 - `drift_battery_snapshot.json` is local state — do not commit it.

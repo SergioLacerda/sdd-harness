@@ -31,7 +31,7 @@ def test_generated_prompts_include_soft_governance_footer(tmp_path: Path) -> Non
             "SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}"
             in content
         )
-        assert ".sdd/compiled/audit/*.json" in content
+        assert ".providence/compiled/audit/*.json" in content
 
 
 def test_generated_prompts_do_not_reference_legacy_generated_paths(

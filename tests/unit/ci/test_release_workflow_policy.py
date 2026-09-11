@@ -178,7 +178,7 @@ def test_release_workflows_smoke_the_git_install_channel_on_both_oses() -> None:
         assert "providence install --wizard --non-interactive" in steps_text
         assert "providence init --default" in steps_text
         assert "providence governance validate" in steps_text
-        # The checkout is itself an SDD workspace (.sdd/ is committed): running
+        # The checkout is itself an SDD workspace (.providence/ is committed): running
         # the client bootstrap inside it trips the nested-workspace guard in
         # `providence init`, so the smoke project must live outside the checkout.
         assert 'SMOKE_DIR="$RUNNER_TEMP/git-smoke-project"' in steps_text
@@ -410,7 +410,7 @@ def test_release_workflows_use_canonical_governance_compile_command() -> None:
     )
     assert "uv run python -m providence_cli compile" not in steps
     assert "cp generated/client/build/governance-core.json" in steps
-    assert "mkdir -p generated/client/build/final-template/.sdd" in steps
+    assert "mkdir -p generated/client/build/final-template/.providence" in steps
 
 
 def test_release_workflow_smoke_install_uses_local_dist_only() -> None:

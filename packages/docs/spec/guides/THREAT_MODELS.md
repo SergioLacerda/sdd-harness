@@ -35,7 +35,7 @@ Each threat model follows this structure:
 **Accepts (must validate):**
 
 - File system paths from environment (`$HOME`, `$PWD`, `$GITHUB_WORKSPACE`)
-- `.sdd/profile` configuration file (user-modifiable)
+- `.providence/profile` configuration file (user-modifiable)
 - Package import paths (`sys.path` entries)
 
 **Must not trust:**
@@ -56,9 +56,9 @@ Each threat model follows this structure:
 |--------|--------|-----------|--------|------------|--------|
 | Path traversal via `$PWD` | T/I | Medium | High | Input validation on paths; reject `..` and absolute paths outside workspace | ✅ Phase 5.0 |
 | Symlink attack (load wrong artifact) | T/E | Low | Critical | Follow symlinks with policy: reject if symlink points outside workspace | ✅ Phase 5.1 |
-| Profile confusion (load client artifacts as master) | T/E | Medium | High | Detect profile from `.sdd/profile` file; validate profile type before artifact load | ✅ Phase 3.0 |
+| Profile confusion (load client artifacts as master) | T/E | Medium | High | Detect profile from `.providence/profile` file; validate profile type before artifact load | ✅ Phase 3.0 |
 | Hardcoded `/home/` path assumption | D/I | Medium | Medium | Use environment-driven paths; test on Windows/macOS to catch hardcoded paths | ✅ Phase 4.0 |
-| $HOME environment spoofing | T/E | Low | High | Walk up from `.sdd/` directory; don't blindly trust $HOME | ✅ Phase 1.0 |
+| $HOME environment spoofing | T/E | Low | High | Walk up from `.providence/` directory; don't blindly trust $HOME | ✅ Phase 1.0 |
 | Import path injection (add malicious module) | E | Low | Critical | Lock `sys.path` entries to workspace; don't add user-supplied paths | ⏳ Phase 6 (optional) |
 
 ### Attack Scenarios
@@ -68,21 +68,21 @@ Each threat model follows this structure:
 ```
 Attacker sets $PWD=/tmp/malicious
 Client code calls sdd.environment.get_sdd_paths()
-Result: Loads governance from /tmp/malicious/.sdd/ (wrong context)
+Result: Loads governance from /tmp/malicious/.providence/ (wrong context)
 Mitigation: Validate that resolved path stays within project workspace
 ```
 
 **Scenario 2: Symlink Attack**
 
 ```
-Attacker creates symlink: /tmp/project/.sdd/compiled -> /etc/secret-data
+Attacker creates symlink: /tmp/project/.providence/compiled -> /etc/secret-data
 Governance loader follows symlink, leaks contents
 Mitigation: Follow symlinks with bounds check; log when symlink points outside workspace
 ```
 
 ### Mitigations Implemented
 
-- ✅ **Phase 1.0** — Walk-up directory search for `.sdd/` (trusted anchor point)
+- ✅ **Phase 1.0** — Walk-up directory search for `.providence/` (trusted anchor point)
 - ✅ **Phase 3.0** — Profile validation (reject unknown profile types)
 - ✅ **Phase 4.0** — Cross-platform path testing (Windows, macOS, Linux)
 - ✅ **Phase 5.1** — Input validation on all path inputs (reject `..`, require relative paths)
@@ -433,7 +433,7 @@ Mitigation: Atomic operations (rename); backup to separate directory; manifest l
 | Path traversal via query argument | I | Low | Medium | Queries are strings, not file paths; no special processing needed | ✅ Phase 1.0 |
 | Command confusion (wrong subcommand called) | E | Low | Medium | Typer enforces strict command matching; no dynamic dispatch | ✅ Phase 1.0 |
 | Output injection (if used in templates/scripts) | I | Low | Medium | Use Rich for terminal output (auto-escaped); --json uses standard json.dumps() | ✅ Phase 5.1 |
-| Workspace confusion (load from wrong .sdd/) | I | Medium | High | Walk-up from CWD to find .sdd/; validate profile before using artifacts | ✅ Phase 1.0 |
+| Workspace confusion (load from wrong .providence/) | I | Medium | High | Walk-up from CWD to find .providence/; validate profile before using artifacts | ✅ Phase 1.0 |
 | Privilege escalation via CLI flags | E | Low | Critical | No --force or --assume-yes flags; all destructive operations require confirmation | ✅ Phase 1.0 |
 
 ### Attack Scenarios
@@ -449,7 +449,7 @@ Mitigation: Whitelist profile values; reject unknown values
 **Scenario 2: Workspace Confusion**
 
 ```
-Attacker creates symlink: /home/user/project/.sdd -> /etc/sensitive-data
+Attacker creates symlink: /home/user/project/.providence -> /etc/sensitive-data
 User runs providence ask from project directory
 CLI loads wrong governance
 Mitigation: Validate symlink destination; reject if outside workspace bounds

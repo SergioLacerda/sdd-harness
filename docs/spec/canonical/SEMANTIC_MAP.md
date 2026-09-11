@@ -14,7 +14,7 @@ graph TD
     end
     subgraph "2. Forge (Compiler)"
         C[sdd-compiler] -- parses --> A & B
-        C -- produces --> D1[".sdd/compiled/ (Framework Core / Active Project)"]
+        C -- produces --> D1[".providence/compiled/ (Framework Core / Active Project)"]
     end
     subgraph "3. Runtime (Enforcement)"
         E[providence-core Loader] -- loads --> D1
@@ -55,16 +55,16 @@ graph TD
 - **Files**: `packages/*`
 - **Context**: The actual Python code. It is subject to continuous audit by the SDD Doctor and Compliance tools.
 
-## 📁 Standardized Artifact Hierarchy (.sdd/)
+## 📁 Standardized Artifact Hierarchy (.providence/)
 
-To ensure portability and single source of truth, all operational governance state is consolidated in the `.sdd/` canonical control plane:
+To ensure portability and single source of truth, all operational governance state is consolidated in the `.providence/` canonical control plane:
 
 | Path | Purpose | Ownership |
 | :--- | :--- | :--- |
-| `.sdd/profile/` | Active profile and workspace ID metadata | Framework |
-| `.sdd/compiled/` | Executable governance (binary msgpack/JSON metadata) | Framework (Immutable via Compiler) |
-| `.sdd/source/` | Semantic governance source, indices, and guidelines | Project (Customizable) |
-| `.sdd/runtime/` | Operational state (telemetry, handshake responses, logs) | Runtime Engine |
+| `.providence/profile/` | Active profile and workspace ID metadata | Framework |
+| `.providence/compiled/` | Executable governance (binary msgpack/JSON metadata) | Framework (Immutable via Compiler) |
+| `.providence/source/` | Semantic governance source, indices, and guidelines | Project (Customizable) |
+| `.providence/runtime/` | Operational state (telemetry, handshake responses, logs) | Runtime Engine |
 | `/generated/client/build/` | Temporary wizard states and output templates | Project Wizard |
 
 ## 🧭 Deep Navigation Tips for Agents

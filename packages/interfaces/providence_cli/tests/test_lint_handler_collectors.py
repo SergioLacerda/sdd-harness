@@ -49,7 +49,7 @@ class TestCheckLegacyPatterns:
 
     def test_legacy_sdd_generated_returns_1(self, tmp_path: Path) -> None:
         doc = tmp_path / "stale.md"
-        doc.write_text("see sdd-generated/file\n", encoding="utf-8")
+        doc.write_text("see providence-generated/file\n", encoding="utf-8")
         assert _check_legacy_patterns(tmp_path, tmp_path) == 1
 
 

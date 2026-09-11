@@ -318,7 +318,7 @@ check blocking for new violations going forward.
 
 ### ADR-022: Managed-Block Convention for Shared-Namespace Seed Files (2026-09-06, extended 2026-09-07)
 
-**Decision:** sdd-generated content inside cross-tool-convention files
+**Decision:** providence-generated content inside cross-tool-convention files
 lives inside a delimited `<!-- sdd:managed:begin/end -->` block. Generators
 read-merge-write instead of overwriting the whole file; `check_root_seed_drift`
 validates only `CLAUDE.md`/`GEMINI.md`/`AGENTS.md`'s block content — a file

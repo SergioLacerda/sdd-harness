@@ -137,7 +137,7 @@ def test_resolve_keyring_path_modes(
 ) -> None:
     ws = tmp_path / "ws"
     compiled = ws / "generated"
-    canonical = ws / ".sdd" / "trust"
+    canonical = ws / ".providence" / "trust"
     canonical.mkdir(parents=True)
     compiled.mkdir(parents=True)
     (canonical / "trusted-keys.json").write_text('{"keys":[]}', encoding="utf-8")
@@ -187,7 +187,7 @@ def test_resolve_keyring_canonical_wins_over_override(
     """Canonical path takes priority over SDD_TRUSTED_KEYRING when both exist."""
     ws = tmp_path / "ws"
     compiled = ws / "generated"
-    canonical_dir = ws / ".sdd" / "trust"
+    canonical_dir = ws / ".providence" / "trust"
     canonical_dir.mkdir(parents=True)
     compiled.mkdir(parents=True)
     canonical_file = canonical_dir / "trusted-keys.json"
@@ -263,7 +263,7 @@ def test_validate_artifact_signature_success_and_failures(tmp_path: Path) -> Non
     _write_json(sig_path, _valid_sig_payload(artifact.name, payload_hash))
 
     ws = tmp_path / "ws"
-    trust = ws / ".sdd" / "trust"
+    trust = ws / ".providence" / "trust"
     trust.mkdir(parents=True)
     keyring = trust / "trusted-keys.json"
     _write_json(
@@ -383,7 +383,7 @@ def test_validate_artifact_signature_name_hash_and_keyring_load_errors(
     assert mismatch_hash.code == "SIG_PAYLOAD_HASH_MISMATCH"
 
     ws = tmp_path / "ws"
-    trust = ws / ".sdd" / "trust"
+    trust = ws / ".providence" / "trust"
     trust.mkdir(parents=True)
     keyring = trust / "trusted-keys.json"
     keyring.write_text("{bad-json", encoding="utf-8")

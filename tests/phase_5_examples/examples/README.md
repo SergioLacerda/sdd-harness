@@ -171,7 +171,7 @@ func main() {
 	fmt.Println("Testing STEP 1: Setup Project Structure")
 
 	// Create directories
-	dirs := []string{".github", ".vscode", ".cursor", "scripts", ".sdd"}
+	dirs := []string{".github", ".vscode", ".cursor", "scripts", ".providence"}
 	for _, d := range dirs {
 		// Check spec: requirement is to create these directories
 		if err := os.MkdirAll(filepath.Join(testDir, d), 0755); err != nil {
@@ -294,11 +294,11 @@ echo "All language implementations passed!"
 
 ### 1. Follow the Spec Exactly
 
-✅ Spec says: "Create directories: .github, .vscode, .cursor, scripts, .sdd"
+✅ Spec says: "Create directories: .github, .vscode, .cursor, scripts, .providence"
 ✅ Your implementation: Creates all 5 directories
 ✅ Output: Reports each creation
 
-❌ **Wrong:** Skip .sdd directory (not in spec)
+❌ **Wrong:** Skip .providence directory (not in spec)
 ❌ **Wrong:** Create extra directories (not in spec)
 
 ### 2. Match Output Format

@@ -69,7 +69,7 @@ your-project/
 ├── .github/copilot-instructions.md ← From templates/
 ├── .vscode/ai-rules.md             ← From templates/ (filtered for your level)
 ├── .cursor/rules/spec.mdc          ← From templates/
-└── .sdd/
+└── .providence/
     ├── context-aware/
     │   ├── task-progress/
     │   ├── analysis/
@@ -119,7 +119,7 @@ Want to understand the concepts first?
 ├── .github/copilot-instructions.md ← From templates/
 ├── .vscode/ai-rules.md             ← From templates/ (LITE or FULL version)
 ├── .cursor/rules/spec.mdc          ← From templates/
-└── .sdd/
+└── .providence/
     ├── context-aware/
     │   ├── task-progress/
     │   ├── analysis/
@@ -135,7 +135,7 @@ And:
 - ✅ `.spec.config` correctly points to providence AND adoption level
 - ✅ Validation script ran successfully
 - ✅ Git shows new files ready to commit
-- ✅ Developer can read docs in `.sdd/runtime/` filtered for their adoption level
+- ✅ Developer can read docs in `.providence/runtime/` filtered for their adoption level
 
 ---
 

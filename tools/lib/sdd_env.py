@@ -10,10 +10,10 @@ def detect_repo_root() -> Path:
 
         return _detect()
     except ImportError:
-        # Fallback: search for .sdd directory
+        # Fallback: search for .providence directory
         current = Path.cwd()
         for parent in [current, *current.parents]:
-            if (parent / ".sdd").exists():
+            if (parent / ".providence").exists():
                 return parent
         return Path.cwd()
 

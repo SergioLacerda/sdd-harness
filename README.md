@@ -221,9 +221,9 @@ providence governance keygen --key-id my-org-01
 providence governance sign --key-id my-org-01
 ```
 
-`providence governance sign --key-id <id>` reads `.sdd/trust/<id>.key` unless
+`providence governance sign --key-id <id>` reads `.providence/trust/<id>.key` unless
 `--key-path` is provided. Full bootstrap and client onboarding use `dev-01` by
-default, so a bootstrap log can mention `.sdd/trust/dev-01.key` even when a
+default, so a bootstrap log can mention `.providence/trust/dev-01.key` even when a
 separate direct signing flow uses another key id.
 
 `providence governance sign` and runtime signature verification use a native Ed25519

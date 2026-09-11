@@ -418,7 +418,7 @@ sdd metrics summary
 
 ```bash
 # Check session state
-cat .sdd/runtime/providence-runtime-sessions.json | jq '.' 2>/dev/null || echo "Session file not found"
+cat .providence/runtime/providence-runtime-sessions.json | jq '.' 2>/dev/null || echo "Session file not found"
 
 # Check token consumption by query
 sdd metrics summary --last-hours 24
@@ -538,7 +538,7 @@ diff query1.txt query2.txt
 
 ```bash
 # Clear cache manually to restore service
-rm -f .sdd/runtime/.sdd-cache.md
+rm -f .providence/runtime/.providence-cache.md
 
 # Verify fresh results
 providence ask "mandate"
@@ -549,7 +549,7 @@ providence ask "mandate"
 
 ```bash
 # Check recent compliance events for cache anomalies
-tail -100 .sdd/runtime/compliance-events.jsonl | jq . | tail -20
+tail -100 .providence/runtime/compliance-events.jsonl | jq . | tail -20
 
 # Look for:
 # 1. Same key, different values?
@@ -647,7 +647,7 @@ cosign verify-blob --certificate-identity-regexp="" ...
 # Output: "signature validation failed"
 
 # Or: SBOM shows unexpected package
-cat .sdd/compiled/sbom.spdx.json | jq '.packages[] | select(.name=="suspicious")'
+cat .providence/compiled/sbom.spdx.json | jq '.packages[] | select(.name=="suspicious")'
 ```
 
 #### Phase 2: Immediate Containment (5 min)
@@ -877,17 +877,17 @@ sdd metrics summary
 
 ```bash
 # Check telemetry file (compliance events log)
-stat .sdd/runtime/compliance-events.jsonl 2>/dev/null || echo "Telemetry file not found"
+stat .providence/runtime/compliance-events.jsonl 2>/dev/null || echo "Telemetry file not found"
 
 # Check permissions
-ls -l .sdd/runtime/ 2>/dev/null || echo "Runtime directory not found"
+ls -l .providence/runtime/ 2>/dev/null || echo "Runtime directory not found"
 
 # Inspect recent events
-tail -5 .sdd/runtime/compliance-events.jsonl | jq . 2>/dev/null || echo "Cannot read events"
+tail -5 .providence/runtime/compliance-events.jsonl | jq . 2>/dev/null || echo "Cannot read events"
 
 # Emit a test event and verify it was written
 providence ask "test" 2>/dev/null
-tail -1 .sdd/runtime/compliance-events.jsonl | jq '.event'
+tail -1 .providence/runtime/compliance-events.jsonl | jq '.event'
 ```
 
 #### Phase 3: Fix
@@ -895,7 +895,7 @@ tail -1 .sdd/runtime/compliance-events.jsonl | jq '.event'
 **Option A: Check for disk space**
 
 ```bash
-df -h .sdd/
+df -h .providence/
 # If full: free space and retry
 ```
 
@@ -906,14 +906,14 @@ df -h .sdd/
 providence ask "test"  # This should emit an event
 
 # Check if event was written
-tail -1 .sdd/runtime/compliance-events.jsonl | jq .
+tail -1 .providence/runtime/compliance-events.jsonl | jq .
 ```
 
 **Option C: Reset telemetry (last resort)**
 
 ```bash
 # Backup current log
-mv .sdd/runtime/compliance-events.jsonl .sdd/runtime/compliance-events.jsonl.backup
+mv .providence/runtime/compliance-events.jsonl .providence/runtime/compliance-events.jsonl.backup
 
 # Bootstrap fresh runtime state
 sdd bootstrap

@@ -41,7 +41,7 @@ git status
 # Check critical paths
 ls -d .providence-core
 ls -d .providence-wizard
-ls -d .sdd-compiler
+ls -d .providence-compiler
 ls -d .providence-integration
 
 echo "✅ Environment ready"
@@ -261,7 +261,7 @@ cd /tmp/sdd-test-project
 sdd new --project-name "test-deployment" --language python
 
 # Verify project structure
-if [ -d ".sdd/CANONICAL" ] && [ -d "src" ]; then
+if [ -d ".providence/CANONICAL" ] && [ -d "src" ]; then
     echo "✅ Project creation successful"
 else
     echo "❌ Project creation failed"
@@ -467,7 +467,7 @@ pytest tests/ -v
 
 # Create backup
 BACKUP_DIR="/backups/staging-$(date +%Y%m%d-%H%M%S)"
-cp -r .sdd-* "$BACKUP_DIR/"
+cp -r .providence-* "$BACKUP_DIR/"
 
 # Deploy
 python .providence-wizard/compile_artifacts.py

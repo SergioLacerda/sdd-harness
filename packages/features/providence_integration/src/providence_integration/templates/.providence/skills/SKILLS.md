@@ -10,7 +10,7 @@ Available skills for governed execution.
 
 Reduce context footprint while preserving governance context.
 
-**YAML:** `.sdd/skills/compress-context/skill.yaml`
+**YAML:** `.providence/skills/compress-context/skill.yaml`
 
 ## `diagnose` v1.0.0
 
@@ -20,7 +20,7 @@ Reduce context footprint while preserving governance context.
 
 Diagnose runtime/workspace problems with governed checks.
 
-**YAML:** `.sdd/skills/diagnose/skill.yaml`
+**YAML:** `.providence/skills/diagnose/skill.yaml`
 
 ## `review-architecture` v1.0.0
 
@@ -30,7 +30,7 @@ Diagnose runtime/workspace problems with governed checks.
 
 Review architecture adherence against SDD mandates.
 
-**YAML:** `.sdd/skills/review-architecture/skill.yaml`
+**YAML:** `.providence/skills/review-architecture/skill.yaml`
 
 ## `stabilize` v1.0.0
 
@@ -40,7 +40,7 @@ Review architecture adherence against SDD mandates.
 
 Run stabilization checks before handoff.
 
-**YAML:** `.sdd/skills/stabilize/skill.yaml`
+**YAML:** `.providence/skills/stabilize/skill.yaml`
 
 ## `validate-governance` v1.1.0
 
@@ -50,7 +50,7 @@ Run stabilization checks before handoff.
 
 Validate governance integrity and runtime preflight.
 
-**YAML:** `.sdd/skills/validate-governance/skill.yaml`
+**YAML:** `.providence/skills/validate-governance/skill.yaml`
 
 ---
 

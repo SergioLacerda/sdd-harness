@@ -118,8 +118,8 @@ echo "=== Weekly Cleanup ==="
 
 # Remove old test artifacts
 echo "Removing test artifacts older than 7 days..."
-find . -name "sdd-generated" -type d -mtime +7 -exec rm -rf {} \;
-REMOVED=$(find . -name "sdd-generated" -type d -mtime +7 | wc -l)
+find . -name "providence-generated" -type d -mtime +7 -exec rm -rf {} \;
+REMOVED=$(find . -name "providence-generated" -type d -mtime +7 | wc -l)
 [ $REMOVED -gt 0 ] && echo "  Removed: $REMOVED directories"
 
 # Clean Python cache
@@ -239,7 +239,7 @@ echo "=== Monthly Capacity Review ==="
 
 # Current usage
 echo "Current Usage:"
-du -sh .sdd-* | sort -h
+du -sh .providence-* | sort -h
 
 echo ""
 echo "Disk Status:"
@@ -553,7 +553,7 @@ echo ""
 echo "Scenario 3: Full system restore simulation"
 echo "  Creating test snapshot..."
 SNAP=$(mktemp -d)
-cp -r .sdd-* "$SNAP/"
+cp -r .providence-* "$SNAP/"
 echo "  Snapshot created: $SNAP"
 echo "  ✅ Scenario passed"
 rm -rf "$SNAP"

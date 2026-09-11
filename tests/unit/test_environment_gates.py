@@ -65,7 +65,7 @@ def test_repo_sdd_mutation_guard_detects_dirty(monkeypatch):
 
     class _FakeCompleted:
         returncode = 0
-        stdout = " M .sdd/trust/trusted-keys.json\n"
+        stdout = " M .providence/trust/trusted-keys.json\n"
         stderr = ""
 
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: _FakeCompleted())
@@ -79,7 +79,7 @@ def test_runtime_seed_drift_check_detects_dirty(monkeypatch):
 
     class _FakeCompleted:
         returncode = 0
-        stdout = " M .sdd/runtime/governance-state.json\n M CLAUDE.md\n"
+        stdout = " M .providence/runtime/governance-state.json\n M CLAUDE.md\n"
         stderr = ""
 
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: _FakeCompleted())

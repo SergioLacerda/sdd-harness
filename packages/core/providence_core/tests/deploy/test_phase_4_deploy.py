@@ -22,7 +22,7 @@ class TestPhase4Deployment:
 
     @pytest.fixture
     def manager(self, tmp_path: Path) -> DeploymentManager:
-        """Create deployment manager with isolated repo root to avoid writing to real .sdd/."""
+        """Create deployment manager with isolated repo root to avoid writing to real .providence/."""
         return DeploymentManager(repo_root=str(tmp_path))
 
     @pytest.fixture(autouse=True)
@@ -63,10 +63,8 @@ class TestPhase4Deployment:
 
         location = result.get("deployment_location")
         assert isinstance(location, str)
-        # Deployment target is .sdd/compiled/ (runtime location for deployed artifacts)
-        assert ".sdd/compiled" in location or ".sdd" + "/compiled" in location.replace(
-            "\\", "/"
-        )
+        # Deployment target is .providence/compiled/ (runtime location for deployed artifacts)
+        assert ".providence/compiled" in location.replace("\\", "/")
         assert Path(location).exists()
 
     def test_checklist_all_passed(self, manager: DeploymentManager) -> None:

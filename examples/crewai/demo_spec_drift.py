@@ -25,7 +25,7 @@ except Exception:
     _CREWAI_AVAILABLE = False
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-METADATA_PATH = REPO_ROOT / ".sdd" / "metadata.json"
+METADATA_PATH = REPO_ROOT / ".providence" / "metadata.json"
 
 SECTION = "\n" + "=" * 60
 
@@ -51,7 +51,7 @@ def main() -> None:
     # 1. Load the real governance fingerprint
     print("\n[SDD] Loading governance artifact fingerprint...")
     if not METADATA_PATH.exists():
-        print("[SDD] ERROR: .sdd/metadata.json not found. Run from repo root.")
+        print("[SDD] ERROR: .providence/metadata.json not found. Run from repo root.")
         sys.exit(1)
 
     artifact_fingerprint, schema_version = load_fingerprint()

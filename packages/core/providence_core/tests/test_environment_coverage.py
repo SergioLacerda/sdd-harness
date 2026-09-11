@@ -85,8 +85,8 @@ class TestFindWorkspaceRoot:
     def test_find_workspace_root_returns_none_when_no_sdd_dir(
         self, tmp_path, monkeypatch
     ):
-        """Verify find_workspace_root returns None when no .sdd/ is found up the tree."""
-        # A real ancestor of tmp_path (e.g. a cached ~/.sdd/bin compiler
+        """Verify find_workspace_root returns None when no .providence/ is found up the tree."""
+        # A real ancestor of tmp_path (e.g. a cached ~/.providence/bin compiler
         # download) could otherwise leak in and make this test flaky, since
         # find_workspace_root walks all the way up to the filesystem root.
         monkeypatch.setattr(Path, "parents", property(lambda self: ()))
@@ -101,7 +101,7 @@ class TestDetectProfile:
     def test_detect_profile_returns_client_when_no_sdd_dir(self, tmp_path, monkeypatch):
         """Verify detect_profile returns 'client' when workspace not initialized."""
         monkeypatch.chdir(tmp_path)
-        # tmp_path has no .sdd/ directory
+        # tmp_path has no .providence/ directory
 
         result = detect_profile(tmp_path)
 
@@ -175,7 +175,7 @@ class TestResolveProfile:
     """Test strict profile resolution."""
 
     def test_resolve_profile_raises_when_no_sdd_dir(self, tmp_path):
-        """Verify resolve_profile raises WorkspaceNotInitializedError when no .sdd/ exists."""
+        """Verify resolve_profile raises WorkspaceNotInitializedError when no .providence/ exists."""
         with pytest.raises(WorkspaceNotInitializedError):
             resolve_profile(root=tmp_path)
 
@@ -192,8 +192,8 @@ class TestResolveProfile:
             resolve_profile()
 
     def test_resolve_profile_raises_when_no_profile_file(self, tmp_path):
-        """Verify resolve_profile raises when .sdd/ exists but profile file missing."""
-        sdd_dir = tmp_path / ".sdd"
+        """Verify resolve_profile raises when .providence/ exists but profile file missing."""
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
 
         with pytest.raises(WorkspaceNotInitializedError):
@@ -201,7 +201,7 @@ class TestResolveProfile:
 
     def test_resolve_profile_raises_on_invalid_type(self, tmp_path):
         """Verify resolve_profile raises when profile type is invalid."""
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         profile_path = sdd_dir / "profile"
 
@@ -215,7 +215,7 @@ class TestResolveProfile:
 
     def test_resolve_profile_happy_path_client(self, tmp_path):
         """Verify resolve_profile successfully resolves valid client profile."""
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         profile_path = sdd_dir / "profile"
 
@@ -237,7 +237,7 @@ class TestResolveProfile:
 
     def test_resolve_profile_happy_path_master(self, tmp_path):
         """Verify resolve_profile successfully resolves valid master profile."""
-        sdd_dir = tmp_path / ".sdd"
+        sdd_dir = tmp_path / ".providence"
         sdd_dir.mkdir()
         profile_path = sdd_dir / "profile"
 
@@ -334,11 +334,11 @@ class TestWriteProfile:
     """Test profile file writing."""
 
     def test_write_profile_creates_sdd_directory(self, tmp_path):
-        """Verify write_profile creates .sdd directory if missing."""
+        """Verify write_profile creates .providence directory if missing."""
         write_profile(tmp_path, "client", "test-ws")
 
-        assert (tmp_path / ".sdd").exists()
-        assert (tmp_path / ".sdd" / "profile").exists()
+        assert (tmp_path / ".providence").exists()
+        assert (tmp_path / ".providence" / "profile").exists()
 
     def test_write_profile_returns_valid_context(self, tmp_path):
         """Verify write_profile returns valid ProfileContext."""

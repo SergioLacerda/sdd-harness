@@ -39,8 +39,8 @@ runs:
     - name: Verify compiled artifacts exist
       shell: bash
       run: |
-        test -f .sdd/compiled/governance-core.json || \
-          (echo "ERROR: .sdd/compiled/governance-core.json missing" && exit 1)
-        test -f .sdd/compiled/governance-core.compiled.msgpack || \
-          (echo "ERROR: .sdd/compiled/governance-core.compiled.msgpack missing" && exit 1)
-        echo "✓ Compiled artifacts verified at .sdd/compiled/."
+        test -f .providence/compiled/governance-core.json || \
+          (echo "ERROR: .providence/compiled/governance-core.json missing" && exit 1)
+        test -f .providence/compiled/governance-core.compiled.msgpack || \
+          (echo "ERROR: .providence/compiled/governance-core.compiled.msgpack missing" && exit 1)
+        echo "✓ Compiled artifacts verified at .providence/compiled/."

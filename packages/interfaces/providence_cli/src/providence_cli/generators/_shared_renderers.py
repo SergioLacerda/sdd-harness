@@ -32,7 +32,7 @@ def _render_claude_bootstrap_sections() -> list[str]:
         "   - If YES  Apply and return. Don't proceed.",
         "   - If NO  Next question.",
         "",
-        "2. Does the Local Cache (`.providence/runtime/.sdd-cache.md`) already solve this?",
+        "2. Does the Local Cache (`.providence/runtime/.providence-cache.md`) already solve this?",
         "   - If YES  Use cached info and return.",
         "   - If NO  Only then expand context or research.",
         "",

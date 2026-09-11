@@ -78,13 +78,13 @@ scratch/
 # Build Artifacts (PHASE 1-3 compilation outputs)
 packages/sdd-compiled/
 packages/build_scripts/source/
-packages/sdd-wizard/.sdd-runtime/compiled/
+packages/sdd-wizard/.providence-runtime/compiled/
 packages/sdd-compiler/runtime/
 *.compiled.msgpack
 *.compiled.json
 
 # Wizard Output (test/temporary)
-sdd-generated/
+providence-generated/
 packages/interfaces/sdd_wizard/src/sdd_wizard/sdd_runtime/
 packages/interfaces/sdd_wizard/src/sdd_wizard/sdd_runtime/**
 packages/interfaces/sdd_wizard/src/sdd_wizard/sdd_runtime/templates/
@@ -104,28 +104,28 @@ NUL
 
 # SDD Profiles - generated via CLI; ignore runtime contents but keep safe/canonical files
 # Git cannot re-include files inside a directory ignored with dir/, so use dir/*.
-.sdd/*
+.providence/*
 # Trust: only public/keyring material is safe to commit
-!.sdd/trust/
-.sdd/trust/*
-!.sdd/trust/trusted-keys.json
-!.sdd/trust/README.md
+!.providence/trust/
+.providence/trust/*
+!.providence/trust/trusted-keys.json
+!.providence/trust/README.md
 # Compiled: only artifact signatures are committed
-!.sdd/compiled/
-.sdd/compiled/*
-!.sdd/compiled/governance-core.json.sig
-!.sdd/compiled/governance-client.json.sig
+!.providence/compiled/
+.providence/compiled/*
+!.providence/compiled/governance-core.json.sig
+!.providence/compiled/governance-client.json.sig
 # Selector: metadata and mandates are canonical inputs needed by selector in CI/CD
-!.sdd/metadata.json
-!.sdd/source/
-.sdd/source/*
-!.sdd/source/mandates/
-.sdd/source/mandates/*
-!.sdd/source/mandates/mandates.md
-!.sdd/source/guidelines.dsl
+!.providence/metadata.json
+!.providence/source/
+.providence/source/*
+!.providence/source/mandates/
+.providence/source/mandates/*
+!.providence/source/mandates/mandates.md
+!.providence/source/guidelines.dsl
 
 # Providence Profiles - generated via CLI; ignore runtime contents but keep safe/canonical files
-# Mirrors the legacy .sdd policy for the .providence runtime directory.
+# Mirrors the legacy .providence policy for the .providence runtime directory.
 .providence/*
 # Trust: only public/keyring material is safe to commit
 !.providence/trust/

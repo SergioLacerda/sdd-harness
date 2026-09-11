@@ -311,9 +311,9 @@ Definitions and cross-references.
 ### Configuration & Storage
 
 - workspace profile (INI schema)
-- `.sdd/` (governance workspace)
-- `.sdd/context-aware/` (project runtime state)
-- `.sdd-cache.md` (task context cache)
+- `.providence/` (governance workspace)
+- `.providence/context-aware/` (project runtime state)
+- `.providence-cache.md` (task context cache)
 - `compliance-events.jsonl` (audit log)
 - `generated/` (compiled artifacts)
 - msgpack encoding

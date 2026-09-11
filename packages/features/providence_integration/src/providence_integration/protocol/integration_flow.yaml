@@ -35,14 +35,14 @@ steps:
       to: .
     asserts:
       - type: fs.exists
-        path: .sdd/.spec.config
+        path: .providence/.spec.config
       - type: fs.exists
         path: tests/unit/specs_ia_units/README.md
 
   - id: validate_config
     type: config.validate
     inputs:
-      file: .sdd/.spec.config
+      file: .providence/.spec.config
     asserts:
       - type: config.has_key
         key: spec_path

@@ -8,7 +8,7 @@
       "description": "Reduce context footprint while preserving governance context.",
       "risk_score": "low",
       "status": "active",
-      "skill_yaml": ".sdd/skills/sdd-compress-context/skill.yaml"
+      "skill_yaml": ".providence/skills/sdd-compress-context/skill.yaml"
     },
     {
       "name": "sdd-diagnose",
@@ -17,7 +17,7 @@
       "description": "Diagnose runtime/workspace problems with governed checks.",
       "risk_score": "low",
       "status": "active",
-      "skill_yaml": ".sdd/skills/sdd-diagnose/skill.yaml"
+      "skill_yaml": ".providence/skills/sdd-diagnose/skill.yaml"
     },
     {
       "name": "sdd-review-architecture",
@@ -26,7 +26,7 @@
       "description": "Review architecture adherence against SDD mandates.",
       "risk_score": "high",
       "status": "active",
-      "skill_yaml": ".sdd/skills/sdd-review-architecture/skill.yaml"
+      "skill_yaml": ".providence/skills/sdd-review-architecture/skill.yaml"
     },
     {
       "name": "sdd-stabilize",
@@ -35,7 +35,7 @@
       "description": "Run stabilization checks before handoff.",
       "risk_score": "medium",
       "status": "active",
-      "skill_yaml": ".sdd/skills/sdd-stabilize/skill.yaml"
+      "skill_yaml": ".providence/skills/sdd-stabilize/skill.yaml"
     },
     {
       "name": "sdd-validate-governance",
@@ -44,7 +44,7 @@
       "description": "Validate governance integrity and runtime preflight.",
       "risk_score": "medium",
       "status": "active",
-      "skill_yaml": ".sdd/skills/sdd-validate-governance/skill.yaml"
+      "skill_yaml": ".providence/skills/sdd-validate-governance/skill.yaml"
     },
     {
       "name": "sdd-correct",
@@ -53,7 +53,7 @@
       "description": "Apply minimal targeted correction to a specific governance violation.",
       "risk_score": "medium",
       "status": "active",
-      "skill_yaml": ".sdd/skills/sdd-correct/skill.yaml"
+      "skill_yaml": ".providence/skills/sdd-correct/skill.yaml"
     },
     {
       "name": "sdd-converge",
@@ -62,7 +62,7 @@
       "description": "Drive systemic alignment toward spec target after targeted corrections.",
       "risk_score": "high",
       "status": "active",
-      "skill_yaml": ".sdd/skills/sdd-converge/skill.yaml"
+      "skill_yaml": ".providence/skills/sdd-converge/skill.yaml"
     }
   ]
 }

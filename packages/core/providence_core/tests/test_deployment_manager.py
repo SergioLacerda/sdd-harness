@@ -57,7 +57,7 @@ class TestDeploymentManagerInit:
             assert manager._emit == emit_fn
 
     def test_runtime_compiled_path_set_correctly(self) -> None:
-        """Should set runtime_compiled to .sdd/compiled/."""
+        """Should set runtime_compiled to .providence/compiled/."""
         with patch("providence_core.deployment_manager.get_sdd_paths") as mock_paths:
             mock_paths.return_value = {
                 "root": Path("/project"),
@@ -65,8 +65,8 @@ class TestDeploymentManagerInit:
                 "master_compiled": Path("/project/master/compiled"),
             }
             manager = DeploymentManager()
-            assert manager.runtime_compiled == Path("/project/.sdd/compiled")
-            assert manager.runtime_audit == Path("/project/.sdd/compiled/audit")
+            assert manager.runtime_compiled == Path("/project/.providence/compiled")
+            assert manager.runtime_audit == Path("/project/.providence/compiled/audit")
 
 
 class TestDeploymentManagerOut:

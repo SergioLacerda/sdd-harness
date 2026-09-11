@@ -12,7 +12,7 @@ import typer
 
 
 def do_update_cache(root: Path) -> None:
-    """Print M003 compliance quiz from compiled governance and refresh .sdd-cache.md."""
+    """Print M003 compliance quiz from compiled governance and refresh .providence-cache.md."""
     import os as _os
 
     gov_path = root / ".providence" / "compiled" / "governance-core.json"
@@ -42,8 +42,8 @@ def do_update_cache(root: Path) -> None:
     for index, step in enumerate(m003.enforcement_steps, 1):
         typer.echo(f"{index}. {step}")
     typer.echo("\n---")
-    typer.echo("Refreshing .sdd-cache.md...")
-    cache_file = root / ".providence" / "runtime" / ".sdd-cache.md"
+    typer.echo("Refreshing .providence-cache.md...")
+    cache_file = root / ".providence" / "runtime" / ".providence-cache.md"
     cache_file.parent.mkdir(parents=True, exist_ok=True)
     if cache_file.exists():
         cache_text = cache_file.read_text(encoding="utf-8")
@@ -62,7 +62,7 @@ def do_update_cache(root: Path) -> None:
             f"{_render_validation_quiz_cache_entry()}\n",
             encoding="utf-8",
         )
-    typer.echo(" .sdd-cache.md refreshed.")
+    typer.echo(" .providence-cache.md refreshed.")
 
 
 def _render_validation_quiz_cache_entry() -> str:
@@ -72,7 +72,7 @@ def _render_validation_quiz_cache_entry() -> str:
             "- Pre-commit Validation",
             "  1. Do Governance Rules (`.providence/source/`) already solve this?",
             "     - Yes. Apply M003 Context Awareness & Task Caching and M016 Guardrail Non-Regression.",
-            "  2. Does the Local Cache (`.providence/runtime/.sdd-cache.md`) already solve this?",
+            "  2. Does the Local Cache (`.providence/runtime/.providence-cache.md`) already solve this?",
             "     - Yes. This cache entry records the required two-question quiz for the current project.",
         ]
     )
@@ -140,7 +140,7 @@ def render_status_output(
         typer.echo(ahp.format_combined_output(state, report, mode=output_mode))
     if not output_json and cache_staleness["stale"]:
         typer.echo(
-            f"\nWARNING L2: .sdd-cache.md is stale ({cache_staleness['age_min']} min ago)."
+            f"\nWARNING L2: .providence-cache.md is stale ({cache_staleness['age_min']} min ago)."
             " Update it before committing to a protected branch."
             "\n   Run: providence runtime status --update-cache",
             err=False,

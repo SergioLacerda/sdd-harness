@@ -18,8 +18,8 @@ Apply the minimal correct fix to a single governance violation identified by `di
 
 ## Required protocol
 
-1. Load `.sdd/agent-instructions.md`
-2. Confirm skill is registered in `.sdd/skills/registry.json` as `sdd-correct`
+1. Load `.providence/agent-instructions.md`
+2. Confirm skill is registered in `.providence/skills/registry.json` as `sdd-correct`
 3. Identify the single target violation from `diagnose` output
 4. Apply the minimal correction to resolve the violation
 5. Verify the correction: `sdd governance validate`

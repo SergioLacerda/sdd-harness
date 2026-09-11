@@ -281,7 +281,7 @@ In Step 4, the validation script will:
 
 1. Read `.spec.config`
 2. Find providence at the specified `spec_path`
-3. Create `.sdd/` infrastructure
+3. Create `.providence/` infrastructure
 4. Run VALIDATION_QUIZ to verify knowledge
 
 ---

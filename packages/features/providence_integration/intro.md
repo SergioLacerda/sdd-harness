@@ -14,7 +14,7 @@ The `providence-integration` package is the operational arm of the SDD (Specific
     *   `Git`: Automated repository preparation and governance anchoring.
     *   `Command`: Hardened execution of environmental setup scripts.
     *   `Config`: Dynamic management of `.spec.config` and environment variables.
-3.  **Seedling Repository**: Source of truth for optimized agent entrypoints (`.sdd/`, `.cursor/`, `.github/`).
+3.  **Seedling Repository**: Source of truth for optimized agent entrypoints (`.providence/`, `.cursor/`, `.github/`).
 4.  **Governance Pipeline**: Implements the `PipelineBuilder` used to compile DSLs into high-performance binary artifacts.
 
 ## 🚀 Integration in SDD Wizard v3.0
@@ -22,7 +22,7 @@ The `providence-integration` package is the operational arm of the SDD (Specific
 This package is a mandatory dependency for the `providence-wizard`. Its lifecycle integration includes:
 
 *   **Phase 3 (Compiler)**: Powering the build pipeline to generate `governance-core.json`.
-*   **Phase 4-6 (Provisioning)**: Injecting intelligent seedlings and setting up the `.sdd/` runtime environment.
+*   **Phase 4-6 (Provisioning)**: Injecting intelligent seedlings and setting up the `.providence/` runtime environment.
 *   **Health Check (Doctor)**: Providing automated diagnostics to ensure project-framework alignment.
 
 ## 📂 Architecture

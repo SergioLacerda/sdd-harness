@@ -64,7 +64,7 @@ def status(
     update_cache: bool = typer.Option(
         False,
         "--update-cache",
-        help="Print M003 compliance quiz and refresh .sdd-cache.md.",
+        help="Print M003 compliance quiz and refresh .providence-cache.md.",
     ),
 ) -> None:
     """Show current workspace governance state (AHP + GAP + runtime drift)."""

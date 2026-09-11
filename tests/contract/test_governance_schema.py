@@ -17,18 +17,22 @@ from typing import Any, cast
 
 import pytest
 
-from providence_cli.utils.sdd_authority import compiled_active_dir
+from providence_cli.utils.providence_authority import compiled_active_dir
 from tests.helpers.text_io import read_text_utf8
 
 REPO_ROOT = Path(__file__).parent.parent.parent
-_REPO_CANONICAL_ARTIFACT = REPO_ROOT / ".sdd" / "compiled" / "governance-core.json"
+_REPO_CANONICAL_ARTIFACT = (
+    REPO_ROOT / ".providence" / "compiled" / "governance-core.json"
+)
 _CANONICAL_ARTIFACT = compiled_active_dir() / "governance-core.json"
 _LEGACY_ARTIFACT = (
     REPO_ROOT / "generated" / "master" / "compiled" / "governance-core.json"
 )
 GOLDEN = Path(__file__).parent / "fixtures" / "governance_core.golden.json"
 
-_REPO_CLIENT_ARTIFACT = REPO_ROOT / ".sdd" / "compiled" / "governance-client.json"
+_REPO_CLIENT_ARTIFACT = (
+    REPO_ROOT / ".providence" / "compiled" / "governance-client.json"
+)
 _CLIENT_ARTIFACT = compiled_active_dir() / "governance-client.json"
 _CLIENT_GOLDEN = Path(__file__).parent / "fixtures" / "governance_client.golden.json"
 
@@ -333,7 +337,7 @@ class TestGovernanceClientGoldenFile:
         """Client artifact must match the golden snapshot (volatile fields excluded).
 
         Skips in environments where no client-specific governance items are defined
-        (e.g., CI containers where .sdd/source/guidelines.dsl is gitignored).
+        (e.g., CI containers where .providence/source/guidelines.dsl is gitignored).
         """
         import difflib
 

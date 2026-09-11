@@ -56,11 +56,11 @@ Storage Layer (.providence-wizard/compiled/)
 ### Final Template Handoff Layout
 
 When Phase 4-6 consolidation is executed, the handoff bundle is organized under
-`generated/client/build/final-template/` with runtime governance artifacts inside `.sdd`:
+`generated/client/build/final-template/` with runtime governance artifacts inside `.providence`:
 
 ```text
 final-template/
-├── .sdd/
+├── .providence/
 │   ├── compiled/
 │   │   ├── governance-core.compiled.msgpack
 │   │   ├── governance-client-template.compiled.msgpack
@@ -160,8 +160,8 @@ sdd new --project-name "my-project" --language python
 # Phase 7: Validate output
 
 # Expected result: Generated project structure with:
-# - .sdd/CANONICAL/ (governance files)
-# - .sdd-guidelines/ (customizable rules)
+# - .providence/CANONICAL/ (governance files)
+# - .providence-guidelines/ (customizable rules)
 # - src/ (code scaffolding)
 # - tests/ (test structure)
 # - docs/ (documentation)
@@ -229,8 +229,8 @@ cd /path/to/project
 sdd project validate
 
 # Output: Validates project has:
-# ✅ Governance files in .sdd/
-# ✅ Guidelines in .sdd-guidelines/
+# ✅ Governance files in .providence/
+# ✅ Guidelines in .providence-guidelines/
 # ✅ Valid metadata
 # ✅ Specification integrity
 ```
@@ -410,7 +410,7 @@ ls -ld /path/to/generation/target
 chmod 755 /path/to/generation/target
 
 # Phase 7 failure: Check output structure
-ls -R ./sdd-generated/project/
+ls -R ./providence-generated/project/
 ```
 
 ### Troubleshooting Decision Tree
@@ -431,7 +431,7 @@ Is it a wizard issue?
     └→ NO → Continue
     ↓
 Is it a project issue?
-    ├→ YES → Check project .sdd/ structure
+    ├→ YES → Check project .providence/ structure
     └→ NO → See operational/troubleshooting/
 ```
 
@@ -560,7 +560,7 @@ sdd project validate
 
 ```bash
 # Remove old generated projects
-find . -name "sdd-generated" -type d -mtime +30 -exec rm -rf {} \;
+find . -name "providence-generated" -type d -mtime +30 -exec rm -rf {} \;
 
 # Clear compiled artifact cache (forces recompilation)
 rm -rf .providence-wizard/compiled
@@ -570,7 +570,7 @@ find . -name ".pytest_cache" -type d -exec rm -rf {} \;
 find . -name "__pycache__" -type d -exec rm -rf {} \;
 
 # Verify cleanup
-du -sh .sdd-*
+du -sh .providence-*
 ```
 
 ### Routine Maintenance Schedule

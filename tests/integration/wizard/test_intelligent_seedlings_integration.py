@@ -113,7 +113,7 @@ def test_intelligent_seedlings_generator() -> None:  # noqa: C901
 
         # Test 3: Verify seedlings directory created
         print("\n✓ Test 3: Verify seedlings directory structure")
-        seedlings_dir = project_root / ".sdd" / "seedlings"
+        seedlings_dir = project_root / ".providence" / "seedlings"
         if not seedlings_dir.exists():
             print(f"  ❌ Seedlings directory not created: {seedlings_dir}")
             raise AssertionError("Test failed")
@@ -164,7 +164,7 @@ def test_intelligent_seedlings_generator() -> None:  # noqa: C901
         print("\n✓ Test 4c: Verify agnostic and native hooks")
         native_files = [
             ("AGENTS.md", "Agent Bootstrap Contract"),
-            (".sdd/agent-instructions.md", "Agnostic Instructions"),
+            (".providence/agent-instructions.md", "Agnostic Instructions"),
             (".github/copilot-instructions.md", "Copilot Instructions"),
             (".gemini/gemini-instructions.md", "Gemini Instructions"),
             ("GEMINI.md", "Gemini Root Pointer"),

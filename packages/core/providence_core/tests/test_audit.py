@@ -253,7 +253,7 @@ class TestAuditPathsMethod:
 
     def test_audit_paths_checks_trust_directory(self, tmp_path: Path) -> None:
         """Should check permissions of trust directory."""
-        trust_dir = tmp_path / ".sdd" / "trust"
+        trust_dir = tmp_path / ".providence" / "trust"
         trust_dir.mkdir(parents=True)
 
         auditor = GovernanceAuditor(workspace_root=tmp_path)
@@ -315,7 +315,7 @@ class TestAuditSignaturesEdgeCases:
         )
 
     def test_audit_signatures_with_legacy_path_only(self, tmp_path: Path) -> None:
-        """_audit_signatures with only legacy dir (no .sdd/compiled/) → HIGH issue."""
+        """_audit_signatures with only legacy dir (no .providence/compiled/) -> HIGH issue."""
         legacy_dir = tmp_path / "generated" / "master" / "compiled"
         legacy_dir.mkdir(parents=True)
 
@@ -332,8 +332,8 @@ class TestAuditSignaturesEdgeCases:
         )
 
     def test_audit_signatures_with_sdd_compiled_dir(self, tmp_path: Path) -> None:
-        """_audit_signatures with .sdd/compiled/ dir → calls _resolve_keyring_path (lines 82-110)."""
-        sdd_dir = tmp_path / ".sdd" / "compiled"
+        """_audit_signatures with .providence/compiled/ dir calls _resolve_keyring_path."""
+        sdd_dir = tmp_path / ".providence" / "compiled"
         sdd_dir.mkdir(parents=True)
 
         auditor = GovernanceAuditor(workspace_root=tmp_path)
@@ -357,7 +357,7 @@ class TestAuditSignaturesEdgeCases:
 
     def test_audit_signatures_legacy_keyring_source(self, tmp_path: Path) -> None:
         """Mock _resolve_keyring_path to return source="legacy" → MEDIUM issue (lines 112-120)."""
-        sdd_dir = tmp_path / ".sdd" / "compiled"
+        sdd_dir = tmp_path / ".providence" / "compiled"
         sdd_dir.mkdir(parents=True)
 
         auditor = GovernanceAuditor(workspace_root=tmp_path)
@@ -382,7 +382,7 @@ class TestAuditSignaturesEdgeCases:
 
     def test_audit_signatures_none_keyring_source(self, tmp_path: Path) -> None:
         """Mock _resolve_keyring_path to return source="none" → CRITICAL issue (lines 121-129)."""
-        sdd_dir = tmp_path / ".sdd" / "compiled"
+        sdd_dir = tmp_path / ".providence" / "compiled"
         sdd_dir.mkdir(parents=True)
 
         auditor = GovernanceAuditor(workspace_root=tmp_path)
@@ -407,7 +407,7 @@ class TestAuditSignaturesEdgeCases:
 
     def test_audit_signatures_invalid_artifacts(self, tmp_path: Path) -> None:
         """Mock validate_compiled_signatures with ok=False → CRITICAL issue (lines 131-144)."""
-        sdd_dir = tmp_path / ".sdd" / "compiled"
+        sdd_dir = tmp_path / ".providence" / "compiled"
         sdd_dir.mkdir(parents=True)
 
         auditor = GovernanceAuditor(workspace_root=tmp_path)
@@ -439,8 +439,8 @@ class TestAuditPathsEdgeCases:
     """Tests for _audit_paths edge cases and uncovered lines."""
 
     def test_audit_paths_insecure_trust_permissions(self, tmp_path: Path) -> None:
-        """Create .sdd/trust/ with mode 0o777 → MEDIUM "insecure permissions" (line 153)."""
-        trust_dir = tmp_path / ".sdd" / "trust"
+        """Create .providence/trust/ with mode 0o777 -> MEDIUM insecure permissions."""
+        trust_dir = tmp_path / ".providence" / "trust"
         trust_dir.mkdir(parents=True)
         # Set insecure permissions (0o777)
         trust_dir.chmod(0o777)

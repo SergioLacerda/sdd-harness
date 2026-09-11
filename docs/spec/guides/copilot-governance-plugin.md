@@ -7,7 +7,7 @@ curated/generic (not repo-specific) content approach, adapted to Copilot's own r
 file conventions.
 
 This is a different mechanism from the existing per-skill Copilot adapter
-(`AdapterGenerator`, writing `.github/prompts/*.prompt.md` from `.sdd/skills/`,
+(`AdapterGenerator`, writing `.github/prompts/*.prompt.md` from `.providence/skills/`,
 wizard-integrated, SDD-branded) — see
 `docs/spec/decisions/2026-05-16-multi-agent-adapters-design.md`. This projection is
 additive and does not touch that integration.
@@ -18,7 +18,7 @@ additive and does not touch that integration.
   the consuming project.
 - Go-only for now (2026-08-18 scope decision) — see
   `.analysis/refined/20260818-plugin-language-scope-and-canonical-review/`.
-- Content is curated and generic — not parsed from this repository's own `.sdd/`
+- Content is curated and generic — not parsed from this repository's own `.providence/`
   governance sources — so it is reusable in any project, the same design choice
   `DevinPluginGenerator.generate_standalone()` already makes. It never mentions
   "sdd" (verified by test).

@@ -173,7 +173,7 @@ class TemplateDeployer:
                     "gemini" in self.selection or "antigravity" in self.selection,
                 ),
                 (
-                    template_base / ".sdd" / "templates",
+                    template_base / ".providence" / "templates",
                     self.output_base / RUNTIME_DIRNAME / "templates",
                     True,
                 ),

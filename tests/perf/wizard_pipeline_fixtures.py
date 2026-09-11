@@ -70,8 +70,8 @@ def generate_governance_items(
 def write_governance_inputs(
     repo_root: Path, mandates: list[dict[str, Any]], guidelines: list[dict[str, Any]]
 ) -> None:
-    """Write governance-core.json/governance-client.json under `repo_root/.sdd/source`."""
-    sdd_source = repo_root / ".sdd" / "source"
+    """Write governance-core.json/governance-client.json under `repo_root/.providence/source`."""
+    sdd_source = repo_root / ".providence" / "source"
     sdd_source.mkdir(parents=True, exist_ok=True)
     (sdd_source / "governance-core.json").write_text(
         json.dumps({"items": mandates}), encoding="utf-8"

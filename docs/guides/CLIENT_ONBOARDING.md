@@ -22,8 +22,8 @@ with any of `--type`/`--name`/`--language`/`--force` you pass explicitly
 taking precedence.
 
 Pass `--language en|pt-BR` (case-insensitive) to persist a client-side
-language preference into `.sdd/profile`; it is bridged into the compiled
-`.sdd/metadata.json`'s `language_context` the next time `providence governance
+language preference into `.providence/profile`; it is bridged into the compiled
+`.providence/metadata.json`'s `language_context` the next time `providence governance
 compile` runs, unless a prior `providence wizard` run already populated it (wizard
 output always takes precedence).
 
@@ -128,12 +128,12 @@ Full bootstrap and client onboarding use the default key id `dev-01`, so an
 idempotent bootstrap can print:
 
 ```text
-Key dev-01 already exists at .sdd\trust\dev-01.key
+Key dev-01 already exists at .providence\trust\dev-01.key
 ```
 
 That line is informational. A direct command such as
 `providence governance sign --key-id my-org-01` resolves
-`.sdd\trust\my-org-01.key`; it does not fall back to `dev-01`. To use a custom
+`.providence\trust\my-org-01.key`; it does not fall back to `dev-01`. To use a custom
 key id directly, generate it first:
 
 ```bash
@@ -177,7 +177,7 @@ mode may add that, but the current behavior never removes files on its own.
 
 ## Agent Custom Commands (Slash/Prompt Packs)
 
-Custom command packs are generated from canonical `.sdd` artifacts.
+Custom command packs are generated from canonical `.providence` artifacts.
 
 - Copilot prompts: `.github/prompts/*.prompt.md`
 - Cursor rules: `.cursor/rules/sdd-commands.mdc`
@@ -210,14 +210,14 @@ For authoritative flags and command contracts:
 
 ## Telemetry
 
-Compliance events are written to `.sdd/runtime/compliance-events.jsonl` (JSONL, append-only).
+Compliance events are written to `.providence/runtime/compliance-events.jsonl` (JSONL, append-only).
 
 ```bash
 # View latest events
-cat .sdd/runtime/compliance-events.jsonl | tail -20
+cat .providence/runtime/compliance-events.jsonl | tail -20
 
 # Filter violations only
-grep '"event": "VIOLATION"' .sdd/runtime/compliance-events.jsonl
+grep '"event": "VIOLATION"' .providence/runtime/compliance-events.jsonl
 ```
 
 To override the log path: `export SDD_COMPLIANCE_LOG=/path/to/events.jsonl`

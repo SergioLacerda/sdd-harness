@@ -351,7 +351,7 @@ immutable_generated = true
 
 [tool.sdd.runtime]
 context_root = ".providence"
-cache_file = ".providence/runtime/.sdd-cache.md"
+cache_file = ".providence/runtime/.providence-cache.md"
 token_budget_ceiling = 100000
 context_compression_threshold = 70
 context_compression_target = 50

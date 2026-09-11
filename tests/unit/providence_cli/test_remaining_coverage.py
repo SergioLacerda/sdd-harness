@@ -60,10 +60,10 @@ class TestPluginCoverage:
         result = runner.invoke(plugin_mod.app, ["list"])
         assert result.exit_code != 0
 
-        plugin_dir = tmp_path / ".sdd" / "plugins"
+        plugin_dir = tmp_path / ".providence" / "plugins"
         plugin_dir.mkdir(parents=True)
         (plugin_dir / "registry.yaml").write_text(
-            "schema_version: '1.0.0'\nplugins:\n- id: one\n  type: analysis_orchestrator\n  version: '1.0.0'\n  status: active\n  entrypoint: /one\n  contract: contract\n  sdd_injection:\n    base_path: .sdd/analysis\n    execution_provider: sdd-ask\n    approval_gate: required\n",
+            "schema_version: '1.0.0'\nplugins:\n- id: one\n  type: analysis_orchestrator\n  version: '1.0.0'\n  status: active\n  entrypoint: /one\n  contract: contract\n  sdd_injection:\n    base_path: .providence/analysis\n    execution_provider: sdd-ask\n    approval_gate: required\n",
             encoding="utf-8",
         )
         monkeypatch.setattr(plugin_mod, "resolve_workspace_root", lambda: tmp_path)
@@ -95,10 +95,10 @@ class TestPluginCoverage:
     def test_validate_pass_and_fail_branches(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        plugin_dir = tmp_path / ".sdd" / "plugins"
+        plugin_dir = tmp_path / ".providence" / "plugins"
         plugin_dir.mkdir(parents=True)
         (plugin_dir / "registry.yaml").write_text(
-            "schema_version: '1.0.0'\nplugins:\n- id: ok\n  type: analysis_orchestrator\n  version: '1.0.0'\n  status: active\n  entrypoint: /ok\n  contract: contract\n  sdd_injection:\n    base_path: .sdd/analysis\n    execution_provider: sdd-ask\n    approval_gate: required\n- id: bad\n  type: unknown\n  version: '1.0.0'\n  status: active\n",
+            "schema_version: '1.0.0'\nplugins:\n- id: ok\n  type: analysis_orchestrator\n  version: '1.0.0'\n  status: active\n  entrypoint: /ok\n  contract: contract\n  sdd_injection:\n    base_path: .providence/analysis\n    execution_provider: sdd-ask\n    approval_gate: required\n- id: bad\n  type: unknown\n  version: '1.0.0'\n  status: active\n",
             encoding="utf-8",
         )
         monkeypatch.setattr(plugin_mod, "resolve_workspace_root", lambda: tmp_path)
@@ -136,7 +136,7 @@ class TestPluginCoverage:
                     "status": "active",
                     "entrypoint": "/ok",
                     "contract": "contract",
-                    "sdd_injection": {"base_path": ".sdd/analysis"},
+                    "sdd_injection": {"base_path": ".providence/analysis"},
                 }
             )
         )
@@ -186,7 +186,7 @@ class TestAskDossierCoverage:
     def test_load_dossier_artifact_branches(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
 
         loaded: list[Path] = []
 
@@ -260,7 +260,7 @@ class TestAskDossierCoverage:
         monkeypatch.setitem(sys.modules, "providence_runtime", fake_root)
         monkeypatch.setitem(sys.modules, "providence_runtime.context", fake_context)
 
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True)
         artifact = compiled_dir / "governance-core.json"
         artifact.write_text("{}", encoding="utf-8")

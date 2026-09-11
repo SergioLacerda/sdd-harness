@@ -16,10 +16,10 @@ def _make_paths(tmp_path: Path) -> dict[str, Path]:
     return {
         "root": tmp_path,
         "source_spec": tmp_path / "docs" / "spec",
-        "master_compiled": tmp_path / ".sdd" / "compiled",
-        "master_build": tmp_path / ".sdd" / "build",
-        "client_compiled": tmp_path / ".sdd" / "client" / "compiled",
-        "client_build": tmp_path / ".sdd" / "client" / "build",
+        "master_compiled": tmp_path / ".providence" / "compiled",
+        "master_build": tmp_path / ".providence" / "build",
+        "client_compiled": tmp_path / ".providence" / "client" / "compiled",
+        "client_build": tmp_path / ".providence" / "client" / "build",
     }
 
 

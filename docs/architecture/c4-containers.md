@@ -22,7 +22,7 @@ graph TB
         providence_telemetry["providence_telemetry\n(metrics & events)\nRuntimeEvent, JSONL sink"]
     end
 
-    subgraph artifacts[".sdd/ runtime state"]
+    subgraph artifacts[".providence/ runtime state"]
         compiled["compiled/\nsigned governance artifacts\n(.json + .sig + .msgpack)"]
         skills_dir["skills/\nskill definitions\n(skill.yaml per skill)"]
         trust["trust/\nEd25519 key pair"]

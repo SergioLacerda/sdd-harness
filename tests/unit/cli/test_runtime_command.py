@@ -147,7 +147,7 @@ class TestShowAskConfidence:
     def test_no_state_file_returns_silently(self, tmp_path: Path) -> None:
         from providence_cli.commands.runtime import _show_ask_confidence
 
-        # No .sdd/runtime/governance-state.json → should not raise
+        # No .providence/runtime/governance-state.json → should not raise
         _show_ask_confidence(tmp_path)
 
     def test_state_file_without_last_ask_returns_silently(self, tmp_path: Path) -> None:
@@ -155,7 +155,7 @@ class TestShowAskConfidence:
 
         from providence_cli.commands.runtime import _show_ask_confidence
 
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         (runtime_dir / "governance-state.json").write_text(
             json.dumps({"state": "HEALTHY"}), encoding="utf-8"
@@ -167,7 +167,7 @@ class TestShowAskConfidence:
 
         from providence_cli.commands.runtime import _show_ask_confidence
 
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         last_ask = {
             "ts": "2025-01-01T00:00:00",
@@ -193,7 +193,7 @@ class TestShowAskConfidence:
 
         from providence_cli.commands.runtime import _show_ask_confidence
 
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         last_ask = {
             "ts": "2025-01-01T00:00:00",
@@ -218,7 +218,7 @@ class TestShowAskConfidence:
     def test_malformed_json_does_not_raise(self, tmp_path: Path) -> None:
         from providence_cli.commands.runtime import _show_ask_confidence
 
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         (runtime_dir / "governance-state.json").write_text(
             "not-valid-json", encoding="utf-8"
@@ -236,7 +236,7 @@ class TestDoUpdateCache:
     ) -> Path:
         import json
 
-        gov_dir = tmp_path / ".sdd" / "compiled"
+        gov_dir = tmp_path / ".providence" / "compiled"
         gov_dir.mkdir(parents=True)
         item: dict = {
             "id": "M003",
@@ -264,8 +264,10 @@ class TestDoUpdateCache:
     ) -> None:
         from providence_cli.commands.runtime import _do_update_cache
 
-        self._write_gov_json(tmp_path, ["Read .sdd-cache.md", "Confirm mandate list"])
-        cache_file = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
+        self._write_gov_json(
+            tmp_path, ["Read .providence-cache.md", "Confirm mandate list"]
+        )
+        cache_file = tmp_path / ".providence" / "runtime" / ".providence-cache.md"
         cache_file.parent.mkdir(parents=True, exist_ok=True)
         cache_file.write_text("old", encoding="utf-8")
         old_mtime = cache_file.stat().st_mtime
@@ -278,7 +280,7 @@ class TestDoUpdateCache:
 
         out = capsys.readouterr().out
         assert "M003" in out
-        assert "Read .sdd-cache.md" in out
+        assert "Read .providence-cache.md" in out
         assert "Confirm mandate list" in out
         assert cache_file.stat().st_mtime > old_mtime
 
@@ -286,7 +288,7 @@ class TestDoUpdateCache:
         from providence_cli.commands.runtime import _do_update_cache
 
         self._write_gov_json(tmp_path, ["step one"])
-        cache_file = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
+        cache_file = tmp_path / ".providence" / "runtime" / ".providence-cache.md"
         assert not cache_file.exists()
 
         _do_update_cache(tmp_path)
@@ -418,7 +420,7 @@ class TestHandshakeCacheNotConnected:
 
         from providence_core.governance.handshake_cache import HandshakeCache
 
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         cache_dir.mkdir(parents=True)
         cache_file = cache_dir / "governance-state.json"
         cache_file.write_text(
@@ -448,7 +450,7 @@ class TestHandshakeCacheNotConnected:
 
         from providence_core.governance.handshake_cache import HandshakeCache
 
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         cache_dir.mkdir(parents=True)
         cache_file = cache_dir / "governance-state.json"
         cache = HandshakeCache(
@@ -459,7 +461,7 @@ class TestHandshakeCacheNotConnected:
 
 
 class TestHandshakeAutoHeal:
-    """Stale NOT_CONNECTED cache is discarded when .sdd/ now exists."""
+    """Stale NOT_CONNECTED cache is discarded when .providence/ now exists."""
 
     def test_auto_heal_triggers_revalidation_when_sdd_exists(
         self, tmp_path: Path
@@ -470,8 +472,8 @@ class TestHandshakeAutoHeal:
 
         from providence_core.governance.handshake import AgentHandshakeProtocol
 
-        # Create .sdd/ so Layer 1 would pass
-        (tmp_path / ".sdd").mkdir()
+        # Create .providence/ so Layer 1 would pass
+        (tmp_path / ".providence").mkdir()
 
         ahp = AgentHandshakeProtocol(project_root=tmp_path)
 
@@ -530,7 +532,7 @@ class TestRuntimeStatusPathPolicy:
     """PathPolicyViolation must produce a clean error message, not a raw traceback."""
 
     def test_path_policy_violation_exits_2(self, tmp_path: Path) -> None:
-        from providence_cli.utils.sdd_authority import PathPolicyViolation
+        from providence_cli.utils.providence_authority import PathPolicyViolation
 
         with (
             patch(

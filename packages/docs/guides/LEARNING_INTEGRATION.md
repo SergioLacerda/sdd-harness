@@ -21,14 +21,14 @@ This is runtime guidance. Command syntax remains canonical in
 
 ## Storage Model
 
-`SupervisedLearningStore` persists learning artifacts under `.sdd/runtime/`.
+`SupervisedLearningStore` persists learning artifacts under `.providence/runtime/`.
 
 Current files:
 
-- `.sdd/runtime/failure-ledger.jsonl`
-- `.sdd/runtime/rule-candidates.json`
-- `.sdd/runtime/rule-registry.json`
-- `.sdd/runtime/rule-impact.jsonl`
+- `.providence/runtime/failure-ledger.jsonl`
+- `.providence/runtime/rule-candidates.json`
+- `.providence/runtime/rule-registry.json`
+- `.providence/runtime/rule-impact.jsonl`
 
 The store is append-oriented for event history and JSON-backed for mutable rule
 state.
@@ -139,7 +139,7 @@ For approval and impact recording, keep using the canonical CLI workflow from
 - Keep historical context bounded; `sdd-ask` only loads a small recent window.
 - Keep rule activation human-approved; runtime may suggest, not self-authorize.
 - Keep evidence references attached to diagnosis and correction artifacts.
-- Keep runtime storage local to `.sdd/runtime/` for auditability and teardown.
+- Keep runtime storage local to `.providence/runtime/` for auditability and teardown.
 
 ## References
 

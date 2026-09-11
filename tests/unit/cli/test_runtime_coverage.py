@@ -100,13 +100,13 @@ def _install_fake_providence_runtime(  # noqa: C901
 
 def _make_root(tmp_path: Path) -> Path:
     root = tmp_path
-    (root / ".sdd" / "runtime").mkdir(parents=True, exist_ok=True)
-    (root / ".sdd" / "compiled").mkdir(parents=True, exist_ok=True)
-    (root / ".sdd" / "profile").write_text(
+    (root / ".providence" / "runtime").mkdir(parents=True, exist_ok=True)
+    (root / ".providence" / "compiled").mkdir(parents=True, exist_ok=True)
+    (root / ".providence" / "profile").write_text(
         "[sdd]\nworkspace_id = ws-1\ntype = client\n",
         encoding="utf-8",
     )
-    (root / ".sdd" / "compiled" / "governance-core.json").write_text(
+    (root / ".providence" / "compiled" / "governance-core.json").write_text(
         json.dumps({"fingerprint": "fp-123"}),
         encoding="utf-8",
     )
@@ -170,14 +170,16 @@ def test_emit_runtime_status_success_and_drift(
     root = _make_root(tmp_path)
     monkeypatch.setattr(
         "providence_cli.services.runtime_handler.compiled_active_dir",
-        lambda root: root / ".sdd" / "compiled",
+        lambda root: root / ".providence" / "compiled",
     )
     monkeypatch.setattr(
         "providence_cli.services.runtime_handler.resolve_compliance_events_path",
         lambda workspace_root: workspace_root / "events.jsonl",
     )
     monkeypatch.setattr(
-        runtime_mod, "profile_active_path", lambda root: root / ".sdd" / "profile"
+        runtime_mod,
+        "profile_active_path",
+        lambda root: root / ".providence" / "profile",
     )
     monkeypatch.setenv("SDD_AGENT_ID", "agent-1")
     monkeypatch.setenv("SDD_PATH_ID", "path-1")
@@ -197,14 +199,16 @@ def test_emit_runtime_status_no_drift_and_generic_error(
     root = _make_root(tmp_path)
     monkeypatch.setattr(
         "providence_cli.services.runtime_handler.compiled_active_dir",
-        lambda root: root / ".sdd" / "compiled",
+        lambda root: root / ".providence" / "compiled",
     )
     monkeypatch.setattr(
         "providence_cli.services.runtime_handler.resolve_compliance_events_path",
         lambda workspace_root: workspace_root / "events.jsonl",
     )
     monkeypatch.setattr(
-        runtime_mod, "profile_active_path", lambda root: root / ".sdd" / "profile"
+        runtime_mod,
+        "profile_active_path",
+        lambda root: root / ".providence" / "profile",
     )
     _install_fake_providence_runtime(monkeypatch, drift=False)
     assert runtime_mod._emit_runtime_status(
@@ -221,14 +225,16 @@ def test_emit_runtime_status_filenotfound_and_exception(
     root = _make_root(tmp_path)
     monkeypatch.setattr(
         "providence_cli.services.runtime_handler.compiled_active_dir",
-        lambda root: root / ".sdd" / "compiled-missing",
+        lambda root: root / ".providence" / "compiled-missing",
     )
     monkeypatch.setattr(
         "providence_cli.services.runtime_handler.resolve_compliance_events_path",
         lambda workspace_root: workspace_root / "events.jsonl",
     )
     monkeypatch.setattr(
-        runtime_mod, "profile_active_path", lambda root: root / ".sdd" / "profile"
+        runtime_mod,
+        "profile_active_path",
+        lambda root: root / ".providence" / "profile",
     )
     _install_fake_providence_runtime(monkeypatch, raise_on_inject=True)
     assert runtime_mod._emit_runtime_status(
@@ -243,8 +249,8 @@ def test_runtime_helpers_and_rendering(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
 ) -> None:
     root = _make_root(tmp_path)
-    runtime_dir = root / ".sdd" / "runtime"
-    cache_file = runtime_dir / ".sdd-cache.json"
+    runtime_dir = root / ".providence" / "runtime"
+    cache_file = runtime_dir / ".providence-cache.json"
     cache_file.write_text("not-json", encoding="utf-8")
     (runtime_dir / "governance-state.json").write_text(
         json.dumps(
@@ -260,7 +266,9 @@ def test_runtime_helpers_and_rendering(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        runtime_mod, "profile_active_path", lambda root: root / ".sdd" / "profile"
+        runtime_mod,
+        "profile_active_path",
+        lambda root: root / ".providence" / "profile",
     )
     assert _read_workspace_id(root) == "ws-1"
     assert runtime_mod._read_profile(root) == "client"
@@ -293,7 +301,7 @@ def test_runtime_read_helpers_and_error_paths(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = _make_root(tmp_path)
-    profile_path = root / ".sdd" / "profile"
+    profile_path = root / ".providence" / "profile"
     profile_path.write_text(
         "[sdd]\nworkspace_id = ws-2\ntype = client\n", encoding="utf-8"
     )
@@ -305,7 +313,7 @@ def test_runtime_read_helpers_and_error_paths(
     assert _read_workspace_id(root) == "unknown"
     assert runtime_mod._read_profile(root) == ""
 
-    cache = root / ".sdd" / "runtime" / ".sdd-cache.md"
+    cache = root / ".providence" / "runtime" / ".providence-cache.md"
     cache.write_text("cache", encoding="utf-8")
     assert runtime_mod._check_cache_staleness(root)["missing"] is False
     assert runtime_mod._format_diagnostic_block(root, cache_file=cache)

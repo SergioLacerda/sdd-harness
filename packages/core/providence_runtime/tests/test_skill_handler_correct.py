@@ -177,7 +177,7 @@ def test_gate_expression_supports_nested_boolean_logic() -> None:
 
 
 def test_load_gate_rules_rejects_invalid_schema(tmp_path: Path) -> None:
-    rules_dir = tmp_path / ".sdd" / "skills" / "sdd-correct"
+    rules_dir = tmp_path / ".providence" / "skills" / "sdd-correct"
     rules_dir.mkdir(parents=True)
     (rules_dir / "gate-rules.yaml").write_text(
         "rules:\n  - id: broken\n    priority: 5\n    decision: allow\n",
@@ -202,12 +202,12 @@ def _make_skill(name: str = "sdd-correct") -> SimpleNamespace:
     return SimpleNamespace(
         name=name,
         cli_fallback=["providence governance validate"],
-        config={"gate_rules_file": ".sdd/skills/sdd-correct/gate-rules.yaml"},
+        config={"gate_rules_file": ".providence/skills/sdd-correct/gate-rules.yaml"},
     )
 
 
 def test_load_gate_rules_reads_yaml_file(tmp_path: Path) -> None:
-    rules_dir = tmp_path / ".sdd" / "skills" / "sdd-correct"
+    rules_dir = tmp_path / ".providence" / "skills" / "sdd-correct"
     rules_dir.mkdir(parents=True)
     (rules_dir / "gate-rules.yaml").write_text(
         "rules:\n"
@@ -233,7 +233,7 @@ def test_load_gate_rules_falls_back_when_file_missing(tmp_path: Path) -> None:
 
 def test_pre_run_denies_when_gate_rule_schema_invalid(tmp_path: Path) -> None:
     handler = CorrectHandler()
-    rules_dir = tmp_path / ".sdd" / "skills" / "sdd-correct"
+    rules_dir = tmp_path / ".providence" / "skills" / "sdd-correct"
     rules_dir.mkdir(parents=True)
     (rules_dir / "gate-rules.yaml").write_text(
         "rules:\n"

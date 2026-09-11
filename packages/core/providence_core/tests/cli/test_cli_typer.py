@@ -80,8 +80,8 @@ class TestCLIMain:
     def test_init_runs_without_existing_workspace(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Init must bootstrap clean directories without requiring .sdd/profile."""
-        # A real ancestor of the isolated cwd (e.g. a cached ~/.sdd/bin
+        """Init must bootstrap clean directories without requiring .providence/profile."""
+        # A real ancestor of the isolated cwd (e.g. a cached ~/.providence/bin
         # compiler download) could otherwise trip the nested-workspace guard,
         # since it walks all the way up to the filesystem root.
         monkeypatch.setattr(Path, "parents", property(lambda self: ()))
@@ -390,7 +390,7 @@ class TestValidateCommand:
                 "governance",
                 "validate",
                 "--path",
-                ".sdd/compiled",
+                ".providence/compiled",
                 "--signature-mode",
                 "off",
             ],
@@ -489,16 +489,16 @@ class TestLoaderIntegration:
 
         assert validate_governance_path("runtime")
 
-    def test_loader_accepts_final_template_sdd_compiled_layout(
+    def test_loader_accepts_final_template_providence_compiled_layout(
         self, tmp_path: Path
     ) -> None:
-        """Test that final-template/.sdd/compiled layout resolves as valid governance path."""
+        """Test that final-template/.providence/compiled resolves as valid governance path."""
         validate_governance_path = importlib.import_module(
             "providence_cli.utils.loader"
         ).validate_governance_path
 
         final_template = tmp_path / "final-template"
-        compiled_dir = final_template / ".sdd" / "compiled"
+        compiled_dir = final_template / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True)
 
         (compiled_dir / "governance-core.compiled.msgpack").write_bytes(b"core")

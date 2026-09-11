@@ -12,7 +12,7 @@ The `providence_wizard` is the interactive orchestration engine of the SDD v3.0 
     *   **Phase 3 (Activation)**: Compiles the final governance into secure, fingerprinted binary artifacts.
 2.  **Seedling Generation**: Automatically creates the project "DNA", including:
     *   `.vscode/agents/`: AI agent context and seeds.
-    *   `.sdd/`: Governance/runtime structures for autonomous agents.
+    *   `.providence/`: Governance/runtime structures for autonomous agents.
     *   `.github/workflows/`: SDD-aware CI/CD pipelines.
 3.  **Multi-Language Support**: Tailors the generated project structure for Python, TypeScript, and Java.
 4.  **Governance Enforcement**: Seals the project with SHA-256 fingerprints (SALT), ensuring that any local modifications to mandates are detectable.
@@ -23,7 +23,7 @@ The `providence_wizard` is the interactive orchestration engine of the SDD v3.0 
 | :--- | :--- | :--- |
 | **1. Template** | Parse `.spec` files | `phase-1-choices/*.md` |
 | **2. Review** | User edits status fields | `phase-2-input/*.md` |
-| **3. Compile** | Build final artifacts | `.sdd/runtime/` & `.sdd/source/` |
+| **3. Compile** | Build final artifacts | `.providence/runtime/` & `.providence/source/` |
 
 ## 📂 Architecture
 
@@ -32,7 +32,7 @@ providence_wizard/
 ├── orchestration/       # Phase-specific logic (1 through 7)
 │   ├── phase_wizard_v3.py # Main v3 orchestrator
 │   └── intelligent_seedlings_generator.py # DNA Generator
-├── templates/           # Base project seedlings (.sdd, .github, etc)
+├── templates/           # Base project seedlings (.providence, .github, etc)
 ├── validator.py         # Compliance checking logic
 └── loader.py            # Governance loading for runtime
 ```

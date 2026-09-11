@@ -60,7 +60,7 @@
 3. Ask: Workspace name?
 4. Ask: Python version?
 5. Ask: Install dependencies?
-6. Create .sdd/profile + initial directories
+6. Create .providence/profile + initial directories
 7. Run basic tests to verify setup
 
 **Status:** ACTIVE
@@ -70,11 +70,11 @@
 
 ## DEC-2026-004: CLAUDE.md Generator (Wizard Feature) (2026-03-15)
 
-**Decision:** Wizard can generate optimized CLAUDE.md from .sdd metadata
+**Decision:** Wizard can generate optimized CLAUDE.md from .providence metadata
 
 **Rationale:**
 - Convenience: Users don't write CLAUDE.md manually
-- Consistency: Generated from authoritative .sdd sources
+- Consistency: Generated from authoritative .providence sources
 - Versioning: Regenerate when workspace updates
 
 **Example:**
@@ -165,7 +165,7 @@ Recovery:
 **Rationale:**
 - UX: User customizes view once, not repeatedly
 - Personalization: Different users, different preferences
-- State file: ~/.sdd/runtime/wizard-state.json
+- State file: ~/.providence/runtime/wizard-state.json
 
 **Persisted:**
 - Theme: dark/light

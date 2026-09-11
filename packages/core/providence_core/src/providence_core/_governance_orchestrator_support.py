@@ -14,8 +14,6 @@ logger = logging.getLogger(__name__)
 
 def ensure_spec_mandates(repo_root: Path, workspace_root: Path) -> Path:
     spec_mandates_path = workspace_root / ".providence" / "spec" / "mandates.json"
-    if spec_mandates_path.exists():
-        return spec_mandates_path
     canonical_dir = repo_root / "docs" / "spec" / "canonical" / "core" / "mandates"
     if canonical_dir.exists():
         try:

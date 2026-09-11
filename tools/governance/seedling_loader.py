@@ -14,7 +14,7 @@ Usage:
         if seed.get("auto_activate"):
             loader.execute_seed(seed)
 
-Seedlings location: .sdd/seedlings/*.seed.json
+Seedlings location: .providence/seedlings/*.seed.json
 Each seedling defines:
 - auto_activate: bool
 - required_context: list of required files/dirs
@@ -33,8 +33,8 @@ logger = logging.getLogger(__name__)
 
 
 def _resolve_seedlings_dir(project_root: Path) -> Path:
-    """Resolve canonical seedlings directory under .sdd."""
-    return Path(project_root) / ".sdd" / "seedlings"
+    """Resolve canonical seedlings directory under .providence."""
+    return Path(project_root) / ".providence" / "seedlings"
 
 
 class SeedlingLoader:
@@ -134,7 +134,7 @@ class SeedlingLoader:
             True if execution successful
         """
         action = seed.get("on_load")
-        # Overlay must run even in degraded mode (for example missing .sdd registries).
+        # Overlay must run even in degraded mode (for example missing .providence registries).
         if action != "prepare_personal_overlay" and not self._check_required_context(
             seed
         ):
@@ -153,7 +153,7 @@ class SeedlingLoader:
         try:
             from tools.governance.personal_overlay import resolve_personal_overlay
 
-            runtime_dir = self.project_root / ".sdd" / "runtime"
+            runtime_dir = self.project_root / ".providence" / "runtime"
             runtime_dir.mkdir(parents=True, exist_ok=True)
 
             overlay = resolve_personal_overlay(project_root=self.project_root)
@@ -191,7 +191,7 @@ class SeedlingLoader:
             _ = ahp.validate(output_mode="silent")
 
             # Mark as activated by storing state
-            runtime_dir = self.project_root / ".sdd" / "runtime"
+            runtime_dir = self.project_root / ".providence" / "runtime"
             runtime_dir.mkdir(parents=True, exist_ok=True)
 
             return True

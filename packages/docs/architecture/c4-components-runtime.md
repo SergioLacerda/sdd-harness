@@ -36,7 +36,7 @@ graph TB
             store["SupervisedLearningStore\nledger → candidates → rules\nrule impact recording"]
         end
 
-        telemetry["TelemetrySink\nRuntimeEvent → JSONL\n.sdd/runtime/telemetry.jsonl"]
+        telemetry["TelemetrySink\nRuntimeEvent → JSONL\n.providence/runtime/telemetry.jsonl"]
     end
 
     cli -->|"run_skill(name, context)"| engine

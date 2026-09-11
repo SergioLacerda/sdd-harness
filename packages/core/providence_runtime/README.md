@@ -33,7 +33,7 @@ All `providence_runtime` behavior is controlled via environment variables. Defau
 |---------|---------|---------|---------|
 | `SDD_AGENT_ID` | (unset) | Identifier for the agent/service emitting events. Recorded in compliance audit trail. | `"agent-compile-v2"`, `"agent-governance"` |
 
-**Location:** Events written to `.sdd/runtime/compliance-events.jsonl`
+**Location:** Events written to `.providence/runtime/compliance-events.jsonl`
 
 ```bash
 # Enable agent tracking
@@ -149,7 +149,7 @@ providence ask "query"  # Spans exported to OTEL collector
 
 **Sampling & retention policy:**
 - **No sampling.** Every emitted `RuntimeEvent` is exported when OTLP is enabled — there is no probabilistic or rate-based sampler in this exporter (`OtlpHttpExporter` is a stdlib-only HTTP client, not backed by `opentelemetry-sdk`). To control export volume, disable OTLP for noisy environments by leaving `SDD_OTEL_EXPORTER_ENDPOINT` unset, or filter/sample at the collector.
-- **Retention is the OTLP backend's responsibility.** This project does not manage OTLP-side retention; export is best-effort and non-blocking. The **JSONL sink is the source of truth and local retention boundary** — see `.sdd/runtime/compliance-events.jsonl` and the audit-integrity mandate for local log lifecycle. If the OTLP export fails, the JSONL record is unaffected.
+- **Retention is the OTLP backend's responsibility.** This project does not manage OTLP-side retention; export is best-effort and non-blocking. The **JSONL sink is the source of truth and local retention boundary** — see `.providence/runtime/compliance-events.jsonl` and the audit-integrity mandate for local log lifecycle. If the OTLP export fails, the JSONL record is unaffected.
 
 ---
 
@@ -179,7 +179,7 @@ event = RuntimeEvent(
 )
 
 sink.emit(event)
-# Writes to .sdd/runtime/compliance-events.jsonl
+# Writes to .providence/runtime/compliance-events.jsonl
 # Optionally posts webhook to SDD_WEBHOOK_URL
 # Optionally exports span to SDD_OTEL_EXPORTER_ENDPOINT
 ```
@@ -192,7 +192,7 @@ Query JSONL event logs for analysis.
 from providence_runtime.reader import TelemetryReader
 from pathlib import Path
 
-reader = TelemetryReader(Path(".sdd/runtime/compliance-events.jsonl"))
+reader = TelemetryReader(Path(".providence/runtime/compliance-events.jsonl"))
 
 # Query by type
 events = reader.get_events_by_type("governance.ask", last_hours=24)
@@ -227,7 +227,7 @@ from providence_runtime.reader import TelemetryReader
 from pathlib import Path
 
 # Build collector from JSONL replay
-reader = TelemetryReader(Path(".sdd/runtime/compliance-events.jsonl"))
+reader = TelemetryReader(Path(".providence/runtime/compliance-events.jsonl"))
 collector = TokenEconomyCollector.from_reader(reader)
 snapshot = collector.snapshot()
 
@@ -282,7 +282,7 @@ dispatcher.on_event(event)
             │                  │
       Write JSONL        Best-Effort Side-Cars
             │                  │
-    .sdd/runtime/         ┌─────┴─────┐
+    .providence/runtime/         ┌─────┴─────┐
     compliance-          │           │
     events.jsonl    AlertDispatcher OtelBridge
             │      (if SDD_WEBHOOK_) (if SDD_OTEL_)
@@ -321,7 +321,7 @@ dispatcher.on_event(event)
 
 ## Event JSON Schema
 
-Each line in `.sdd/runtime/compliance-events.jsonl` is a JSON object:
+Each line in `.providence/runtime/compliance-events.jsonl` is a JSON object:
 
 ```json
 {
@@ -458,7 +458,7 @@ sdd metrics serve &
 providence ask "query" && python3 -c "
 from providence_runtime.reader import TelemetryReader
 from pathlib import Path
-reader = TelemetryReader(Path('.sdd/runtime/compliance-events.jsonl'))
+reader = TelemetryReader(Path('.providence/runtime/compliance-events.jsonl'))
 errors = reader.get_error_rate(last_hours=1)
 print(f'Error rate: {errors[\"error_rate\"]}%')
 "
@@ -468,11 +468,11 @@ print(f'Error rate: {errors[\"error_rate\"]}%')
 
 ## Troubleshooting
 
-### No events in `.sdd/runtime/compliance-events.jsonl`
+### No events in `.providence/runtime/compliance-events.jsonl`
 
 **Check:**
 1. Ensure `create_sink()` is called before emitting events
-2. Verify `.sdd/runtime/` directory exists and is writable
+2. Verify `.providence/runtime/` directory exists and is writable
 3. Check environment: `echo $SDD_AGENT_ID`
 
 ### Webhooks not firing
@@ -488,7 +488,7 @@ print(f'Error rate: {errors[\"error_rate\"]}%')
 **Check:**
 1. Port is available: `lsof -i :9090`
 2. Process running: `ps aux | grep "sdd metrics serve"`
-3. JSONL file readable: `ls -la .sdd/runtime/compliance-events.jsonl`
+3. JSONL file readable: `ls -la .providence/runtime/compliance-events.jsonl`
 
 ---
 

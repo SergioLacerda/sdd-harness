@@ -8,7 +8,7 @@ Claude Code's own real file conventions.
 
 This is a different mechanism from two pre-existing, unrelated Claude-specific
 integrations: the per-skill `AdapterGenerator` (writing `.claude/commands/*.md`
-from `.sdd/skills/`, wizard-integrated, SDD-branded), and the `providence governance
+from `.providence/skills/`, wizard-integrated, SDD-branded), and the `providence governance
 generate` wizard subsystem that produces this repository's own root `CLAUDE.md`.
 This projection is additive and does not touch either.
 
@@ -16,7 +16,7 @@ This projection is additive and does not touch either.
 
 - Works without Providence, without network, without any runtime dependency in
   the consuming project.
-- Content is curated and generic — not parsed from this repository's own `.sdd/`
+- Content is curated and generic — not parsed from this repository's own `.providence/`
   governance sources — so it is reusable in any project, the same design choice
   `DevinPluginGenerator.generate_standalone()` and
   `CopilotStandaloneGenerator.generate_standalone()` already make. It never

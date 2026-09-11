@@ -37,7 +37,7 @@ providence governance validate        # Confirm governance integrity
 
 ### Phase 1 — Rules and mandates
 
-**Mandatory bootstrap:** Read `.sdd/agent-instructions.md` first.
+**Mandatory bootstrap:** Read `.providence/agent-instructions.md` first.
 It contains the mandate index with micro-descriptions and the **SELF-EVALUATION** block.
 
 - ✅ Confident with the summaries → Proceed directly.
@@ -73,7 +73,7 @@ providence runtime status --verbose    # Final workspace state
 
 > Never load the entire documentation. Always use path-based context loading via the Master Index.
 > Runbooks are selected from authored `docs/` sources and compiled into runtime
-> handbook output. Do not edit `.sdd/` directly to change runbook behavior.
+> handbook output. Do not edit `.providence/` directly to change runbook behavior.
 
 ## References
 

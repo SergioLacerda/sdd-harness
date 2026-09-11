@@ -31,10 +31,10 @@ Minimal version of SDD with:
 
 ```bash
 # 1. Copy LITE constitution template (2 min)
-cp EXECUTION/spec/guides/adoption/templates/lite-constitution.yaml .sdd/constitution.yaml
+cp EXECUTION/spec/guides/adoption/templates/lite-constitution.yaml .providence/constitution.yaml
 
 # 2. Customize for your project (5 min)
-# Edit .sdd/constitution.yaml with:
+# Edit .providence/constitution.yaml with:
 # - project_name
 # - domain
 # - customize the 5 principles for your domain
@@ -51,7 +51,7 @@ def test_no_framework_in_domain():
 EOF
 
 # 4. Commit your constitution (2 min)
-git add .sdd/constitution.yaml
+git add .providence/constitution.yaml
 git commit -m "Add SDD LITE constitution"
 
 # 5. Verify setup (3 min)

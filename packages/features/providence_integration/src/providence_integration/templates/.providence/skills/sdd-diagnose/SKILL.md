@@ -19,8 +19,8 @@ Identify and explain runtime or workspace problems using SDD governed diagnostic
 
 ## Required protocol
 
-1. Load `.sdd/agent-instructions.md`
-2. Confirm skill is registered in `.sdd/skills/registry.json` as `sdd-diagnose`
+1. Load `.providence/agent-instructions.md`
+2. Confirm skill is registered in `.providence/skills/registry.json` as `sdd-diagnose`
 3. Run preflight: `sdd runtime status`
 4. Execute: `sdd doctor run`
 5. Return `policy_result` and `next_actions` as structured output
@@ -42,4 +42,4 @@ Return YAML with:
 - Do not modify workspace files or configuration
 - Do not invent diagnostic results not produced by allowed CLI
 - Do not skip the preflight check
-- Declare degraded mode if `.sdd/skills/registry.json` is unavailable
+- Declare degraded mode if `.providence/skills/registry.json` is unavailable

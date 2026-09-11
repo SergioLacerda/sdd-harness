@@ -79,7 +79,7 @@ export const LANDING_CONTENT: Record<Lang, LandingCopy> = {
     auditBody: 'sdd governance drift compara runtime × especificação; sdd economy report reporta a zona de budget. Eventos de telemetria armam em RED e disparam em BREACH.',
     auditCaption: 'circuit breaker: retries ≤ 3 · reflections ≤ 2 · entropy score por decisão',
     ctxTitle: 'Context-aware: cache isolado por projeto',
-    ctxBody: 'Cada projeto mantém .sdd/task-context.json. O agente sincroniza (pre-flight) antes de agir e faz checkpoint ao fim de cada sub-tarefa — um loop de aprendizado que converge o estado e barra anti-padrões e memória obsoleta.',
+    ctxBody: 'Cada projeto mantém .providence/task-context.json. O agente sincroniza (pre-flight) antes de agir e faz checkpoint ao fim de cada sub-tarefa — um loop de aprendizado que converge o estado e barra anti-padrões e memória obsoleta.',
     crossTitle: 'Cross-learning em runtime: células isoladas + handshake',
     crossBody: 'Cada repositório ou thread é uma célula context-aware separada (M003). Agentes trocam estado por handshake bidirecional (M015), sem um agente quebrar as premissas do outro. A federação de governança (M019) compartilha regras entre projetos sem contaminação cruzada.',
     cellA: 'célula · repo-a', cellB: 'célula · repo-b', cellAgent: 'agente governado',
@@ -91,7 +91,7 @@ export const LANDING_CONTENT: Record<Lang, LandingCopy> = {
     howEyebrow: 'Como funciona', howTitle: 'Da seleção ao contrato de runtime',
     previewEyebrow: 'Preview interativo', previewTitle: 'Experimente o Selector',
     previewSub: 'Marque mandates e guidelines. Veja as dependências resolverem e a seleção se consolidar em selector-selection.json.',
-    footerNote: 'Governança é mandatória e autoritativa a partir de .sdd',
+    footerNote: 'Governança é mandatória e autoritativa a partir de .providence',
     zones: [
       { zone: 'GREEN', range: '< 70%', action: 'Prossegue normalmente.', dot: 'var(--green-500)' },
       { zone: 'YELLOW', range: '70–90%', action: 'Aplica compressão antes de carregar mais contexto.', dot: 'var(--amber-500)' },
@@ -136,7 +136,7 @@ export const LANDING_CONTENT: Record<Lang, LandingCopy> = {
     auditBody: 'sdd governance drift compares runtime against the spec; sdd economy report reports the budget zone. Telemetry events arm at RED and fire at BREACH.',
     auditCaption: 'circuit breaker: retries ≤ 3 · reflections ≤ 2 · entropy score per decision',
     ctxTitle: 'Context-aware: project-isolated cache',
-    ctxBody: 'Each project keeps .sdd/task-context.json. The agent syncs (pre-flight) before acting and checkpoints at the end of every sub-task — a learning loop that converges state and blocks anti-patterns and stale memory.',
+    ctxBody: 'Each project keeps .providence/task-context.json. The agent syncs (pre-flight) before acting and checkpoints at the end of every sub-task — a learning loop that converges state and blocks anti-patterns and stale memory.',
     crossTitle: 'Runtime cross-learning: isolated cells + handshake',
     crossBody: 'Each repository or thread is a separate context-aware cell (M003). Agents exchange state via a bidirectional handshake (M015), without one agent breaking another’s assumptions. Governance federation (M019) shares rules across projects with no cross-contamination.',
     cellA: 'cell · repo-a', cellB: 'cell · repo-b', cellAgent: 'governed agent',
@@ -148,7 +148,7 @@ export const LANDING_CONTENT: Record<Lang, LandingCopy> = {
     howEyebrow: 'How it works', howTitle: 'From selection to runtime contract',
     previewEyebrow: 'Interactive preview', previewTitle: 'Try the Selector',
     previewSub: 'Check mandates and guidelines. Watch dependencies resolve and the selection consolidate into selector-selection.json.',
-    footerNote: 'Governance is mandatory and authoritative from .sdd',
+    footerNote: 'Governance is mandatory and authoritative from .providence',
     zones: [
       { zone: 'GREEN', range: '< 70%', action: 'Proceed normally.', dot: 'var(--green-500)' },
       { zone: 'YELLOW', range: '70–90%', action: 'Compress before loading more context.', dot: 'var(--amber-500)' },
@@ -388,5 +388,5 @@ export const TERM_COMPILE = [
   { text: '✓ compacted −63% tokens', tone: 'green' as const },
   { text: '✓ signed (Ed25519)', tone: 'green' as const },
   { text: '  fingerprint {{FP}}', tone: 'dim' as const },
-  { text: '→ .sdd/compiled/  (runtime-ready)', tone: 'dim' as const },
+  { text: '→ .providence/compiled/  (runtime-ready)', tone: 'dim' as const },
 ];

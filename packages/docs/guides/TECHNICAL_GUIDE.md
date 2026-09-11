@@ -166,7 +166,7 @@ providence runtime status
 # →   → providence governance compile
 ```
 
-Emitted events in `.sdd/runtime/compliance-events.jsonl`:
+Emitted events in `.providence/runtime/compliance-events.jsonl`:
 
 - `runtime.session.start` — session loaded
 - `runtime.drift.detected` — drift classified (if detected)

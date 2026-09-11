@@ -26,7 +26,7 @@ Verification state: documented
 3. Identify the compiler binary and version:
 
    ```powershell
-   $bin = Get-ChildItem -Recurse "$env:USERPROFILE\.sdd\bin" -Filter "sdd-compile*.exe" |
+   $bin = Get-ChildItem -Recurse "$env:USERPROFILE\.providence\bin" -Filter "sdd-compile*.exe" |
           Select-Object -First 1 -ExpandProperty FullName
    & $bin version
    ```
@@ -38,7 +38,7 @@ Verification state: documented
 1. Clear the cached compiler binary:
 
    ```powershell
-   Remove-Item -Recurse -Force "$env:USERPROFILE\.sdd\bin"
+   Remove-Item -Recurse -Force "$env:USERPROFILE\.providence\bin"
    providence governance generate --verbose
    ```
 

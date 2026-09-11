@@ -77,8 +77,8 @@ class TestConfigValidateInputs:
     """Validation tests for ConfigValidateInputs."""
 
     def test_accepts_valid_file(self) -> None:
-        inputs = ConfigValidateInputs(file=".sdd/profile")
-        assert inputs.file == ".sdd/profile"
+        inputs = ConfigValidateInputs(file=".providence/profile")
+        assert inputs.file == ".providence/profile"
 
     def test_accepts_none_file(self) -> None:
         inputs = ConfigValidateInputs(file=None)

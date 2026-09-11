@@ -253,10 +253,10 @@ def test_load_gate_rules_falls_back_when_gate_rules_file_unset(tmp_path: Path) -
 
 
 def test_load_gate_rules_rejects_empty_rules_list(tmp_path: Path) -> None:
-    rules_dir = tmp_path / ".sdd" / "skills" / "sdd-correct"
+    rules_dir = tmp_path / ".providence" / "skills" / "sdd-correct"
     rules_dir.mkdir(parents=True)
     (rules_dir / "gate-rules.yaml").write_text("rules: []\n", encoding="utf-8")
 
-    skill = _make_skill(".sdd/skills/sdd-correct/gate-rules.yaml")
+    skill = _make_skill(".providence/skills/sdd-correct/gate-rules.yaml")
     with pytest.raises(ValueError, match="non-empty 'rules' list"):
         _load_gate_rules(project_root=tmp_path, skill=skill)

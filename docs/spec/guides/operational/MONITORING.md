@@ -311,7 +311,7 @@ done
 echo ""
 echo "4. System Resources:"
 ps aux | grep -E "sdd|wizard|python" | grep -v grep
-du -sh .sdd-*
+du -sh .providence-*
 free -h
 
 echo ""

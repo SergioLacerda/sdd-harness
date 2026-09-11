@@ -345,7 +345,7 @@ class TestGenerateAgentSeeds:
 
         generate_agent_seeds(tmp_path, self._make_config())
         content = (tmp_path / "generic-agent.md").read_text(encoding="utf-8")
-        assert ".sdd/" in content
+        assert ".providence/" in content
         assert "compiled/" in content
         assert "source/" in content
         assert "docs/spec/canonical/" not in content

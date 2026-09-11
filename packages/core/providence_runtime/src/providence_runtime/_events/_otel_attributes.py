@@ -89,54 +89,54 @@ class OtelAttributes:
         """Return attributes as a flat dict with OTEL dotted-key names."""
         attrs: dict[str, Any] = {
             "service.name": self.service_name,
-            "sdd.event": self.providence_event,
-            "sdd.command": self.providence_command,
-            "sdd.status": self.providence_status,
-            "sdd.level": self.providence_level,
-            "sdd.workspace_id": self.providence_workspace_id,
-            "sdd.agent_id": self.providence_agent_id,
-            "sdd.artifact_fingerprint": self.providence_artifact_fingerprint,
-            "sdd.schema_version": self.providence_schema_version,
-            "sdd.event_schema_version": self.providence_event_schema_version,
-            "sdd.decision_source_refs": self.providence_decision_source_refs,
+            "sdd.event": self.sdd_event,
+            "sdd.command": self.sdd_command,
+            "sdd.status": self.sdd_status,
+            "sdd.level": self.sdd_level,
+            "sdd.workspace_id": self.sdd_workspace_id,
+            "sdd.agent_id": self.sdd_agent_id,
+            "sdd.artifact_fingerprint": self.sdd_artifact_fingerprint,
+            "sdd.schema_version": self.sdd_schema_version,
+            "sdd.event_schema_version": self.sdd_event_schema_version,
+            "sdd.decision_source_refs": self.sdd_decision_source_refs,
         }
 
-        if self.providence_duration_ms is not None:
-            attrs["sdd.duration_ms"] = self.providence_duration_ms
-        if self.providence_parent_event_id:
-            attrs["sdd.parent_event_id"] = self.providence_parent_event_id
+        if self.sdd_duration_ms is not None:
+            attrs["sdd.duration_ms"] = self.sdd_duration_ms
+        if self.sdd_parent_event_id:
+            attrs["sdd.parent_event_id"] = self.sdd_parent_event_id
 
         optional_attrs = [
-            ("sdd.economy.tokens_input", self.providence_economy_tokens_input),
-            ("sdd.economy.tokens_output", self.providence_economy_tokens_output),
-            ("sdd.economy.tokens_total", self.providence_economy_tokens_total),
+            ("sdd.economy.tokens_input", self.sdd_economy_tokens_input),
+            ("sdd.economy.tokens_output", self.sdd_economy_tokens_output),
+            ("sdd.economy.tokens_total", self.sdd_economy_tokens_total),
             (
                 "sdd.economy.context_bytes_loaded",
-                self.providence_economy_context_bytes_loaded,
+                self.sdd_economy_context_bytes_loaded,
             ),
             (
                 "sdd.economy.context_budget_bytes",
-                self.providence_economy_context_budget_bytes,
+                self.sdd_economy_context_budget_bytes,
             ),
             (
                 "sdd.economy.budget_utilization_pct",
-                self.providence_economy_budget_utilization_pct,
+                self.sdd_economy_budget_utilization_pct,
             ),
             (
                 "sdd.economy.compression_ratio",
-                self.providence_economy_compression_ratio,
+                self.sdd_economy_compression_ratio,
             ),
-            ("sdd.economy.retry_count", self.providence_economy_retry_count),
+            ("sdd.economy.retry_count", self.sdd_economy_retry_count),
             (
                 "sdd.economy.reflection_count",
-                self.providence_economy_reflection_count,
+                self.sdd_economy_reflection_count,
             ),
         ]
         for key, value in optional_attrs:
             if value is not None:
                 attrs[key] = value
 
-        if self.providence_economy_path_id:
-            attrs["sdd.economy.path_id"] = self.providence_economy_path_id
+        if self.sdd_economy_path_id:
+            attrs["sdd.economy.path_id"] = self.sdd_economy_path_id
 
         return attrs

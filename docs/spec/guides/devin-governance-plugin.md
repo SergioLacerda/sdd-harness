@@ -1,7 +1,7 @@
 # SDD Governance Projection for Devin
 
 Generates a self-contained, distributable Devin plugin bundle from this repository's
-`.sdd/skills/` registry, in **Soft/Standalone** profile.
+`.providence/skills/` registry, in **Soft/Standalone** profile.
 
 ## What Soft/Standalone means
 
@@ -54,7 +54,7 @@ devin plugins install ./dist/devin-plugin
 | `AGENTS.md` | Always-on assurance/precedence disclosure + governance summary Tier A (index) |
 | `rules/providence-summary.md` | Governance summary Tier B (condensed detail), loaded contextually |
 | `rules/sdd-soft-governance-behavior.md` | Curated, CLI-independent behavioral rules (git safety, escalation, mandate precedence) |
-| `skills/{name}/SKILL.md` | One per canonical SDD skill in `.sdd/skills/registry.json` — omitted entirely when built with `--no-skills` |
+| `skills/{name}/SKILL.md` | One per canonical SDD skill in `.providence/skills/registry.json` — omitted entirely when built with `--no-skills` |
 | `hooks.json` + `hooks/session-start-assurance.sh` | Injects the Soft/Standalone disclosure into every session |
 | `metadata/provenance.json` | Plugin version, compiler version, source revision, embedded policy digest, embedded governance summary digest, soft governance ruleset version, profile |
 | `LICENSE` | Copied from the source project's root `LICENSE`, if present |
@@ -69,7 +69,7 @@ summary, kept deliberately separate from the skills digest:
 - **Tier A — index, always-on (`AGENTS.md`, "Providence Summary" section):**
   governance fingerprint, workspace version, mandate count, and a plain list of
   mandate **IDs + titles only** — no descriptions, plus guideline **category names
-  only** (one per `.sdd/source/guidelines/*.md` file). This is an index, not policy
+  only** (one per `.providence/source/guidelines/*.md` file). This is an index, not policy
   prose, so it stays small enough for content that's loaded every session.
 - **Tier B — condensed detail, contextual (`rules/providence-summary.md`):** one
   section per mandate and guideline category, with a condensed description **only
@@ -77,7 +77,7 @@ summary, kept deliberately separate from the skills digest:
   guideline's canonical source is the placeholder `"No description available"`,
   Tier B renders the section as `"(no summary available in source)"` — it never
   fabricates a summary from an incomplete source. As of this writing, this repo's
-  own `.sdd/source/mandates/mandates.md` has placeholder text for all 16 mandates,
+  own `.providence/source/mandates/mandates.md` has placeholder text for all 16 mandates,
   so a bundle built from this repo will show `"(no summary available in source)"`
   throughout Tier B; that reflects the source, not a bug in the generator.
 
@@ -102,7 +102,7 @@ content changed.
 
 `rules/sdd-soft-governance-behavior.md` is a small, **hand-curated** (not
 auto-parsed) set of behavioral rules distilled from this repository's
-`.sdd/agent-instructions.md`: git safety (never execute state-modifying git
+`.providence/agent-instructions.md`: git safety (never execute state-modifying git
 commands autonomously), escalate-on-incomplete-context, and mandates-outrank-
 guidelines precedence. It deliberately excludes anything that assumes a live `sdd`
 CLI connection — the M015 handshake procedure, `execution_gate` /
@@ -121,7 +121,7 @@ has no stable per-rule structure to parse against safely).
 
 1. Provider or organization safety controls (Devin's own permissions/config).
 2. Connected SDD hard policy (not active in Soft/Standalone).
-3. Project canonical policy (the consuming project's own `.sdd/`, if present).
+3. Project canonical policy (the consuming project's own `.providence/`, if present).
 4. Embedded SDD snapshot (this plugin's `skills/`).
 5. Provider local rules (`.devin/config.json`, project `AGENTS.md`, `rules/`).
 6. User task instructions.
@@ -129,7 +129,7 @@ has no stable per-rule structure to parse against safely).
 ## Canonical source
 
 This plugin is a generated projection, never a policy source. Canonical SDD governance stays
-in this repository's `.sdd/`. See `metadata/provenance.json` in a built bundle for the exact
+in this repository's `.providence/`. See `metadata/provenance.json` in a built bundle for the exact
 source revision it was generated from.
 
 ## Known limitations
@@ -139,11 +139,11 @@ source revision it was generated from.
   against `docs.devin.ai/cli/extensibility/skills/creating-skills` before the next schema bump.
   See `docs/spec/guides/devin-plugin-provider-surface-evidence.md`.
 - Hard/Connected mode is out of scope (see above).
-- This repo's own `.sdd/source/mandates/mandates.md` has placeholder
+- This repo's own `.providence/source/mandates/mandates.md` has placeholder
   `"No description available"` text for all current mandates, so Tier B of the
   governance summary is index-only in practice for a bundle built from this repo
   today. Fixing that source content is tracked separately, not by this feature.
-- The plugin bundle has been verified structurally and against the real `.sdd/skills/`
+- The plugin bundle has been verified structurally and against the real `.providence/skills/`
   registry, but has not yet been installed into a live Devin CLI session. Run
   `devin plugins install ./dist/devin-plugin` against an actual Devin CLI installation
   before treating this as production-ready.

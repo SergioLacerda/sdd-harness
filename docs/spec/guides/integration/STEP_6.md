@@ -199,7 +199,7 @@ cat .spec.config
 
 ## 🔄 Document Your Intention
 
-### Option 1: In `.sdd/README.md` (Recommended)
+### Option 1: In `.providence/README.md` (Recommended)
 
 Add a section:
 
@@ -236,7 +236,7 @@ After this step:
 - ✅ You answered the 5 questions honestly
 - ✅ You know whether you need LITE or FULL
 - ✅ `.spec.config` includes `adoption_level`
-- ✅ Your intention is documented (in `.sdd/README.md` or project README)
+- ✅ Your intention is documented (in `.providence/README.md` or project README)
 - ✅ Team is aligned on the choice
 - ✅ Ready to move to EXECUTION
 
@@ -249,7 +249,7 @@ After this step:
 1. Commit your changes
 
    ```bash
-   git add .spec.config .sdd/README.md
+   git add .spec.config .providence/README.md
    git commit -m "docs: set adoption level to LITE (or FULL)"
    ```
 

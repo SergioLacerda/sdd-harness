@@ -83,7 +83,7 @@ export function CapabilitiesPanel({ stats = PLACEHOLDER_GOVERNANCE_STATS }: Capa
               ))}
             </div>
             <div style={{ background: 'var(--term-bg)', borderRadius: 4, border: '1px solid var(--term-border)', padding: '18px 20px' }}>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--term-dim)', marginBottom: 12 }}>.sdd/task-context.json</div>
+              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--term-dim)', marginBottom: 12 }}>.providence/task-context.json</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {c.cacheFields.map((f) => (
                   <div key={f.key}>
@@ -105,7 +105,7 @@ export function CapabilitiesPanel({ stats = PLACEHOLDER_GOVERNANCE_STATS }: Capa
             <div style={{ border: '1px solid var(--line-strong)', borderRadius: 4, padding: 20 }}>
               <div style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--steel)', marginBottom: 10 }}>{c.cellA}</div>
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>{c.cellAgent}</div>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-faint)' }}>.sdd/task-context.json</div>
+              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-faint)' }}>.providence/task-context.json</div>
               <div style={{ marginTop: 12, fontSize: 12, color: 'var(--ink-faint)', lineHeight: 1.5 }}>{c.cellIsolated}</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 110 }}>
@@ -116,7 +116,7 @@ export function CapabilitiesPanel({ stats = PLACEHOLDER_GOVERNANCE_STATS }: Capa
             <div style={{ border: '1px solid var(--line-strong)', borderRadius: 4, padding: 20 }}>
               <div style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--clean)', marginBottom: 10 }}>{c.cellB}</div>
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>{c.cellAgent}</div>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-faint)' }}>.sdd/task-context.json</div>
+              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-faint)' }}>.providence/task-context.json</div>
               <div style={{ marginTop: 12, fontSize: 12, color: 'var(--ink-faint)', lineHeight: 1.5 }}>{c.cellIsolated}</div>
             </div>
           </div>
@@ -138,7 +138,7 @@ export function CapabilitiesPanel({ stats = PLACEHOLDER_GOVERNANCE_STATS }: Capa
                 <span style={{ color: 'var(--ink-faint)' }}>→</span>
                 <span style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--ink-dim)', border: '1px solid var(--line-strong)', padding: '8px 12px', borderRadius: 3 }}>compile --optimize</span>
                 <span style={{ color: 'var(--ink-faint)' }}>→</span>
-                <span style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--ink-dim)', border: '1px solid var(--line-strong)', padding: '8px 12px', borderRadius: 3 }}>.sdd/compiled/</span>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--ink-dim)', border: '1px solid var(--line-strong)', padding: '8px 12px', borderRadius: 3 }}>.providence/compiled/</span>
               </div>
               <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>
                 {c.compStats.map((s) => (

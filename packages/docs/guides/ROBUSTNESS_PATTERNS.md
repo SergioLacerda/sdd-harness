@@ -112,7 +112,7 @@ YAML files.
 Implemented today:
 
 - `sdd-pipeline` reads `config.pipeline.decision_gates`
-- `sdd-correct` loads `.sdd/skills/sdd-correct/gate-rules.yaml`
+- `sdd-correct` loads `.providence/skills/sdd-correct/gate-rules.yaml`
 - correction gate rules use a structured `when` DSL with deterministic operators
 - invalid rule schemas fail closed before correction execution
 

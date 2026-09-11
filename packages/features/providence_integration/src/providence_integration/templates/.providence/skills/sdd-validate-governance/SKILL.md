@@ -19,8 +19,8 @@ Validate the integrity of compiled governance artifacts and run the full runtime
 
 ## Required protocol
 
-1. Load `.sdd/agent-instructions.md`
-2. Confirm skill is registered in `.sdd/skills/registry.json` as `sdd-validate-governance`
+1. Load `.providence/agent-instructions.md`
+2. Confirm skill is registered in `.providence/skills/registry.json` as `sdd-validate-governance`
 3. Run preflight: `sdd runtime status`
 4. Run full validation: `sdd governance validate`
 5. Check fingerprints and artifact consistency

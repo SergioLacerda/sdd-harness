@@ -15,8 +15,8 @@ class TestGenerateChallenge:
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         request = challenge.generate_challenge(
@@ -40,8 +40,8 @@ class TestGenerateChallenge:
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         request = challenge.generate_challenge()
@@ -63,8 +63,8 @@ class TestGenerateChallenge:
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         request = challenge.generate_challenge()
@@ -77,8 +77,8 @@ class TestGenerateChallenge:
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         request = challenge.generate_challenge()
@@ -91,8 +91,8 @@ class TestGenerateChallenge:
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         with patch(
@@ -110,7 +110,7 @@ class TestCompleteHandshake:
 
     def test_complete_handshake_writes_response_file(self, tmp_path):
         """Verify complete_handshake persists response to file."""
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         response_file = cache_dir / "response.json"
 
         challenge = HandshakeChallenge(
@@ -135,7 +135,7 @@ class TestCompleteHandshake:
 
     def test_complete_handshake_fills_missing_timestamp(self, tmp_path):
         """Verify complete_handshake adds timestamp if missing."""
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         response_file = cache_dir / "response.json"
 
         challenge = HandshakeChallenge(
@@ -165,7 +165,7 @@ class TestHandshakeResponse:
 
     def test_get_handshake_response_returns_none_when_missing(self, tmp_path):
         """Verify get_handshake_response returns None when response file doesn't exist."""
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         response_file = cache_dir / "response.json"
 
         challenge = HandshakeChallenge(
@@ -181,7 +181,7 @@ class TestHandshakeResponse:
 
     def test_is_handshake_valid_returns_false_when_missing(self, tmp_path):
         """Verify is_handshake_valid returns False when response file doesn't exist."""
-        cache_dir = tmp_path / ".sdd" / "runtime"
+        cache_dir = tmp_path / ".providence" / "runtime"
         response_file = cache_dir / "response.json"
 
         challenge = HandshakeChallenge(
@@ -228,8 +228,8 @@ class TestSignatureStatus:
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         assert challenge._resolve_signature_status() == "unavailable"
@@ -243,8 +243,8 @@ class TestSignatureStatus:
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         assert challenge._resolve_signature_status() == "unsigned"
@@ -255,15 +255,15 @@ class TestSignatureStatus:
         """Verify status is 'unsigned' when the artifact exists but has no `.sig`."""
         monkeypatch.setenv("SDD_SIGNATURE_MODE", "warn")
 
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True, exist_ok=True)
         (compiled_dir / "governance-core.json").write_text("{}", encoding="utf-8")
 
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         assert challenge._resolve_signature_status() == "unsigned"
@@ -276,7 +276,7 @@ class TestSignatureStatus:
         old implementation returned 'verified' purely from file presence."""
         monkeypatch.setenv("SDD_SIGNATURE_MODE", "strict")
 
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True, exist_ok=True)
         gov_file = compiled_dir / "governance-core.json"
         gov_file.write_text("{}", encoding="utf-8")
@@ -286,8 +286,8 @@ class TestSignatureStatus:
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         status = challenge._resolve_signature_status()
@@ -306,7 +306,7 @@ class TestSignatureStatus:
 
         monkeypatch.setenv("SDD_SIGNATURE_MODE", "strict")
 
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True, exist_ok=True)
         gov_file = compiled_dir / "governance-core.json"
         gov_file.write_text('{"x":1}', encoding="utf-8")
@@ -317,7 +317,7 @@ class TestSignatureStatus:
             encoding="utf-8",
         )
 
-        trust_dir = tmp_path / ".sdd" / "trust"
+        trust_dir = tmp_path / ".providence" / "trust"
         trust_dir.mkdir(parents=True, exist_ok=True)
         (trust_dir / "trusted-keys.json").write_text(
             json.dumps(
@@ -339,8 +339,8 @@ class TestSignatureStatus:
         challenge = HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
         with patch(
@@ -371,8 +371,8 @@ class TestChallengeResponseBinding:
         return HandshakeChallenge(
             agent_id="test-agent",
             project_root=tmp_path,
-            cache_dir=tmp_path / ".sdd" / "runtime",
-            response_file=tmp_path / ".sdd" / "runtime" / "response.json",
+            cache_dir=tmp_path / ".providence" / "runtime",
+            response_file=tmp_path / ".providence" / "runtime" / "response.json",
         )
 
     def test_response_to_generated_challenge_is_valid(self, tmp_path):

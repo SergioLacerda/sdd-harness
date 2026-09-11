@@ -22,8 +22,8 @@
 
 | Tier | Location | Governed by |
 |------|----------|-------------|
-| Internal SDD skills | `.sdd/skills/`|`governance_adherence:`block in`skill.yaml` |
-| External plugins | Installed elsewhere (e.g. `~/.claude/skills/`) | Entry in `.sdd/plugins/registry.yaml` via agent-mediated handshake |
+| Internal SDD skills | `.providence/skills/`|`governance_adherence:`block in`skill.yaml` |
+| External plugins | Installed elsewhere (e.g. `~/.claude/skills/`) | Entry in `.providence/plugins/registry.yaml` via agent-mediated handshake |
 
 Internal skills are part of SDD core. They do not appear in the plugin registry.
 External plugins are registered at runtime when the agent detects governance and offers registration.
@@ -45,9 +45,9 @@ M017 and M019 are complementary. M019 governs entry; M017 governs execution.
 
 | Mode | When | Behavior |
 |------|------|----------|
-| `governed`| Full`.sdd/` governance found, all HARD mandates resolvable | HARD mandates enforced, execution contract required, artifacts validated against schema |
-| `compatible`|`.sdd/` found but governance is partial or incomplete | Adapts to available rules, reports missing governance context, degrades safely |
-| `standalone`| No`.sdd/` governance found | Operates read-only by default, produces portable artifacts, recommends SDD integration |
+| `governed`| Full`.providence/` governance found, all HARD mandates resolvable | HARD mandates enforced, execution contract required, artifacts validated against schema |
+| `compatible`|`.providence/` found but governance is partial or incomplete | Adapts to available rules, reports missing governance context, degrades safely |
+| `standalone`| No`.providence/` governance found | Operates read-only by default, produces portable artifacts, recommends SDD integration |
 
 The agent determines the mode at registration time based on what governance it finds.
 
@@ -97,6 +97,6 @@ The agent determines the mode at registration time based on what governance it f
 
 - M017 Mandate: `docs/spec/canonical/core/mandates/M017_ANALYSIS_PLUGIN_COMPLIANCE.md`
 
-- `.sdd/plugins/registry.yaml` — live registry
+- `.providence/plugins/registry.yaml` — live registry
 
-- `.sdd/plugins/handshake-protocol.md` — agent-facing protocol
+- `.providence/plugins/handshake-protocol.md` — agent-facing protocol

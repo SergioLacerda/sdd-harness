@@ -98,7 +98,7 @@
         "Running checks based on a timer schedule"
       ],
       "correct_answer": 1,
-      "explanation": "Semantic triggering detects technical keywords (e.g., 'estou conectado', '.sdd') while suppressing on casual phrases (e.g., 'oi', 'obrigado'), avoiding noisy execution."
+      "explanation": "Semantic triggering detects technical keywords (e.g., 'estou conectado', '.providence') while suppressing on casual phrases (e.g., 'oi', 'obrigado'), avoiding noisy execution."
     },
     {
       "id": 7,
@@ -168,7 +168,7 @@
         "They are unrelated concepts"
       ],
       "correct_answer": 1,
-      "explanation": "Seedlings (e.g., .sdd/seedlings/rpg-narrative-server/) are reusable templates. Specializations are customizations derived from seedlings for specific project domains."
+      "explanation": "Seedlings (e.g., .providence/seedlings/rpg-narrative-server/) are reusable templates. Specializations are customizations derived from seedlings for specific project domains."
     },
     {
       "id": 12,
