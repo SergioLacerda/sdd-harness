@@ -38,5 +38,5 @@ class GuidelineRenderer:
                 filepath.write_text(content, encoding="utf-8")
             return True
         except Exception as exc:
-            self._emit(f"  ❌ Error rendering guidelines: {exc}")
+            self._emit(f"   Error rendering guidelines: {exc}")
             return False

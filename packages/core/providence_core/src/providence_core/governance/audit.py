@@ -92,7 +92,7 @@ class GovernanceAuditor:
     def _audit_signatures(
         self, ws: Path, issues: list[AuditIssue], metadata: dict[str, Any]
     ) -> None:
-        compiled_dir = ws / ".sdd" / "compiled"
+        compiled_dir = ws / ".providence" / "compiled"
         if not compiled_dir.is_dir():
             issues.append(
                 AuditIssue(
@@ -115,7 +115,7 @@ class GovernanceAuditor:
                     "MEDIUM",
                     "Trust",
                     "Using legacy keyring location",
-                    "Move trusted-keys.json to .sdd/trust/",
+                    "Move trusted-keys.json to .providence/trust/",
                 )
             )
         elif source == "none":
@@ -124,7 +124,7 @@ class GovernanceAuditor:
                     "CRITICAL",
                     "Trust",
                     "No trusted keyring found",
-                    "Initialize keyring in .sdd/trust/",
+                    "Initialize keyring in .providence/trust/",
                 )
             )
 
@@ -147,7 +147,7 @@ class GovernanceAuditor:
         self, ws: Path, issues: list[AuditIssue], metadata: dict[str, Any]
     ) -> None:
         # Check permissions of sensitive dirs
-        trust_dir = ws / ".sdd" / "trust"
+        trust_dir = ws / ".providence" / "trust"
         if trust_dir.is_dir():
             mode = trust_dir.stat().st_mode & 0o777
             if mode > 0o755:
@@ -156,7 +156,7 @@ class GovernanceAuditor:
                         "MEDIUM",
                         "Permissions",
                         f"Trust directory has insecure permissions: {oct(mode)}",
-                        "chmod 700 .sdd/trust/",
+                        "chmod 700 .providence/trust/",
                     )
                 )
 

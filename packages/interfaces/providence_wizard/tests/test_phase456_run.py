@@ -12,9 +12,9 @@ def _make_generator(tmp_path: Path) -> tuple[SimpleNamespace, list[str]]:
         governance_core_path=tmp_path / "core.json",
         governance_client=tmp_path / "client.json",
         verbose=False,
-        dir=tmp_path / ".sdd",
+        dir=tmp_path / ".providence",
         repo_root=tmp_path,
-        runtime_dir=tmp_path / ".sdd" / "runtime",
+        runtime_dir=tmp_path / ".providence" / "runtime",
         output_base=tmp_path,
         config={"language": "Python"},
         selected_seedlings=None,
@@ -33,7 +33,7 @@ def test_run_phase456_pipeline_returns_loader_errors(
     expected = {
         "success": False,
         "phase": "Phase 4-6",
-        "output_path": str(tmp_path / ".sdd"),
+        "output_path": str(tmp_path / ".providence"),
         "mandates": 0,
         "guidelines": 0,
         "categories": [],
@@ -166,7 +166,7 @@ def test_run_phase456_pipeline_success_path_emits_summary(
             [{"id": "M001"}],
             {"G001": {"id": "G001"}},
             {"core": [{"id": "G001"}]},
-            {"errors": [], "output_path": str(tmp_path / ".sdd")},
+            {"errors": [], "output_path": str(tmp_path / ".providence")},
         ),
     )
     monkeypatch.setattr(

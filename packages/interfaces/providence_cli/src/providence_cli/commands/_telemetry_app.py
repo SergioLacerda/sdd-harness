@@ -4,10 +4,10 @@ Exists solely to break the import cycle between `telemetry.py` and
 `telemetry_query.py` (T13 split): both files need the same Typer `app` to
 attach commands to, and both need the events-path resolution helpers below.
 If either imported the other directly, one would have to be imported before
-it finishes defining `app` — the exact shape flagged by CodeQL's
+it finishes defining `app`  the exact shape flagged by CodeQL's
 cyclic-import query, and also flagged by
 `tools/architecture/validate_cycles.py`, which does not distinguish deferred
-(function-local) imports from module-level ones — any textual
+(function-local) imports from module-level ones  any textual
 cross-reference between the two files counts as a cycle edge to that
 checker. Both files now depend one-way on this module instead of on each
 other.
@@ -24,7 +24,7 @@ from providence_cli.commands._telemetry_command_validation import (
     abort_workspace_resolution,
 )
 from providence_cli.utils.output import is_json_mode
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 from providence_core.governance.compliance_constants import (
     resolve_compliance_log_override,
 )
@@ -43,7 +43,7 @@ def _default_events_path() -> Path:
         root = resolve_workspace_root()
     except Exception as exc:
         raise RuntimeError("failed to resolve workspace root for telemetry") from exc
-    return root / ".sdd" / "runtime" / "compliance-events.jsonl"
+    return root / ".providence" / "runtime" / "compliance-events.jsonl"
 
 
 def _warn_if_telemetry_paths_diverge() -> None:
@@ -55,7 +55,7 @@ def _warn_if_telemetry_paths_diverge() -> None:
     all resolve the same compliance-events JSONL path independently. If an
     operator sets only one, or sets more than one to the same value, there is
     nothing to compare. Only warn when at least two are explicitly set and
-    resolve to different paths — never raise or change exit codes.
+    resolve to different paths  never raise or change exit codes.
     """
     override = resolve_compliance_log_override()
     if not override.diverged_vars:
@@ -64,7 +64,7 @@ def _warn_if_telemetry_paths_diverge() -> None:
         f"{name} ({path})" for name, path in override.diverged_vars.items()
     )
     typer.echo(
-        "WARN: telemetry event log paths diverge — "
+        "WARN: telemetry event log paths diverge  "
         f"using {override.winner_var} ({override.path}), ignoring: {conflicts}; "
         "providence ask and providence telemetry may read/write different event logs.",
         err=True,

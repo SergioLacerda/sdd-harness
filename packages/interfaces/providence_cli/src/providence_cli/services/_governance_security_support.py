@@ -22,7 +22,7 @@ def resolve_compiled_dir_path(
     resolve_profile_fn: Any,
     get_sdd_paths_fn: Any,
 ) -> Path:
-    c_dir = Path(compiled_dir) if compiled_dir else ws_root / ".sdd" / "compiled"
+    c_dir = Path(compiled_dir) if compiled_dir else ws_root / ".providence" / "compiled"
     if not c_dir.exists():
         try:
             active_profile = resolve_profile_fn(root=ws_root).type
@@ -98,7 +98,7 @@ def perform_artifact_signing_flow(
 def update_trusted_keyring_flow(
     *, ws_root: Path, k_path: Path, key_id: str, console: Console
 ) -> None:
-    trust_dir = ws_root / ".sdd" / "trust"
+    trust_dir = ws_root / ".providence" / "trust"
     trust_dir.mkdir(parents=True, exist_ok=True)
     keyring_path = trust_dir / "trusted-keys.json"
     pub_key_path = k_path.with_suffix(".pub.pem")
@@ -138,7 +138,7 @@ def resolve_sign_targets(
     resolve_compiled_dir_fn: Any,
 ) -> tuple[Path, list[str]]:
     if source:
-        return ws_root / ".sdd" / "source", ["governance-core.json"]
+        return ws_root / ".providence" / "source", ["governance-core.json"]
     return resolve_compiled_dir_fn(
         ws_root=ws_root, compiled_dir=compiled_dir, console=console
     ), ["governance-core.json", "governance-client.json"]

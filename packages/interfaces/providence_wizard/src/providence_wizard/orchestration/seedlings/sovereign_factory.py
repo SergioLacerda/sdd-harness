@@ -56,7 +56,7 @@ class SovereignFactoryGenerator(BaseSeedlingGenerator):
 
             if not template_src.exists():
                 logger.warning(
-                    f"  ❌ Sovereign Factory template not found at {template_src}"
+                    f"   Sovereign Factory template not found at {template_src}"
                 )
                 return False
 
@@ -69,7 +69,7 @@ class SovereignFactoryGenerator(BaseSeedlingGenerator):
                 for prompt_file in src_prompts.glob("*.prompt.md"):
                     shutil.copy2(prompt_file, prompts_dest / prompt_file.name)
                 self.log(
-                    f"✅ Planted {len(list(src_prompts.glob('*.prompt.md')))} mission prompts in .github/prompts/"
+                    f" Planted {len(list(src_prompts.glob('*.prompt.md')))} mission prompts in .github/prompts/"
                 )
 
             # 3. Plant Antigravity Skills (e.g. providence SKILL.md for Gemini CLI)
@@ -85,10 +85,10 @@ class SovereignFactoryGenerator(BaseSeedlingGenerator):
                         shutil.copy2(item, dest_file)
                 skill_count = sum(1 for _ in src_antigravity.rglob("*.md"))
                 self.log(
-                    f"✅ Planted antigravity skills in .gemini/antigravity/ ({skill_count} files)"
+                    f" Planted antigravity skills in .gemini/antigravity/ ({skill_count} files)"
                 )
 
             return True
         except Exception as e:
-            logger.error(f"  ❌ Failed to generate Sovereign Factory seed: {e}")
+            logger.error(f"   Failed to generate Sovereign Factory seed: {e}")
             return False

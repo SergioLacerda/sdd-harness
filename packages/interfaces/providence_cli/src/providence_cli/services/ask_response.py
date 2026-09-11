@@ -1,4 +1,4 @@
-"""ask_response — final text response emission for `providence ask`.
+"""ask_response  final text response emission for `providence ask`.
 
 Dossier helpers are injected as callables since they are thin wrappers
 owned by `commands/_ask_backend.py`.
@@ -49,7 +49,7 @@ def emit_ask_text_response(
         if gate == "allowed"
         else "\ngate_reason       : intake_index_mode=none"
         f"\nintake_skipped    : {session.organize_reason} (query {len(inputs.query)} chars"
-        " < 6000; pass ≥6000 chars or use: sdd-organize --input-file <path> <query>)"
+        " < 6000; pass 6000 chars or use: sdd-organize --input-file <path> <query>)"
     )
     typer.echo(
         f"intake_index_mode : {intake_mode}\n"
@@ -112,7 +112,7 @@ def emit_ask_intake_only_text_response(
     """Cheap hook-mode text response: gate + structured intent only.
 
     Deliberately omits fingerprint, mandates count, degraded/drift status,
-    full handbook payloads, and dossier/timing output — those require the full
+    full handbook payloads, and dossier/timing output  those require the full
     governance snapshot this profile exists to avoid loading (spike:
     20260714-sdd-ask-single-entrypoint-spike, A-005/I-005).
     """

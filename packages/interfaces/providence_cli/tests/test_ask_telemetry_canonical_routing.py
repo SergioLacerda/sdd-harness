@@ -22,7 +22,7 @@ def test_debug_and_trace_events_emit_json_and_skip_profile_rendering(
         event_type="context_loaded",
         summary="loaded compiled governance context",
         decision="proceed",
-        artifact_path=".sdd/runtime/governance-state.json",
+        artifact_path=".providence/runtime/governance-state.json",
     )
 
     rendered = route_canonical_event(event, renderer=ProfileRenderer(profile="epic"))

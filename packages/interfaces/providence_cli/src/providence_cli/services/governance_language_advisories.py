@@ -11,7 +11,7 @@ from providence_cli.services.governance_config_reader import (
 )
 
 _PORTUGUESE_MARKER_RE = re.compile(
-    r"\b(não|para|como|uma|idioma|português|governança|artefatos|deve|pode|documentação|estruturada)\b",
+    r"\b(no|para|como|uma|idioma|portugus|governana|artefatos|deve|pode|documentao|estruturada)\b",
     re.IGNORECASE,
 )
 
@@ -79,7 +79,7 @@ def _build_language_governance_advisories(
             "status": "pass" if has_language_guidelines else "warn",
             "message": "Universal language preference guidelines are present."
             if has_language_guidelines
-            else "Language preference guidelines were not found in .sdd/source/guidelines.dsl or .sdd/source/guidelines/*.md.",
+            else "Language preference guidelines were not found in .providence/source/guidelines.dsl or .providence/source/guidelines/*.md.",
         }
     )
 

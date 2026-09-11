@@ -53,10 +53,10 @@ class BaseSeedlingGenerator:
 
             if should_block:
                 msg = f"SDD_ISOLATION_ERROR: Mutation of workspace root blocked ({self.output_base})"
-                self._emit(f"  ❌ {msg}")
+                self._emit(f"   {msg}")
                 raise PermissionError(msg)
 
     def log(self, message: str) -> None:
         """Log."""
         if self.verbose:
-            self._emit(f"  ℹ️  {message}")
+            self._emit(f"    {message}")

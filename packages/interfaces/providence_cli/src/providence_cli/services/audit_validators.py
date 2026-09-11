@@ -32,10 +32,10 @@ def _scan_legacy_paths(root: Path) -> list[str]:
             root / "pyproject.toml",
         ]
     )
-    candidates.extend((root / ".sdd").rglob("*.md"))
-    candidates.extend((root / ".sdd").rglob("*.json"))
-    candidates.extend((root / ".sdd").rglob("*.yaml"))
-    candidates.extend((root / ".sdd").rglob("*.yml"))
+    candidates.extend((root / ".providence").rglob("*.md"))
+    candidates.extend((root / ".providence").rglob("*.json"))
+    candidates.extend((root / ".providence").rglob("*.yaml"))
+    candidates.extend((root / ".providence").rglob("*.yml"))
     for path in candidates:
         if not path.exists() or not path.is_file():
             continue
@@ -62,16 +62,16 @@ def _bootstrap_drift(root: Path) -> dict[str, Any]:
         drift.append("AGENTS.md missing")
     else:
         text = agents.read_text(encoding="utf-8")
-        if ".sdd/agent-instructions.md" not in text:
-            drift.append("AGENTS.md missing .sdd authority reference")
+        if ".providence/agent-instructions.md" not in text:
+            drift.append("AGENTS.md missing .providence authority reference")
         if "./CLAUDE.md" not in text:
             drift.append("AGENTS.md missing Claude bootstrap path")
     if not claude.exists():
         drift.append("CLAUDE.md missing")
     else:
         ctext = claude.read_text(encoding="utf-8")
-        if ".sdd/agent-instructions.md" not in ctext:
-            drift.append("CLAUDE.md not pointing to .sdd/agent-instructions.md")
+        if ".providence/agent-instructions.md" not in ctext:
+            drift.append("CLAUDE.md not pointing to .providence/agent-instructions.md")
     if (root / ".claude" / "agent-instructions.md").exists():
         drift.append("parallel authority file exists at .claude/agent-instructions.md")
     return {"ok": not drift, "issues": drift}

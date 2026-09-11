@@ -14,7 +14,7 @@ from providence_cli.commands._ask_backend._pipeline_snapshot import (
 
 
 def _write_runtime_handbook(root: Path) -> None:
-    handbook_dir = root / ".sdd" / "source" / "handbook"
+    handbook_dir = root / ".providence" / "source" / "handbook"
     item_path = handbook_dir / "context-loading" / "context-flow.yaml"
     item_path.parent.mkdir(parents=True)
     item_path.write_text(
@@ -41,7 +41,7 @@ def _write_runtime_handbook(root: Path) -> None:
                         "id": "HBK-CONTEXT-LOADING",
                         "title": "Context Flow",
                         "source_doc": "docs/cognition/context-loading/context_flow.md",
-                        "runtime_doc": ".sdd/source/handbook/context-loading/context-flow.yaml",
+                        "runtime_doc": ".providence/source/handbook/context-loading/context-flow.yaml",
                         "mandate_refs": ["M003", "M005"],
                         "task_types": ["planning", "implementation", "diagnosis"],
                         "operation_phases": ["context_loading", "planning"],
@@ -94,7 +94,7 @@ def test_build_governed_ask_snapshot_records_runtime_handbook_phase(
     tmp_path: Path,
 ) -> None:
     """When a PhaseTimer is supplied, the handbook lookup is measured as its
-    own ask.runtime.handbook phase (design.md §2, T-02)."""
+    own ask.runtime.handbook phase (design.md 2, T-02)."""
     _write_runtime_handbook(tmp_path)
     timer = PhaseTimer()
     with (
@@ -132,7 +132,7 @@ def test_build_governed_ask_snapshot_records_runtime_handbook_phase(
 def test_build_governed_ask_snapshot_without_phase_timer_records_nothing(
     tmp_path: Path,
 ) -> None:
-    """phase_timer is optional — omitting it must not change behavior or
+    """phase_timer is optional  omitting it must not change behavior or
     error (backward compatibility for every other caller)."""
     _write_runtime_handbook(tmp_path)
     with (
@@ -171,7 +171,7 @@ def test_load_ask_snapshot_records_both_governance_snapshot_and_handbook_phases(
     ask.governance.snapshot span (owned by the caller, per
     test_ask_telemetry_phase_events.py's mocking contract) and the inner
     ask.runtime.handbook span (owned by build_governed_ask_snapshot) must
-    both appear — nested, by design (see _pipeline.py docstring)."""
+    both appear  nested, by design (see _pipeline.py docstring)."""
     from providence_cli.commands._ask_backend._pipeline_session import (
         _load_ask_snapshot,
     )

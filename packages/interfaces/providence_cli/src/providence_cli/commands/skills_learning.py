@@ -17,7 +17,7 @@ from providence_cli.commands._skills_learning_support import (
 )
 from providence_cli.services.skills_output import emit_skills_json as _emit_skills_json
 from providence_cli.utils.output import is_json_mode
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 app = typer.Typer(help="Supervised learning rule commands")
 
@@ -32,7 +32,7 @@ def learning_candidates() -> None:
     ws_root = resolve_workspace_root()
     store = SupervisedLearningStore(ws_root)
     created = [item.__dict__ for item in store.generate_candidates_from_ledger()]
-    candidates_path = ws_root / ".sdd" / "runtime" / "rule-candidates.json"
+    candidates_path = ws_root / ".providence" / "runtime" / "rule-candidates.json"
     emit_learning_candidates(
         created=created,
         candidates=load_candidates(candidates_path),
@@ -136,7 +136,7 @@ def learning_status(
     """Show supervised learning status and recent impact metrics."""
     ws_root = resolve_workspace_root()
     emit_learning_status(
-        build_learning_status(ws_root / ".sdd" / "runtime", window_days=window_days),
+        build_learning_status(ws_root / ".providence" / "runtime", window_days=window_days),
         output_json=_ctx_json(),
         emit_fn=_emit_skills_json,
     )

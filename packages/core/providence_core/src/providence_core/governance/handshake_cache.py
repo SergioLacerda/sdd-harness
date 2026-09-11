@@ -55,7 +55,7 @@ class HandshakeCache:
 
     def extract_governance_core(self) -> dict[str, Any] | None:
         """Load the compiled governance core artifact when available."""
-        candidate = self.project_root / ".sdd" / "compiled" / "governance-core.json"
+        candidate = self.project_root / ".providence" / "compiled" / "governance-core.json"
         if not candidate.exists():
             return None
         try:
@@ -169,7 +169,7 @@ class HandshakeCache:
     def extract_skill_profile(self) -> str:
         """Read the active SDD profile type used by the workspace."""
         try:
-            profile_path = self.project_root / ".sdd" / "profile"
+            profile_path = self.project_root / ".providence" / "profile"
             if not profile_path.exists():
                 return "default"
             parser = configparser.ConfigParser()
@@ -200,7 +200,7 @@ class HandshakeCache:
                 exc_info=True,
             )
         try:
-            profile_path = self.project_root / ".sdd" / "profile"
+            profile_path = self.project_root / ".providence" / "profile"
             if profile_path.exists():
                 parser = configparser.ConfigParser()
                 parser.read(profile_path)

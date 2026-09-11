@@ -1,8 +1,8 @@
-"""Thin wrapper over the canonical .sdd/agent-instructions.md template.
+"""Thin wrapper over the canonical .providence/agent-instructions.md template.
 
 Kept for the initial wizard seedling path's existing call signature; the
 actual content lives in `orchestration.seedlings._agent_instructions_content`
-(see SQ-004 consolidation — the two templates previously drifted independently).
+(see SQ-004 consolidation  the two templates previously drifted independently).
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ def build_agent_instructions(
     mandate_count: int = 0,
     ids_preview: str = "",
 ) -> str:
-    """Render .sdd/agent-instructions.md content for the initial seedling path."""
+    """Render .providence/agent-instructions.md content for the initial seedling path."""
     return build_agent_instructions_content(
         fingerprint=spec_fingerprint,
         generated_at=generated_at,

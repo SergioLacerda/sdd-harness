@@ -5,7 +5,7 @@ mode: agent
 
 ## Source
 
-`.sdd/skills/{{ skill.name }}/skill.yaml`{% if skill.skill_md is defined %} · `.sdd/skills/{{ skill.name }}/SKILL.md`{% endif %}
+`.providence/skills/{{ skill.name }}/skill.yaml`{% if skill.skill_md is defined %} Â· `.providence/skills/{{ skill.name }}/SKILL.md`{% endif %}
 
 ## Required behavior
 
@@ -28,8 +28,8 @@ mode: agent
 
 - Do not invent SDD commands not listed above
 - Do not skip preflight or governance validate
-- Declare degraded mode if `.sdd/skills/registry.json` is unavailable
-- See `.sdd/skills/{{ skill.name }}/SKILL.md` for complete non-compliance rules
+- Declare degraded mode if `.providence/skills/registry.json` is unavailable
+- See `.providence/skills/{{ skill.name }}/SKILL.md` for complete non-compliance rules
 {% endif %}
 
 {% include "_governance_contract.md" %}
@@ -38,4 +38,4 @@ mode: agent
 
 `SDD GOVERNANCE: drift=${status} | governance=${status} | profile={{ skill.name }}`
 
-Agents must prefer `.sdd/source/*` for governance context over compiled artifacts.
+Agents must prefer `.providence/source/*` for governance context over compiled artifacts.

@@ -1,4 +1,4 @@
-"""Tests for providence_cli.commands.tools — list and run command coverage."""
+"""Tests for providence_cli.commands.tools  list and run command coverage."""
 
 from __future__ import annotations
 

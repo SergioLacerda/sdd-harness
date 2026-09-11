@@ -25,14 +25,14 @@ def check_root_seed_drift(workspace_root: Path) -> bool:
     Structurally distinct from `check_fingerprint_drift` below: this compares
     installed root files (AGENTS.md, CLAUDE.md, GEMINI.md) against source
     metadata, not cached runtime state against the currently loaded fingerprint.
-    Intentionally not merged with `check_fingerprint_drift` — see
+    Intentionally not merged with `check_fingerprint_drift`  see
     `governance_config_reader.check_root_seed_drift` for the underlying check.
     """
     from providence_cli.services.governance_config_reader import (
         check_root_seed_drift as _check_root_seed_drift_impl,
     )
 
-    ok, _reason = _check_root_seed_drift_impl(str(workspace_root / ".sdd"))
+    ok, _reason = _check_root_seed_drift_impl(str(workspace_root / ".providence"))
     return not ok
 
 
@@ -44,11 +44,11 @@ def resolve_fingerprint_drift_status(
     Unifies what used to be a bare `bool` (see DRF-01,
     `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`) so a
     caller can tell "compared and found aligned" apart from "had nothing
-    comparable to compare against" — both previously collapsed to `False`,
+    comparable to compare against"  both previously collapsed to `False`,
     which a consumer could misread as a proven absence of drift.
 
     Only ``last_ask.compiled_fingerprint_used`` is ever compared against
-    ``loaded_fingerprint`` — both are compiled-artifact hashes, the same
+    ``loaded_fingerprint``  both are compiled-artifact hashes, the same
     domain. Falling back to ``spec_fingerprint`` (a hash of *source* files)
     was DRF-02: comparing hashes from two different domains produces a
     permanent false positive whenever they diverge for reasons unrelated to
@@ -75,7 +75,7 @@ def check_fingerprint_drift(workspace_root: Path, loaded_fingerprint: str) -> bo
 
     Thin boolean projection of `resolve_fingerprint_drift_status` kept for
     the many existing callers that gate on a plain bool (telemetry payloads,
-    JSON output schema, renderer text) — "unverifiable" and "error" both
+    JSON output schema, renderer text)  "unverifiable" and "error" both
     project to `False`, matching this function's pre-existing contract.
     Prefer `resolve_fingerprint_drift_status` in new code that needs to
     distinguish "confirmed clean" from "nothing to compare against".
@@ -105,7 +105,7 @@ def compute_routing_signature(query: str, skill: str | None, fingerprint: str) -
 
     Combines normalized query text, skill selection, and the compiled
     governance fingerprint. The fingerprint alone already reflects the
-    combined mandates/registry state (`.sdd/metadata.json` ->
+    combined mandates/registry state (`.providence/metadata.json` ->
     `fingerprints.combined`), so no separate registry-version component is
     needed for invalidation.
 
@@ -118,7 +118,7 @@ def compute_routing_signature(query: str, skill: str | None, fingerprint: str) -
     value against a different domain's hash (e.g.
     `GovernanceFingerprinter.generate`'s full 64-char integrity digest, or
     `HandshakeCache.compute_spec_fingerprint`'s 16-char governance-version
-    fingerprint) — same length is not the same domain. See DRF-02 for a
+    fingerprint)  same length is not the same domain. See DRF-02 for a
     concrete historical instance of exactly that mistake.
     """
     normalized_query = " ".join(query.strip().lower().split())

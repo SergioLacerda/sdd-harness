@@ -86,7 +86,7 @@ class TestSpecCommand:
 
 
 # ---------------------------------------------------------------------------
-# validate markdown anchors — empty fragment edge case
+# validate markdown anchors  empty fragment edge case
 # ---------------------------------------------------------------------------
 
 

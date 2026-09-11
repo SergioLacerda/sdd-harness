@@ -102,7 +102,7 @@ class TestOnboardingOrchestrator:
         """governance generate is skipped if governance-core.json already exists."""
         from providence_cli.services.onboarding import OnboardingOrchestrator
 
-        compiled = tmp_path / ".sdd" / "compiled"
+        compiled = tmp_path / ".providence" / "compiled"
         compiled.mkdir(parents=True)
         (compiled / "governance-core.json").write_text("{}", encoding="utf-8")
 
@@ -115,7 +115,7 @@ class TestOnboardingOrchestrator:
     def test_step_governance_runs_when_force(self, tmp_path: Path) -> None:
         from providence_cli.services.onboarding import OnboardingOrchestrator
 
-        compiled = tmp_path / ".sdd" / "compiled"
+        compiled = tmp_path / ".providence" / "compiled"
         compiled.mkdir(parents=True)
         (compiled / "governance-core.json").write_text("{}", encoding="utf-8")
 
@@ -137,7 +137,7 @@ class TestOnboardingOrchestrator:
     def test_step_skills_skips_when_seeded(self, tmp_path: Path) -> None:
         from providence_cli.services.onboarding import OnboardingOrchestrator
 
-        seeds = tmp_path / ".sdd" / "skills"
+        seeds = tmp_path / ".providence" / "skills"
         seeds.mkdir(parents=True)
         (seeds / "x").write_text("ok", encoding="utf-8")
         orc = OnboardingOrchestrator(tmp_path)

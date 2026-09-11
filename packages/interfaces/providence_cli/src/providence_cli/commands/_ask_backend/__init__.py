@@ -1,9 +1,9 @@
-"""providence ask — governed context query command.
+"""providence ask  governed context query command.
 
 Security:
   - Query text is NEVER logged; only sha256[:8] hash is recorded.
   - trace_id is uuid4 local-only; no external correlation.
-  - Compliance JSONL is append-only at .sdd/runtime/compliance-events.jsonl.
+  - Compliance JSONL is append-only at .providence/runtime/compliance-events.jsonl.
 """
 
 from __future__ import annotations

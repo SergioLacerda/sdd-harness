@@ -1,4 +1,4 @@
-"""providence ask — cheap runtime handbook hint lookup (cached).
+"""providence ask  cheap runtime handbook hint lookup (cached).
 
 Split out of `_pipeline.py` (T9,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`).
@@ -35,7 +35,7 @@ _RUNBOOK_SIGNAL_TOKENS = (
     "token budget",
     "budget breach",
     "estouro de contexto",
-    "orçamento de contexto",
+    "oramento de contexto",
 )
 
 
@@ -47,8 +47,8 @@ def _cached_handbook_lookup(
     The default `providence ask` snapshot path re-read and re-matched
     `index.yaml` on every call with zero caching benefit, unlike `--dossier`
     (which already uses this same in-memory LRU cache, 128 entries/5-min TTL,
-    via `ContextLoader`). Reusing that cache here — keyed on the query plus
-    task_type/operation_phase — avoids re-parsing the handbook index for a
+    via `ContextLoader`). Reusing that cache here  keyed on the query plus
+    task_type/operation_phase  avoids re-parsing the handbook index for a
     repeated/near-identical query within the TTL window.
     """
     from providence_cli.services.governance_docs_handbook_lookup import (
@@ -111,7 +111,7 @@ def build_runtime_handbook_hint(
     """Return a compact runtime-only handbook hint for cheap ask profiles.
 
     This is intentionally narrower than the full governed snapshot. It reads only
-    generated runtime handbook files under `.sdd/source/handbook/**`, and it
+    generated runtime handbook files under `.providence/source/handbook/**`, and it
     emits a hint only when the query has operational/runbook symptoms.
     """
     relevance_reason = _runbook_relevance_reason(query)

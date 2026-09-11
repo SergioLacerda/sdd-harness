@@ -103,7 +103,7 @@ def _run_wizard(
         if "SDD Project root not found" in message:
             click.echo("ERROR: No SDD project context found in the current directory.")
             click.echo(
-                "Run from your project root (where you want .sdd/ to be created)."
+                "Run from your project root (where you want .providence/ to be created)."
             )
             click.echo("Example:")
             click.echo("  mkdir my-project && cd my-project")

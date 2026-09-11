@@ -19,8 +19,8 @@ def _write_workspace_files(
     version: str = "3.0",
     mandates_count: int = 8,
 ) -> None:
-    (root / ".sdd" / "source").mkdir(parents=True, exist_ok=True)
-    (root / ".sdd" / "metadata.json").write_text(
+    (root / ".providence" / "source").mkdir(parents=True, exist_ok=True)
+    (root / ".providence" / "metadata.json").write_text(
         json.dumps(
             {
                 "spec_fingerprint": fingerprint,
@@ -30,7 +30,7 @@ def _write_workspace_files(
         ),
         encoding="utf-8",
     )
-    (root / ".sdd" / "source" / "governance-core.json").write_text(
+    (root / ".providence" / "source" / "governance-core.json").write_text(
         json.dumps({"items": []}), encoding="utf-8"
     )
 
@@ -44,7 +44,7 @@ class TestBootstrapCommand:
         run(session_guard_hours=4)
         out = capsys.readouterr().out
 
-        state_path = tmp_path / ".sdd" / "runtime" / "bootstrap-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "bootstrap-state.json"
         assert state_path.exists()
         data = json.loads(state_path.read_text(encoding="utf-8"))
         assert data["governance_fingerprint"] == "fp-123"
@@ -68,13 +68,13 @@ class TestBootstrapCommand:
         monkeypatch.chdir(tmp_path)
         run(session_guard_hours=4)
         first = json.loads(
-            (tmp_path / ".sdd" / "runtime" / "bootstrap-state.json").read_text(
+            (tmp_path / ".providence" / "runtime" / "bootstrap-state.json").read_text(
                 encoding="utf-8"
             )
         )
         run(session_guard_hours=4)
         second = json.loads(
-            (tmp_path / ".sdd" / "runtime" / "bootstrap-state.json").read_text(
+            (tmp_path / ".providence" / "runtime" / "bootstrap-state.json").read_text(
                 encoding="utf-8"
             )
         )
@@ -106,12 +106,12 @@ class TestBootstrapCommand:
     def test_run_falls_back_to_governance_items_when_mandates_count_missing(
         self, tmp_path: Path, monkeypatch, capsys
     ) -> None:
-        (tmp_path / ".sdd" / "source").mkdir(parents=True, exist_ok=True)
-        (tmp_path / ".sdd" / "metadata.json").write_text(
+        (tmp_path / ".providence" / "source").mkdir(parents=True, exist_ok=True)
+        (tmp_path / ".providence" / "metadata.json").write_text(
             json.dumps({"spec_fingerprint": "fp-fallback", "version": "3.1"}),
             encoding="utf-8",
         )
-        (tmp_path / ".sdd" / "source" / "governance-core.json").write_text(
+        (tmp_path / ".providence" / "source" / "governance-core.json").write_text(
             json.dumps({"items": [{}, {}, {}]}), encoding="utf-8"
         )
         monkeypatch.chdir(tmp_path)

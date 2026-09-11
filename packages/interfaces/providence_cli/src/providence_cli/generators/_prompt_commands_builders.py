@@ -44,8 +44,8 @@ _HARD_MODE_FIELD_CONTRACT = (
 
 _AUDIT_JSON_NOTE = (
     "\nAudit JSON policy:\n"
-    "- `.sdd/compiled/audit/*.json` is human/audit oriented.\n"
-    "- Agents should prefer `.sdd/source/*` for human-readable governance context and\n"
+    "- `.providence/compiled/audit/*.json` is human/audit oriented.\n"
+    "- Agents should prefer `.providence/source/*` for human-readable governance context and\n"
     "  runtime checks (`providence runtime status`, `providence ask --full`) for operational state.\n"
 )
 
@@ -103,7 +103,7 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
             + "\n\n"
             "Response contract:\n"
             "- Show `fingerprint`, `context_source`, and `mandates_loaded` from runtime output.\n"
-            "- Treat `.sdd` runtime artifacts as source of truth for these fields.\n"
+            "- Treat `.providence` runtime artifacts as source of truth for these fields.\n"
             + _ASK_500_FALLBACK_NOTE,
         )
 
@@ -114,7 +114,7 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
             "agent",
             "Prepare large/noisy input before diagnosis or ask.\n\n"
             'Execute in the terminal:\n```bash\nprovidence organize "$QUERY"\n```\n\n'
-            "Use `.sdd/runtime/ask-intake/` artifacts for selective retrieval.\n"
+            "Use `.providence/runtime/ask-intake/` artifacts for selective retrieval.\n"
             + _HARD_MODE_FIELD_CONTRACT,
         )
 
@@ -145,5 +145,5 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
         f"Run {slug}",
         "agent",
         "Run the mapped governed operation for this command as defined in "
-        "`.sdd/commands/registry.json`." + _HARD_MODE_FIELD_CONTRACT,
+        "`.providence/commands/registry.json`." + _HARD_MODE_FIELD_CONTRACT,
     )

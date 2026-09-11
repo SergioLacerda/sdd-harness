@@ -76,7 +76,7 @@ def test_generate_standalone_never_touches_the_network(
 def test_generate_standalone_against_real_repo(tmp_path: Path) -> None:
     # tests/ -> providence_adapters/ -> features/ -> packages/ -> repo root
     repo_root = Path(__file__).resolve().parents[4]
-    assert (repo_root / ".sdd" / "metadata.json").exists(), (
+    assert (repo_root / "pyproject.toml").exists(), (
         "sanity check: adjust the parents[] index above if the package moves"
     )
 

@@ -1,4 +1,4 @@
-"""GuidelinesWriter — generates .sdd/source/guidelines/<category>.md files."""
+"""GuidelinesWriter  generates .providence/source/guidelines/<category>.md files."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ class GuidelinesWriter:
                 guidelines_file = self._guidelines_dir / f"{category}.md"
                 content = f"""# {friendly_name} Guidelines
 
-⚡ IA-FIRST DESIGN NOTICE
+ IA-FIRST DESIGN NOTICE
 - **Status**: Customizable best practices
 - **Optimization**: Optimized for AI agent parsing
 - **Category**: {friendly_name}
@@ -82,5 +82,5 @@ Guidelines in this category provide structured recommendations for {friendly_nam
                 self._log(f"Generated {category}.md ({len(guidelines)} guidelines)")
             return True
         except Exception as e:
-            print(f"  ❌ Failed to generate guidelines files: {e}")  # noqa: T201
+            print(f"   Failed to generate guidelines files: {e}")  # noqa: T201
             return False

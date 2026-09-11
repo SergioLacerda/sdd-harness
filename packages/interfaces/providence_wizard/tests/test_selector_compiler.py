@@ -25,11 +25,11 @@ def _write_repo_fixture(
     metadata: dict[str, object],
     mandates_text: str,
 ) -> Path:
-    (tmp_path / ".sdd" / "source" / "mandates").mkdir(parents=True)
-    (tmp_path / ".sdd" / "metadata.json").write_text(
+    (tmp_path / ".providence" / "source" / "mandates").mkdir(parents=True)
+    (tmp_path / ".providence" / "metadata.json").write_text(
         json.dumps(metadata), encoding="utf-8"
     )
-    (tmp_path / ".sdd" / "source" / "mandates" / "mandates.md").write_text(
+    (tmp_path / ".providence" / "source" / "mandates" / "mandates.md").write_text(
         mandates_text,
         encoding="utf-8",
     )
@@ -188,7 +188,7 @@ def _write_repo_fixture_with_guidelines(
     repo_root = _write_repo_fixture(
         tmp_path, metadata=metadata, mandates_text=mandates_text
     )
-    (repo_root / ".sdd" / "source" / "guidelines.dsl").write_text(
+    (repo_root / ".providence" / "source" / "guidelines.dsl").write_text(
         guidelines_dsl, encoding="utf-8"
     )
     return repo_root
@@ -294,14 +294,14 @@ Domain logic must stay isolated from infrastructure details.
 
 
 # ---------------------------------------------------------------------------
-# Fallback paths: no .sdd artifacts
+# Fallback paths: no .providence artifacts
 # ---------------------------------------------------------------------------
 
 
 def test_selector_compiler_no_sdd_and_no_canonical_docs_returns_empty(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """When neither .sdd nor docs/spec/canonical exist, items are empty and a WARN is printed."""
+    """When neither .providence nor docs/spec/canonical exist, items are empty and a WARN is printed."""
     compiler = SelectorCompiler(repo_root=tmp_path)
 
     payload = compiler.build_payload()
@@ -314,7 +314,7 @@ def test_selector_compiler_no_sdd_and_no_canonical_docs_returns_empty(
 def test_selector_compiler_falls_back_to_canonical_docs(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """When .sdd is missing but docs/spec/canonical has mandate docs, they are used."""
+    """When .providence is missing but docs/spec/canonical has mandate docs, they are used."""
     monkeypatch.setattr(canonical_fallback_module, "_BOOTSTRAP_GUIDELINES", None)
     canonical_dir = tmp_path / "docs" / "spec" / "canonical"
     canonical_dir.mkdir(parents=True)
@@ -349,7 +349,7 @@ Domain logic must stay isolated from infrastructure details.
         == "Domain logic must stay isolated from infrastructure details."
     )
     captured = capsys.readouterr()
-    assert "INFO: .sdd artifacts not found" in captured.err
+    assert "INFO: .providence artifacts not found" in captured.err
 
 
 def test_selector_compiler_canonical_doc_without_id_or_title_is_skipped(
@@ -567,7 +567,7 @@ def test_selector_compiler_bootstrap_guidelines_none_returns_no_guideline_items(
 
 
 # ---------------------------------------------------------------------------
-# Error branches on the primary .sdd path
+# Error branches on the primary .providence path
 # ---------------------------------------------------------------------------
 
 
@@ -591,11 +591,11 @@ Domain logic must stay isolated from infrastructure details.
 
 def test_selector_compiler_metadata_mandates_must_be_mapping(tmp_path: Path) -> None:
     """A non-dict 'mandates' value in metadata.json raises ValueError."""
-    (tmp_path / ".sdd" / "source" / "mandates").mkdir(parents=True)
-    (tmp_path / ".sdd" / "metadata.json").write_text(
+    (tmp_path / ".providence" / "source" / "mandates").mkdir(parents=True)
+    (tmp_path / ".providence" / "metadata.json").write_text(
         json.dumps({"mandates": ["M001"]}), encoding="utf-8"
     )
-    (tmp_path / ".sdd" / "source" / "mandates" / "mandates.md").write_text(
+    (tmp_path / ".providence" / "source" / "mandates" / "mandates.md").write_text(
         "## M001: Clean Architecture\n\nDescription.\n", encoding="utf-8"
     )
 

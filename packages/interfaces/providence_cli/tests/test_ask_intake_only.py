@@ -1,4 +1,4 @@
-"""Tests for `providence ask --intake-only` — the cheap hook-mode profile.
+"""Tests for `providence ask --intake-only`  the cheap hook-mode profile.
 
 Spike follow-up: 20260714-sdd-ask-single-entrypoint-spike (A-005/I-005/I-006).
 `--intake-only` must compute execution_gate/intake_index_mode/intent without
@@ -64,7 +64,7 @@ def _patch_cheap_session(tmp_path: Path, *, organize_used: bool, organize_reason
 
 
 def _write_runtime_handbook(root: Path) -> None:
-    handbook_dir = root / ".sdd" / "source" / "handbook"
+    handbook_dir = root / ".providence" / "source" / "handbook"
     context_item = handbook_dir / "context-loading" / "context-flow.yaml"
     runbook_item = handbook_dir / "runbooks" / "index.yaml"
     context_item.parent.mkdir(parents=True)
@@ -110,14 +110,14 @@ items:
   - id: HBK-CONTEXT-LOADING
     title: Context Flow
     source_doc: docs/cognition/context-loading/context_flow.md
-    runtime_doc: .sdd/source/handbook/context-loading/context-flow.yaml
+    runtime_doc: .providence/source/handbook/context-loading/context-flow.yaml
     mandate_refs: [M003, M005]
     task_types: [planning, implementation, diagnosis]
     operation_phases: [context_loading, planning]
   - id: HBK-RUNBOOK-CONSULTATION
     title: Runbook Consultation
     source_doc: docs/runbooks/README.md
-    runtime_doc: .sdd/source/handbook/runbooks/index.yaml
+    runtime_doc: .providence/source/handbook/runbooks/index.yaml
     mandate_refs: [M003, M005]
     task_types: [planning, implementation, diagnosis]
     operation_phases: [context_loading, planning]
@@ -257,7 +257,7 @@ def test_intake_only_text_response_surfaces_compact_runbook_hint(
     stdout = capsys.readouterr().out
     assert (
         "runtime_handbook : HBK-RUNBOOK-CONSULTATION -> "
-        ".sdd/source/handbook/runbooks/index.yaml"
+        ".providence/source/handbook/runbooks/index.yaml"
     ) in stdout
     assert "runbook_reason   : runtime runbook signal matched:" in stdout
     assert "delegation_executed : false" in stdout
@@ -311,7 +311,7 @@ def test_intake_only_json_response_surfaces_runtime_only_runbook_hint(
     assert hint["status"] == "matched"
     assert hint["diagnostic"] == "handbook_match=2"
     assert hint["id"] == "HBK-RUNBOOK-CONSULTATION"
-    assert hint["runtime_doc"] == ".sdd/source/handbook/runbooks/index.yaml"
+    assert hint["runtime_doc"] == ".providence/source/handbook/runbooks/index.yaml"
     assert hint["relevance_reason"].startswith("runtime runbook signal matched:")
     assert "source_doc" not in hint
     assert "runtime_handbook" not in data

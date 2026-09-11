@@ -8,7 +8,7 @@ import typer
 from rich.console import Console
 
 from providence_cli.services.command_group_output import show_command_group
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 app = typer.Typer(
     help="Devin governance plugin generation", invoke_without_command=True
@@ -35,7 +35,7 @@ def build(
         ),
     ),
     # bool | None (not a plain bool) so we can tell "user didn't pass either
-    # flag" (None) apart from "user explicitly passed --skills" (True) — the
+    # flag" (None) apart from "user explicitly passed --skills" (True)  the
     # latter is a usage error together with --standalone, the former is not.
     skills: bool | None = typer.Option(
         None,
@@ -68,8 +68,8 @@ def build(
     if standalone:
         if skills:
             console.print(
-                "[red]--standalone and --skills cannot be used together[/red] — "
-                "skills are SDD-branded content (sourced from .sdd/skills/, "
+                "[red]--standalone and --skills cannot be used together[/red]  "
+                "skills are SDD-branded content (sourced from .providence/skills/, "
                 "documenting sdd-prefixed CLI commands), which contradicts "
                 "--standalone's zero-SDD-mention guarantee."
             )

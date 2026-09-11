@@ -1,4 +1,4 @@
-"""providence ask — governed snapshot builder.
+"""providence ask  governed snapshot builder.
 
 Split out of `_pipeline.py` (T9,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`).
@@ -30,12 +30,12 @@ def build_governed_ask_snapshot(
     """Build a governed ask snapshot with envelope + learning context.
 
     Callers that measure `ask.governance.snapshot` (e.g. `_load_ask_snapshot`)
-    own that outer span themselves, wrapping the whole call — this keeps
+    own that outer span themselves, wrapping the whole call  this keeps
     that phase observable even when this function is replaced by a test
     double. When `phase_timer` is supplied, the handbook lookup is
     additionally measured as its own `ask.runtime.handbook` phase. Because
     that phase is typically nested inside a caller's own
-    `ask.governance.snapshot` span, its duration is counted in both —
+    `ask.governance.snapshot` span, its duration is counted in both 
     a known, documented limitation of `PhaseTimer.phase_total_ms()` /
     `unattributed_ms()` not being nesting-aware. The handbook lookup is a
     small fraction of the overall snapshot build, so the effect is minor.
@@ -70,7 +70,7 @@ def build_governed_ask_snapshot(
             degrade_reason,
             trust_source,
         ) = _backend._load_compiled_governance(root)
-        # Only a fresh (cache-miss) load is worth persisting — re-persisting on
+        # Only a fresh (cache-miss) load is worth persisting  re-persisting on
         # a hit would slide `computed_at` forward without ever re-verifying
         # against the real compiled state, defeating the TTL bound that keeps
         # a post-recompile cache hit self-healing (design.md D-A).
@@ -124,7 +124,7 @@ def build_governed_ask_snapshot(
             "diagnostic": handbook_lookup.diagnostic,
             "matches": handbook_lookup.matches,
         },
-        # Internal plumbing for the end-of-call write site (design.md D-A) —
+        # Internal plumbing for the end-of-call write site (design.md D-A) 
         # None on a cache hit (nothing new to persist), the fresh compiled-
         # governance fields on a miss. Never surfaced in text/JSON output;
         # downstream consumers only read known top-level fields by name.

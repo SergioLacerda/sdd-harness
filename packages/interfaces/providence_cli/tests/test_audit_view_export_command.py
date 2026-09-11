@@ -140,11 +140,11 @@ def test_audit_legacy_check_blocks_in_q4_with_hits(tmp_path: Path) -> None:
 
 def test_audit_bootstrap_check_ok(tmp_path: Path) -> None:
     (tmp_path / "AGENTS.md").write_text(
-        "Initial reference: .sdd/agent-instructions.md\nClaude: ./CLAUDE.md\n",
+        "Initial reference: .providence/agent-instructions.md\nClaude: ./CLAUDE.md\n",
         encoding="utf-8",
     )
     (tmp_path / "CLAUDE.md").write_text(
-        "Read .sdd/agent-instructions.md", encoding="utf-8"
+        "Read .providence/agent-instructions.md", encoding="utf-8"
     )
     with patch(
         "providence_cli.commands.audit_export_commands.resolve_workspace_root",
@@ -156,7 +156,7 @@ def test_audit_bootstrap_check_ok(tmp_path: Path) -> None:
 
 
 def test_audit_compliance_pack_generates_files(tmp_path: Path) -> None:
-    events_file = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+    events_file = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
     _write_view_events(events_file)
     out_dir = tmp_path / "pack"
 
@@ -200,7 +200,7 @@ def test_audit_compliance_pack_generates_files(tmp_path: Path) -> None:
 def test_audit_compliance_pack_missing_providence_cli_module_exits_1(
     tmp_path: Path,
 ) -> None:
-    events_file = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+    events_file = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
     _write_view_events(events_file)
     out_dir = tmp_path / "pack"
 

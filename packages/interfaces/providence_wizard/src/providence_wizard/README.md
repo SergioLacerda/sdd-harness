@@ -41,29 +41,29 @@ Contract types:
 
 ```text
 providence_wizard/
-├── contracts.py
-├── main.py
-├── application/
-│   ├── session_bootstrap.py
-│   ├── preferences_flow.py
-│   ├── phase_runtime.py
-│   ├── generation_runtime.py
-│   ├── seedling_bridge.py
-│   ├── workspace_runtime.py
-│   ├── operator_state.py
-│   ├── finalization.py
-│   └── interactive_wizard.py
-├── orchestration/
-│   ├── phase_4_5_6_generator.py
-│   ├── phase4_governance_loader.py
-│   ├── phase5_artifact_compiler.py
-│   ├── phase6_output_validator.py
-│   ├── phase6_seedlings_orchestrator.py
-│   ├── deployer/
-│   ├── seedlings/
-│   ├── wizard/
-│   └── writers/
-└── templates/
+ contracts.py
+ main.py
+ application/
+    session_bootstrap.py
+    preferences_flow.py
+    phase_runtime.py
+    generation_runtime.py
+    seedling_bridge.py
+    workspace_runtime.py
+    operator_state.py
+    finalization.py
+    interactive_wizard.py
+ orchestration/
+    phase_4_5_6_generator.py
+    phase4_governance_loader.py
+    phase5_artifact_compiler.py
+    phase6_output_validator.py
+    phase6_seedlings_orchestrator.py
+    deployer/
+    seedlings/
+    wizard/
+    writers/
+ templates/
 ```
 
 ## Architectural responsibilities

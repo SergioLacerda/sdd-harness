@@ -91,7 +91,7 @@ def run_governance_preflight_cmd(
 
     console.print(
         Panel(
-            f"[bold cyan]Preflight (dry run — nothing executed)[/bold cyan]\n{path}",
+            f"[bold cyan]Preflight (dry run  nothing executed)[/bold cyan]\n{path}",
             border_style="cyan",
         )
     )
@@ -108,6 +108,6 @@ def run_governance_preflight_cmd(
         console.print("[green]Dry run: all checks would pass[/green]")
     else:
         console.print(
-            "[yellow]Dry run: one or more checks would fail — "
+            "[yellow]Dry run: one or more checks would fail  "
             "no action taken, run 'providence governance validate' for the enforcing gate[/yellow]"
         )

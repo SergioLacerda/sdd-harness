@@ -205,6 +205,6 @@ class TestSeedlingsOrchestrator:
         self, tmp_path: Path
     ) -> None:
         orch = _make_orchestrator(tmp_path)
-        # governance_core_path doesn't exist → returns it as fallback
+        # governance_core_path doesn't exist  returns it as fallback
         result = orch._resolve_governance_path()
         assert result == orch.governance_core_path

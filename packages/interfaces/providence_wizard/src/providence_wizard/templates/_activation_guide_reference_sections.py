@@ -45,11 +45,11 @@ Use this routing model when handling user requests:
 
 
 def _verification_section(mandate_ids_joined: str) -> str:
-    return f"""## 🧪 Verification
+    return f"""##  Verification
 
 ### Automatic Check
 ```bash
-python3 .sdd/seedlings/verify.py
+python3 .providence/seedlings/verify.py
 ```
 
 This will verify:
@@ -63,13 +63,13 @@ This will verify:
 
 **Check 1: Directory Structure**
 ```bash
-find . -name ".sdd" -o -name ".sdd/seedlings"
+find . -name ".providence" -o -name ".providence/seedlings"
 # Should show both directories
 ```
 
 **Check 2: Seed Files Valid**
 ```bash
-python3 -m json.tool .sdd/seedlings/governance.seed.json
+python3 -m json.tool .providence/seedlings/governance.seed.json
 # Should print formatted JSON
 ```
 
@@ -94,13 +94,13 @@ Agent should cite: {mandate_ids_joined}
 
 
 def _troubleshooting_section(fingerprint: str) -> str:
-    return f"""## 🔧 Troubleshooting
+    return f"""##  Troubleshooting
 
 ### Problem: Seedlings not loading
 **Check:**
-1. Does `.sdd/seedlings/` directory exist?
+1. Does `.providence/seedlings/` directory exist?
 2. Are all 5 files present and not corrupted?
-3. Run: `python3 .sdd/seedlings/verify.py`
+3. Run: `python3 .providence/seedlings/verify.py`
 
 **Fix:**
 - Regenerate seedlings from wizard
@@ -108,18 +108,18 @@ def _troubleshooting_section(fingerprint: str) -> str:
 
 ### Problem: Agent doesn't know mandates
 **Check:**
-1. Does `.sdd/source/mandates/mandates.md` exist?
+1. Does `.providence/source/mandates/mandates.md` exist?
 2. Is it readable and has content?
 3. Restart IDE and try again
 
 **Fix:**
-- Verify `.sdd/` was copied completely
+- Verify `.providence/` was copied completely
 - Restart IDE
 - Reload agent context
 
 ### Problem: Fingerprint validation failing
 **Check:**
-1. Was `.sdd/metadata.json` copied correctly?
+1. Was `.providence/metadata.json` copied correctly?
 2. Run: `providence doctor` (if installed)
 
 **Expected value:** {fingerprint}
@@ -131,7 +131,7 @@ def _troubleshooting_section(fingerprint: str) -> str:
 ### Problem: prompts hanging or erroring in Claude Code / Codex CLI / Gemini CLI
 **Check:**
 1. Is `handshake_mode: hook` active (every prompt routes through
-   `.sdd/runtime/hooks/prompt-submit.py`)?
+   `.providence/runtime/hooks/prompt-submit.py`)?
 2. Is `sdd` itself broken, slow, or misconfigured?
 
 **Fix:**
@@ -145,7 +145,7 @@ def _troubleshooting_section(fingerprint: str) -> str:
 
 
 def _footer_section(generated_at: str) -> str:
-    return f"""## 📚 More Information
+    return f"""##  More Information
 
 - [Intelligent Seedlings Guide](../../../../docs/guides/intelligent-seedlings-guide.md)
 - [GAP v1.0 Specification](../../../../docs/guides/governance-activation.md)
@@ -154,15 +154,15 @@ def _footer_section(generated_at: str) -> str:
 
 ---
 
-## ✨ After Activation
+##  After Activation
 
 Once activated, your project will:
 
-✅ **Auto-load governance** on project open
-✅ **Give agents access** to mandates and guidelines
-✅ **Validate compliance** through selected CI/runtime checks
-✅ **Enforce rules** in CI/CD pipelines
-✅ **Track fingerprint** to detect drift
+ **Auto-load governance** on project open
+ **Give agents access** to mandates and guidelines
+ **Validate compliance** through selected CI/runtime checks
+ **Enforce rules** in CI/CD pipelines
+ **Track fingerprint** to detect drift
 
 ---
 

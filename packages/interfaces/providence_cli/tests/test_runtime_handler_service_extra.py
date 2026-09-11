@@ -10,7 +10,7 @@ from providence_cli.services import runtime_handler_status as runtime_status_mod
 
 
 def test_read_workspace_id_and_profile_from_ini(tmp_path: Path, monkeypatch) -> None:
-    profile = tmp_path / ".sdd" / "profile"
+    profile = tmp_path / ".providence" / "profile"
     profile.parent.mkdir(parents=True)
     profile.write_text("[sdd]\nworkspace_id = ws-1\ntype = client\n", encoding="utf-8")
     monkeypatch.setattr(runtime_mod, "profile_active_path", lambda root: profile)
@@ -20,7 +20,7 @@ def test_read_workspace_id_and_profile_from_ini(tmp_path: Path, monkeypatch) -> 
 
 def test_check_cache_staleness_and_footer_status(tmp_path: Path) -> None:
     assert runtime_status_mod._check_cache_staleness(tmp_path)["missing"] is True
-    cache = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
+    cache = tmp_path / ".providence" / "runtime" / ".sdd-cache.md"
     cache.parent.mkdir(parents=True)
     cache.write_text("x", encoding="utf-8")
     info = runtime_status_mod._check_cache_staleness(tmp_path)
@@ -45,7 +45,7 @@ def test_normalize_report_and_show_ask_confidence(tmp_path: Path, capsys) -> Non
     assert normalized["ok"] is True
     assert normalized["other"] == "/tmp/x"
 
-    state = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state = tmp_path / ".providence" / "runtime" / "governance-state.json"
     state.parent.mkdir(parents=True)
     state.write_text(
         json.dumps(
@@ -108,7 +108,7 @@ def test_emit_runtime_status_handles_missing_compiled_dir(
 
 
 def test_emit_runtime_status_emits_drift(monkeypatch, tmp_path: Path) -> None:
-    compiled = tmp_path / ".sdd" / "compiled"
+    compiled = tmp_path / ".providence" / "compiled"
     compiled.mkdir(parents=True)
     events: list[dict] = []
     emitted: list[str] = []
@@ -169,11 +169,11 @@ def test_emit_runtime_status_classifies_against_previous_session_not_current(
 ) -> None:
     """DRF-03 regression: `classify()` must receive the session persisted on
     a *prior* call, never the session object just built from the current
-    artifact — comparing the artifact to a session built from itself always
+    artifact  comparing the artifact to a session built from itself always
     reports "aligned" regardless of real drift.
     `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` DRF-03.
     """
-    compiled = tmp_path / ".sdd" / "compiled"
+    compiled = tmp_path / ".providence" / "compiled"
     compiled.mkdir(parents=True)
 
     class _RealishSessionManager:
@@ -249,7 +249,7 @@ def test_emit_runtime_status_classifies_against_previous_session_not_current(
         lambda workspace_root: workspace_root / "events.jsonl",
     )
 
-    # First call: no previous session exists yet — must not report drift.
+    # First call: no previous session exists yet  must not report drift.
     first = runtime_mod._emit_runtime_status(
         root=tmp_path,
         ahp_state="HEALTHY",

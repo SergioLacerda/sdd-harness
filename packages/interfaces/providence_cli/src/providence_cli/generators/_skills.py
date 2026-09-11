@@ -1,4 +1,4 @@
-"""Skills registry generator — externalizes skill definitions to .sdd/skills/ directory."""
+"""Skills registry generator  externalizes skill definitions to .providence/skills/ directory."""
 
 from pathlib import Path
 from typing import Any
@@ -8,9 +8,9 @@ def generate_skills_registry(output_dir: str, config: dict[str, Any]) -> dict[st
     """Generate skill definitions and registry from SkillEngine.
 
     Writes:
-    - .sdd/skills/registry.json — index of all skills
-    - .sdd/skills/<skill_name>/skill.yaml — individual skill definitions
-    - .sdd/skills/SKILLS.md — human-readable skills documentation
+    - .providence/skills/registry.json  index of all skills
+    - .providence/skills/<skill_name>/skill.yaml  individual skill definitions
+    - .providence/skills/SKILLS.md  human-readable skills documentation
 
     Args:
         output_dir: Base output directory (workspace root)
@@ -26,13 +26,13 @@ def generate_skills_registry(output_dir: str, config: dict[str, Any]) -> dict[st
         from providence_runtime._skill_registry import SkillRegistry
         from providence_runtime.skills import _REGISTRY
 
-        # Use canonical _REGISTRY as source of truth — bypasses stale disk registry.
+        # Use canonical _REGISTRY as source of truth  bypasses stale disk registry.
         skill_registry = SkillRegistry(_REGISTRY, Path("/nonexistent"))
         skills_payload = skill_registry.export_skills_payload(fmt="json")
         skills_list = skills_payload.get("skills", [])
 
         output_path = Path(output_dir)
-        skills_dir = output_path / ".sdd" / "skills"
+        skills_dir = output_path / ".providence" / "skills"
         skills_dir.mkdir(parents=True, exist_ok=True)
 
         # 1. Write individual skill YAML files
@@ -79,7 +79,7 @@ def generate_skills_registry(output_dir: str, config: dict[str, Any]) -> dict[st
                     "description": skill.get("description"),
                     "risk_score": skill.get("risk_score"),
                     "status": skill.get("status"),
-                    "skill_yaml": f".sdd/skills/{skill.get('name')}/skill.yaml",
+                    "skill_yaml": f".providence/skills/{skill.get('name')}/skill.yaml",
                 }
                 for skill in skills_list
             ],
@@ -144,7 +144,7 @@ def _generate_skills_documentation(skills: list[dict[str, Any]]) -> str:
                 "",
                 f"{description}",
                 "",
-                f"**YAML:** `.sdd/skills/{name}/skill.yaml`",
+                f"**YAML:** `.providence/skills/{name}/skill.yaml`",
                 "",
             ]
         )

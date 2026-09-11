@@ -23,23 +23,23 @@ def test_collect_preferences_builds_language_context() -> None:
             "Alertas": "warn_mode",
             "Bloquear": "strict_mode",
         },
-        interaction_language_choices=["English", "Português (Brasil)"],
+        interaction_language_choices=["English", "Portugus (Brasil)"],
         local_docs_language_choices=[
             "English",
-            "Português (Brasil)",
+            "Portugus (Brasil)",
             "Same as interaction",
         ],
-        locale_by_language={"English": "en", "Português (Brasil)": "pt-BR"},
+        locale_by_language={"English": "en", "Portugus (Brasil)": "pt-BR"},
         handshake_choices=_HANDSHAKE_CHOICES,
         handshake_map=_HANDSHAKE_MAP,
     )
     assert config["enforcement_mode"] == "warn_mode"
     assert config["language"] == "all"
     assert config["locale"] == "pt-BR"
-    assert config["docs_language"] == "Português (Brasil)"
+    assert config["docs_language"] == "Portugus (Brasil)"
     assert config["docs_locale"] == "pt-BR"
     assert config["language_context"]["preferred_local_docs_language"] == (
-        "Português (Brasil)"
+        "Portugus (Brasil)"
     )
 
 
@@ -53,13 +53,13 @@ def test_collect_preferences_includes_handshake_mode() -> None:
             "Alertas": "warn_mode",
             "Bloquear": "strict_mode",
         },
-        interaction_language_choices=["English", "Português (Brasil)"],
+        interaction_language_choices=["English", "Portugus (Brasil)"],
         local_docs_language_choices=[
             "English",
-            "Português (Brasil)",
+            "Portugus (Brasil)",
             "Same as interaction",
         ],
-        locale_by_language={"English": "en", "Português (Brasil)": "pt-BR"},
+        locale_by_language={"English": "en", "Portugus (Brasil)": "pt-BR"},
         handshake_choices=_HANDSHAKE_CHOICES,
         handshake_map=_HANDSHAKE_MAP,
     )
@@ -90,7 +90,7 @@ class TestResolveNonInteractivePreferences:
         assert config["locale"] == "pt-BR"
         assert (
             config["language_context"]["preferred_human_language"]
-            == "Português (Brasil)"
+            == "Portugus (Brasil)"
         )
 
     def test_reuses_existing_wizard_config_when_present(self, tmp_path: Path) -> None:

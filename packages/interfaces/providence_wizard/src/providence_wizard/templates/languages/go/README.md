@@ -4,7 +4,7 @@ This directory contains the baseline authoring assets for Go onboarding flows.
 
 ## Files
 
-- `go.mod` — minimal module baseline
+- `go.mod`  minimal module baseline
 
 ## Notes
 

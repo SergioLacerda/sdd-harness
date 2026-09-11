@@ -17,7 +17,7 @@ The workflow is **AGENT_HARNESS: 7 Phases**
 2. **PHASE 2:** Check Execution State (detect conflicts)
 3. **PHASE 3:** Choose PATH (A=bug, B=simple feature, C=complex, D=multithread)
 4. **PHASE 4:** Load Context (from SDD, on-demand)
-5. **PHASE 5:** Implement (with TDD, track in .sdd/)
+5. **PHASE 5:** Implement (with TDD, track in .providence/)
 6. **PHASE 6:** Validate (tests pass, definition of done)
 7. **PHASE 7:** Checkpoint (update state, create PR)
 
@@ -31,18 +31,18 @@ Start: You have a task to implement
 [PHASE 1] Read: constitution.md + ia-rules.md
           Pass: VALIDATION_QUIZ (≥80%)
   ↓
-[PHASE 2] Check: .sdd/context-aware/ for conflicts
+[PHASE 2] Check: .providence/context-aware/ for conflicts
   ↓
 [PHASE 3] Choose: PATH A/B/C/D (load right docs)
   ↓
-[PHASE 4] Search: .sdd/runtime/search-keywords.md
+[PHASE 4] Search: .providence/runtime/search-keywords.md
           Load: docs you need (on-demand)
   ↓
 [PHASE 5] Implement: Feature + tests (TDD)
-          Track: in .sdd/context-aware/task-progress/
+          Track: in .providence/context-aware/task-progress/
   ↓
 [PHASE 6] Run: Tests, check definition_of_done
-          Update: .sdd/context-aware/analysis/
+          Update: .providence/context-aware/analysis/
   ↓
 [PHASE 7] Checkpoint: Document decisions + risks
           Create: PR with checkpoint info
@@ -102,8 +102,8 @@ After completing all 7 phases:
 - ✅ Feature implemented (code written)
 - ✅ Tests passing (100% coverage for new code)
 - ✅ Definition of done checked (45+ items)
-- ✅ .sdd/context-aware/task-progress/ updated
-- ✅ .sdd/context-aware/analysis/ captures learnings
+- ✅ .providence/context-aware/task-progress/ updated
+- ✅ .providence/context-aware/analysis/ captures learnings
 - ✅ Checkpoint created (decisions + risks documented)
 - ✅ PR ready for review
 

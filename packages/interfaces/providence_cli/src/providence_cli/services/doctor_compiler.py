@@ -3,7 +3,7 @@
 Builds a stable JSON-serializable report about the sdd-compile binary: how it
 was resolved, its version, the CLI<->binary handshake state, the download
 cache, the packaged native assets, and a dry validation of compiled artifacts.
-Every probe is best-effort — failures are reported as strings inside the
+Every probe is best-effort  failures are reported as strings inside the
 report, never raised, so the doctor can always print a full picture.
 
 The optional prune operation (`--prune`) is the single mutating capability:
@@ -55,7 +55,7 @@ def _probe_packaged_native() -> dict[str, Any]:
 
 
 def _probe_validate(runner: Any, workspace_root: Path) -> dict[str, Any]:
-    compiled_dir = workspace_root / ".sdd" / "compiled"
+    compiled_dir = workspace_root / ".providence" / "compiled"
     if not compiled_dir.exists():
         return {"ran": False, "compiled_dir": str(compiled_dir)}
     try:

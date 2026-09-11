@@ -1,6 +1,6 @@
 """IntelligenceProvider Protocol.
 
-Reference: .sdd/runtime analytics design §Phase 5
+Reference: .providence/runtime analytics design §Phase 5
 """
 
 from __future__ import annotations

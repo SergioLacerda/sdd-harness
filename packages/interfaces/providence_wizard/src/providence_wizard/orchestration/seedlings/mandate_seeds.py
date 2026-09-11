@@ -1,9 +1,11 @@
-"""MandateSeeds — JSON seed generation for governance and compliance."""
+"""MandateSeeds  JSON seed generation for governance and compliance."""
 
 from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING, Any
+
+from providence_wizard.constants import RUNTIME_DIRNAME
 
 if TYPE_CHECKING:
     from .base_generator import BaseSeedlingGenerator
@@ -49,13 +51,13 @@ class MandateSeeds:
             seed_data = {
                 "schema_version": "1.0.0",
                 "auto_activate": self._should_auto_activate(),
-                "load_compiled_from": ".sdd",
+                "load_compiled_from": RUNTIME_DIRNAME,
                 "on_load": "activate_governance",
                 "triggers": ["on_project_load"],
                 "description": "Governance Activation Protocol (GAP) v1.0 - Auto-activates on project load",
                 "required_context": [
-                    ".sdd/metadata.json",
-                    ".sdd/seedlings/agent-prep.seed.json",
+                    f"{RUNTIME_DIRNAME}/metadata.json",
+                    f"{RUNTIME_DIRNAME}/seedlings/agent-prep.seed.json",
                 ],
                 "project_metadata": {
                     "adoption_level": ctx.config.get("adoption_level", "standard"),
@@ -101,11 +103,11 @@ class MandateSeeds:
             with open(seed_file, "w", encoding="utf-8") as f:
                 json.dump(seed_data, f, indent=2)
             ctx.log(
-                f"✅ Generated governance.seed.json (fingerprint: {ctx.spec_fingerprint})"
+                f" Generated governance.seed.json (fingerprint: {ctx.spec_fingerprint})"
             )
             return True
         except Exception as e:
-            self._ctx._emit(f"  ❌ Failed to generate governance.seed.json: {e}")
+            self._ctx._emit(f"   Failed to generate governance.seed.json: {e}")
             return False
 
     def generate_compliance_seed(self) -> bool:
@@ -126,13 +128,13 @@ class MandateSeeds:
             }.get(enforcement_mode, "WARN")
             seed_data: dict[str, Any] = {
                 "auto_activate": True,
-                "load_compiled_from": ".sdd",
+                "load_compiled_from": RUNTIME_DIRNAME,
                 "on_load": "setup_compliance_pipeline",
                 "triggers": ["on_ci_pipeline"],
                 "description": "Compliance Validation - CI/CD policy and runtime checks",
                 "required_context": [
-                    ".sdd/metadata.json",
-                    ".sdd/seedlings/governance.seed.json",
+                    f"{RUNTIME_DIRNAME}/metadata.json",
+                    f"{RUNTIME_DIRNAME}/seedlings/governance.seed.json",
                 ],
                 "telemetry": {
                     "agent_observability": {
@@ -145,7 +147,7 @@ class MandateSeeds:
                     "signature_validation": {
                         "enabled": True,
                         "signature_mode": "warn",
-                        "trusted_keyring": ".sdd/trust/trusted-keys.json",
+                        "trusted_keyring": f"{RUNTIME_DIRNAME}/trust/trusted-keys.json",
                         "strict_in_ci": True,
                         "strict_requires_canonical_keyring": True,
                         "unsigned_policy": {
@@ -183,8 +185,8 @@ class MandateSeeds:
             }
             with open(seed_file, "w", encoding="utf-8") as f:
                 json.dump(seed_data, f, indent=2)
-            ctx.log("✅ Generated compliance.seed.json")
+            ctx.log(" Generated compliance.seed.json")
             return True
         except Exception as e:
-            self._ctx._emit(f"  ❌ Failed to generate compliance.seed.json: {e}")
+            self._ctx._emit(f"   Failed to generate compliance.seed.json: {e}")
             return False

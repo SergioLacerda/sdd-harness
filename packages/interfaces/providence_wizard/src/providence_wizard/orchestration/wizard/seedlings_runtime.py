@@ -30,22 +30,22 @@ _HOOK_MODE_SEEDLING_KEYS = {
 def _resolve_governance_paths(
     paths: dict[str, Path], output_base: Path
 ) -> tuple[Path, Path]:
-    """Resolve governance JSON paths with .sdd-first precedence."""
+    """Resolve governance JSON paths with .providence-first precedence."""
     root = paths.get("root", Path.cwd())
     client_compiled = paths.get(
         "client_compiled", root / "generated" / "client" / "compiled"
     )
     core_candidates = [
-        root / ".sdd" / "compiled" / "governance-core.json",
-        root / ".sdd" / "source" / "governance-core.json",
+        root / ".providence" / "compiled" / "governance-core.json",
+        root / ".providence" / "source" / "governance-core.json",
         client_compiled / "source" / "governance-core.json",
-        output_base / ".sdd" / "source" / "governance-core.json",
+        output_base / ".providence" / "source" / "governance-core.json",
     ]
     client_candidates = [
-        root / ".sdd" / "compiled" / "governance-client.json",
-        root / ".sdd" / "source" / "governance-client.json",
+        root / ".providence" / "compiled" / "governance-client.json",
+        root / ".providence" / "source" / "governance-client.json",
         client_compiled / "source" / "governance-client.json",
-        output_base / ".sdd" / "source" / "governance-client.json",
+        output_base / ".providence" / "source" / "governance-client.json",
     ]
 
     core_path = next((p for p in core_candidates if p.exists()), core_candidates[0])
@@ -89,7 +89,7 @@ def run_phase6_seedlings_generation(
         governance_core_path, governance_client_path, verbose=debug
     )
     if not loader.load():
-        emitter("  ❌ Failed to load governance")
+        emitter("   Failed to load governance")
         return False
 
     orchestrator = SeedlingsOrchestrator(
@@ -106,13 +106,13 @@ def run_phase6_seedlings_generation(
     if handshake_mode == "hook":
         emitter("hook-mode...OK")
     if not orchestrator.generate(selected=selected):
-        emitter("  ❌ Failed to generate intelligent seedlings")
+        emitter("   Failed to generate intelligent seedlings")
         return False
     if handshake_mode == "hook":
         agents = set(SUPPORTED_PROMPT_HOOK_AGENTS)
         config["prompt_submit_hook_agents"] = sorted(agents)
         if not PromptSubmitHookGenerator(output_base, agents).generate():
-            emitter("  ❌ Failed to generate prompt-submit hooks")
+            emitter("   Failed to generate prompt-submit hooks")
             return False
         emitter("hook...OK")
 

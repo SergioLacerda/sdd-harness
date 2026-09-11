@@ -94,8 +94,14 @@ and install `providence-cli` from those local files, e.g.:
 
 ```bash
 python -m venv .providence-cli
-# Windows: .providence-cli\Scripts\python.exe ; Linux/macOS: .providence-cli/bin/python
 .providence-cli/bin/python -m pip install --no-index --find-links <path-to-downloaded-dist> providence-cli
+```
+
+On Windows PowerShell, use the venv's Windows entrypoint instead:
+
+```powershell
+python -m venv .providence-cli
+.\.providence-cli\Scripts\python.exe -m pip install --no-index --find-links <path-to-downloaded-dist> providence-cli
 ```
 
 `.github/workflows/release.yml` installs from these exact release artifacts on
@@ -142,6 +148,19 @@ providence install --wizard
 providence init --default
 providence governance validate
 ```
+
+If PowerShell reports `providence : O termo 'providence' nao e reconhecido`,
+the CLI is not on that shell's `PATH`. Either reopen the terminal after
+installation, add the install directory to `PATH`, or run from a source checkout
+with `uv`:
+
+```powershell
+$env:UV_CACHE_DIR = "$PWD\.uv-cache"
+uv run providence install --wizard
+```
+
+Setting `UV_CACHE_DIR` inside the checkout is optional, but it avoids failures
+when the global `uv` cache under `%LOCALAPPDATA%\uv\cache` is not writable.
 
 `providence install --wizard` runs a single guided flow (language, hook mode, agent
 selection, then generate) — no phase menu to navigate. Useful flags:

@@ -18,7 +18,7 @@ def generate_cli_commands_index(
     """Generate CLI commands discovery index.
 
     Writes:
-    - .sdd/indices/cli.commands.json — searchable command metadata
+    - .providence/indices/cli.commands.json  searchable command metadata
 
     Args:
         output_dir: Base output directory (workspace root)
@@ -31,7 +31,7 @@ def generate_cli_commands_index(
     """
     try:
         output_path = Path(output_dir)
-        indices_dir = output_path / ".sdd" / "indices"
+        indices_dir = output_path / ".providence" / "indices"
         indices_dir.mkdir(parents=True, exist_ok=True)
 
         commands = [

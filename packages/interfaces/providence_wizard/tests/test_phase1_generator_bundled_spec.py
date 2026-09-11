@@ -9,7 +9,7 @@ from providence_wizard.orchestration.wizard.phase1_generator import Phase1Genera
 
 
 def test_fresh_workspace_resolves_full_bundled_mandate_set(tmp_path: Path) -> None:
-    """A workspace with no docs-meta and no .sdd/source must still bootstrap
+    """A workspace with no docs-meta and no .providence/source must still bootstrap
     the full mandate/guideline set from the packaged canonical spec, not a
     single-mandate placeholder stub."""
     output_path = tmp_path / "build" / "phase-1-choices"

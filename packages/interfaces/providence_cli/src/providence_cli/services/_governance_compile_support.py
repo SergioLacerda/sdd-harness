@@ -94,7 +94,7 @@ def maybe_regenerate_wizard_contracts(
         )
 
         generate_agent_instructions_from_config(output_base, config)
-        console.print("[cyan].sdd/agent-instructions.md regenerated[/cyan]")
+        console.print("[cyan].providence/agent-instructions.md regenerated[/cyan]")
         generate_root_bootstrap_from_config(output_base, config)
         console.print("[cyan]Root bootstrap files regenerated[/cyan]")
     except ImportError:
@@ -106,10 +106,10 @@ def maybe_regenerate_wizard_contracts(
 def _bridge_client_language_context(
     workspace_root: Path, metadata: dict[str, Any]
 ) -> dict[str, str] | None:
-    """Synthesize `language_context` from `.sdd/profile`'s `language` key.
+    """Synthesize `language_context` from `.providence/profile`'s `language` key.
 
     Only applies when the wizard hasn't already populated `language_context`
-    — wizard output always wins (it may distinguish interaction vs. docs
+     wizard output always wins (it may distinguish interaction vs. docs
     language, which a bare client `language` value cannot). Returns None when
     there is nothing to bridge (no client `language` key, or wizard data
     already present), so the caller leaves `metadata["language_context"]`
@@ -145,5 +145,5 @@ def normalize_compile_context(
 ) -> tuple[dict[str, Any], dict[str, Any], str]:
     phase_1 = result.get("phase_1", {})
     phase_2 = result.get("phase_2", {})
-    compiled_path = str(workspace_root / ".sdd" / "compiled") if workspace_root else ""
+    compiled_path = str(workspace_root / ".providence" / "compiled") if workspace_root else ""
     return phase_1, phase_2, compiled_path

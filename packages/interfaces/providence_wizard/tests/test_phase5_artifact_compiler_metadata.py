@@ -7,7 +7,7 @@ from providence_wizard.orchestration.phase5_artifact_compiler import ArtifactCom
 
 
 def test_generate_metadata_includes_language_policy(tmp_path: Path) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     runtime_dir = sdd_dir / "runtime"
     sdd_dir.mkdir()
     runtime_dir.mkdir(parents=True)
@@ -43,10 +43,10 @@ def test_generate_metadata_top_level_fingerprint_mirrors_combined(
     """governance_fingerprint (top-level) must always equal fingerprints.combined.
 
     Both values are derived from the same compiler-computed hash, so they can
-    never diverge — closing the drift bug where .sdd/agent-instructions.md
+    never diverge  closing the drift bug where .providence/agent-instructions.md
     referenced a top-level field that did not exist.
     """
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     runtime_dir = sdd_dir / "runtime"
     sdd_dir.mkdir()
     runtime_dir.mkdir(parents=True)

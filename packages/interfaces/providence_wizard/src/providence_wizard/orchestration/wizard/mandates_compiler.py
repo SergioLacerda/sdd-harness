@@ -31,7 +31,7 @@ class MandatesCompiler:
             lines = [
                 "# Mandates - SDD v3.0",
                 "",
-                "⚡ IA-FIRST DESIGN NOTICE",
+                " IA-FIRST DESIGN NOTICE",
                 "- **Status**: Architecture-level governance rules",
                 "- **Optimization**: Optimized for AI agent parsing",
                 "- **Version**: 3.0",
@@ -67,6 +67,6 @@ class MandatesCompiler:
             )
             return True
         except Exception as exc:
-            self._emit(f"  ❌ Error generating mandates.md: {exc}")
+            self._emit(f"   Error generating mandates.md: {exc}")
             traceback.print_exc()
             return False

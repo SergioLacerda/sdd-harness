@@ -2,7 +2,7 @@
 
 Parses the repository's own governed markdown sources (mandates, guidelines,
 anti-pattern docs) into the plain dicts `plugin_generator.py` renders into the
-bundle. Split out of `plugin_generator.py` (ADR-019 module-size budget) —
+bundle. Split out of `plugin_generator.py` (ADR-019 module-size budget) â€”
 this half is pure content parsing, independent of the Jinja2/bundle-writing
 concerns that stay in `plugin_generator.py`.
 """
@@ -30,7 +30,7 @@ _GO_RESOLUTION_BYPASS_PATH = (
     Path("docs") / "cognition" / "anti-patterns" / "lang" / "GO_RESOLUTION_BYPASS.md"
 )
 
-# Matched by substring, not exact phrase — heading wording is not identical
+# Matched by substring, not exact phrase â€” heading wording is not identical
 # across the 5 source files (e.g. RESOLUTION_BYPASS.md uses "The Universal
 # Cure" while the others use "The Cure"). Order matters only for readability;
 # lookup below checks all keys regardless of order.
@@ -54,13 +54,13 @@ _REQUIRED_GO_RESOLUTION_BYPASS_KEYS = ("hacks", "cures", "rule")
 
 def _parse_governance_sections(text: str) -> list[dict[str, Any]]:
     """Parse '## <ID>: <Title>' or '### <ID>: <Title>' sections (mandates.md /
-    guidelines/*.md shape — heading level is inconsistent across source files,
+    guidelines/*.md shape â€” heading level is inconsistent across source files,
     e.g. general.md uses '##' and other.md uses '###').
 
     Each section is a heading, a metadata block of '**Field**: value' lines, and
     a trailing description paragraph. A description equal to the source's own
     "No description available" placeholder is reported as has_description=False
-    rather than treated as real content — callers must not fabricate a summary
+    rather than treated as real content â€” callers must not fabricate a summary
     for those sections.
     """
     sections: list[dict[str, Any]] = []
@@ -107,7 +107,7 @@ def _match_section_marker(
 
     trailing_content is whatever follows the marker on the same line. Some
     source files jam heading and content onto one line with no line break
-    (e.g. GO_RESOLUTION_BYPASS.md's '## \U0001f4cf Rule> Your code should...') —
+    (e.g. GO_RESOLUTION_BYPASS.md's '## \U0001f4cf Rule> Your code should...') â€”
     without this, that content would be silently dropped rather than captured.
     """
     for key, marker in keys.items():
@@ -133,7 +133,7 @@ def _split_marked_sections(
 
     When track_fences is True, a heading-shaped line *inside* a ``` code
     fence (e.g. SCOPE_CREEP.md's fenced "## Parking Lot" example) is treated
-    as example content, not a real section boundary — see
+    as example content, not a real section boundary â€” see
     _parse_anti_pattern's docstring for why this matters.
     """
     sections: dict[str, str] = {}
@@ -181,7 +181,7 @@ def _parse_anti_pattern(text: str, source_name: str) -> dict[str, Any]:
     """Parse a docs/cognition/anti-patterns/*.md file.
 
     Unlike _parse_governance_sections, a missing required section is NOT a
-    tolerable state here — these are fixed, hand-authored, first-party files
+    tolerable state here â€” these are fixed, hand-authored, first-party files
     with a confirmed-consistent shape, so a missing Problem/Cure/Benchmark
     section means the source itself is structurally broken. Raises ValueError
     rather than degrading silently (R-008 mitigation from
@@ -212,7 +212,7 @@ def _parse_anti_pattern(text: str, source_name: str) -> dict[str, Any]:
 def _parse_go_resolution_bypass(text: str, source_name: str) -> dict[str, Any]:
     """Parse docs/cognition/anti-patterns/lang/GO_RESOLUTION_BYPASS.md.
 
-    No fence tracking — unlike the anti-pattern files, this file's code
+    No fence tracking â€” unlike the anti-pattern files, this file's code
     fences are inconsistently glued to their surrounding text (open and close
     markers don't reliably start their own line), so naive fence-toggling
     would misfire; there is also no confirmed '## ' heading inside any of its
@@ -242,11 +242,11 @@ def _load_coding_practices(output_dir: Path) -> dict[str, Any] | None:
     """Load the Go-pilot coding practices content.
 
     The whole docs/cognition/anti-patterns/ category is optional and degrades
-    gracefully (returns None) when entirely absent — this content is specific
+    gracefully (returns None) when entirely absent â€” this content is specific
     to the Providence repository itself, not something every consuming
-    project has (unlike .sdd/, which the wizard scaffolds everywhere). But once
+    project has (unlike .providence/, which the wizard scaffolds everywhere). But once
     the category is present, an individual missing file or malformed section
-    within it is a hard failure (ValueError) — that indicates the source
+    within it is a hard failure (ValueError) â€” that indicates the source
     itself is broken, not that the feature is optional for this project.
     """
     anti_patterns_dir = Path(output_dir) / _ANTI_PATTERNS_DIR
@@ -298,11 +298,11 @@ def _coding_practices_digest(coding_practices: dict[str, Any]) -> str:
 def _load_governance_summary(output_dir: Path) -> dict[str, Any]:
     """Load a best-effort Providence governance summary for embedding.
 
-    Degrades gracefully (empty lists, "unknown" fields) when .sdd/metadata.json
-    or .sdd/source/mandates/mandates.md are absent — this is additive content,
+    Degrades gracefully (empty lists, "unknown" fields) when .providence/metadata.json
+    or .providence/source/mandates/mandates.md are absent â€” this is additive content,
     never a reason to fail plugin generation.
     """
-    sdd_dir = Path(output_dir) / ".sdd"
+    sdd_dir = Path(output_dir) / ".providence"
     metadata_path = sdd_dir / "metadata.json"
     mandates_path = sdd_dir / "source" / "mandates" / "mandates.md"
     guidelines_dir = sdd_dir / "source" / "guidelines"

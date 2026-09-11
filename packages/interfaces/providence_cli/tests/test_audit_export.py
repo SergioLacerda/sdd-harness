@@ -15,7 +15,7 @@ from providence_cli.services.audit_export import (
 def test_resolve_governance_fingerprint_falls_back_to_cwd_on_error(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     sdd_dir.mkdir()
     (sdd_dir / "agent-instructions.md").write_text(
         "Fingerprint this version: `abc123`\n", encoding="utf-8"
@@ -34,7 +34,7 @@ def test_resolve_governance_fingerprint_falls_back_to_cwd_on_error(
 def test_resolve_governance_fingerprint_falls_back_to_metadata_json(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     sdd_dir.mkdir()
     (sdd_dir / "metadata.json").write_text(
         json.dumps({"fingerprints": {"combined": "deadbeef"}}), encoding="utf-8"
@@ -61,7 +61,7 @@ def test_resolve_governance_fingerprint_returns_empty_when_nothing_found(
 def test_resolve_governance_fingerprint_ignores_malformed_metadata_json(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     sdd_dir.mkdir()
     (sdd_dir / "metadata.json").write_text("not valid json", encoding="utf-8")
     with patch(

@@ -70,7 +70,7 @@ def test_write_instruction_files_writes_copilot_redirector(tmp_path: Path) -> No
     written_paths = dict(written)
     copilot_path = written_paths["GitHub Copilot"]
     content = copilot_path.read_text(encoding="utf-8")
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
     assert "GitHub Copilot Governance Bootstrap" in content
 
 

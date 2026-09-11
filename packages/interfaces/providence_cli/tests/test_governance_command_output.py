@@ -67,14 +67,14 @@ class TestHandleCompileOutput:
                 core_fingerprint="fp-1",
                 consistency_reason="fingerprint mismatch",
                 console=console,
-                artifact_path="/workspace/.sdd/compiled",
+                artifact_path="/workspace/.providence/compiled",
             )
         assert exc_info.value.exit_code == 1
         captured = capsys.readouterr().out
         lines = [line for line in captured.splitlines() if line.strip()]
         assert len(lines) <= 3
         assert "fingerprint mismatch" in captured
-        assert "artifact=/workspace/.sdd/compiled" in captured
+        assert "artifact=/workspace/.providence/compiled" in captured
         assert "next=providence governance validate" in captured
 
     def test_text_mode_success_calls_render_table(self) -> None:
@@ -128,7 +128,7 @@ class TestFailGeneratePrecondition:
                 output_json=False,
                 code="missing_config",
                 message="Config not found",
-                data={"resolved_path": "/workspace/.sdd"},
+                data={"resolved_path": "/workspace/.providence"},
                 console=console,
             )
         assert exc_info.value.exit_code == 1
@@ -136,4 +136,4 @@ class TestFailGeneratePrecondition:
         lines = [line for line in captured.splitlines() if line.strip()]
         assert len(lines) <= 2
         assert "Config not found" in captured
-        assert "artifact=/workspace/.sdd" in captured
+        assert "artifact=/workspace/.providence" in captured

@@ -150,7 +150,7 @@ def review_golden(
     golden: Path = typer.Option(  # noqa: B008
         None,
         "--golden",
-        help="Path to golden snapshot JSON (default: .sdd/runtime/golden-ast.json).",
+        help="Path to golden snapshot JSON (default: .providence/runtime/golden-ast.json).",
     ),
 ) -> None:
     """Compare current compiled artifact against the golden AST snapshot.

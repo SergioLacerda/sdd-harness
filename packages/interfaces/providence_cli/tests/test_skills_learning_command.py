@@ -52,7 +52,7 @@ def test_skills_learning_approve_and_rules_json(tmp_path) -> None:
             return_value=tmp_path,
         ),
     ):
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
         (runtime_dir / "rule-candidates.json").write_text(
             json.dumps(
@@ -153,7 +153,7 @@ def test_skills_learning_status_json(tmp_path) -> None:
             return_value=tmp_path,
         ),
     ):
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True, exist_ok=True)
         (runtime_dir / "rule-candidates.json").write_text(
             json.dumps({"candidates": [{"candidate_id": "rc-1"}]}), encoding="utf-8"
@@ -232,7 +232,7 @@ def test_skills_learning_candidates_text_mode(tmp_path) -> None:
 
 
 def test_skills_learning_candidates_text_mode_with_existing(tmp_path) -> None:
-    candidates_path = tmp_path / ".sdd" / "runtime" / "rule-candidates.json"
+    candidates_path = tmp_path / ".providence" / "runtime" / "rule-candidates.json"
     candidates_path.parent.mkdir(parents=True, exist_ok=True)
     candidates_path.write_text(
         json.dumps({"candidates": [{"candidate_id": "c1", "pattern": "foo.*"}]}),

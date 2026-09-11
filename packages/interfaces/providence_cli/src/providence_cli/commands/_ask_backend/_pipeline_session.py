@@ -83,7 +83,7 @@ def _emit_state_warnings(state: str) -> None:
         )
     elif state == "PARTIAL":
         typer.echo(
-            "SOFT [ask]: workspace PARTIAL — compiled governance may be stale. "
+            "SOFT [ask]: workspace PARTIAL  compiled governance may be stale. "
             "Next: 'providence governance compile'",
             err=True,
         )
@@ -102,7 +102,7 @@ def _start_ask_session(
     )
 
     if entry_mono is not None:
-        # Measured locally (not adapter-reported) — record_external is used
+        # Measured locally (not adapter-reported)  record_external is used
         # here only because the timer did not exist yet at the true CLI
         # entry point (_ask_cmd_impl's first line), so phase() (a context
         # manager) could not wrap it.
@@ -162,7 +162,7 @@ def _load_ask_snapshot(
 
     try:
         # ask.governance.snapshot is measured here (caller side) as a
-        # black-box span around the whole call — tests that mock
+        # black-box span around the whole call  tests that mock
         # build_governed_ask_snapshot entirely still get a correctly-timed
         # governance.snapshot phase this way. build_governed_ask_snapshot
         # additionally records its own nested ask.runtime.handbook phase

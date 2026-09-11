@@ -59,7 +59,7 @@ def _write_skill(sdd_dir: Path, name: str, **overrides: object) -> None:
 
 
 def test_generate_writes_full_plugin_bundle(tmp_path: Path) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_skill(sdd_dir, "alpha")
     _write_skill(sdd_dir, "beta")
 
@@ -95,7 +95,7 @@ def test_generate_writes_full_plugin_bundle(tmp_path: Path) -> None:
 
 
 def test_generate_is_deterministic_for_same_input(tmp_path: Path) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_skill(sdd_dir, "alpha")
 
     r1 = DevinPluginGenerator().generate(
@@ -116,7 +116,7 @@ def test_generate_reports_error_when_no_skills(tmp_path: Path) -> None:
 
 
 def test_generate_with_include_skills_false_omits_skill_catalog(tmp_path: Path) -> None:
-    # No .sdd/skills/registry.json at all — include_skills=False must not require one.
+    # No .providence/skills/registry.json at all â€” include_skills=False must not require one.
     result = DevinPluginGenerator().generate(
         output_dir=tmp_path,
         built_at="2026-08-17T00:00:00+00:00",
@@ -152,7 +152,7 @@ def test_generate_with_include_skills_true_still_requires_skills(
 def test_generate_never_touches_the_network(tmp_path: Path, monkeypatch) -> None:
     import socket
 
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_skill(sdd_dir, "alpha")
 
     def _blocked(*_args: object, **_kwargs: object) -> None:
@@ -172,12 +172,12 @@ def test_generate_never_touches_the_network(tmp_path: Path, monkeypatch) -> None
 def test_generate_against_real_repo_registry(tmp_path: Path) -> None:
     repo_root = None
     for parent in Path(__file__).resolve().parents:
-        if (parent / ".sdd" / "skills" / "registry.json").exists():
+        if (parent / ".providence" / "skills" / "registry.json").exists():
             repo_root = parent
             break
     if repo_root is None:
         pytest.skip(
-            "no .sdd/skills/registry.json found above this test file — this "
+            "no .providence/skills/registry.json found above this test file â€” this "
             "environment does not include the full Providence source tree "
             "(e.g. a packaging/shadow-repo check); skipping the real-registry "
             "integration test."
@@ -191,8 +191,8 @@ def test_generate_against_real_repo_registry(tmp_path: Path) -> None:
 
     assert result.success is True, result.errors
     # Skill inventory is environment-dependent (the shadow/container repo may
-    # rebuild .sdd/skills/ with a different set than a full host checkout), so
-    # this only proves the real registry drives the generator end-to-end —
+    # rebuild .providence/skills/ with a different set than a full host checkout), so
+    # this only proves the real registry drives the generator end-to-end â€”
     # it does not pin an exact skill count or name.
     skill_dirs = sorted(
         p.name for p in (tmp_path / "devin-plugin" / "skills").iterdir()
@@ -248,8 +248,8 @@ def test_parse_governance_sections_ignores_non_id_headings() -> None:
 
 
 def test_parse_governance_sections_accepts_three_hash_headings() -> None:
-    # .sdd/source/guidelines/other.md uses '###' while general.md/mandates.md use
-    # '##' — the parser must accept both heading levels (regression for the bug
+    # .providence/source/guidelines/other.md uses '###' while general.md/mandates.md use
+    # '##' â€” the parser must accept both heading levels (regression for the bug
     # where '###' sections were silently dropped, zero items extracted).
     two_hash = _parse_governance_sections(
         "## G01: Dependency Direction\n\n**Type**: GUIDELINE\n\nInner layers first.\n"
@@ -282,8 +282,8 @@ def _write_governance_source(sdd_dir: Path) -> None:
         "## G01: Dependency Direction\n\n**Type**: GUIDELINE\n\nInner layers first.\n",
         encoding="utf-8",
     )
-    # Real .sdd/source/guidelines/other.md uses '###' headings, unlike general.md's
-    # '##' — keep that mismatch in the fixture so tests exercise the real shape.
+    # Real .providence/source/guidelines/other.md uses '###' headings, unlike general.md's
+    # '##' â€” keep that mismatch in the fixture so tests exercise the real shape.
     (guidelines_dir / "other.md").write_text(
         "### G02: Something\n\n**Type**: GUIDELINE\n\nOther real description.\n",
         encoding="utf-8",
@@ -293,7 +293,7 @@ def _write_governance_source(sdd_dir: Path) -> None:
 def test_load_governance_summary_reads_metadata_mandates_and_guidelines(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_governance_source(sdd_dir)
 
     summary = _load_governance_summary(tmp_path)
@@ -305,7 +305,7 @@ def test_load_governance_summary_reads_metadata_mandates_and_guidelines(
     general = next(g for g in summary["guidelines"] if g["category"] == "general")
     other = next(g for g in summary["guidelines"] if g["category"] == "other")
     assert general["has_highlight"] is True
-    # other.md uses '###' headings — this must be picked up too (regression for
+    # other.md uses '###' headings â€” this must be picked up too (regression for
     # the heading-level bug), not silently dropped.
     assert other["has_highlight"] is True
     assert other["highlight"] == "Other real description."
@@ -325,7 +325,7 @@ def test_load_governance_summary_degrades_gracefully_when_source_absent(
 def test_governance_summary_digest_is_independent_of_policy_digest(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_governance_source(sdd_dir)
     _write_skill(sdd_dir, "alpha")
 
@@ -356,7 +356,7 @@ def test_governance_summary_digest_is_independent_of_policy_digest(
 
 
 def test_generate_writes_governance_summary_bundle_content(tmp_path: Path) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_governance_source(sdd_dir)
     _write_skill(sdd_dir, "alpha")
 
@@ -387,7 +387,7 @@ def test_generate_writes_governance_summary_bundle_content(tmp_path: Path) -> No
 
 
 def test_load_governance_summary_counts_described_mandates(tmp_path: Path) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_governance_source(sdd_dir)
 
     summary = _load_governance_summary(tmp_path)
@@ -398,7 +398,7 @@ def test_load_governance_summary_counts_described_mandates(tmp_path: Path) -> No
 
 
 def test_generate_writes_mandate_description_coverage_line(tmp_path: Path) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_governance_source(sdd_dir)
     _write_skill(sdd_dir, "alpha")
 
@@ -414,7 +414,7 @@ def test_generate_writes_mandate_description_coverage_line(tmp_path: Path) -> No
 
 
 def test_generate_writes_soft_governance_behavior_file(tmp_path: Path) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_governance_source(sdd_dir)
     _write_skill(sdd_dir, "alpha")
 
@@ -434,7 +434,7 @@ def test_generate_writes_soft_governance_behavior_file(tmp_path: Path) -> None:
     assert "Mandates outrank guidelines" in content
 
     # CLI-coupled Hard/Connected concepts must NOT leak into the actual curated
-    # rules — this is the scope boundary from design.md § D-003. The intro
+    # rules â€” this is the scope boundary from design.md Â§ D-003. The intro
     # disclaimer is allowed to *name* these as excluded topics, so only the rule
     # bodies (from "## Rule 1" onward) are checked here.
     rules_body = content.split("## Rule 1", 1)[1]
@@ -452,7 +452,7 @@ def test_generate_writes_soft_governance_behavior_file(tmp_path: Path) -> None:
 def test_soft_governance_ruleset_version_is_independent_of_content_digests(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_governance_source(sdd_dir)
     _write_skill(sdd_dir, "alpha")
 
@@ -482,11 +482,11 @@ def test_soft_governance_ruleset_version_is_independent_of_content_digests(
 _VALID_ANTI_PATTERN_TEXT = (
     "# Anti-Pattern: Example\n"
     "\n"
-    "## ❌ The Problem\n"
+    "## âŒ The Problem\n"
     "\n"
     "Doing the wrong thing.\n"
     "\n"
-    "## ✅ The Cure\n"
+    "## âœ… The Cure\n"
     "\n"
     "Do the right thing instead.\n"
     "\n"
@@ -523,7 +523,7 @@ def test_parse_anti_pattern_extracts_all_sections() -> None:
 
 def test_parse_anti_pattern_accepts_universal_cure_heading_variant() -> None:
     # docs/cognition/anti-patterns/RESOLUTION_BYPASS.md uses "The Universal
-    # Cure" while the other 4 files use "The Cure" — must match both.
+    # Cure" while the other 4 files use "The Cure" â€” must match both.
     text = _VALID_ANTI_PATTERN_TEXT.replace("The Cure", "The Universal Cure")
 
     result = _parse_anti_pattern(text, "resolution_bypass.md")
@@ -533,7 +533,7 @@ def test_parse_anti_pattern_accepts_universal_cure_heading_variant() -> None:
 
 def test_parse_anti_pattern_raises_on_missing_required_section() -> None:
     text = (
-        "# Anti-Pattern: Broken\n\n## ❌ The Problem\n\nSomething.\n"
+        "# Anti-Pattern: Broken\n\n## âŒ The Problem\n\nSomething.\n"
         # No Cure section, no Benchmark section.
     )
 
@@ -542,7 +542,7 @@ def test_parse_anti_pattern_raises_on_missing_required_section() -> None:
 
 
 def test_parse_anti_pattern_raises_on_missing_title() -> None:
-    text = "## ❌ The Problem\n\nSomething.\n\n## ✅ The Cure\n\nFix.\n\n## \U0001f4cf Benchmark\n\nFast.\n"
+    text = "## âŒ The Problem\n\nSomething.\n\n## âœ… The Cure\n\nFix.\n\n## \U0001f4cf Benchmark\n\nFast.\n"
 
     with pytest.raises(ValueError, match="missing title"):
         _parse_anti_pattern(text, "no_title.md")
@@ -551,11 +551,11 @@ def test_parse_anti_pattern_raises_on_missing_title() -> None:
 def test_parse_anti_pattern_captures_content_glued_to_heading() -> None:
     # docs/cognition/anti-patterns/lang/GO_RESOLUTION_BYPASS.md's real "Rule"
     # section has content on the same line as the heading marker, no line
-    # break — the parser must not silently drop it.
+    # break â€” the parser must not silently drop it.
     text = (
         "# Anti-Pattern: Glued\n\n"
-        "## ❌ The Problem> problem text here\n\n"
-        "## ✅ The Cure> cure text here\n\n"
+        "## âŒ The Problem> problem text here\n\n"
+        "## âœ… The Cure> cure text here\n\n"
         "## \U0001f4cf Benchmark> benchmark text here\n"
     )
 
@@ -568,16 +568,16 @@ def test_parse_anti_pattern_captures_content_glued_to_heading() -> None:
 
 def test_parse_anti_pattern_ignores_heading_like_line_inside_code_fence() -> None:
     # docs/cognition/anti-patterns/SCOPE_CREEP.md's real Cure section contains
-    # a fenced example with "## Parking Lot" inside it — that must not be
+    # a fenced example with "## Parking Lot" inside it â€” that must not be
     # treated as a new section boundary, or the rest of the real Cure content
     # (and Benchmark) would be silently dropped.
     text = (
         "# Anti-Pattern: Fenced\n\n"
-        "## ❌ The Problem\n\nProblem text.\n\n"
-        "## ✅ The Cure\n\n"
+        "## âŒ The Problem\n\nProblem text.\n\n"
+        "## âœ… The Cure\n\n"
         "Real cure text.\n\n"
         "```markdown\n"
-        "## \U0001f17f️ Parking Lot (example only)\n"
+        "## \U0001f17fï¸ Parking Lot (example only)\n"
         "- not a real section\n"
         "```\n\n"
         "More real cure text after the fence.\n\n"
@@ -608,9 +608,9 @@ def _write_coding_practices_source(repo_dir: Path) -> None:
     lang_dir = anti_patterns_dir / "lang"
     lang_dir.mkdir()
     (lang_dir / "GO_RESOLUTION_BYPASS.md").write_text(
-        "# Resolution Bypass — Go\n\n"
-        "## ❌ Go-Specific Hacks\n\nDon't do this.\n\n"
-        "## ✅ Go Cures\n\nDo this instead.\n\n"
+        "# Resolution Bypass â€” Go\n\n"
+        "## âŒ Go-Specific Hacks\n\nDon't do this.\n\n"
+        "## âœ… Go Cures\n\nDo this instead.\n\n"
         "## \U0001f50d Detection\n\ngrep for it.\n\n"
         "## \U0001f4cf Rule\n\nAlways works after clone.\n",
         encoding="utf-8",
@@ -648,9 +648,9 @@ def test_load_coding_practices_raises_when_one_file_missing(
 def test_generate_omits_coding_practices_file_when_category_absent(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_skill(sdd_dir, "alpha")
-    # No docs/cognition/anti-patterns/ — must not be a hard failure for a
+    # No docs/cognition/anti-patterns/ â€” must not be a hard failure for a
     # project that isn't the Providence repo itself.
 
     result = DevinPluginGenerator().generate(
@@ -671,7 +671,7 @@ def test_generate_omits_coding_practices_file_when_category_absent(
 def test_generate_writes_coding_practices_when_category_present(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_skill(sdd_dir, "alpha")
     _write_coding_practices_source(tmp_path)
 
@@ -702,8 +702,8 @@ def test_generate_writes_coding_practices_when_category_present(
 
     # No CLI-coupled content in the actual rule bodies. The intro disclaimer
     # is allowed to *name* excluded commands (same pattern as the prior
-    # mission's "handshake" disclaimer), so only Rule 4's own body — the new
-    # content this task adds — is checked here.
+    # mission's "handshake" disclaimer), so only Rule 4's own body â€” the new
+    # content this task adds â€” is checked here.
     rule4_body = rule4.split("## Rule 4", 1)[1]
     assert "providence runtime status" not in content
     assert "providence governance validate" not in content
@@ -718,7 +718,7 @@ def test_generate_writes_coding_practices_when_category_present(
 def test_coding_practices_digest_is_independent_of_other_digests(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     _write_skill(sdd_dir, "alpha")
     _write_governance_source(sdd_dir)
     _write_coding_practices_source(tmp_path)
@@ -773,18 +773,18 @@ def test_generate_coding_practices_against_real_repo_sources(tmp_path: Path) -> 
     for parent in Path(__file__).resolve().parents:
         # Both markers are required: packages/docs/ mirrors docs/cognition/
         # anti-patterns/ (see packages/docs/), so that alone no longer
-        # identifies the true repo root — the closer, .sdd-less packages/
+        # identifies the true repo root â€” the closer, .providence-less packages/
         # directory would match first and generate() would then fail to find
-        # .sdd/skills/registry.json under it.
+        # .providence/skills/registry.json under it.
         if (parent / "docs" / "cognition" / "anti-patterns").exists() and (
-            parent / ".sdd" / "skills" / "registry.json"
+            parent / ".providence" / "skills" / "registry.json"
         ).exists():
             repo_root = parent
             break
     if repo_root is None:
         pytest.skip(
-            "no docs/cognition/anti-patterns/ + .sdd/skills/registry.json found "
-            "above this test file — this environment does not include the full "
+            "no docs/cognition/anti-patterns/ + .providence/skills/registry.json found "
+            "above this test file â€” this environment does not include the full "
             "Providence source tree (e.g. a packaging/shadow-repo check); "
             "skipping the real-source regression test."
         )
@@ -843,7 +843,7 @@ def test_generate_standalone_defaults_to_dist_devin_standalone(tmp_path: Path) -
     assert not (tmp_path / "AGENTS.md").exists()
     assert not (tmp_path / ".devin").exists()
 
-    # Python was removed — Go-only for now.
+    # Python was removed â€” Go-only for now.
     assert not (bundle / ".devin" / "rules" / "python.md").exists()
 
 
@@ -861,7 +861,7 @@ def test_generate_standalone_accepts_custom_dest(tmp_path: Path) -> None:
 
 def test_generate_standalone_overwrites_its_own_prior_output(tmp_path: Path) -> None:
     # dist/devin-standalone/ is a build artifact, same convention as
-    # dist/devin-plugin/ — regenerating it in place is expected, not refused.
+    # dist/devin-plugin/ â€” regenerating it in place is expected, not refused.
     generator = DevinPluginGenerator()
     r1 = generator.generate_standalone(output_dir=tmp_path)
     r2 = generator.generate_standalone(output_dir=tmp_path)
@@ -898,7 +898,7 @@ def test_generate_standalone_hooks_v1_json_is_valid_schema(tmp_path: Path) -> No
         )
     )
 
-    # Top-level keys are event names directly — no wrapper key (confirmed real
+    # Top-level keys are event names directly â€” no wrapper key (confirmed real
     # schema, docs/spec/guides/devin-plugin-provider-surface-evidence.md).
     assert "SessionStart" in hooks
     assert hooks["SessionStart"][0]["hooks"][0]["type"] == "command"
@@ -955,25 +955,25 @@ def test_generate_standalone_output_never_mentions_sdd(tmp_path: Path) -> None:
 
 
 def test_generate_standalone_real_sources_exist() -> None:
-    # Standalone content is curated (D-001), not parsed — this is the closest
+    # Standalone content is curated (D-001), not parsed â€” this is the closest
     # available regression signal that the sources it was drawn from haven't
     # moved or been deleted (same lesson as the coding-practices mission's
     # real-file test, adapted for static content with no parser to re-run).
     repo_root = None
     for parent in Path(__file__).resolve().parents:
-        # See the identical .sdd co-check in
+        # See the identical .providence co-check in
         # test_generate_coding_practices_against_real_repo_sources above:
         # packages/docs/ mirrors this file too, so the docs marker alone
         # would match packages/ before the true repo root.
         if (
             parent / "docs" / "guidelines" / "core-engineering-principles.md"
-        ).exists() and (parent / ".sdd" / "skills" / "registry.json").exists():
+        ).exists() and (parent / ".providence" / "skills" / "registry.json").exists():
             repo_root = parent
             break
     if repo_root is None:
         pytest.skip(
             "no docs/guidelines/core-engineering-principles.md + "
-            ".sdd/skills/registry.json found above this test file — this "
+            ".providence/skills/registry.json found above this test file â€” this "
             "environment does not include the full Providence source tree; "
             "skipping the real-source existence check."
         )

@@ -144,7 +144,7 @@ def test_governance_load_success_json() -> None:
         "providence_cli.services.governance_config_handlers.emit_json"
     ) as emit_json:
         run_governance_load(
-            path=".sdd/compiled",
+            path=".providence/compiled",
             output_json=True,
             console=Console(),
             validate_path=lambda _p: True,
@@ -158,7 +158,7 @@ def test_governance_load_success_json() -> None:
 
 def test_governance_load_success_text() -> None:
     run_governance_load(
-        path=".sdd/compiled",
+        path=".providence/compiled",
         output_json=False,
         console=Console(),
         validate_path=lambda _p: True,
@@ -171,7 +171,7 @@ def test_governance_validate_json_failure_exits() -> None:
     preflight = SimpleNamespace(passed=False, reason="missing", details={})
     with pytest.raises(typer.Exit):
         run_governance_validate(
-            path=".sdd/compiled",
+            path=".providence/compiled",
             skip_handshake=True,
             output_json=True,
             console=Console(),
@@ -191,7 +191,7 @@ def test_governance_validate_json_success() -> None:
         "providence_cli.services.governance_validate_handlers.emit_json"
     ) as emit_json:
         run_governance_validate(
-            path=".sdd/compiled",
+            path=".providence/compiled",
             skip_handshake=True,
             output_json=True,
             console=Console(),
@@ -214,7 +214,7 @@ def test_governance_validate_advisories_include_analysis_classification(
     tmp_path: Path,
 ) -> None:
     workspace = tmp_path
-    compiled = workspace / ".sdd" / "compiled"
+    compiled = workspace / ".providence" / "compiled"
     compiled.mkdir(parents=True)
     (workspace / ".analysis").mkdir()
     (workspace / ".analysis" / "README.md").write_text(
@@ -222,10 +222,10 @@ def test_governance_validate_advisories_include_analysis_classification(
     )
     (workspace / "docs").mkdir()
     (workspace / "docs" / "README.md").write_text(
-        "Documentação estruturada por papel no sistema.\n", encoding="utf-8"
+        "Documentao estruturada por papel no sistema.\n", encoding="utf-8"
     )
-    (workspace / ".sdd" / "source").mkdir(parents=True)
-    (workspace / ".sdd" / "source" / "guidelines.dsl").write_text(
+    (workspace / ".providence" / "source").mkdir(parents=True)
+    (workspace / ".providence" / "source" / "guidelines.dsl").write_text(
         "guideline G021 {}\nguideline G022 {}\n", encoding="utf-8"
     )
 
@@ -259,7 +259,7 @@ def test_governance_validate_advisories_include_analysis_classification(
 def test_governance_validate_text_success() -> None:
     preflight = SimpleNamespace(passed=True, reason="", details={})
     run_governance_validate(
-        path=".sdd/compiled",
+        path=".providence/compiled",
         skip_handshake=True,
         output_json=False,
         console=Console(),
@@ -284,7 +284,7 @@ def test_governance_validate_text_failure_with_handshake_guidance() -> None:
         pytest.raises(typer.Exit),
     ):
         run_governance_validate(
-            path=".sdd/compiled",
+            path=".providence/compiled",
             skip_handshake=False,
             output_json=False,
             console=Console(),

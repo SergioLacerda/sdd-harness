@@ -30,21 +30,21 @@ def test_governance_reconcile_registries_json_success(tmp_path: Path) -> None:
         root = Path.cwd()
 
         _write(
-            root / ".sdd" / "commands" / "sdd-zeta" / "command.yaml",
+            root / ".providence" / "commands" / "sdd-zeta" / "command.yaml",
             """id: \"sdd-zeta\"\nslash: \"/sdd-zeta\"\nroutes_to:\n  type: skill\n  id: sdd-zeta\nadapter_targets:\n  - codex\n""",
         )
         _write(
-            root / ".sdd" / "commands" / "sdd-alpha" / "command.yaml",
+            root / ".providence" / "commands" / "sdd-alpha" / "command.yaml",
             """id: \"sdd-alpha\"\nslash: \"/sdd-alpha\"\nroutes_to:\n  type: cli\n  command: \"providence ask\"\ntargets:\n  - codex\n""",
         )
         _write(
-            root / ".sdd" / "skills" / "sdd-zeta" / "skill.yaml",
+            root / ".providence" / "skills" / "sdd-zeta" / "skill.yaml",
             """name: sdd-zeta\nversion: 1.0.0\ncategory: governance\ndescription: test\nstatus: active\nrisk_score: low\n""",
         )
 
         # Existing stale registries to prove added/removed counters.
         _write(
-            root / ".sdd" / "commands" / "registry.json",
+            root / ".providence" / "commands" / "registry.json",
             json.dumps(
                 {
                     "schema_version": "1.0.0",
@@ -60,7 +60,7 @@ def test_governance_reconcile_registries_json_success(tmp_path: Path) -> None:
             ),
         )
         _write(
-            root / ".sdd" / "skills" / "registry.json",
+            root / ".providence" / "skills" / "registry.json",
             json.dumps(
                 {
                     "schema_version": "1.1.0",
@@ -72,7 +72,7 @@ def test_governance_reconcile_registries_json_success(tmp_path: Path) -> None:
                             "description": "stale",
                             "risk_score": "low",
                             "status": "active",
-                            "skill_yaml": ".sdd/skills/stale-skill/skill.yaml",
+                            "skill_yaml": ".providence/skills/stale-skill/skill.yaml",
                         }
                     ],
                 }
@@ -94,7 +94,7 @@ def test_governance_reconcile_registries_json_success(tmp_path: Path) -> None:
         assert data["summary"]["skills"]["removed"] == 1
 
         commands_registry = json.loads(
-            (root / ".sdd" / "commands" / "registry.json").read_text(encoding="utf-8")
+            (root / ".providence" / "commands" / "registry.json").read_text(encoding="utf-8")
         )
         ids = [entry["id"] for entry in commands_registry["commands"]]
         assert ids == ["sdd-alpha", "sdd-zeta"]
@@ -107,15 +107,15 @@ def test_governance_reconcile_registries_duplicate_command_id_fails(
         root = Path.cwd()
 
         _write(
-            root / ".sdd" / "commands" / "cmd-1" / "command.yaml",
+            root / ".providence" / "commands" / "cmd-1" / "command.yaml",
             """id: \"dup\"\nslash: \"/dup-a\"\nroutes_to:\n  type: skill\n  id: dup\nadapter_targets:\n  - codex\n""",
         )
         _write(
-            root / ".sdd" / "commands" / "cmd-2" / "command.yaml",
+            root / ".providence" / "commands" / "cmd-2" / "command.yaml",
             """id: \"dup\"\nslash: \"/dup-b\"\nroutes_to:\n  type: skill\n  id: dup\nadapter_targets:\n  - codex\n""",
         )
         _write(
-            root / ".sdd" / "skills" / "sdd-one" / "skill.yaml",
+            root / ".providence" / "skills" / "sdd-one" / "skill.yaml",
             """name: sdd-one\nversion: 1.0.0\ncategory: governance\ndescription: test\nstatus: active\nrisk_score: low\n""",
         )
 
@@ -136,19 +136,19 @@ def test_governance_reconcile_registries_check_mode_fails_on_drift(
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()
         _write(
-            root / ".sdd" / "commands" / "sdd-one" / "command.yaml",
+            root / ".providence" / "commands" / "sdd-one" / "command.yaml",
             """id: "sdd-one"\nslash: "/sdd-one"\nroutes_to:\n  type: skill\n  id: sdd-one\nadapter_targets:\n  - codex\n""",
         )
         _write(
-            root / ".sdd" / "skills" / "sdd-one" / "skill.yaml",
+            root / ".providence" / "skills" / "sdd-one" / "skill.yaml",
             """name: sdd-one\nversion: 1.0.0\ncategory: governance\ndescription: test\nstatus: active\nrisk_score: low\n""",
         )
         _write(
-            root / ".sdd" / "commands" / "registry.json",
+            root / ".providence" / "commands" / "registry.json",
             json.dumps({"schema_version": "1.0.0", "commands": []}),
         )
         _write(
-            root / ".sdd" / "skills" / "registry.json",
+            root / ".providence" / "skills" / "registry.json",
             json.dumps({"schema_version": "1.1.0", "skills": []}),
         )
 
@@ -170,11 +170,11 @@ def test_governance_reconcile_registries_check_mode_passes_when_in_sync(
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()
         _write(
-            root / ".sdd" / "commands" / "sdd-one" / "command.yaml",
+            root / ".providence" / "commands" / "sdd-one" / "command.yaml",
             """id: "sdd-one"\nslash: "/sdd-one"\nroutes_to:\n  type: skill\n  id: sdd-one\nadapter_targets:\n  - codex\n""",
         )
         _write(
-            root / ".sdd" / "skills" / "sdd-one" / "skill.yaml",
+            root / ".providence" / "skills" / "sdd-one" / "skill.yaml",
             """name: sdd-one\nversion: 1.0.0\ncategory: governance\ndescription: test\nstatus: active\nrisk_score: low\n""",
         )
 

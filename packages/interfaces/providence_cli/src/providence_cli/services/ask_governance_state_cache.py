@@ -16,14 +16,14 @@ from typing import Any
 
 try:
     import fcntl
-except ImportError:  # pragma: no cover — fcntl is POSIX-only (no Windows)
+except ImportError:  # pragma: no cover  fcntl is POSIX-only (no Windows)
     fcntl = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
 _STATE_CACHE: dict[str, dict[str, Any]] = {}
 # mtime_ns of the file as of the last `_load_governance_state` disk read, per
-# workspace — lets `_store_governance_state` detect a concurrent writer with
+# workspace  lets `_store_governance_state` detect a concurrent writer with
 # a cheap `stat()` instead of unconditionally re-reading (see RUN-01 note
 # on `_store_governance_state` below).
 _STATE_MTIME_CACHE: dict[str, tuple[int, int]] = {}
@@ -42,7 +42,7 @@ def _load_governance_state(workspace_root: Path) -> dict[str, Any]:
     cached = _STATE_CACHE.get(key)
     if cached is not None:
         return cached
-    state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
+    state_path = workspace_root / ".providence" / "runtime" / "governance-state.json"
     data: dict[str, Any] = {}
     if state_path.exists():
         try:
@@ -71,22 +71,22 @@ def _store_governance_state(
 
     When `changed_keys` is given, the write is also concurrency-safe across
     processes, held under an exclusive interprocess lock, using an
-    optimistic-concurrency check (the finding's own "comparação de versão"
+    optimistic-concurrency check (the finding's own "comparao de verso"
     option) rather than an unconditional re-read: if the file's mtime still
     matches what `_load_governance_state` observed, nothing else has
-    written since, so `data` is still accurate and is written as-is — no
+    written since, so `data` is still accurate and is written as-is  no
     extra disk read, preserving design.md D-01's one-read-per-call
     guarantee in the common (uncontended) case. Only when the mtime has
     moved (a concurrent process wrote in between) does this re-read the
     file fresh and merge just the named top-level keys from `data` onto
-    it — every other top-level key then comes from that fresh read, not
+    it  every other top-level key then comes from that fresh read, not
     from `data`'s stale copy. Without `changed_keys` (back-compat default),
-    the full `data` dict is written as-is unconditionally — callers that
+    the full `data` dict is written as-is unconditionally  callers that
     read-mutate-write the whole blob without declaring which keys they
     actually changed keep the pre-existing behavior, still gaining the
     atomic-write guarantee.
     """
-    state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
+    state_path = workspace_root / ".providence" / "runtime" / "governance-state.json"
     state_path.parent.mkdir(parents=True, exist_ok=True)
     key = str(workspace_root.resolve())
 

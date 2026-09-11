@@ -1,4 +1,4 @@
-"""Workspace context loading for providence ask — primary entry point: `load_ask_context`."""
+"""Workspace context loading for providence ask  primary entry point: `load_ask_context`."""
 
 from __future__ import annotations
 
@@ -14,12 +14,12 @@ from providence_cli.services.ask_governance import (
 from providence_cli.services.ask_governance import (
     load_governance_via_runtime as _load_governance_via_runtime,
 )
-from providence_cli.utils.sdd_authority import (
+from providence_cli.utils.providence_authority import (
     compiled_active_dir,
     enforce_path_policy,
     profile_active_path,
 )
-from providence_cli.utils.sdd_authority import (
+from providence_cli.utils.providence_authority import (
     resolve_workspace_root as _resolve_authority_workspace_root,
 )
 

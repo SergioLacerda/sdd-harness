@@ -38,7 +38,7 @@ class SemanticTrigger:
             "structure",
             "projeto",
             "project",
-            ".sdd",
+            ".providence",
             "governance",
             "mandates",
             "guidelines",
@@ -79,7 +79,7 @@ class SemanticTrigger:
                 and not any(
                     tech_kw in input_lower
                     for tech_kw in [
-                        ".sdd",
+                        ".providence",
                         ".vscode",
                         ".cursor",
                         "-architecture",

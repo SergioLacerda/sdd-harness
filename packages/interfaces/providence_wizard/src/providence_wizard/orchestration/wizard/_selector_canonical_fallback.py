@@ -1,6 +1,6 @@
 """Fallback selector-item building by scanning docs/spec/canonical/**/*.md directly.
 
-Used when governed .sdd artifacts are not yet compiled (see SelectorCompiler).
+Used when governed .providence artifacts are not yet compiled (see SelectorCompiler).
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from ._selector_models import (
     _validate_unique_ids,
 )
 
-# Universal guidelines constant — available when providence_core is installed (optional dep).
+# Universal guidelines constant  available when providence_core is installed (optional dep).
 _BOOTSTRAP_GUIDELINES: str | None = None
 with contextlib.suppress(ImportError):
     from providence_core.governance._bootstrap_guidelines import (

@@ -1,8 +1,8 @@
-"""providence ask — runtime telemetry emission and state persistence.
+"""providence ask  runtime telemetry emission and state persistence.
 
 Split out of `_pipeline_runtime._sync_ask_runtime` (T1,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`):
-these two functions are the side-effecting halves of that function's body —
+these two functions are the side-effecting halves of that function's body 
 neither result is read after the call, so both extract cleanly with no
 return value.
 """
@@ -41,13 +41,13 @@ def _emit_ask_runtime_telemetry(
     """Emit the parent `governance.ask` event and its per-phase children.
 
     `ask.telemetry.emit` measures the cost of telemetry construction and
-    emission itself (design.md §2/§5 — closes the F-09 phase-coverage gap).
+    emission itself (design.md 2/5  closes the F-09 phase-coverage gap).
     It is necessarily self-excluding: `session.phase_timer.records()` is
     read *inside* this phase's own `with` block, before this phase's own
     record is appended on exit, so this phase can never emit a
     `governance.ask.phase` event for itself in the same invocation. This
     is an inherent property of measuring the emitter from inside itself,
-    not a bug — the duration is still visible in the console summary and
+    not a bug  the duration is still visible in the console summary and
     `--full` dump (which read `phase_timer.records()` after this call
     returns).
     """
@@ -60,7 +60,7 @@ def _emit_ask_runtime_telemetry(
     with session.phase_timer.phase("ask.telemetry.emit", latency_domain="telemetry"):
         # One sink shared across every telemetry event this call emits
         # (parent + all phases), flushed once at the end instead of once per
-        # event (design.md D4 — was up to 6-7 separate flushes per `providence ask`
+        # event (design.md D4  was up to 6-7 separate flushes per `providence ask`
         # call).
         telemetry_sink = _backend._build_ask_telemetry_sink(session.workspace_root)
         parent_event = _backend._emit_ask_telemetry(

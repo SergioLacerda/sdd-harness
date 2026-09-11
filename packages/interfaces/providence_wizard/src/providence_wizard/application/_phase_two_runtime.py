@@ -40,7 +40,7 @@ class PhaseTwoRuntime:
                 phase1_path, output_path, failed_status
             )
         if not phase1_path.exists():
-            self._context._emit(f"\n❌ Phase 1 templates not found: {phase1_path}")
+            self._context._emit(f"\n Phase 1 templates not found: {phase1_path}")
             self._context._emit("Run Phase 1 first to generate templates.")
             return self._build_missing_phase1_result(phase1_path, output_path)
         output_path.mkdir(parents=True, exist_ok=True)
@@ -60,7 +60,7 @@ class PhaseTwoRuntime:
                 config = json.load(handle)
         except (OSError, ValueError, TypeError) as exc:
             self._context._emit(
-                f"⚠️  Unable to read phase1_status from {self._context.wizard_config_path}: {exc}"
+                f"  Unable to read phase1_status from {self._context.wizard_config_path}: {exc}"
             )
             return None
         phase1_status = config.get("phase1_status", {})
@@ -83,7 +83,7 @@ class PhaseTwoRuntime:
     def _build_failed_status_result(
         self, phase1_path: Path, output_path: Path, reason: str
     ) -> Phase2StageResult:
-        self._context._emit("\n❌ Phase 1 did not complete successfully.")
+        self._context._emit("\n Phase 1 did not complete successfully.")
         self._context._emit(f"Reason: {reason}")
         self._context._emit(
             "Run Phase 1 again after fixing the issue above before continuing."
@@ -110,7 +110,7 @@ class PhaseTwoRuntime:
     def _build_no_files_result(
         self, phase1_path: Path, output_path: Path
     ) -> Phase2StageResult:
-        self._context._emit(f"\n❌ No supported review files found in: {phase1_path}")
+        self._context._emit(f"\n No supported review files found in: {phase1_path}")
         self._context._emit(
             f"Expected one of: {', '.join(self._context.SUPPORTED_PHASE2_PATTERNS)}"
         )

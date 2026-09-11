@@ -107,7 +107,7 @@ class InteractiveWizard(InteractiveWizardContextMixin):
     def ask_user_preferences(self) -> dict[str, Any]:
         """Resolve user preferences: enforcement mode, language, and handshake mode.
 
-        Resolved once and cached — safe to call multiple times (e.g. hoisted
+        Resolved once and cached  safe to call multiple times (e.g. hoisted
         at the top of the flow, then again internally by PhaseOneRuntime)
         without prompting twice. When `non_interactive` is set, resolves
         without prompting at all (see `PreferencesFlow.resolve_non_interactive_preferences`).
@@ -124,7 +124,7 @@ class InteractiveWizard(InteractiveWizardContextMixin):
             return self._resolved_preferences
 
         if self.debug:
-            self.print_header("User Preferences Setup", "⚙️")
+            self.print_header("User Preferences Setup", "")
         self._resolved_preferences = self._preferences_flow.collect_preferences(
             enforcement_choices=_ENFORCEMENT_CHOICES,
             enforcement_map=_ENFORCEMENT_MAP,

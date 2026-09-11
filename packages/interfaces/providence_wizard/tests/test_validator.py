@@ -1,4 +1,4 @@
-"""Tests for SourceValidator — validate mandate.spec and guidelines.dsl content."""
+"""Tests for SourceValidator  validate mandate.spec and guidelines.dsl content."""
 
 from __future__ import annotations
 

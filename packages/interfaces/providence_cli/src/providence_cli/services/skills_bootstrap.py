@@ -80,7 +80,7 @@ def run_full_bootstrap(
     emit_fn: Callable[..., None],
 ) -> None:
     """Execute full bootstrap pipeline and emit output."""
-    compiled_path = ws_root / ".sdd" / "compiled"
+    compiled_path = ws_root / ".providence" / "compiled"
     config = validate_and_load_governance(
         compiled_path, output_json=output_json, emit_fn=emit_fn
     )

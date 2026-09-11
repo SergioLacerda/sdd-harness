@@ -1,6 +1,6 @@
-"""Primary-path parsing of governed .sdd artifacts (mandates.md, guidelines.dsl).
+"""Primary-path parsing of governed .providence artifacts (mandates.md, guidelines.dsl).
 
-Used by SelectorCompiler when compiled .sdd artifacts are present.
+Used by SelectorCompiler when compiled .providence artifacts are present.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ def _load_metadata(metadata_path: Path) -> dict[str, str]:
     payload = json.loads(metadata_path.read_text(encoding="utf-8"))
     mandates = payload.get("mandates")
     if not isinstance(mandates, dict):
-        raise ValueError(".sdd/metadata.json mandates must be a mapping.")
+        raise ValueError(".providence/metadata.json mandates must be a mapping.")
     return {str(key): str(value) for key, value in mandates.items()}
 
 

@@ -103,7 +103,7 @@ def check_artifact_consistency(
     ):
         return False, "client fingerprint_core_salt mismatch"
     # Internal consistency alone (declared count == actual count) passes even
-    # when both are 0 — a silent, empty client governance compile that
+    # when both are 0  a silent, empty client governance compile that
     # `_governance_orchestrator_support.pipeline_checks()`'s "Client items >
     # 0" check catches during `governance compile`/`generate`, but this
     # `check_artifact_consistency()` path (also used by `governance

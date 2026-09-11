@@ -101,21 +101,20 @@ packages/core/sdd_core/src/sdd_core/_native/
 .DS_Store
 Thumbs.db
 
-# SDD Profiles — gerado via CLI, ignorar conteúdo mas manter arquivos de trust
-# Git não suporta exceções dentro de diretórios ignorados via dir/,
-# então usamos dir/* para poder abrir exceções em subdiretórios específicos.
+# SDD Profiles - generated via CLI; ignore runtime contents but keep safe/canonical files
+# Git cannot re-include files inside a directory ignored with dir/, so use dir/*.
 .sdd/*
-# Trust: apenas chaves públicas e keyring são seguros para commitar
+# Trust: only public/keyring material is safe to commit
 !.sdd/trust/
 .sdd/trust/*
 !.sdd/trust/trusted-keys.json
 !.sdd/trust/README.md
-# Compiled: apenas assinaturas dos artifacts são commitadas
+# Compiled: only artifact signatures are committed
 !.sdd/compiled/
 .sdd/compiled/*
 !.sdd/compiled/governance-core.json.sig
 !.sdd/compiled/governance-client.json.sig
-# Selector: metadata e mandates são fontes canônicas necessárias para o selector em CI/CD
+# Selector: metadata and mandates are canonical inputs needed by selector in CI/CD
 !.sdd/metadata.json
 !.sdd/source/
 .sdd/source/*
@@ -123,6 +122,28 @@ Thumbs.db
 .sdd/source/mandates/*
 !.sdd/source/mandates/mandates.md
 !.sdd/source/guidelines.dsl
+
+# Providence Profiles - generated via CLI; ignore runtime contents but keep safe/canonical files
+# Mirrors the legacy .sdd policy for the .providence runtime directory.
+.providence/*
+# Trust: only public/keyring material is safe to commit
+!.providence/trust/
+.providence/trust/*
+!.providence/trust/trusted-keys.json
+!.providence/trust/README.md
+# Compiled: only artifact signatures are committed
+!.providence/compiled/
+.providence/compiled/*
+!.providence/compiled/governance-core.json.sig
+!.providence/compiled/governance-client.json.sig
+# Selector: metadata and mandates are canonical inputs needed by selector in CI/CD
+!.providence/metadata.json
+!.providence/source/
+.providence/source/*
+!.providence/source/mandates/
+.providence/source/mandates/*
+!.providence/source/mandates/mandates.md
+!.providence/source/guidelines.dsl
 
 # Project Specific
 test_output.log
@@ -133,12 +154,12 @@ _version.py
 # Generated selector assets (built into docs_dir so MkDocs serves/copies them)
 docs/selector/
 
-# Dev Container — ignore dotfiles but keep the config files
+# Dev Container - ignore dotfiles but keep the config files
 .devcontainer/.*
 !.devcontainer/devcontainer.json
 !.devcontainer/post-create.sh
 build/
 
-# Drift battery local state — not for commit
+# Drift battery local state - not for commit
 examples/security/drift_battery_snapshot.json
 .strategist/.compiled/

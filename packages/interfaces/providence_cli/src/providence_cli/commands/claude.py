@@ -8,7 +8,7 @@ import typer
 from rich.console import Console
 
 from providence_cli.services.command_group_output import show_command_group
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 app = typer.Typer(
     help="Claude Code governance projection generation", invoke_without_command=True

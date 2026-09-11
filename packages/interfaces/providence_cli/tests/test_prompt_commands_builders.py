@@ -17,7 +17,7 @@ from providence_cli.generators._prompt_commands_data import (
 
 
 def _write_registry(output_dir: Path, commands: object) -> None:
-    registry_dir = output_dir / ".sdd" / "commands"
+    registry_dir = output_dir / ".providence" / "commands"
     registry_dir.mkdir(parents=True, exist_ok=True)
     (registry_dir / "registry.json").write_text(
         json.dumps({"commands": commands}), encoding="utf-8"
@@ -137,7 +137,7 @@ def test_prompt_spec_for_sdd_organize() -> None:
     assert description == "Prepare indexed context for large inputs"
     assert mode == "agent"
     assert "providence organize" in body
-    assert ".sdd/runtime/ask-intake/" in body
+    assert ".providence/runtime/ask-intake/" in body
     assert "execution_gate" in body
     assert "intake_index_mode: none" in body
 
@@ -160,4 +160,4 @@ def test_prompt_spec_for_unknown_route_type_falls_back() -> None:
     assert slug == "sdd-unknown"
     assert description == "Run sdd-unknown"
     assert mode == "agent"
-    assert ".sdd/commands/registry.json" in body
+    assert ".providence/commands/registry.json" in body

@@ -39,25 +39,25 @@
 ### 2. Seedling Structure Template
 
 ```
-.sdd/seedlings/{domain-name}/
-├── README.md                      # Domain overview
-├── governance-specialization.json  # Domain-specific rules
-├── implementation/
-│   ├── patterns/
-│   │   ├── architecture.md
-│   │   ├── code-structure.md
-│   │   └── naming-conventions.md
-│   ├── templates/
-│   │   ├── module-template.py
-│   │   ├── class-template.py
-│   │   └── config-template.json
-│   └── examples/
-│       ├── basic-example/
-│       ├── advanced-example/
-│       └── testing-example/
-└── validation/
-    ├── rules.json
-    └── checklist.md
+.providence/seedlings/{domain-name}/
+ README.md                      # Domain overview
+ governance-specialization.json  # Domain-specific rules
+ implementation/
+    patterns/
+       architecture.md
+       code-structure.md
+       naming-conventions.md
+    templates/
+       module-template.py
+       class-template.py
+       config-template.json
+    examples/
+        basic-example/
+        advanced-example/
+        testing-example/
+ validation/
+     rules.json
+     checklist.md
 ```
 
 ### 3. Governance-Specialization.json
@@ -89,13 +89,13 @@
 
 ## Implementation Steps (For Agents)
 
-### Step 1: Initialize .sdd/ Directory
+### Step 1: Initialize .providence/ Directory
 
 ```bash
-mkdir -p .sdd/seedlings
-mkdir -p .sdd/phases
-mkdir -p .sdd/enforcement
-mkdir -p .sdd/rules
+mkdir -p .providence/seedlings
+mkdir -p .providence/phases
+mkdir -p .providence/enforcement
+mkdir -p .providence/rules
 ```
 
 ### Step 2: Create metadata.json
@@ -108,7 +108,7 @@ Use template above, fill in:
 ### Step 3: Define Seedlings
 
 For each domain the user operates in:
-1. Create `.sdd/seedlings/{domain}/`
+1. Create `.providence/seedlings/{domain}/`
 2. Add `governance-specialization.json`
 3. Document patterns in `implementation/`
 
@@ -128,7 +128,7 @@ This forces AHP validation before operations.
 python packages/agent_handshake.py --mode=verbose
 ```
 
-Expected state: **HEALTHY** 🟢
+Expected state: **HEALTHY** 
 
 ---
 
@@ -137,10 +137,10 @@ Expected state: **HEALTHY** 🟢
 ### Current AHP Layer 4: Governance Health
 
 AHP checks:
-- ✓ metadata.json exists
-- ✓ JSON is valid
-- ✓ Required fields present
-- ✓ Authority defined
+-  metadata.json exists
+-  JSON is valid
+-  Required fields present
+-  Authority defined
 
 ### New: Governance Compliance Checks
 
@@ -175,7 +175,7 @@ def _check_policy_compliance(self):
 
 ```python
 if not ahp.validate().passed:
-    print("❌ Governance not adopted")
+    print(" Governance not adopted")
     print(
         "Run: python packages/interfaces/providence_wizard/src/providence_wizard/SCRIPTS/phase-0-agent-onboarding.py"
     )
@@ -203,7 +203,7 @@ current_phase = governance.get("phases", {}).get("current", 0)
 required_phase = 1
 
 if current_phase < required_phase:
-    print("❌ Must complete PHASE 0 first")
+    print(" Must complete PHASE 0 first")
     sys.exit(1)
 ```
 
@@ -215,7 +215,7 @@ When user asks "How do I implement governance?":
 
 1. **Check if wizard was run**
    ```bash
-   [ -f .sdd/metadata.json ] && echo "✓ Governance exists"
+   [ -f .providence/metadata.json ] && echo " Governance exists"
    ```
 
 2. **Understand their domain**
@@ -224,7 +224,7 @@ When user asks "How do I implement governance?":
    - Explain governance benefits
 
 3. **Guide through implementation**
-   - Create .sdd/ structure
+   - Create .providence/ structure
    - Define authority
    - Set policies
    - Add seedlings
@@ -267,7 +267,7 @@ When user asks "How do I implement governance?":
 
 ### "metadata.json" not valid
 ```bash
-python3 -m json.tool .sdd/metadata.json
+python3 -m json.tool .providence/metadata.json
 # Fix any JSON errors, retry
 ```
 

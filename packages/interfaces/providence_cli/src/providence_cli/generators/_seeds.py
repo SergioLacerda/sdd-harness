@@ -1,4 +1,4 @@
-"""Agent seed generators — standalone MD context files per AI platform."""
+"""Agent seed generators  standalone MD context files per AI platform."""
 
 from pathlib import Path
 from typing import Any

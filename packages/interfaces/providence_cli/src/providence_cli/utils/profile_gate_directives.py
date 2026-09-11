@@ -44,7 +44,7 @@ def _collect_gate_directives(
     elif invoked == "ask" and state == "PARTIAL":
         directives.append(
             (
-                "SOFT [governance]: governanca PARTIAL — precisao do ask pode ser reduzida.",
+                "SOFT [governance]: governanca PARTIAL  precisao do ask pode ser reduzida.",
                 "providence governance compile",
                 "ask-partial",
             )

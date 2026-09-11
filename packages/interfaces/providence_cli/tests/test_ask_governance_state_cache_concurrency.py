@@ -22,7 +22,7 @@ def _reset_module_caches() -> None:
 def test_concurrent_writers_to_different_keys_both_preserved(tmp_path: Path) -> None:
     """Two separate 'processes' (simulated by clearing the module-level
     caches in between, since the real cache is per-process) each load state,
-    then each write a *different* top-level key — both must survive."""
+    then each write a *different* top-level key  both must survive."""
     _reset_module_caches()
 
     data_a = cache_mod._load_governance_state(tmp_path)
@@ -35,9 +35,9 @@ def test_concurrent_writers_to_different_keys_both_preserved(tmp_path: Path) -> 
     assert data_b["last_ask"]["compiled_fingerprint_used"] == "fp-a"
 
     # "A" (in reality, could be a still-running process) writes again to a
-    # DIFFERENT key without "B" knowing — simulated by mutating the file
+    # DIFFERENT key without "B" knowing  simulated by mutating the file
     # directly, out from under B's already-loaded (now stale) `data_b`.
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     on_disk = json.loads(state_path.read_text(encoding="utf-8"))
     on_disk["last_routing_decisions"] = {"sig-1": {"organize_used": True}}
     state_path.write_text(json.dumps(on_disk), encoding="utf-8")
@@ -57,7 +57,7 @@ def test_concurrent_writers_to_different_keys_both_preserved(tmp_path: Path) -> 
 
 def test_uncontended_write_does_not_reread_file(tmp_path: Path) -> None:
     """When nothing else has written since the load, the write must use the
-    already-loaded `data` directly — no extra `read_text` (design.md D-01's
+    already-loaded `data` directly  no extra `read_text` (design.md D-01's
     one-read-per-call guarantee must survive the RUN-01 fix)."""
     _reset_module_caches()
     data = cache_mod._load_governance_state(tmp_path)
@@ -84,7 +84,7 @@ def test_write_is_atomic_no_partial_file_and_no_leftover_temp(tmp_path: Path) ->
     data["last_ask"] = {"compiled_fingerprint_used": "fp1"}
     cache_mod._store_governance_state(tmp_path, data, changed_keys={"last_ask"})
 
-    state_dir = tmp_path / ".sdd" / "runtime"
+    state_dir = tmp_path / ".providence" / "runtime"
     state_path = state_dir / "governance-state.json"
     assert state_path.exists()
     json.loads(state_path.read_text(encoding="utf-8"))  # must be valid, complete JSON

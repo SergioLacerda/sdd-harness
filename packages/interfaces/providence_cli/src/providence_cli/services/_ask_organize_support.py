@@ -174,7 +174,7 @@ def build_organize_artifact(
 
 
 def write_organize_artifact(*, workspace_root: Path, artifact: dict[str, Any]) -> Path:
-    out_dir = workspace_root / ".sdd" / "runtime" / "ask-intake"
+    out_dir = workspace_root / ".providence" / "runtime" / "ask-intake"
     out_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out_path = out_dir / f"{ts}-{artifact.get('query_hash', 'unknown')}.json"

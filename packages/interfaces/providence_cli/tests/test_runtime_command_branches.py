@@ -64,7 +64,7 @@ def test_render_status_output_text_stale_warning(capsys) -> None:
 
 
 def test_do_update_cache_writes_new_cache(monkeypatch, tmp_path: Path, capsys) -> None:
-    gov = tmp_path / ".sdd" / "compiled" / "governance-core.json"
+    gov = tmp_path / ".providence" / "compiled" / "governance-core.json"
     gov.parent.mkdir(parents=True)
     gov.write_text("{}", encoding="utf-8")
 
@@ -83,7 +83,7 @@ def test_do_update_cache_writes_new_cache(monkeypatch, tmp_path: Path, capsys) -
     )
     runtime_cmd._do_update_cache(tmp_path)
     out = capsys.readouterr().out
-    cache = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
+    cache = tmp_path / ".providence" / "runtime" / ".sdd-cache.md"
     assert ".sdd-cache.md refreshed" in out
     assert cache.exists()
     assert "Validation Quiz" in cache.read_text(encoding="utf-8")
@@ -92,10 +92,10 @@ def test_do_update_cache_writes_new_cache(monkeypatch, tmp_path: Path, capsys) -
 def test_do_update_cache_appends_validation_quiz_to_existing_cache(
     monkeypatch, tmp_path: Path
 ) -> None:
-    gov = tmp_path / ".sdd" / "compiled" / "governance-core.json"
+    gov = tmp_path / ".providence" / "compiled" / "governance-core.json"
     gov.parent.mkdir(parents=True)
     gov.write_text("{}", encoding="utf-8")
-    cache = tmp_path / ".sdd" / "runtime" / ".sdd-cache.md"
+    cache = tmp_path / ".providence" / "runtime" / ".sdd-cache.md"
     cache.parent.mkdir(parents=True)
     cache.write_text("# SDD Cache\n\nInitialized by: previous run\n", encoding="utf-8")
 
@@ -129,7 +129,7 @@ def test_do_update_cache_missing_governance_file_raises(tmp_path: Path) -> None:
 def test_format_diagnostic_block_handles_missing_and_unreadable_cache(
     monkeypatch, tmp_path: Path
 ) -> None:
-    profile = tmp_path / ".sdd" / "profile"
+    profile = tmp_path / ".providence" / "profile"
     profile.parent.mkdir(parents=True)
     profile.write_text("[sdd]\ntype = client\n", encoding="utf-8")
     monkeypatch.setattr(runtime_cmd, "profile_active_path", lambda root: profile)
@@ -139,7 +139,7 @@ def test_format_diagnostic_block_handles_missing_and_unreadable_cache(
     )
     assert "NONE, revalidating" in block
 
-    cache = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    cache = tmp_path / ".providence" / "runtime" / "governance-state.json"
     cache.parent.mkdir(parents=True)
     cache.write_text("not-json", encoding="utf-8")
     block = runtime_cmd._format_diagnostic_block(tmp_path, cache_file=cache)

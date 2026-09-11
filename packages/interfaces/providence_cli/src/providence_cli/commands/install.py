@@ -1,4 +1,4 @@
-"""Install — canonical single entrypoint for activating SDD governance."""
+"""Install  canonical single entrypoint for activating SDD governance."""
 
 from pathlib import Path
 
@@ -35,13 +35,13 @@ def install(
     from_file: Path | None = typer.Option(
         None,
         "--from-file",
-        help="Path to a custom mandates/guidelines JSON file (Scenario B) — validated and used instead of generating a fresh governance set.",
+        help="Path to a custom mandates/guidelines JSON file (Scenario B)  validated and used instead of generating a fresh governance set.",
         show_default=False,
     ),
     non_interactive: bool = typer.Option(
         False,
         "--non-interactive",
-        help="Resolve preferences/agent selection without prompting — reuses an existing wizard-config.json when present, else canonical defaults.",
+        help="Resolve preferences/agent selection without prompting  reuses an existing wizard-config.json when present, else canonical defaults.",
     ),
     list_commands: bool = typer.Option(False, "--list", help="List install commands."),
 ) -> None:

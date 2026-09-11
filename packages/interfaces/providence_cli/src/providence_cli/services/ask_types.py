@@ -1,4 +1,4 @@
-"""ask_types — shared dataclasses for `providence ask` request/session state.
+"""ask_types  shared dataclasses for `providence ask` request/session state.
 
 Extracted from `commands/_ask_backend.py` so that
 `services/ask_response.py` can depend on these types without

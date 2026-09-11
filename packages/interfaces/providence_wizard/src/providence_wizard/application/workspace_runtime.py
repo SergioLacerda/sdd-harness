@@ -47,11 +47,11 @@ def emit_selector_phase1_hint(
     if selector_selection:
         resolved = selector_selection.get("resolved_ids", [])
         emitter(
-            f"  🔎 Loaded selector selection: {len(resolved)} item(s) from {selector_output_path}"
+            f"   Loaded selector selection: {len(resolved)} item(s) from {selector_output_path}"
         )
         return
     if selector_site_path.exists():
-        emitter(f"  ℹ️  Optional pre-filter available at {selector_site_path}")
+        emitter(f"    Optional pre-filter available at {selector_site_path}")
 
 
 def build_selector_discovery_config(
@@ -133,7 +133,7 @@ def ensure_onboarding_scaffold(
         if mandate_missing:
             emit(
                 "WARN: canonical governance spec not found; generating minimal "
-                "placeholder mandate.md — customize before production use"
+                "placeholder mandate.md  customize before production use"
             )
             (docs_meta / "mandate.md").write_text(baseline_mandate, encoding="utf-8")
 
@@ -146,7 +146,7 @@ def ensure_onboarding_scaffold(
         if guidelines_missing:
             emit(
                 "WARN: canonical governance spec not found; generating minimal "
-                "placeholder guidelines.dsl — customize before production use"
+                "placeholder guidelines.dsl  customize before production use"
             )
             (docs_meta / "guidelines.dsl").write_text(
                 baseline_guidelines,

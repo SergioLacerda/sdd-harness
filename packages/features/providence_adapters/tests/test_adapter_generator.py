@@ -103,7 +103,7 @@ def test_generate_for_antigravity_writes_targeted_command_surface(
     assert str(target) in result.files_written
     content = target.read_text(encoding="utf-8")
     assert "name: sdd-organize" in content
-    assert ".sdd/commands/sdd-organize/command.yaml" in content
+    assert ".providence/commands/sdd-organize/command.yaml" in content
     assert "`providence organize`" in content
     assert "intake_index_mode: none" in content
 
@@ -111,7 +111,7 @@ def test_generate_for_antigravity_writes_targeted_command_surface(
 def test_generate_for_antigravity_keeps_registry_command_targets_truthful(
     tmp_path: Path,
 ) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     commands_dir = sdd_dir / "commands" / "sdd-organize"
     skills_dir = sdd_dir / "skills" / "sdd-ask"
     commands_dir.mkdir(parents=True)
@@ -180,7 +180,7 @@ def test_generate_for_antigravity_keeps_registry_command_targets_truthful(
     assert result.success is True
     assert command_surface.exists()
     assert skill_surface.exists()
-    assert ".sdd/commands/sdd-organize/command.yaml" in command_surface.read_text(
+    assert ".providence/commands/sdd-organize/command.yaml" in command_surface.read_text(
         encoding="utf-8"
     )
 

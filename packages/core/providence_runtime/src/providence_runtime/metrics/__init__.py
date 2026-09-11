@@ -10,7 +10,7 @@ Usage::
     from pathlib import Path
 
     # Replay JSONL to build metrics
-    reader = TelemetryReader(Path(".sdd/runtime/compliance-events.jsonl"))
+    reader = TelemetryReader(Path(".providence/runtime/compliance-events.jsonl"))
     collector = TokenEconomyCollector.from_reader(reader)
     snap = collector.snapshot()
 

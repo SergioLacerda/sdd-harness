@@ -107,7 +107,7 @@ def emit_pipeline_required(name: str, *, output_json: bool, emit_fn: Any) -> Non
         )
     else:
         typer.echo(
-            "ERROR: sdd-correct direto bloqueado por política. "
+            "ERROR: sdd-correct direto bloqueado por poltica. "
             "Use: providence skills run sdd-pipeline",
             err=True,
         )

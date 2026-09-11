@@ -34,7 +34,7 @@ def test_default_ask_phase_timeouts_cover_all_known_phases():
 
 
 def test_llm_exchange_threshold_is_much_higher_than_local_phases():
-    """LLM latency is expected to legitimately take seconds — its threshold
+    """LLM latency is expected to legitimately take seconds  its threshold
     must not be tight like a local governance phase, or the watchdog would
     constantly false-positive on normal LLM latency."""
     llm_threshold = DEFAULT_ASK_PHASE_TIMEOUTS_MS["ask.external.llm_exchange"]

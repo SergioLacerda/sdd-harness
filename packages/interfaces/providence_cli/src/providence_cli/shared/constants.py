@@ -9,4 +9,4 @@ BREACH_EXIT_CODE = EXIT_CODE_OPERATIONAL_FAILURE
 
 LEARNING_WINDOW_DAYS = 7
 TRUE_VALUES = {"1", "true", "yes", "on"}
-RUNTIME_DIR = Path(".sdd") / "runtime"
+RUNTIME_DIR = Path(".providence") / "runtime"

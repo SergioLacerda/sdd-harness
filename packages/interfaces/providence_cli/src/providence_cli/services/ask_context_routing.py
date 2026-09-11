@@ -42,12 +42,12 @@ def resolve_routing_decision(
 
     Keyed by the fingerprint recorded by the previous `providence ask` call. Returns
     None on cold start (no prior call recorded), so a decision is never
-    cached against an empty/unknown fingerprint — the first call for a
+    cached against an empty/unknown fingerprint  the first call for a
     workspace always runs the routing heuristics for real.
 
     Reads `governance-state.json` once (not via `get_last_known_fingerprint`
     + `get_cached_routing_decision` separately, which would each re-read the
-    file) — design.md D4 flags redundant reads of this file as an
+    file)  design.md D4 flags redundant reads of this file as an
     inefficiency to avoid, and this lookup previously did two on every call.
     """
     state = _read_runtime_state(workspace_root)
@@ -116,16 +116,16 @@ def write_runtime_cache_and_routing_decision(
 
     `write_runtime_cache` + `store_routing_decision` always run back-to-back
     at the end of a `providence ask` call and each independently reads/writes
-    `governance-state.json` — two reads and two writes for state that is
+    `governance-state.json`  two reads and two writes for state that is
     always updated together. This combines them into one read + one write
     (design.md D4). `write_runtime_cache` and `store_routing_decision` are
-    kept as-is for other callers/tests — they now share the same
+    kept as-is for other callers/tests  they now share the same
     per-process `_load_governance_state`/`_store_governance_state` cache
     (design.md D-01), so calling them elsewhere in the same process no
     longer reintroduces a redundant disk read either.
 
     `governance_snapshot`, when supplied, is persisted under `snapshot_cache`
-    the same way `store_governance_snapshot` does standalone (design.md D-A) —
+    the same way `store_governance_snapshot` does standalone (design.md D-A) 
     folded into this same write rather than opening a third read/write path.
     """
     try:

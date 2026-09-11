@@ -1,4 +1,4 @@
-"""SeedlingRenderer — markdown and script artifact generation for seedlings."""
+"""SeedlingRenderer  markdown and script artifact generation for seedlings."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from providence_core.utils.managed_block import merge_managed_block
 from providence_core.utils.text_io import read_text_utf8
+from providence_wizard.constants import RUNTIME_DIRNAME
 from providence_wizard.templates.seedling_templates import (
     build_activation_guide,
     build_agent_instructions,
@@ -62,10 +63,10 @@ class SeedlingRenderer:
                 enforcement_behavior=enforcement_behavior,
                 language=ctx.config.get("language", "python").upper(),
                 mandates_list="\n".join(
-                    f"✓ {m['id']}: {m.get('title', 'Unknown')}" for m in ctx.mandates
+                    f" {m['id']}: {m.get('title', 'Unknown')}" for m in ctx.mandates
                 ),
                 guidelines_list=(
-                    "\n".join(f"✓ {cat.upper()}" for cat in ctx.active_categories)
+                    "\n".join(f" {cat.upper()}" for cat in ctx.active_categories)
                     if ctx.active_categories
                     else "(None configured)"
                 ),
@@ -73,10 +74,10 @@ class SeedlingRenderer:
             )
             with open(guide_file, "w", encoding="utf-8") as f:
                 f.write(content)
-            ctx.log("✅ Generated ACTIVATION_GUIDE.md")
+            ctx.log(" Generated ACTIVATION_GUIDE.md")
             return True
         except Exception as e:
-            self._ctx._emit(f"  ❌ Failed to generate activation guide: {e}")
+            self._ctx._emit(f"   Failed to generate activation guide: {e}")
             return False
 
     def generate_verification_script(self) -> bool:
@@ -90,17 +91,17 @@ class SeedlingRenderer:
             with open(script_file, "w", encoding="utf-8") as f:
                 f.write(content)
             script_file.chmod(0o755)
-            ctx.log("✅ Generated verify.py")
+            ctx.log(" Generated verify.py")
             return True
         except Exception as e:
-            self._ctx._emit(f"  ❌ Failed to generate verification script: {e}")
+            self._ctx._emit(f"   Failed to generate verification script: {e}")
             return False
 
     def generate_agnostic_agent_instructions(self) -> bool:
-        """Generate .sdd/agent-instructions.md."""
+        """Generate .providence/agent-instructions.md."""
         try:
             ctx = self._ctx
-            instructions_dir = ctx.output_base / ".sdd"
+            instructions_dir = ctx.output_base / RUNTIME_DIRNAME
             instructions_dir.mkdir(parents=True, exist_ok=True)
             mandates_lines = []
             for m in ctx.mandates:
@@ -123,10 +124,10 @@ class SeedlingRenderer:
             instructions_file = instructions_dir / "agent-instructions.md"
             with open(instructions_file, "w", encoding="utf-8") as f:
                 f.write(content)
-            ctx.log("✅ Generated agnostic .sdd/agent-instructions.md")
+            ctx.log(" Generated agnostic .providence/agent-instructions.md")
             return True
         except Exception as e:
-            self._ctx._emit(f"  ❌ Failed to generate agnostic agent instructions: {e}")
+            self._ctx._emit(f"   Failed to generate agnostic agent instructions: {e}")
             return False
 
     def generate_agents_md(self) -> bool:
@@ -146,8 +147,8 @@ class SeedlingRenderer:
             existing = read_text_utf8(agents_file) if agents_file.exists() else None
             merged = merge_managed_block(existing, content)
             agents_file.write_text(merged, encoding="utf-8")
-            ctx.log("✅ Generated AGENTS.md bootstrap contract")
+            ctx.log(" Generated AGENTS.md bootstrap contract")
             return True
         except Exception as e:
-            self._ctx._emit(f"  ❌ Failed to generate AGENTS.md: {e}")
+            self._ctx._emit(f"   Failed to generate AGENTS.md: {e}")
             return False

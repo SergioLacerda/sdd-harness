@@ -1,4 +1,4 @@
-"""Tests for providence_cli.services.governance_compile_handlers — profile hash and seed regen."""
+"""Tests for providence_cli.services.governance_compile_handlers  profile hash and seed regen."""
 
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ class TestUpdateProfileHash:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.delenv("SDD_TEST_OUTPUT_DIR", raising=False)
-        profile_path = tmp_path / ".sdd" / "profile"
+        profile_path = tmp_path / ".providence" / "profile"
         _write_profile(profile_path)
         compiled_dir = tmp_path / "compiled"
         compiled_dir.mkdir()
@@ -74,7 +74,7 @@ class TestUpdateProfileHash:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.delenv("SDD_TEST_OUTPUT_DIR", raising=False)
-        profile_path = tmp_path / ".sdd" / "profile"
+        profile_path = tmp_path / ".providence" / "profile"
         _write_profile(profile_path)
         compiled_dir = tmp_path / "compiled"
         compiled_dir.mkdir()
@@ -103,7 +103,7 @@ class TestUpdateProfileHash:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.delenv("SDD_TEST_OUTPUT_DIR", raising=False)
-        profile_path = tmp_path / ".sdd" / "profile"
+        profile_path = tmp_path / ".providence" / "profile"
         _write_profile(profile_path)
         compiled_dir = tmp_path / "compiled"
         compiled_dir.mkdir()
@@ -148,7 +148,7 @@ class TestUpdateProfileHash:
     ) -> None:
         workspace = tmp_path / "workspace"
         redirected = tmp_path / "isolated"
-        profile_path = workspace / ".sdd" / "profile"
+        profile_path = workspace / ".providence" / "profile"
         _write_profile(profile_path)
         compiled_dir = workspace / "compiled"
         compiled_dir.mkdir(parents=True)
@@ -171,7 +171,7 @@ class TestUpdateProfileHash:
         assert "core_hash" not in parser["sdd"]
 
     def test_profile_without_sdd_section_does_nothing(self, tmp_path: Path) -> None:
-        profile_path = tmp_path / ".sdd" / "profile"
+        profile_path = tmp_path / ".providence" / "profile"
         profile_path.parent.mkdir(parents=True, exist_ok=True)
         profile_path.write_text("[other]\nkey = value\n", encoding="utf-8")
         compiled_dir = tmp_path / "compiled"
@@ -259,7 +259,7 @@ class TestRegenerateSeeds:
             ) as mock_gen_root,
             patch(
                 "providence_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
-                return_value=[tmp_path / ".sdd/source/handbook/index.yaml"],
+                return_value=[tmp_path / ".providence/source/handbook/index.yaml"],
             ) as mock_handbook,
         ):
             regenerate_seeds(console=console)
@@ -269,9 +269,9 @@ class TestRegenerateSeeds:
         mock_gen_root.assert_called_once()
         mock_handbook.assert_called_once_with(tmp_path, runtime_root=tmp_path.resolve())
         output = console.file.getvalue()
-        assert ".sdd/metadata.json synchronized" in output
+        assert ".providence/metadata.json synchronized" in output
         assert "Agent instruction files regenerated" in output
-        assert ".sdd/agent-instructions.md regenerated" in output
+        assert ".providence/agent-instructions.md regenerated" in output
         assert "Root bootstrap files regenerated" in output
         assert "Runtime handbook regenerated" in output
 
@@ -324,8 +324,8 @@ class TestRegenerateSeeds:
         ):
             regenerate_seeds(console=console)
 
-        assert not (workspace / ".sdd" / "metadata.json").exists()
-        redirected_metadata = redirected / ".sdd" / "metadata.json"
+        assert not (workspace / ".providence" / "metadata.json").exists()
+        redirected_metadata = redirected / ".providence" / "metadata.json"
         assert redirected_metadata.exists()
         synced = json.loads(redirected_metadata.read_text(encoding="utf-8"))
         assert synced["governance_fingerprint"] == "abcdef0123456789"
@@ -419,7 +419,7 @@ class TestRegenerateSeeds:
     def test_sync_workspace_metadata_from_config_uses_compiled_fingerprint(
         self, tmp_path: Path
     ) -> None:
-        metadata_path = tmp_path / ".sdd" / "metadata.json"
+        metadata_path = tmp_path / ".providence" / "metadata.json"
         metadata_path.parent.mkdir(parents=True)
         metadata_path.write_text(
             json.dumps(
@@ -467,7 +467,7 @@ class TestRegenerateSeeds:
 
         assert sync_workspace_metadata_from_config(tmp_path, config) is True
         synced = json.loads(
-            (tmp_path / ".sdd" / "metadata.json").read_text(encoding="utf-8")
+            (tmp_path / ".providence" / "metadata.json").read_text(encoding="utf-8")
         )
         assert synced["language_context"] == {
             "preferred_human_language": "pt-BR",
@@ -479,7 +479,7 @@ class TestRegenerateSeeds:
     def test_sync_workspace_metadata_no_language_key_unchanged(
         self, tmp_path: Path
     ) -> None:
-        """No `--language` at init time — behavior identical to before this bridge existed."""
+        """No `--language` at init time  behavior identical to before this bridge existed."""
         from providence_core.utils.environment import write_profile
 
         write_profile(tmp_path, "client", "local-dev")  # no language
@@ -491,7 +491,7 @@ class TestRegenerateSeeds:
 
         assert sync_workspace_metadata_from_config(tmp_path, config) is True
         synced = json.loads(
-            (tmp_path / ".sdd" / "metadata.json").read_text(encoding="utf-8")
+            (tmp_path / ".providence" / "metadata.json").read_text(encoding="utf-8")
         )
         assert "language_context" not in synced
 
@@ -503,7 +503,7 @@ class TestRegenerateSeeds:
 
         write_profile(tmp_path, "client", "local-dev", "en")
 
-        metadata_path = tmp_path / ".sdd" / "metadata.json"
+        metadata_path = tmp_path / ".providence" / "metadata.json"
         metadata_path.write_text(
             json.dumps(
                 {

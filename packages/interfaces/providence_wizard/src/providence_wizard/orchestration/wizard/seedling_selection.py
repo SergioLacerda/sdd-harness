@@ -22,12 +22,12 @@ def _build_choices() -> list[Any]:
         last_group: str | None = None
         for key, group, desc in SEEDLINGS:
             if group != last_group:
-                choices.append(Separator(f"── {group} ──"))
+                choices.append(Separator(f" {group} "))
                 last_group = group
-            choices.append(Choice(f"{key:<18} — {desc}", value=key))
+            choices.append(Choice(f"{key:<18}  {desc}", value=key))
         return choices
     except ImportError:
-        return [f"{key} — {desc}" for key, _, desc in SEEDLINGS]
+        return [f"{key}  {desc}" for key, _, desc in SEEDLINGS]
 
 
 def ask_seedling_selection(
@@ -41,7 +41,7 @@ def ask_seedling_selection(
         prompter: Prompter instance, legacy callable, or None (uses make_prompter).
     """
     _p = _wrap_prompter(prompter)
-    emitter("\n📦 Seedlings Selection")
+    emitter("\n Seedlings Selection")
     emitter("-" * 50)
 
     choices = _build_choices()
@@ -70,24 +70,24 @@ def ask_seedling_selection(
             selected_values = parsed
 
     if not selected_values:
-        emitter("  → Generating recommended default (CORE + IDEs + AGENTS)")
+        emitter("   Generating recommended default (CORE + IDEs + AGENTS)")
         return None
 
     known = {s[0] for s in SEEDLINGS}
     normalized: list[str] = []
     for value in selected_values:
         candidate = value.strip()
-        if " — " in candidate:
-            candidate = candidate.split(" — ", 1)[0].strip()
+        if "  " in candidate:
+            candidate = candidate.split("  ", 1)[0].strip()
         normalized.append(candidate)
     valid = {v for v in normalized if v in known}
 
     if not valid:
         emitter(
-            "  ⚠️  No valid selection — generating recommended default "
+            "    No valid selection  generating recommended default "
             "(CORE + IDEs + AGENTS)"
         )
         return None
 
-    emitter(f"  → Generating: {', '.join(sorted(valid))}")
+    emitter(f"   Generating: {', '.join(sorted(valid))}")
     return valid

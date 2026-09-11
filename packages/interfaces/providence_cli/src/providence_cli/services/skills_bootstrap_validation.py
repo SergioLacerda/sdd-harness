@@ -18,7 +18,7 @@ def validate_and_load_governance(
     """Validate governance path and load config; raises typer.Exit(1) on failure."""
     if not validate_governance_path(str(compiled_path)):
         message = (
-            "Missing/invalid governance artifacts at .sdd/compiled. "
+            "Missing/invalid governance artifacts at .providence/compiled. "
             "Run step 2 first: providence governance generate --full-bootstrap"
         )
         if output_json:
@@ -37,7 +37,7 @@ def validate_and_load_governance(
     items = config.get("items", []) if isinstance(config, dict) else []
     if not isinstance(items, list) or len(items) == 0:
         message = (
-            "No governance items found in .sdd/compiled. "
+            "No governance items found in .providence/compiled. "
             "Run step 2 first: providence governance generate --full-bootstrap"
         )
         if output_json:

@@ -1,4 +1,4 @@
-"""Tests for providence_cli.generators._indices — skill and CLI command indices."""
+"""Tests for providence_cli.generators._indices  skill and CLI command indices."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class TestGenerateSkillIndex:
 
     def test_index_in_sdd_indices_dir(self, tmp_path: Path) -> None:
         result = generate_skill_index(str(tmp_path), {})
-        assert ".sdd/indices" in result["index_path"]
+        assert ".providence/indices" in result["index_path"]
 
     def test_skill_count_and_indexed_skills(self, tmp_path: Path) -> None:
         from providence_runtime.skills import SkillEngine
@@ -36,20 +36,20 @@ class TestGenerateSkillIndex:
 
     def test_index_json_contains_expected_fields(self, tmp_path: Path) -> None:
         generate_skill_index(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "indices" / "skills.index.json")
+        content = read_text_utf8(tmp_path / ".providence" / "indices" / "skills.index.json")
         data = json.loads(content)
         assert data["schema_version"] == "1.0.0"
         assert data["index_type"] == "skills"
         assert "generated_at" in data
         entry = next(s for s in data["skills"] if s["name"] == "sdd-ask")
-        assert entry["yaml_path"] == ".sdd/skills/sdd-ask/skill.yaml"
+        assert entry["yaml_path"] == ".providence/skills/sdd-ask/skill.yaml"
         assert isinstance(entry["executable_via_cli"], bool)
         assert isinstance(entry["required_permissions"], list)
         assert isinstance(entry["budget_policy"], dict)
 
     def test_skills_sorted_by_name(self, tmp_path: Path) -> None:
         generate_skill_index(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "indices" / "skills.index.json")
+        content = read_text_utf8(tmp_path / ".providence" / "indices" / "skills.index.json")
         data = json.loads(content)
         names = [s["name"] for s in data["skills"]]
         assert names == sorted(names)
@@ -77,7 +77,7 @@ class TestGenerateCliCommandsIndex:
 
     def test_index_in_sdd_indices_dir(self, tmp_path: Path) -> None:
         result = generate_cli_commands_index(str(tmp_path), {})
-        assert ".sdd/indices" in result["index_path"]
+        assert ".providence/indices" in result["index_path"]
 
     def test_command_count_and_names(self, tmp_path: Path) -> None:
         result = generate_cli_commands_index(str(tmp_path), {})
@@ -90,7 +90,7 @@ class TestGenerateCliCommandsIndex:
         self, tmp_path: Path
     ) -> None:
         generate_cli_commands_index(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "indices" / "cli.commands.json")
+        content = read_text_utf8(tmp_path / ".providence" / "indices" / "cli.commands.json")
         data = json.loads(content)
         assert data["schema_version"] == "1.0.0"
         assert data["index_type"] == "cli_commands"

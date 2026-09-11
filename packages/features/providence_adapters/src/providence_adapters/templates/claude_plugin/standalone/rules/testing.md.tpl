@@ -10,9 +10,9 @@ makes the Red-Green-Refactor cycle below practical.
 
 All code changes follow this cycle:
 
-1. **Red** — write a failing test for the new requirement.
-2. **Green** — write the minimal implementation to pass the test.
-3. **Refactor** — clean up the implementation while keeping the test green.
+1. **Red** â€” write a failing test for the new requirement.
+2. **Green** â€” write the minimal implementation to pass the test.
+3. **Refactor** â€” clean up the implementation while keeping the test green.
 
 This ensures you're solving the right problem, and that the solution is testable by design.
 

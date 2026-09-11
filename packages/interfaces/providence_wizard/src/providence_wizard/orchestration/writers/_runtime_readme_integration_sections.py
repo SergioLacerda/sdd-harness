@@ -1,4 +1,4 @@
-""".sdd/runtime/README.md sections: framework integration examples and memory
+""".providence/runtime/README.md sections: framework integration examples and memory
 organization strategies. Split out of _runtime_readme_template.py to keep
 files under the 200-line convention.
 """
@@ -40,7 +40,7 @@ class SDDAgent:
 
     def load_governance(self, project_root):
         '''Load governance once at startup'''
-        source_dir = Path(project_root) / '.sdd' / 'source'
+        source_dir = Path(project_root) / '.providence' / 'source'
 
         self.governance['mandates'] = (source_dir / 'mandates' / 'mandates.md').read_text()
         self.governance['guidelines'] = {}

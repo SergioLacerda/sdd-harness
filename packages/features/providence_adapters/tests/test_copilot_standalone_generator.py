@@ -36,7 +36,7 @@ def test_generate_standalone_writes_full_surface(tmp_path: Path) -> None:
     # Never written to the project's real .github/ files.
     assert not (tmp_path / ".github").exists()
 
-    # Python was removed — Go-only for now.
+    # Python was removed â€” Go-only for now.
     assert not (root / ".github" / "instructions" / "python.instructions.md").exists()
 
 

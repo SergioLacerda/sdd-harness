@@ -10,7 +10,7 @@ SddProfile = Literal["master", "client"]
 
 
 class WorkspaceNotInitializedError(RuntimeError):
-    """Raised when no `.sdd/profile` is found and no override is provided."""
+    """Raised when no `.providence/profile` is found and no override is provided."""
 
     def __init__(self, start: Path) -> None:
         super().__init__(

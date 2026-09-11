@@ -52,7 +52,7 @@ def _mock_large_phase_modules():
 @pytest.fixture(autouse=True)
 def _assume_interactive_tty(monkeypatch: pytest.MonkeyPatch):
     """Tests use fake/callable prompters and expect interactive-capable
-    behavior — simulate a real TTY so InteractiveFlowRuntime's upfront
+    behavior  simulate a real TTY so InteractiveFlowRuntime's upfront
     non-interactive-without-a-path check doesn't short-circuit them. Tests
     exercising that check specifically override this locally."""
     monkeypatch.setattr("sys.stdin.isatty", lambda: True)
@@ -114,7 +114,7 @@ class TestPrintHeader:
     def test_emits_title_and_separator(self, tmp_path: Path) -> None:
         logs: list[str] = []
         wizard = _make_wizard(tmp_path, emitter=logs.append)
-        wizard.print_header("My Title", "📝")
+        wizard.print_header("My Title", "")
         assert any("My Title" in m for m in logs)
         assert any("=" in m for m in logs)
 
@@ -154,7 +154,7 @@ class TestAskUserPreferences:
         assert config["language"] == "all"
 
     def test_unknown_choices_default(self, tmp_path: Path) -> None:
-        # Out-of-bounds index → _CallablePrompter falls back to first choice
+        # Out-of-bounds index  _CallablePrompter falls back to first choice
         config = self._wizard_with_choices(tmp_path, "9").ask_user_preferences()
         assert config["enforcement_mode"] == "silent_mode"
         assert config["language"] == "all"
@@ -169,18 +169,18 @@ class TestAskUserPreferences:
         ).ask_user_preferences()
         assert (
             config["language_context"]["preferred_human_language"]
-            == "Português (Brasil)"
+            == "Portugus (Brasil)"
         )
         assert (
             config["language_context"]["preferred_chat_language"]
-            == "Português (Brasil)"
+            == "Portugus (Brasil)"
         )
         assert (
-            config["language_context"]["preferred_ui_language"] == "Português (Brasil)"
+            config["language_context"]["preferred_ui_language"] == "Portugus (Brasil)"
         )
         assert (
             config["language_context"]["preferred_local_docs_language"]
-            == "Português (Brasil)"
+            == "Portugus (Brasil)"
         )
 
     def test_config_has_default_locale_metadata(self, tmp_path: Path) -> None:
@@ -194,14 +194,14 @@ class TestAskUserPreferences:
             tmp_path, "2", interaction_language="2", local_docs_language="2"
         ).ask_user_preferences()
         assert config["locale"] == "pt-BR"
-        assert config["docs_language"] == "Português (Brasil)"
+        assert config["docs_language"] == "Portugus (Brasil)"
         assert config["docs_locale"] == "pt-BR"
 
     def test_non_interactive_reuses_real_wizard_config_end_to_end(
         self, tmp_path: Path
     ) -> None:
         """End-to-end: non_interactive=True + a real on-disk wizard-config.json
-        are wired together through ask_user_preferences() itself — not just
+        are wired together through ask_user_preferences() itself  not just
         the resolver in isolation, and not with ask_user_preferences mocked."""
         wizard = _make_wizard(tmp_path, prompter=lambda _: "1")
         wizard.non_interactive = True
@@ -325,7 +325,7 @@ class TestPostGenerationCleanup:
         (wizard.phase1_choices_dir).mkdir(parents=True, exist_ok=True)
         (wizard.phase2_input_dir).mkdir(parents=True, exist_ok=True)
         wizard.client_compiled_dir.mkdir(parents=True, exist_ok=True)
-        (wizard.client_compiled_dir / ".sdd").mkdir(parents=True, exist_ok=True)
+        (wizard.client_compiled_dir / ".providence").mkdir(parents=True, exist_ok=True)
         wizard.wizard_config_path.write_text("{}", encoding="utf-8")
 
         cleaned = wizard._cleanup_post_generation_artifacts()
@@ -334,7 +334,7 @@ class TestPostGenerationCleanup:
         assert not (wizard.client_build_dir / "docs-meta").exists()
         assert not wizard.phase1_choices_dir.exists()
         assert not wizard.phase2_input_dir.exists()
-        assert not (wizard.client_compiled_dir / ".sdd").exists()
+        assert not (wizard.client_compiled_dir / ".providence").exists()
         assert wizard.final_template_dir.exists()
 
 
@@ -351,7 +351,7 @@ class TestPhase1Generate:
         wizard = _make_wizard(tmp_path, prompter=lambda _: next(responses))
         mock_gen = MagicMock()
         mock_gen.run.return_value = {"success": True}
-        # Phase1Generator is in the sys.modules mock — configure return_value directly.
+        # Phase1Generator is in the sys.modules mock  configure return_value directly.
         sys.modules[
             "providence_wizard.orchestration.wizard.phase1_generator"
         ].Phase1Generator.return_value = mock_gen

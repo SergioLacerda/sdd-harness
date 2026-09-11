@@ -10,7 +10,7 @@ from providence_cli.generators._contracts import generate_contracts
 def test_generate_contracts_writes_expected_files(tmp_path: Path) -> None:
     report = generate_contracts(str(tmp_path), {})
 
-    contracts_dir = tmp_path / ".sdd" / "contracts"
+    contracts_dir = tmp_path / ".providence" / "contracts"
     assert report["contracts_dir"] == str(contracts_dir)
     assert report["files_written"] == 3
     assert len(report["files"]) == 3

@@ -8,7 +8,7 @@ from providence_cli.services._governance_generate_support import (
     bootstrap_response,
     run_bootstrap_signing_flow,
 )
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 
 def complete_bootstrap_handshake() -> None:

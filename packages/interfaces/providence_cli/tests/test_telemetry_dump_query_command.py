@@ -13,7 +13,7 @@ runner = CliRunner()
 
 
 def _make_sink(tmp_path: Path, events: list[dict]) -> Path:
-    runtime_dir = tmp_path / ".sdd" / "runtime"
+    runtime_dir = tmp_path / ".providence" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     sink = runtime_dir / "compliance-events.jsonl"
     sink.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
@@ -80,7 +80,7 @@ def test_dump_invalid_format_errors(monkeypatch, tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# providence telemetry query — new filters
+# providence telemetry query  new filters
 # ---------------------------------------------------------------------------
 
 
@@ -159,7 +159,7 @@ def test_query_invalid_until_errors(monkeypatch, tmp_path: Path) -> None:
 
 
 def test_query_and_semantics_all_filters(monkeypatch, tmp_path: Path) -> None:
-    """All filters are AND — event must satisfy every filter provided."""
+    """All filters are AND  event must satisfy every filter provided."""
     _patch_root(monkeypatch, tmp_path)
     _make_sink(
         tmp_path,

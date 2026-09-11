@@ -85,9 +85,9 @@ def resolve_profile_check(
 ) -> tuple[list[tuple[str, bool, int]], Any]:
     try:
         profile_ctx = resolve_profile_fn(root=ws_root)
-        return [(".sdd/profile valid", True, 30)], profile_ctx
+        return [(".providence/profile valid", True, 30)], profile_ctx
     except workspace_error_cls:
-        return [(".sdd/profile valid", False, 30)], None
+        return [(".providence/profile valid", False, 30)], None
 
 
 def artifact_candidates(*, ws_root: Path, compiled_active_dir_fn: Any) -> list[Path]:

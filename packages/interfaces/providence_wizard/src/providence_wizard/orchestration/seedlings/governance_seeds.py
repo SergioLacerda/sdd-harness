@@ -4,6 +4,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from providence_wizard.constants import RUNTIME_DIRNAME
+
 from ._agent_instructions_content import build_agent_instructions_content
 from .base_generator import BaseSeedlingGenerator
 from .guideline_seeds import GuidelineSeeds
@@ -82,7 +84,7 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
         return self._renderer.generate_verification_script()
 
     def generate_agnostic_agent_instructions(self) -> bool:
-        """Generate agent-agnostic .sdd/agent-instructions.md."""
+        """Generate agent-agnostic .providence/agent-instructions.md."""
         return self._renderer.generate_agnostic_agent_instructions()
 
     def generate_prompt_commands(self) -> bool:
@@ -90,11 +92,11 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
         return self._cmd_seeds.generate_prompt_commands()
 
     def generate_ai_instructions(self) -> bool:
-        """No-op placeholder — AI instructions are agent-specific."""
+        """No-op placeholder  AI instructions are agent-specific."""
         return self._cmd_seeds.generate_ai_instructions()
 
     def generate_openai_instructions(self) -> bool:
-        """No-op placeholder — OpenAI instructions are agent-specific."""
+        """No-op placeholder  OpenAI instructions are agent-specific."""
         return self._cmd_seeds.generate_openai_instructions()
 
     def generate_agents_md(self) -> bool:
@@ -105,7 +107,7 @@ class GovernanceSeedsGenerator(BaseSeedlingGenerator):
         """Return a dict describing all generated seedling artifacts."""
         seedling_files = [
             ("governance.seed.json", "GAP v1.0"),
-            ("agent-prep.seed.json", "IDE hooks — all agents"),
+            ("agent-prep.seed.json", "IDE hooks  all agents"),
             ("compliance.seed.json", "CI/CD"),
             ("copilot.seed.json", "GitHub Copilot redirector"),
             ("gemini.seed.json", "Gemini redirector"),
@@ -147,7 +149,7 @@ def generate_agent_instructions_from_config(
     output_base: "Path",
     config: "dict[str, Any]",
 ) -> bool:
-    """Regenerate .sdd/agent-instructions.md from a governance config dict."""
+    """Regenerate .providence/agent-instructions.md from a governance config dict."""
     from datetime import datetime, timezone
     from pathlib import Path
 
@@ -170,12 +172,12 @@ def generate_agent_instructions_from_config(
         mandates_list = (
             "\n".join(mandates_lines)
             if mandates_lines
-            else "(none — run providence governance compile)"
+            else "(none  run providence governance compile)"
         )
         ids_preview = ", ".join(mandate_ids[:5])
         if len(mandate_ids) > 5:
             ids_preview += ", ..."
-        instructions_dir = Path(output_base) / ".sdd"
+        instructions_dir = Path(output_base) / RUNTIME_DIRNAME
         instructions_dir.mkdir(parents=True, exist_ok=True)
         instructions_file = instructions_dir / "agent-instructions.md"
         content = build_agent_instructions_content(

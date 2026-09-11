@@ -1,4 +1,4 @@
-"""ask_response_json — JSON response emission for `providence ask`."""
+"""ask_response_json  JSON response emission for `providence ask`."""
 
 from __future__ import annotations
 

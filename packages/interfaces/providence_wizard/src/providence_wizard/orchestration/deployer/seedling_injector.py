@@ -1,4 +1,4 @@
-"""SeedlingInjector — inject governance metadata into deployed bootstrap files."""
+"""SeedlingInjector  inject governance metadata into deployed bootstrap files."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ class SeedlingInjector:
         with contextlib.suppress(OSError, ValueError):
             if self.output_base.resolve() == self.repo_root.resolve():
                 msg = f"SDD_ISOLATION_ERROR: Mutation of repo root blocked ({self.output_base})"
-                print(f"  ❌ {msg}")  # noqa: T201
+                print(f"   {msg}")  # noqa: T201
                 raise PermissionError(msg)
 
     def inject_bootstrap_metadata(
@@ -55,7 +55,7 @@ class SeedlingInjector:
             f"governance_fingerprint : {fingerprint}\n"
             f"mandates_count         : {mandates_count}\n"
             f"generated_at           : {generated_at}\n"
-            "load_compiled_from     : .sdd\n"
+            "load_compiled_from     : .providence\n"
             "-->"
         )
         bootstrap_files = [
@@ -80,7 +80,7 @@ class SeedlingInjector:
                 path.write_text(content + footer, encoding="utf-8")
                 injected += 1
             except Exception as e:
-                self._log(f"⚠️  Failed to inject metadata into {path.name}: {e}")
+                self._log(f"  Failed to inject metadata into {path.name}: {e}")
         if injected:
             self._log(f"Injected governance metadata into {injected} bootstrap files")
 
@@ -106,4 +106,4 @@ class SeedlingInjector:
                     f"Populated {rules_file.name} with fingerprint + mandate count"
                 )
             except Exception as e:
-                self._log(f"⚠️  Failed to populate {rules_file.name}: {e}")
+                self._log(f"  Failed to populate {rules_file.name}: {e}")

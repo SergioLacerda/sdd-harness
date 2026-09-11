@@ -1,4 +1,4 @@
-"""ask_filter — pure signal/snapshot filtering for providence ask.
+"""ask_filter  pure signal/snapshot filtering for providence ask.
 
 All functions are I/O-free. No Click/Typer dependencies.
 """
@@ -122,7 +122,7 @@ def collect_learning_signals(
         "observed_events": 0,
         "window_days": window_days,
     }
-    runtime_dir = workspace_root / ".sdd" / "runtime"
+    runtime_dir = workspace_root / ".providence" / "runtime"
     count_signals_from_tail(
         runtime_dir / "failure-ledger.jsonl",
         signals,

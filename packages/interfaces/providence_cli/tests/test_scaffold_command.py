@@ -1,4 +1,4 @@
-"""Tests for providence_cli.commands.scaffold — skill and command scaffold coverage."""
+"""Tests for providence_cli.commands.scaffold  skill and command scaffold coverage."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ pytestmark = pytest.mark.unit
 
 
 def _make_skill_templates(ws_root: Path) -> None:
-    tpl_dir = ws_root / ".sdd" / "templates" / "skill"
+    tpl_dir = ws_root / ".providence" / "templates" / "skill"
     tpl_dir.mkdir(parents=True)
     (tpl_dir / "skill.yaml.tpl").write_text(
         "name: {{ name }}\ncategory: {{ category }}\n", encoding="utf-8"
@@ -29,7 +29,7 @@ def _make_skill_templates(ws_root: Path) -> None:
 
 
 def _make_command_templates(ws_root: Path) -> None:
-    tpl_dir = ws_root / ".sdd" / "templates" / "command"
+    tpl_dir = ws_root / ".providence" / "templates" / "command"
     tpl_dir.mkdir(parents=True)
     (tpl_dir / "command.yaml.tpl").write_text(
         "name: {{ name }}\nskill_id: {{ skill_id }}\n", encoding="utf-8"
@@ -124,7 +124,7 @@ class TestScaffoldSkill:
 
     def test_skill_already_exists_exits_1(self, tmp_path: Path) -> None:
         _make_skill_templates(tmp_path)
-        (tmp_path / ".sdd" / "skills" / "my-skill").mkdir(parents=True)
+        (tmp_path / ".providence" / "skills" / "my-skill").mkdir(parents=True)
         with patch(
             "providence_cli.commands.scaffold.find_workspace_root",
             return_value=tmp_path,
@@ -155,7 +155,7 @@ class TestScaffoldSkill:
             )
         assert result.exit_code == 0
         assert "new-skill" in result.output
-        skill_dir = tmp_path / ".sdd" / "skills" / "new-skill"
+        skill_dir = tmp_path / ".providence" / "skills" / "new-skill"
         assert skill_dir.exists()
         assert (skill_dir / "skill.yaml").exists()
         assert (skill_dir / "SKILL.md").exists()
@@ -167,7 +167,7 @@ class TestScaffoldSkill:
             return_value=tmp_path,
         ):
             runner.invoke(app, ["scaffold", "skill", "reg-skill"])
-        registry = tmp_path / ".sdd" / "skills" / "registry.json"
+        registry = tmp_path / ".providence" / "skills" / "registry.json"
         assert registry.exists()
         data = json.loads(registry.read_text(encoding="utf-8"))
         all_items = data.get("skills", data.get("commands", []))
@@ -180,13 +180,13 @@ class TestScaffoldSkill:
             return_value=tmp_path,
         ):
             runner.invoke(app, ["scaffold", "skill", "my-skill"])
-        skill_dir = tmp_path / ".sdd" / "skills" / "my-skill"
+        skill_dir = tmp_path / ".providence" / "skills" / "my-skill"
         content = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
         assert "My Skill" in content
 
     def test_critical_risk_uses_high_token_budget(self, tmp_path: Path) -> None:
         _make_skill_templates(tmp_path)
-        (tmp_path / ".sdd" / "templates" / "skill" / "skill.yaml.tpl").write_text(
+        (tmp_path / ".providence" / "templates" / "skill" / "skill.yaml.tpl").write_text(
             "token_budget: {{ token_budget }}\n", encoding="utf-8"
         )
         with patch(
@@ -197,7 +197,7 @@ class TestScaffoldSkill:
                 app, ["scaffold", "skill", "crit-skill", "--risk", "critical"]
             )
         content = (
-            tmp_path / ".sdd" / "skills" / "crit-skill" / "skill.yaml"
+            tmp_path / ".providence" / "skills" / "crit-skill" / "skill.yaml"
         ).read_text(encoding="utf-8")
         assert "high" in content
 
@@ -222,7 +222,7 @@ class TestScaffoldCommand:
 
     def test_command_already_exists_exits_1(self, tmp_path: Path) -> None:
         _make_command_templates(tmp_path)
-        (tmp_path / ".sdd" / "commands" / "my-cmd").mkdir(parents=True)
+        (tmp_path / ".providence" / "commands" / "my-cmd").mkdir(parents=True)
         with patch(
             "providence_cli.commands.scaffold.find_workspace_root",
             return_value=tmp_path,
@@ -240,12 +240,12 @@ class TestScaffoldCommand:
             result = runner.invoke(app, ["scaffold", "command", "new-cmd"])
         assert result.exit_code == 0
         assert "new-cmd" in result.output
-        cmd_dir = tmp_path / ".sdd" / "commands" / "new-cmd"
+        cmd_dir = tmp_path / ".providence" / "commands" / "new-cmd"
         assert (cmd_dir / "command.yaml").exists()
 
     def test_command_routes_to_defaults_to_name(self, tmp_path: Path) -> None:
         _make_command_templates(tmp_path)
-        (tmp_path / ".sdd" / "templates" / "command" / "command.yaml.tpl").write_text(
+        (tmp_path / ".providence" / "templates" / "command" / "command.yaml.tpl").write_text(
             "skill_id: {{ skill_id }}\n", encoding="utf-8"
         )
         with patch(
@@ -254,7 +254,7 @@ class TestScaffoldCommand:
         ):
             runner.invoke(app, ["scaffold", "command", "auto-cmd"])
         content = (
-            tmp_path / ".sdd" / "commands" / "auto-cmd" / "command.yaml"
+            tmp_path / ".providence" / "commands" / "auto-cmd" / "command.yaml"
         ).read_text(encoding="utf-8")
         assert "auto-cmd" in content
 
@@ -265,7 +265,7 @@ class TestScaffoldCommand:
             return_value=tmp_path,
         ):
             runner.invoke(app, ["scaffold", "command", "reg-cmd"])
-        registry = tmp_path / ".sdd" / "commands" / "registry.json"
+        registry = tmp_path / ".providence" / "commands" / "registry.json"
         assert registry.exists()
         data = json.loads(registry.read_text(encoding="utf-8"))
         assert any(i.get("id") == "reg-cmd" for i in data.get("commands", []))

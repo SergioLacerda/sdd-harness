@@ -66,7 +66,7 @@ def run_governance_score(
     console: Console,
 ) -> None:
     """Execute governance score checks and render output."""
-    from providence_cli.utils.sdd_authority import compiled_active_dir
+    from providence_cli.utils.providence_authority import compiled_active_dir
     from providence_core.governance.handshake import AgentHandshakeProtocol
     from providence_core.governance.scoring import compute_governance_score
     from providence_core.utils.environment import (
@@ -103,7 +103,7 @@ def run_governance_score_cmd(
     *, verbose: bool, threshold: int, console: Console
 ) -> None:
     """Resolve workspace root and run governance score."""
-    from providence_cli.utils.sdd_authority import (
+    from providence_cli.utils.providence_authority import (
         enforce_path_policy,
         resolve_workspace_root,
     )
@@ -124,7 +124,7 @@ def run_governance_adherence_cmd(
     *, verbose: bool, threshold: int, window: int, console: Console
 ) -> None:
     """Compute and render governance adherence score."""
-    from providence_cli.utils.sdd_authority import resolve_workspace_root
+    from providence_cli.utils.providence_authority import resolve_workspace_root
     from providence_core.governance.compliance import compute_governance_adherence
 
     ws_root = resolve_workspace_root()

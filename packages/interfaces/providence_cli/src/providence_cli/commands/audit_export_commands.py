@@ -1,4 +1,4 @@
-"""providence audit — export, legacy-check, bootstrap-check, compliance-pack subcommands.
+"""providence audit  export, legacy-check, bootstrap-check, compliance-pack subcommands.
 
 Split out of `audit.py` (T12,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`).
@@ -31,7 +31,7 @@ from providence_cli.services.audit_validators import (
     run_bootstrap_check,
     run_legacy_check,
 )
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 from providence_core.utils.process import SafeProcessRunner
 
 
@@ -50,7 +50,7 @@ def audit_export(
     ),
     format: str = typer.Option("csv", "--format", help="Export format."),  # noqa: A002
     manifest_file: Path = typer.Option(
-        Path(".sdd/runtime/compliance-export.manifest.json"),
+        Path(".providence/runtime/compliance-export.manifest.json"),
         "--manifest-file",
         help="Where to write export manifest metadata.",
     ),
@@ -96,7 +96,7 @@ def audit_bootstrap_check() -> None:
 @app.command("compliance-pack")
 def audit_compliance_pack(
     out_dir: Path = typer.Option(
-        Path(".sdd/runtime/compliance-pack"),
+        Path(".providence/runtime/compliance-pack"),
         "--out-dir",
         help="Directory for external-review compliance artifacts.",
     ),

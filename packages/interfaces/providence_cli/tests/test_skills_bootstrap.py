@@ -1,4 +1,4 @@
-"""Unit tests for providence_cli.services.skills_bootstrap — governance validation and full bootstrap."""
+"""Unit tests for providence_cli.services.skills_bootstrap  governance validation and full bootstrap."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ class TestValidateAndLoadGovernance:
             pytest.raises(typer.Exit) as exc_info,
         ):
             validate_and_load_governance(
-                tmp_path / ".sdd" / "compiled",
+                tmp_path / ".providence" / "compiled",
                 output_json=False,
                 emit_fn=mock_emit,
             )
@@ -44,7 +44,7 @@ class TestValidateAndLoadGovernance:
             pytest.raises(typer.Exit),
         ):
             validate_and_load_governance(
-                tmp_path / ".sdd" / "compiled",
+                tmp_path / ".providence" / "compiled",
                 output_json=True,
                 emit_fn=mock_emit,
             )
@@ -65,7 +65,7 @@ class TestValidateAndLoadGovernance:
             pytest.raises(typer.Exit) as exc_info,
         ):
             validate_and_load_governance(
-                tmp_path / ".sdd" / "compiled",
+                tmp_path / ".providence" / "compiled",
                 output_json=False,
                 emit_fn=mock_emit,
             )
@@ -85,7 +85,7 @@ class TestValidateAndLoadGovernance:
             pytest.raises(typer.Exit),
         ):
             validate_and_load_governance(
-                tmp_path / ".sdd" / "compiled",
+                tmp_path / ".providence" / "compiled",
                 output_json=True,
                 emit_fn=mock_emit,
             )

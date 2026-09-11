@@ -98,8 +98,8 @@ def test_emit_ask_telemetry_uses_passive_sink_and_details(
         "resolve_compliance_events_path",
         lambda workspace_root: tmp_path / "events.jsonl",
     )
-    (tmp_path / ".sdd").mkdir()
-    (tmp_path / ".sdd" / "profile").write_text(
+    (tmp_path / ".providence").mkdir()
+    (tmp_path / ".providence" / "profile").write_text(
         "[sdd]\nworkspace_id = ws-1\n", encoding="utf-8"
     )
 
@@ -138,8 +138,8 @@ def test_emit_ask_telemetry_uses_otel_bridge_and_handles_read_error(
         "resolve_compliance_events_path",
         lambda workspace_root: tmp_path / "events.jsonl",
     )
-    (tmp_path / ".sdd").mkdir()
-    (tmp_path / ".sdd" / "profile").write_text("not valid ini", encoding="utf-8")
+    (tmp_path / ".providence").mkdir()
+    (tmp_path / ".providence" / "profile").write_text("not valid ini", encoding="utf-8")
     monkeypatch.setenv("SDD_OTEL_ENDPOINT", "http://otel.local")
     logger = _Logger()
 
@@ -198,8 +198,8 @@ def test_emit_ask_telemetry_records_durable_degradation_for_sensitive_event(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """TEL-02 regression: a sensitive event's emission failure must leave a
-    durable, inspectable record — not only an invisible `logger.debug` call
-    — per M007/M008's stronger obligations for sensitive decisions.
+    durable, inspectable record  not only an invisible `logger.debug` call
+     per M007/M008's stronger obligations for sensitive decisions.
     `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` TEL-02.
     """
     _install_fake_providence_runtime(monkeypatch)
@@ -230,10 +230,10 @@ def test_emit_ask_telemetry_records_durable_degradation_for_sensitive_event(
         telemetry_sink_cls=_BrokenSink,  # type: ignore[arg-type]
     )
 
-    # Still best-effort at the API boundary — never raises, returns None.
+    # Still best-effort at the API boundary  never raises, returns None.
     assert result is None
 
-    marker_path = tmp_path / ".sdd" / "runtime" / "telemetry-degraded.jsonl"
+    marker_path = tmp_path / ".providence" / "runtime" / "telemetry-degraded.jsonl"
     assert marker_path.exists()
     import json
 
@@ -271,7 +271,7 @@ def test_emit_ask_telemetry_non_sensitive_failure_does_not_write_marker(
         telemetry_sink_cls=_BrokenSink,  # type: ignore[arg-type]
     )
 
-    marker_path = tmp_path / ".sdd" / "runtime" / "telemetry-degraded.jsonl"
+    marker_path = tmp_path / ".providence" / "runtime" / "telemetry-degraded.jsonl"
     assert not marker_path.exists()
 
 
@@ -279,8 +279,8 @@ def test_upsert_ask_session_success_and_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _install_fake_providence_runtime(monkeypatch)
-    (tmp_path / ".sdd").mkdir()
-    (tmp_path / ".sdd" / "profile").write_text(
+    (tmp_path / ".providence").mkdir()
+    (tmp_path / ".providence" / "profile").write_text(
         "[sdd]\nworkspace_id = ws-2\n", encoding="utf-8"
     )
 

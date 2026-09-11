@@ -1,4 +1,4 @@
-"""OnboardingOrchestrator — orchestrates client workspace bootstrap sequence."""
+"""OnboardingOrchestrator  orchestrates client workspace bootstrap sequence."""
 
 from __future__ import annotations
 
@@ -59,10 +59,10 @@ class OnboardingOrchestrator:
 
     def step_governance(self, *, force: bool) -> bool:
         """[2/4] Generate governance artifacts. Skips if already compiled and not forced."""
-        compiled = self.cwd / ".sdd" / "compiled" / "governance-core.json"
+        compiled = self.cwd / ".providence" / "compiled" / "governance-core.json"
         if not force and compiled.exists():
             typer.echo(
-                "[2/4] Generating governance artifacts... (skipped — already compiled)"
+                "[2/4] Generating governance artifacts... (skipped  already compiled)"
             )
             return True
         typer.echo("[2/4] Generating governance artifacts...")
@@ -70,21 +70,21 @@ class OnboardingOrchestrator:
             "governance generate",
             ["governance", "generate", "--full-bootstrap"],
         )
-        typer.echo(f"      {'✓' if ok else '✗'} governance generate")
+        typer.echo(f"      {'' if ok else ''} governance generate")
         return ok
 
     def step_skills(self, *, force: bool) -> bool:
         """[3/4] Initialize skills. Skips if already seeded and not forced."""
-        seeds_dir = self.cwd / ".sdd" / "skills"
+        seeds_dir = self.cwd / ".providence" / "skills"
         if not force and seeds_dir.exists() and any(seeds_dir.iterdir()):
-            typer.echo("[3/4] Initializing skills... (skipped — already seeded)")
+            typer.echo("[3/4] Initializing skills... (skipped  already seeded)")
             return True
         typer.echo("[3/4] Initializing skills...")
         ok = self._run_step(
             "skills bootstrap",
             ["skills", "--full-bootstrap", "--regenerate-seeds"],
         )
-        typer.echo(f"      {'✓' if ok else '✗'} skills bootstrap")
+        typer.echo(f"      {'' if ok else ''} skills bootstrap")
         return ok
 
     def step_validate(self) -> bool:
@@ -94,7 +94,7 @@ class OnboardingOrchestrator:
             "runtime status",
             ["runtime", "status", "--force"],
         )
-        typer.echo(f"      {'✓' if ok else '✗'} runtime status")
+        typer.echo(f"      {'' if ok else ''} runtime status")
         return ok
 
     def run(self, *, force: bool) -> OnboardingResult:
@@ -105,7 +105,7 @@ class OnboardingOrchestrator:
                 failed_step="governance",
                 exit_code=2,
                 messages=[
-                    "governance generate failed — re-run with --verbose for detail"
+                    "governance generate failed  re-run with --verbose for detail"
                 ],
             )
         if not self.step_skills(force=force):
@@ -113,7 +113,7 @@ class OnboardingOrchestrator:
                 success=False,
                 failed_step="skills",
                 exit_code=3,
-                messages=["skills bootstrap failed — check permissions and seed files"],
+                messages=["skills bootstrap failed  check permissions and seed files"],
             )
         if not self.step_validate():
             return OnboardingResult(

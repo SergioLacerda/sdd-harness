@@ -23,10 +23,10 @@ def _workspace_root_from_env() -> Path | None:
 
 
 def find_workspace_root(start: Path | None = None) -> Path | None:
-    """Walk up from `start` looking for a `.sdd/` directory."""
+    """Walk up from `start` looking for a `.providence/` directory."""
     current = (start or Path.cwd()).resolve()
     for candidate in [current, *current.parents]:
-        if (candidate / ".sdd").is_dir():
+        if (candidate / ".providence").is_dir():
             return candidate
     return None
 
@@ -104,7 +104,7 @@ def resolve_profile(
     if (root is None) and (find_workspace_root() is None):
         raise WorkspaceNotInitializedError(Path.cwd())
 
-    profile_path = workspace_root / ".sdd" / "profile"
+    profile_path = workspace_root / ".providence" / "profile"
     if not profile_path.exists():
         raise WorkspaceNotInitializedError(workspace_root)
 
@@ -137,7 +137,7 @@ def write_profile(
     name: str,
     language: str | None = None,
 ) -> ProfileContext:
-    sdd_dir = root / ".sdd"
+    sdd_dir = root / ".providence"
     sdd_dir.mkdir(parents=True, exist_ok=True)
     workspace_id = str(uuid.uuid4())
     profile_path = sdd_dir / "profile"

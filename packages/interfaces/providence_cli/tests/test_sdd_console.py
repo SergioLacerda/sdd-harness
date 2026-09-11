@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from providence_cli.utils.sdd_console import format_sdd_line, format_sdd_phase_line
+from providence_cli.utils.providence_console import format_sdd_line, format_sdd_phase_line
 
 
 def test_format_sdd_line_uses_prefix():

@@ -1,4 +1,4 @@
-"""sdd tools run — execute a manifest or legacy tool script.
+"""sdd tools run  execute a manifest or legacy tool script.
 
 Split out of `tools.py` (T11,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`).

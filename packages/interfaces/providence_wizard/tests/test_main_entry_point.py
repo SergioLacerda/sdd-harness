@@ -1,4 +1,4 @@
-"""Tests for providence_wizard.main — public entry point."""
+"""Tests for providence_wizard.main  public entry point."""
 
 from __future__ import annotations
 

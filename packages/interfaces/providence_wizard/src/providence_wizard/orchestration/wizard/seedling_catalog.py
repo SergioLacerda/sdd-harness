@@ -54,7 +54,7 @@ CATALOG_BY_KEY: dict[str, SeedlingOption] = {option.key: option for option in CA
 
 # Recommended default: everything except OPTIONAL-group options and any
 # option explicitly marked `default=False`. This is what "no selection" means
-# — it is deliberately NOT "generate everything" (CI/CD and
+#  it is deliberately NOT "generate everything" (CI/CD and
 # compliance artifacts are opt-in only).
 RECOMMENDED_DEFAULT: frozenset[str] = frozenset(
     option.key for option in CATALOG if option.default

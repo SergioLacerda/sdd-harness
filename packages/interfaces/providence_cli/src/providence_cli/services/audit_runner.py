@@ -14,20 +14,20 @@ from providence_cli.services._audit_runner_support import (
     window_correlation,
 )
 from providence_cli.services.audit_event_parser import (
-    DriftRow,  # noqa: F401 — backward-compat re-export
-    _drift_cause,  # noqa: F401 — backward-compat re-export
-    _drift_type,  # noqa: F401 — backward-compat re-export
-    _event_ts,  # noqa: F401 — backward-compat re-export
-    _load_events,  # noqa: F401 — backward-compat re-export
-    _parse_int,  # noqa: F401 — backward-compat re-export
-    _parse_ts,  # noqa: F401 — backward-compat re-export
-    _ts_sort_key,  # noqa: F401 — backward-compat re-export
+    DriftRow,  # noqa: F401  backward-compat re-export
+    _drift_cause,  # noqa: F401  backward-compat re-export
+    _drift_type,  # noqa: F401  backward-compat re-export
+    _event_ts,  # noqa: F401  backward-compat re-export
+    _load_events,  # noqa: F401  backward-compat re-export
+    _parse_int,  # noqa: F401  backward-compat re-export
+    _parse_ts,  # noqa: F401  backward-compat re-export
+    _ts_sort_key,  # noqa: F401  backward-compat re-export
 )
 from providence_cli.services.audit_quality_score import (
-    _as_score,  # noqa: F401 — backward-compat re-export
-    _has_quality_signals,  # noqa: F401 — backward-compat re-export
+    _as_score,  # noqa: F401  backward-compat re-export
+    _has_quality_signals,  # noqa: F401  backward-compat re-export
 )
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 __all__ = [
     "DriftRow",
@@ -131,7 +131,7 @@ def build_audit_summary_data(
         "total_events": len(events),
         "total_drifts": len(drifts),
         # Denominator is ask-events-only (matching window_correlation's shape
-        # in _audit_window_support.py), not the entire raw event stream —
+        # in _audit_window_support.py), not the entire raw event stream 
         # non-ask events (compile, lifecycle) would otherwise dilute the rate.
         "drift_rate_pct": round((len(drifts) * 100.0 / ask_events_count), 2)
         if ask_events_count

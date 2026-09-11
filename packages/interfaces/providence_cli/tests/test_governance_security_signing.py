@@ -1,4 +1,4 @@
-"""Tests for providence_cli.services.governance_security_handlers — artifact signing and keyring."""
+"""Tests for providence_cli.services.governance_security_handlers  artifact signing and keyring."""
 
 from __future__ import annotations
 
@@ -136,7 +136,7 @@ class TestPerformArtifactSigning:
         with pytest.raises(typer.Exit) as exc_info:
             perform_artifact_signing_flow(
                 c_dir=tmp_path,
-                k_path=tmp_path / ".sdd" / "trust" / "dev-01.key",
+                k_path=tmp_path / ".providence" / "trust" / "dev-01.key",
                 key_id="dev-01",
                 targets=["governance-core.json"],
                 console=console,
@@ -241,13 +241,13 @@ class TestUpdateTrustedKeyring:
             ws_root=tmp_path, k_path=k_path, key_id="mykey", console=_CONSOLE
         )
 
-        keyring_path = tmp_path / ".sdd" / "trust" / "trusted-keys.json"
+        keyring_path = tmp_path / ".providence" / "trust" / "trusted-keys.json"
         assert keyring_path.exists()
         data = json.loads(keyring_path.read_text(encoding="utf-8"))
         assert any(k["key_id"] == "mykey" for k in data["keys"])
 
     def test_updates_existing_key(self, tmp_path: Path) -> None:
-        trust_dir = tmp_path / ".sdd" / "trust"
+        trust_dir = tmp_path / ".providence" / "trust"
         trust_dir.mkdir(parents=True)
         keyring_path = trust_dir / "trusted-keys.json"
         keyring_path.write_text(
@@ -276,11 +276,11 @@ class TestUpdateTrustedKeyring:
             ws_root=tmp_path, k_path=k_path, key_id="mykey", console=_CONSOLE
         )
 
-        keyring_path = tmp_path / ".sdd" / "trust" / "trusted-keys.json"
+        keyring_path = tmp_path / ".providence" / "trust" / "trusted-keys.json"
         assert not keyring_path.exists()
 
     def test_handles_corrupted_keyring(self, tmp_path: Path) -> None:
-        trust_dir = tmp_path / ".sdd" / "trust"
+        trust_dir = tmp_path / ".providence" / "trust"
         trust_dir.mkdir(parents=True)
         keyring_path = trust_dir / "trusted-keys.json"
         keyring_path.write_text("not valid json", encoding="utf-8")

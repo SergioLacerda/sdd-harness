@@ -2,7 +2,7 @@
 
 Covers `ask_context.get_cached_governance_snapshot`/`store_governance_snapshot`
 (the disk-backed sibling of the in-process `_GOV_CACHE`, keyed by fingerprint
-and TTL-bounded — design.md `20260730-sdd-ask-cross-invocation-cache` §D-A),
+and TTL-bounded  design.md `20260730-sdd-ask-cross-invocation-cache` D-A),
 plus `build_governed_ask_snapshot`'s wiring: a hit must skip
 `_load_compiled_governance` entirely, and only a fresh (cache-miss) load is
 persisted at the end of the call.
@@ -60,7 +60,7 @@ def test_get_governance_snapshot_returns_none_without_fingerprint(
 
 
 def test_get_governance_snapshot_expires_after_ttl(tmp_path: Path) -> None:
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     state_path.parent.mkdir(parents=True)
     stale_computed_at = _iso_now(
         -(ask_context_snapshot_mod._SNAPSHOT_CACHE_TTL_SECONDS + 30)
@@ -85,7 +85,7 @@ def test_get_governance_snapshot_expires_after_ttl(tmp_path: Path) -> None:
 
 
 def test_get_governance_snapshot_hits_just_inside_ttl(tmp_path: Path) -> None:
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     state_path.parent.mkdir(parents=True)
     fresh_computed_at = _iso_now(
         -(ask_context_snapshot_mod._SNAPSHOT_CACHE_TTL_SECONDS - 30)
@@ -115,7 +115,7 @@ def test_store_governance_snapshot_caps_entry_count(tmp_path: Path) -> None:
             tmp_path, f"fp{i}", {"fingerprint": f"fp{i}"}
         )
 
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     data = json.loads(state_path.read_text(encoding="utf-8"))
     assert (
         len(data["snapshot_cache"])
@@ -154,7 +154,7 @@ def test_write_runtime_cache_and_routing_decision_skips_snapshot_without_fingerp
         {"fingerprint": "irrelevant"},
     )
 
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     data = json.loads(state_path.read_text(encoding="utf-8"))
     assert "snapshot_cache" not in data
 

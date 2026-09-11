@@ -1,4 +1,4 @@
-"""SkillLoader: reads .sdd/skills/ and .sdd/commands/ registries."""
+"""SkillLoader: reads .providence/skills/ and .providence/commands/ registries."""
 
 import json
 import os
@@ -28,14 +28,14 @@ def _safe_path(candidate: Path, root: Path) -> Path | None:
 
 
 class SkillLoader:
-    """Loads skills and commands from .sdd/ registries."""
+    """Loads skills and commands from .providence/ registries."""
 
     def load_skills(self, sdd_dir: Path) -> list[dict[str, Any]]:
         """
-        Load all skills from .sdd/skills/registry.json and their YAML files.
+        Load all skills from .providence/skills/registry.json and their YAML files.
 
         Args:
-            sdd_dir: path to .sdd/
+            sdd_dir: path to .providence/
 
         Returns:
             list of skill dicts with full metadata
@@ -62,7 +62,7 @@ class SkillLoader:
                     skill_yaml = yaml.safe_load(f)
                 # Merge registry entry with YAML content
                 skill = {**skill_entry, **skill_yaml}
-                # Load SKILL.md if present — enriches adapter rendering
+                # Load SKILL.md if present â€” enriches adapter rendering
                 skill_md_path = skill_dir / "SKILL.md"
                 safe_md = _safe_path(skill_md_path, sdd_dir)
                 if safe_md and safe_md.exists():
@@ -73,10 +73,10 @@ class SkillLoader:
 
     def load_commands(self, sdd_dir: Path) -> list[dict[str, Any]]:
         """
-        Load all commands from .sdd/commands/registry.json and their YAML files.
+        Load all commands from .providence/commands/registry.json and their YAML files.
 
         Args:
-            sdd_dir: path to .sdd/
+            sdd_dir: path to .providence/
 
         Returns:
             list of command dicts with full metadata

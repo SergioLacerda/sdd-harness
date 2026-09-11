@@ -1,8 +1,8 @@
-"""sdd metrics — token economy metrics commands.
+"""sdd metrics  token economy metrics commands.
 
 Subcommands:
-  sdd metrics summary   — print token economy table (rich formatted)
-  sdd metrics serve     — start Prometheus scrape endpoint (foreground daemon)
+  sdd metrics summary    print token economy table (rich formatted)
+  sdd metrics serve      start Prometheus scrape endpoint (foreground daemon)
 """
 
 from __future__ import annotations

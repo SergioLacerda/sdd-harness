@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from providence_core.utils.text_io import read_text_utf8
+from providence_wizard.constants import RUNTIME_DIRNAME
 
 
 def _write_deployment_manifest(
@@ -21,14 +22,14 @@ def _write_deployment_manifest(
         "GEMINI.md": "redirector",
         ".gemini/gemini-instructions.md": "redirector",
         ".github/copilot-instructions.md": "redirector",
-        ".sdd/agent-instructions.md": "source-of-truth",
+        f"{RUNTIME_DIRNAME}/agent-instructions.md": "source-of-truth",
     }
     seed_candidates = {
-        ".sdd/seedlings/governance.seed.json": "seed",
-        ".sdd/seedlings/vscode.seed.json": "seed",
-        ".sdd/seedlings/cursor.seed.json": "seed",
-        ".sdd/seedlings/gemini.seed.json": "seed",
-        ".sdd/seedlings/codex.seed.json": "seed",
+        f"{RUNTIME_DIRNAME}/seedlings/governance.seed.json": "seed",
+        f"{RUNTIME_DIRNAME}/seedlings/vscode.seed.json": "seed",
+        f"{RUNTIME_DIRNAME}/seedlings/cursor.seed.json": "seed",
+        f"{RUNTIME_DIRNAME}/seedlings/gemini.seed.json": "seed",
+        f"{RUNTIME_DIRNAME}/seedlings/codex.seed.json": "seed",
     }
     bootstrap_files = {
         rel: {"fingerprint": spec_fingerprint, "type": ftype}
@@ -52,9 +53,9 @@ def _write_deployment_manifest(
         manifest_path = output_base / "DEPLOYMENT_MANIFEST.json"
         with open(manifest_path, "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2)
-        log_fn("✅ Written DEPLOYMENT_MANIFEST.json")
+        log_fn(" Written DEPLOYMENT_MANIFEST.json")
     except Exception as e:
-        log_fn(f"⚠️  Could not write DEPLOYMENT_MANIFEST.json: {e}")
+        log_fn(f"  Could not write DEPLOYMENT_MANIFEST.json: {e}")
 
 
 def _validate_awareness_pack(
@@ -84,7 +85,7 @@ def _validate_awareness_pack(
         missing_items.append("AGENTS.md")
 
     if not activation_guide.exists():
-        missing_items.append(".sdd/seedlings/ACTIVATION_GUIDE.md")
+        missing_items.append(f"{RUNTIME_DIRNAME}/seedlings/ACTIVATION_GUIDE.md")
     else:
         content = read_text_utf8(activation_guide)
         required_snippets = [

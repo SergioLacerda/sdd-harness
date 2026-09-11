@@ -190,7 +190,7 @@ def test_compile_json_success_and_error() -> None:
 
 def test_generate_json_payload_shape() -> None:
     payload = run_governance_generate_json(
-        resolved_path=".sdd/compiled",
+        resolved_path=".providence/compiled",
         output_base=Path("/tmp"),
         seeds_dir=Path("/tmp/.vscode/agents"),
         rows=[{"agent_template": "copilot", "location": "x", "status": "ok"}],

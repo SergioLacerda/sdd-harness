@@ -1,4 +1,4 @@
-"""MandatesWriter — generates .sdd/source/mandates/mandates.md."""
+"""MandatesWriter  generates .providence/source/mandates/mandates.md."""
 
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ class MandatesWriter:
             mandates_file = self._mandates_dir / "mandates.md"
             content = f"""# Mandates - SDD v3.0
 
-⚡ IA-FIRST DESIGN NOTICE
+ IA-FIRST DESIGN NOTICE
 - **Status**: Architecture-level governance rules
 - **Optimization**: Optimized for AI agent parsing
 - **Version**: 3.0
@@ -96,5 +96,5 @@ Mandatory rules that CANNOT be customized or skipped.
             self._log(f"Generated mandates.md ({len(self._mandates)} mandates)")
             return True
         except Exception as e:
-            print(f"  ❌ Failed to generate mandates.md: {e}")  # noqa: T201
+            print(f"   Failed to generate mandates.md: {e}")  # noqa: T201
             return False

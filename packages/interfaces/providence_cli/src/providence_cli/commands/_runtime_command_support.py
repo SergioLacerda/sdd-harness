@@ -15,7 +15,7 @@ def do_update_cache(root: Path) -> None:
     """Print M003 compliance quiz from compiled governance and refresh .sdd-cache.md."""
     import os as _os
 
-    gov_path = root / ".sdd" / "compiled" / "governance-core.json"
+    gov_path = root / ".providence" / "compiled" / "governance-core.json"
     if not gov_path.exists():
         typer.echo(
             "ERROR: governance-core.json not found. Run: providence governance compile",
@@ -26,7 +26,7 @@ def do_update_cache(root: Path) -> None:
         from providence_core.governance.ast import GovernanceAST
     except ImportError as exc:
         typer.echo(
-            f"ERROR: providence_core.governance.ast not importable — {exc}", err=True
+            f"ERROR: providence_core.governance.ast not importable  {exc}", err=True
         )
         raise typer.Exit(2) from exc
     ast = GovernanceAST.from_compiled_json(gov_path)
@@ -37,13 +37,13 @@ def do_update_cache(root: Path) -> None:
             err=True,
         )
         raise typer.Exit(1)
-    typer.echo("# M003 — Context Awareness & Task Caching\n")
+    typer.echo("# M003  Context Awareness & Task Caching\n")
     typer.echo("Confirm the following before the cache is refreshed:\n")
     for index, step in enumerate(m003.enforcement_steps, 1):
         typer.echo(f"{index}. {step}")
     typer.echo("\n---")
     typer.echo("Refreshing .sdd-cache.md...")
-    cache_file = root / ".sdd" / "runtime" / ".sdd-cache.md"
+    cache_file = root / ".providence" / "runtime" / ".sdd-cache.md"
     cache_file.parent.mkdir(parents=True, exist_ok=True)
     if cache_file.exists():
         cache_text = cache_file.read_text(encoding="utf-8")
@@ -62,7 +62,7 @@ def do_update_cache(root: Path) -> None:
             f"{_render_validation_quiz_cache_entry()}\n",
             encoding="utf-8",
         )
-    typer.echo("✓ .sdd-cache.md refreshed.")
+    typer.echo(" .sdd-cache.md refreshed.")
 
 
 def _render_validation_quiz_cache_entry() -> str:
@@ -70,9 +70,9 @@ def _render_validation_quiz_cache_entry() -> str:
         [
             "## Validation Quiz",
             "- Pre-commit Validation",
-            "  1. Do Governance Rules (`.sdd/source/`) already solve this?",
+            "  1. Do Governance Rules (`.providence/source/`) already solve this?",
             "     - Yes. Apply M003 Context Awareness & Task Caching and M016 Guardrail Non-Regression.",
-            "  2. Does the Local Cache (`.sdd/runtime/.sdd-cache.md`) already solve this?",
+            "  2. Does the Local Cache (`.providence/runtime/.sdd-cache.md`) already solve this?",
             "     - Yes. This cache entry records the required two-question quiz for the current project.",
         ]
     )
@@ -84,7 +84,7 @@ def format_diagnostic_block(
     """Return the verbose diagnostic header block for --verbose output."""
     import importlib.metadata
 
-    lines = ["═══ SDD Runtime Diagnostics ═══", f"workspace root : {root}"]
+    lines = [" SDD Runtime Diagnostics ", f"workspace root : {root}"]
     profile_path = profile_active_path(root)
     profile_type = read_profile(root) or "unknown"
     try:
@@ -114,8 +114,8 @@ def _cache_line(root: Path, cache_file: Path) -> str:
                 f"cache file     : {rel_cache} [age={age_sec}s, state={cached_state}]"
             )
         except Exception:
-            return "cache file     : .sdd/runtime/governance-state.json [unreadable]"
-    return "cache file     : .sdd/runtime/governance-state.json [NONE, revalidating]"
+            return "cache file     : .providence/runtime/governance-state.json [unreadable]"
+    return "cache file     : .providence/runtime/governance-state.json [NONE, revalidating]"
 
 
 def render_status_output(
@@ -142,7 +142,7 @@ def render_status_output(
         typer.echo(
             f"\nWARNING L2: .sdd-cache.md is stale ({cache_staleness['age_min']} min ago)."
             " Update it before committing to a protected branch."
-            "\n  → Run: providence runtime status --update-cache",
+            "\n   Run: providence runtime status --update-cache",
             err=False,
         )
     if output_json:

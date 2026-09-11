@@ -63,7 +63,7 @@ def _patch_all_checks_pass(monkeypatch) -> None:
     )
 
 
-def _run_and_capture(monkeypatch, path: str = ".sdd/compiled") -> str:
+def _run_and_capture(monkeypatch, path: str = ".providence/compiled") -> str:
     buffer = io.StringIO()
     console = Console(file=buffer, width=200)
     run_governance_preflight_cmd(path=path, output_json=False, console=console)

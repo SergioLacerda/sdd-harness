@@ -91,14 +91,14 @@ _ORCHESTRATION_SKILLS: dict[str, SkillDefinition] = {
                 "multi-phase analysis",
             ],
             "future_delegate_to": "analysis_orchestrator",
-            "plugin_registry": ".sdd/plugins/registry.yaml",
+            "plugin_registry": ".providence/plugins/registry.yaml",
             "unsupported_intent_response": "implementation_handoff",
             "input_transform": {
                 "user_prompt": "mission_contract",
                 "reviewed_task": "direct_execution",
             },
             "result_handling": {
-                "validate_against": ".sdd/contracts/mission-result.schema.yaml",
+                "validate_against": ".providence/contracts/mission-result.schema.yaml",
                 "on_invalid": "emit_governance_violation",
                 "on_no_provider": "error_no_analysis_provider_registered",
             },

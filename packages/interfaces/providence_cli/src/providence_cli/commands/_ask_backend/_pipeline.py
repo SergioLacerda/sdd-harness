@@ -1,4 +1,4 @@
-"""providence ask — command entrypoints."""
+"""providence ask  command entrypoints."""
 
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ def _ask_cli_cmd(
         ),
     ),
 ) -> None:
-    """Query SDD governance context — minimal governed output."""
+    """Query SDD governance context  minimal governed output."""
     from providence_cli.commands import _ask_backend as _backend
 
     token = _backend._JSON_MODE_OVERRIDE.set(is_json_mode(ctx))
@@ -101,7 +101,7 @@ def ask_cmd(
     intake_only: bool = False,
     output_json: bool | None = None,
 ) -> None:
-    """Query SDD governance context — minimal governed output."""
+    """Query SDD governance context  minimal governed output."""
     from providence_cli.commands import _ask_backend as _backend
 
     token = (

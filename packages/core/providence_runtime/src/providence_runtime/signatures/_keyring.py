@@ -26,14 +26,14 @@ def _resolve_keyring_path(
         from providence_core.utils.environment import find_workspace_root
 
         workspace_root = find_workspace_root(compiled_dir) or Path.cwd()
-    canonical = workspace_root / ".sdd" / "trust" / "trusted-keys.json"
+    canonical = workspace_root / ".providence" / "trust" / "trusted-keys.json"
     if strict:
         if canonical.exists():
             return canonical, "canonical", ""
         return (
             None,
             "none",
-            "strict mode requires canonical keyring at .sdd/trust/trusted-keys.json",
+            "strict mode requires canonical keyring at .providence/trust/trusted-keys.json",
         )
 
     candidates: list[tuple[Path, str]] = [
@@ -47,7 +47,7 @@ def _resolve_keyring_path(
             warning = ""
             if source == "override":
                 warning = (
-                    "canonical keyring not found at .sdd/trust/trusted-keys.json; "
+                    "canonical keyring not found at .providence/trust/trusted-keys.json; "
                     "using SDD_TRUSTED_KEYRING override as fallback"
                 )
             return candidate, source, warning

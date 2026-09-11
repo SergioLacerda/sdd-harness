@@ -3,7 +3,7 @@
 Deliberately dependency-light: only stdlib + `providence_core.utils.environment`.
 This command must keep working to disable the prompt-submit governance hook
 even when the rest of the `sdd` CLI (governance loading, msgpack compilation)
-is what's broken — that's the exact scenario it exists to rescue.
+is what's broken  that's the exact scenario it exists to rescue.
 """
 
 from __future__ import annotations
@@ -12,8 +12,8 @@ from pathlib import Path
 
 from rich.console import Console
 
-HOOK_SENTINEL_RELATIVE = Path(".sdd") / "runtime" / "hook-disabled"
-CENTRAL_HOOK_RELATIVE = Path(".sdd") / "runtime" / "hooks" / "prompt-submit.py"
+HOOK_SENTINEL_RELATIVE = Path(".providence") / "runtime" / "hook-disabled"
+CENTRAL_HOOK_RELATIVE = Path(".providence") / "runtime" / "hooks" / "prompt-submit.py"
 
 _PLATFORM_ADAPTER_FILES = {
     "claude": Path(".claude") / "settings.json",
@@ -23,7 +23,7 @@ _PLATFORM_ADAPTER_FILES = {
 
 _HOOK_REFERENCES = (
     "sdd-governance-inject.py",
-    ".sdd/runtime/hooks/prompt-submit.py",
+    ".providence/runtime/hooks/prompt-submit.py",
 )
 
 # Behavior markers that must be present in the central hook for it to match

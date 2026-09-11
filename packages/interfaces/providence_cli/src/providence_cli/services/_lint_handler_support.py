@@ -97,7 +97,7 @@ def collect_anchor_files(
     if validate_all_anchors:
         files = collect_active_markdown_files_fn(repo_root)
         echo_fn(
-            f"🔗 Checking markdown anchors in active docs scope ({len(files)} files)..."
+            f" Checking markdown anchors in active docs scope ({len(files)} files)..."
         )
         return cast(list[Path], files)
     wizard_docs_dir = (
@@ -114,5 +114,5 @@ def collect_anchor_files(
         if f.exists()
     ]
     if files:
-        echo_fn("🔗 Checking markdown anchors in wizard entry docs...")
+        echo_fn(" Checking markdown anchors in wizard entry docs...")
     return files

@@ -23,7 +23,7 @@ def _write_mission(path: Path, days_ago: int = 0) -> None:
 
 def _make_analysis_workspace(tmp_path: Path) -> Path:
     for state in ("todo", "pending", "refined", "done"):
-        (tmp_path / ".sdd" / "analysis" / state).mkdir(parents=True, exist_ok=True)
+        (tmp_path / ".providence" / "analysis" / state).mkdir(parents=True, exist_ok=True)
     return tmp_path
 
 
@@ -40,9 +40,9 @@ class TestAnalysisCommands:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         workspace = _make_analysis_workspace(tmp_path)
-        _write_mission(workspace / ".sdd" / "analysis" / "todo" / "mission-todo.md")
+        _write_mission(workspace / ".providence" / "analysis" / "todo" / "mission-todo.md")
         _write_mission(
-            workspace / ".sdd" / "analysis" / "pending" / "mission-pending.md"
+            workspace / ".providence" / "analysis" / "pending" / "mission-pending.md"
         )
 
         monkeypatch.setattr(analysis_mod, "resolve_workspace_root", lambda: workspace)
@@ -72,7 +72,7 @@ class TestAnalysisCommands:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         workspace = _make_analysis_workspace(tmp_path)
-        mission = workspace / ".sdd" / "analysis" / "refined" / "mission-x.md"
+        mission = workspace / ".providence" / "analysis" / "refined" / "mission-x.md"
         _write_mission(mission)
         monkeypatch.setattr(analysis_mod, "resolve_workspace_root", lambda: workspace)
 
@@ -122,7 +122,7 @@ class TestAnalysisCommands:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         workspace = _make_analysis_workspace(tmp_path)
-        done_dir = workspace / ".sdd" / "analysis" / "done"
+        done_dir = workspace / ".providence" / "analysis" / "done"
         old_file = done_dir / "old.md"
         _write_mission(old_file, days_ago=10)
         monkeypatch.setattr(analysis_mod, "resolve_workspace_root", lambda: workspace)

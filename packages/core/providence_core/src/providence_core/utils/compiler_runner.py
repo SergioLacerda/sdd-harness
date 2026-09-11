@@ -119,7 +119,7 @@ def _cache_dir() -> Path:
     Precedence: `SDD_CACHE_DIR` (SDD-dedicated override, used as-is) ->
     `XDG_CACHE_HOME` (shared cache root, nested under `sdd/` per the XDG
     convention of not writing directly into a shared directory) -> the
-    original `~/.sdd/bin` fallback, unchanged so existing installs keep
+    original `~/.providence/bin` fallback, unchanged so existing installs keep
     resolving to the same cache location without any env var set.
     """
     sdd_override = os.environ.get("SDD_CACHE_DIR", "").strip()
@@ -130,7 +130,7 @@ def _cache_dir() -> Path:
     if xdg_cache_home:
         return Path(xdg_cache_home) / "sdd" / "bin"
 
-    return Path.home() / ".sdd" / "bin"
+    return Path.home() / ".providence" / "bin"
 
 
 def _asset_platform() -> tuple[str, str, str]:

@@ -22,27 +22,27 @@ the execution context is **HARD governance mode**.
 
 ### HARD Mode Rules
 
-**Rule 1 — Execution gate:**
+**Rule 1  Execution gate:**
 If `providence ask` output contains `execution_gate: blocked`, **STOP immediately**.
 Report the `gate_reason` to the user. Do not proceed with any action until the user re-authorizes.
 
-**Rule 2 — Git authorization:**
+**Rule 2  Git authorization:**
 Git state-modifying commands (`add`, `commit`, `push`, `reset`, `merge`, `rebase`, etc.)
 are **blocked** unless the current user message contains explicit authorization.
 Task completion is NOT authorization. Only explicit phrases like "commit this", "push to remote",
 "run git add and commit" constitute authorization.
 
-**Rule 3 — `intake_index_mode: none` is an independent signal, not "the gate":**
+**Rule 3  `intake_index_mode: none` is an independent signal, not "the gate":**
 `intake_index_mode: none` means no governance context was indexed for this query.
-This is **separate from Rule 1** — `execution_gate` may be `allowed` while
+This is **separate from Rule 1**  `execution_gate` may be `allowed` while
 `intake_index_mode` is still `none` (e.g. for short queries). Surface this
-condition to the user by name and value — do not describe it as "the gate is
+condition to the user by name and value  do not describe it as "the gate is
 blocked" unless `execution_gate: blocked` is also present. If `execution_gate:
 blocked` is present, follow Rule 1 (stop and wait for re-authorization). If
-`execution_gate: allowed`, proceed normally — `intake_index_mode: none` alone
+`execution_gate: allowed`, proceed normally  `intake_index_mode: none` alone
 is informational, not a stop condition.
 
-**Rule 4 — Context is not execution:**
+**Rule 4  Context is not execution:**
 Prompt-submit hook context and `providence ask` query output are governance context
 only. They do not prove that provider delegation, implementation, source
 mutation, or user approval occurred. If implementation intent is present, use

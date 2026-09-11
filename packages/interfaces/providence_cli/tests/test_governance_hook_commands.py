@@ -14,18 +14,18 @@ runner = CliRunner()
 def test_hook_disable_creates_sentinel(tmp_path: Path) -> None:
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()
-        (root / ".sdd").mkdir()
+        (root / ".providence").mkdir()
 
         result = runner.invoke(app, ["governance", "hook", "disable"])
 
         assert result.exit_code == 0
-        assert (root / ".sdd" / "runtime" / "hook-disabled").exists()
+        assert (root / ".providence" / "runtime" / "hook-disabled").exists()
 
 
 def test_hook_enable_removes_sentinel(tmp_path: Path) -> None:
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()
-        sentinel = root / ".sdd" / "runtime" / "hook-disabled"
+        sentinel = root / ".providence" / "runtime" / "hook-disabled"
         sentinel.parent.mkdir(parents=True)
         sentinel.write_text("", encoding="utf-8")
 
@@ -38,7 +38,7 @@ def test_hook_enable_removes_sentinel(tmp_path: Path) -> None:
 def test_hook_enable_when_already_absent_does_not_error(tmp_path: Path) -> None:
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()
-        (root / ".sdd").mkdir()
+        (root / ".providence").mkdir()
 
         result = runner.invoke(app, ["governance", "hook", "enable"])
 
@@ -48,7 +48,7 @@ def test_hook_enable_when_already_absent_does_not_error(tmp_path: Path) -> None:
 def test_hook_status_reports_enabled_when_sentinel_absent(tmp_path: Path) -> None:
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()
-        (root / ".sdd").mkdir()
+        (root / ".providence").mkdir()
 
         result = runner.invoke(app, ["governance", "hook", "status"])
 
@@ -58,7 +58,7 @@ def test_hook_status_reports_enabled_when_sentinel_absent(tmp_path: Path) -> Non
 
 def _write_current_central_hook(root: Path) -> Path:
     """Write a central hook containing the current template's activation markers."""
-    central_hook = root / ".sdd" / "runtime" / "hooks" / "prompt-submit.py"
+    central_hook = root / ".providence" / "runtime" / "hooks" / "prompt-submit.py"
     central_hook.parent.mkdir(parents=True, exist_ok=True)
     central_hook.write_text(
         "#!/usr/bin/env python3\n"
@@ -79,7 +79,7 @@ def test_hook_status_reports_configured_platforms_for_current_central_hook(
         _write_current_central_hook(root)
         (root / ".codex").mkdir()
         (root / ".codex" / "config.toml").write_text(
-            'command = "python3 .sdd/runtime/hooks/prompt-submit.py"',
+            'command = "python3 .providence/runtime/hooks/prompt-submit.py"',
             encoding="utf-8",
         )
 
@@ -96,12 +96,12 @@ def test_hook_status_reports_stale_when_central_hook_missing_activation_markers(
 ) -> None:
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()
-        central_hook = root / ".sdd" / "runtime" / "hooks" / "prompt-submit.py"
+        central_hook = root / ".providence" / "runtime" / "hooks" / "prompt-submit.py"
         central_hook.parent.mkdir(parents=True)
         central_hook.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
         (root / ".codex").mkdir()
         (root / ".codex" / "config.toml").write_text(
-            'command = "python3 .sdd/runtime/hooks/prompt-submit.py"',
+            'command = "python3 .providence/runtime/hooks/prompt-submit.py"',
             encoding="utf-8",
         )
 
@@ -117,7 +117,7 @@ def test_hook_status_does_not_report_empty_adapter_as_configured(
 ) -> None:
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()
-        central_hook = root / ".sdd" / "runtime" / "hooks" / "prompt-submit.py"
+        central_hook = root / ".providence" / "runtime" / "hooks" / "prompt-submit.py"
         central_hook.parent.mkdir(parents=True)
         central_hook.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
         (root / ".codex").mkdir()
@@ -132,7 +132,7 @@ def test_hook_status_does_not_report_empty_adapter_as_configured(
 def test_hook_status_reports_disabled_when_sentinel_present(tmp_path: Path) -> None:
     with runner.isolated_filesystem(temp_dir=str(tmp_path)):
         root = Path.cwd()
-        sentinel = root / ".sdd" / "runtime" / "hook-disabled"
+        sentinel = root / ".providence" / "runtime" / "hook-disabled"
         sentinel.parent.mkdir(parents=True)
         sentinel.write_text("", encoding="utf-8")
 

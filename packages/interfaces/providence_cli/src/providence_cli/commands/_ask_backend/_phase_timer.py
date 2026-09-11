@@ -32,7 +32,7 @@ class PhaseRecord:
     observed_by: str = "providence_cli"
     failed: bool = False
     # Soft-watchdog marker: True when duration_ms exceeded this phase's
-    # configured threshold. Never affects control flow — see PhaseTimer.
+    # configured threshold. Never affects control flow  see PhaseTimer.
     phase_slow: bool = False
 
 
@@ -41,9 +41,9 @@ class PhaseTimer:
     """Collects `PhaseRecord`s for the phases of one `providence ask` invocation.
 
     `thresholds_ms` / `default_threshold_ms` configure an optional,
-    non-blocking watchdog (design.md §3): a phase whose measured
+    non-blocking watchdog (design.md 3): a phase whose measured
     `duration_ms` exceeds its threshold is marked `phase_slow=True` on its
-    `PhaseRecord` — this never raises, never fails the command, and never
+    `PhaseRecord`  this never raises, never fails the command, and never
     changes timing behavior. Absent config (the default) disables the
     watchdog entirely; every record's `phase_slow` stays `False`.
     """

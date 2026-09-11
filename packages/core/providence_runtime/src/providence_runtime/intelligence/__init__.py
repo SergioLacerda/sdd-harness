@@ -16,7 +16,7 @@ Graceful degradation contract (§economy/efficiency-policy.md):
     The system MUST function with only the built-in local provider in place.
     External providers augment quality but are never required for correctness.
 
-Reference: .sdd/runtime analytics design §Phase 5
+Reference: .providence/runtime analytics design §Phase 5
 """
 
 from __future__ import annotations

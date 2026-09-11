@@ -54,7 +54,7 @@ class TestResolveGeneratePath:
             ),
         ):
             result = resolve_generate_path("")
-        assert result == str(tmp_path / ".sdd" / "compiled")
+        assert result == str(tmp_path / ".providence" / "compiled")
 
 
 class TestGenerateSeeds:
@@ -161,12 +161,12 @@ class TestGenerateRuntimeHandbookRequired:
         registry.write_text("schema_version: '1'\nsources: []\n", encoding="utf-8")
         with (
             patch(
-                "providence_cli.utils.sdd_authority.resolve_workspace_root",
+                "providence_cli.utils.providence_authority.resolve_workspace_root",
                 return_value=workspace,
             ),
             patch(
                 "providence_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
-                return_value=[tmp_path / ".sdd/source/handbook/index.yaml"],
+                return_value=[tmp_path / ".providence/source/handbook/index.yaml"],
             ) as mock_generate,
         ):
             generate_runtime_handbook_required(tmp_path / "out", console=console)
@@ -178,7 +178,7 @@ class TestGenerateRuntimeHandbookRequired:
         console = _console()
         with (
             patch(
-                "providence_cli.utils.sdd_authority.resolve_workspace_root",
+                "providence_cli.utils.providence_authority.resolve_workspace_root",
                 return_value=tmp_path / "workspace",
             ),
             patch(
@@ -200,7 +200,7 @@ class TestGenerateRuntimeHandbookRequired:
         workspace = tmp_path / "workspace"
         with (
             patch(
-                "providence_cli.utils.sdd_authority.resolve_workspace_root",
+                "providence_cli.utils.providence_authority.resolve_workspace_root",
                 return_value=workspace,
             ),
             patch(
@@ -221,7 +221,7 @@ class TestGenerateRuntimeHandbookRequired:
         console = _console()
         with patch(
             "providence_cli.services.governance_docs_handbook_gen.generate_runtime_handbook",
-            return_value=[tmp_path / ".sdd/source/handbook/index.yaml"],
+            return_value=[tmp_path / ".providence/source/handbook/index.yaml"],
         ):
             generate_runtime_handbook_required(tmp_path, console=console, quiet=True)
 

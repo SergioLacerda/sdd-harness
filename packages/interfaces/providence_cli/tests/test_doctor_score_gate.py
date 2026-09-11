@@ -47,7 +47,7 @@ class TestDoctorHelpers:
     def test_apply_score_gate_profile_not_initialized(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True)
         (compiled_dir / "governance-core.json").write_text(
             json.dumps({"fingerprint": "0123456789abcdef"}),
@@ -85,7 +85,7 @@ class TestDoctorHelpers:
     def test_apply_score_gate_exit_and_exception(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True)
         artifact = compiled_dir / "governance-core.json"
         artifact.write_text(
@@ -130,7 +130,7 @@ class TestDoctorHelpers:
     def test_apply_score_gate_fingerprint_fallback(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True)
         artifact_path = compiled_dir / "governance-core.json"
         payload = {"alpha": 1, "beta": 2}
@@ -168,7 +168,7 @@ class TestDoctorHelpers:
     def test_apply_score_gate_hash_decode_error(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        compiled_dir = tmp_path / ".sdd" / "compiled"
+        compiled_dir = tmp_path / ".providence" / "compiled"
         compiled_dir.mkdir(parents=True)
         (compiled_dir / "governance-core.json").write_bytes(b"not-json")
 

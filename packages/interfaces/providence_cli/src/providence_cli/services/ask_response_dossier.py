@@ -1,4 +1,4 @@
-"""ask_response_dossier — dossier line construction for the `providence ask` JSON path.
+"""ask_response_dossier  dossier line construction for the `providence ask` JSON path.
 
 Split out of `ask_response_json.py` (T4,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`).

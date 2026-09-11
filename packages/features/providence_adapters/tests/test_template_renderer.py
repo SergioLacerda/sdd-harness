@@ -46,7 +46,7 @@ class TestTemplateRenderer:
 
         assert "diagnose" in content
         assert "providence doctor run" in content
-        assert ".sdd/skills/registry.json" in content
+        assert ".providence/skills/registry.json" in content
         assert "low" in content
         assert "Protocol" in content  # SKILL.md enrichment present
 
@@ -93,7 +93,7 @@ class TestTemplateRenderer:
 
     def test_render_claude_command_cli_route_omits_note_block_by_default(self) -> None:
         """Spike follow-up (20260714-sdd-ask-single-entrypoint-spike): the
-        optional adapter note is additive — commands without routes_to.note
+        optional adapter note is additive â€” commands without routes_to.note
         must render unchanged."""
         renderer = TemplateRenderer()
         content = renderer.render("claude", "command.md", skill=SAMPLE_COMMAND_CLI)
@@ -153,7 +153,7 @@ class TestTemplateRenderer:
         content = renderer.render("antigravity", "skill.md", skill=SAMPLE_COMMAND_CLI)
 
         assert "name: sdd-ask" in content
-        assert ".sdd/commands/sdd-ask/command.yaml" in content
+        assert ".providence/commands/sdd-ask/command.yaml" in content
         assert "`providence ask`" in content
         assert "execution_gate" in content
         assert "intake_index_mode: none" in content

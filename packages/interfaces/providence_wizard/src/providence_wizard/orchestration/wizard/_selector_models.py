@@ -122,7 +122,7 @@ def _validate_dependencies(items: list[SelectorItem]) -> None:
 def _parse_guideline_dsl_block(body: str) -> dict[str, object]:
     """Extract fields from a single guideline DSL block body.
 
-    Shared by both the primary .sdd/guidelines.dsl parsing path and the
+    Shared by both the primary .providence/guidelines.dsl parsing path and the
     docs/spec/canonical fallback path (see _selector_canonical_fallback.py).
     """
     desc_match = re.search(r'description:\s*"([^"]*)"', body)

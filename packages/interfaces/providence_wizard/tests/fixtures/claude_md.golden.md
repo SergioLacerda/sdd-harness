@@ -4,9 +4,9 @@
 # Governance fingerprint: abc12345
 # Active mandates: 3 (M001, M002, M003)
 # Generated: 2026-05-22T00:00:00Z
-# Drift check: fingerprint must match .sdd/metadata.json → fingerprints.combined
+# Drift check: fingerprint must match .sdd/metadata.json  fingerprints.combined
 
-## ⚠️ CRITICAL: Governance Source of Truth
+##  CRITICAL: Governance Source of Truth
 
 **This Claude workspace is governed by `.sdd/` (Spec Driven Development artifacts).**
 
@@ -43,7 +43,7 @@ No other file overrides or extends the governance in `.sdd/`. Everything you nee
 
 | File | Purpose |
 |------|---------|
-| `.sdd/agent-instructions.md` | **START HERE** — Complete agent bootstrap instructions |
+| `.sdd/agent-instructions.md` | **START HERE**  Complete agent bootstrap instructions |
 | `.sdd/metadata.json` | Workspace version, fingerprints, item counts |
 | `.sdd/metadata.json` | Human-readable mandates snapshot |
 | `.sdd/source/mandates/mandates.md` | Full mandate descriptions with enforcement rules |
@@ -54,7 +54,7 @@ No other file overrides or extends the governance in `.sdd/`. Everything you nee
 
 **Before planning, coding, or deciding:** read `.sdd/agent-instructions.md`.
 
-If that file says something different from what you remember seeing in CLAUDE.md, **trust `.sdd/agent-instructions.md` — it is authoritative.**
+If that file says something different from what you remember seeing in CLAUDE.md, **trust `.sdd/agent-instructions.md`  it is authoritative.**
 
 ---
 

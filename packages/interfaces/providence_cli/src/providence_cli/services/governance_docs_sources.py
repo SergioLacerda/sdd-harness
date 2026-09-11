@@ -10,7 +10,7 @@ from typing import Any
 import yaml
 
 DEFAULT_REGISTRY = Path("docs/spec/canonical/governance-sources.yaml")
-DEFAULT_HANDBOOK_DIR = Path(".sdd/source/handbook")
+DEFAULT_HANDBOOK_DIR = Path(".providence/source/handbook")
 RUNTIME_TYPES = {"mandate", "guideline"}
 ALLOWED_TYPES = RUNTIME_TYPES | {
     "policy",
@@ -82,7 +82,7 @@ def _load_runtime_ids(root: Path, relative_path: str, item_type: str) -> set[str
 
 
 def _metadata_mandate_ids(root: Path) -> set[str]:
-    path = root / ".sdd/metadata.json"
+    path = root / ".providence/metadata.json"
     if not path.exists():
         return set()
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -139,7 +139,7 @@ def _validate_entry_type_contract(
         return
     if source_type == "docs_only" and entry.get("outputs"):
         outputs = [str(item) for item in entry.get("outputs", [])]
-        runtime_outputs = [item for item in outputs if item.startswith(".sdd/")]
+        runtime_outputs = [item for item in outputs if item.startswith(".providence/")]
         if runtime_outputs:
             errors.append(f"docs_only source {ids[0]} declares runtime outputs")
     if source_type == "mirror" and not entry.get("source_doc"):

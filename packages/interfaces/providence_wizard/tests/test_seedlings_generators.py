@@ -36,7 +36,7 @@ from providence_wizard.orchestration.wizard.messages import phase3_completed_mes
 @pytest.fixture
 def tmp_seedlings_dir(tmp_path: Path) -> Path:
     """Create a temporary seedlings directory."""
-    seedlings_dir = tmp_path / ".sdd" / "seedlings"
+    seedlings_dir = tmp_path / ".providence" / "seedlings"
     seedlings_dir.mkdir(parents=True, exist_ok=True)
     return seedlings_dir
 
@@ -192,13 +192,13 @@ class TestAISeedsGeneratorGemini:
         instructions = (tmp_path / ".gemini" / "gemini-instructions.md").read_text(
             encoding="utf-8"
         )
-        assert "Gemini — SDD Governance Bootstrap" in instructions
+        assert "Gemini  SDD Governance Bootstrap" in instructions
         assert ".gemini/commands.md" in instructions
-        assert ".sdd/agent-instructions.md" in instructions
+        assert ".providence/agent-instructions.md" in instructions
 
         gemini_md = (tmp_path / "GEMINI.md").read_text(encoding="utf-8")
         assert "GEMINI.md" in gemini_md
-        assert ".sdd/agent-instructions.md" in gemini_md
+        assert ".providence/agent-instructions.md" in gemini_md
 
         settings = json.loads(
             (tmp_path / ".gemini" / "settings.json").read_text(encoding="utf-8")
@@ -397,7 +397,7 @@ class TestAISeedsGeneratorCopilot:
         content = (tmp_path / ".github" / "copilot-instructions.md").read_text(
             encoding="utf-8"
         )
-        assert ".sdd/agent-instructions.md" in content
+        assert ".providence/agent-instructions.md" in content
         assert ".github/prompts/" in content
         assert "providence runtime status" in content
         assert "providence governance validate" in content
@@ -407,7 +407,7 @@ class TestAISeedsGeneratorCopilot:
     def test_copilot_precedence_remains_sdd_only_after_instruction_regeneration(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
     ) -> None:
-        """When both generators run, final copilot instructions must remain .sdd-only."""
+        """When both generators run, final copilot instructions must remain .providence-only."""
         from providence_cli.generators._instruction_files import (
             generate_agent_instruction_files,
         )
@@ -433,7 +433,7 @@ class TestAISeedsGeneratorCopilot:
         content = (tmp_path / ".github" / "copilot-instructions.md").read_text(
             encoding="utf-8"
         )
-        assert ".sdd/agent-instructions.md" in content
+        assert ".providence/agent-instructions.md" in content
         assert ".spec.config" not in content
         assert ".../EXECUTION/" not in content
 
@@ -518,8 +518,8 @@ class TestGovernanceSeedsGeneratorBasic:
 
         assert "auto_activate" in content
         assert "load_compiled_from" in content
-        assert content["load_compiled_from"] == ".sdd"
-        assert ".sdd/metadata.json" in content["required_context"]
+        assert content["load_compiled_from"] == ".providence"
+        assert ".providence/metadata.json" in content["required_context"]
         assert "project_metadata" in content
         assert content["project_metadata"]["spec_fingerprint"] == "abc12345"
         assert content["project_metadata"]["mandates_selected"] == ["M001", "M002"]
@@ -573,8 +573,8 @@ class TestGovernanceSeedsGeneratorBasic:
             seed_file = tmp_seedlings_dir / "compliance.seed.json"
             content = json.loads(seed_file.read_text(encoding="utf-8"))
             assert "compliance_rules" in content
-            assert content["load_compiled_from"] == ".sdd"
-            assert ".sdd/metadata.json" in content["required_context"]
+            assert content["load_compiled_from"] == ".providence"
+            assert ".providence/metadata.json" in content["required_context"]
 
 
 class TestIDESeedsGeneratorMethods:
@@ -614,11 +614,11 @@ class TestIDESeedsGeneratorMethods:
         seed_file = tmp_seedlings_dir / "agent-prep.seed.json"
         content = json.loads(seed_file.read_text(encoding="utf-8"))
         assert "agent_configuration" in content
-        assert content["load_compiled_from"] == ".sdd"
-        assert content["agent_configuration"]["quick_access"]["compiled"] == ".sdd"
-        assert ".sdd/metadata.json" in content["required_context"]
+        assert content["load_compiled_from"] == ".providence"
+        assert content["agent_configuration"]["quick_access"]["compiled"] == ".providence"
+        assert ".providence/metadata.json" in content["required_context"]
         assert (
-            ".sdd/seedlings/personal-overlay.seed.json" in content["required_context"]
+            ".providence/seedlings/personal-overlay.seed.json" in content["required_context"]
         )
         assert "ide_hooks" in content
 
@@ -658,8 +658,8 @@ class TestIDESeedsGeneratorMethods:
         seed_file = tmp_seedlings_dir / "personal-overlay.seed.json"
         content = json.loads(seed_file.read_text(encoding="utf-8"))
         assert content["on_load"] == "prepare_personal_overlay"
-        assert ".sdd/skills/registry.json" in content["required_context"]
-        assert ".sdd/commands/registry.json" in content["required_context"]
+        assert ".providence/skills/registry.json" in content["required_context"]
+        assert ".providence/commands/registry.json" in content["required_context"]
 
     def test_generate_vscode_seed(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
@@ -697,7 +697,7 @@ class TestIDESeedsGeneratorMethods:
         seed_file = tmp_seedlings_dir / "vscode.seed.json"
         content = json.loads(seed_file.read_text(encoding="utf-8"))
         assert content["agent"] == "vscode"
-        assert content["load_compiled_from"] == ".sdd"
+        assert content["load_compiled_from"] == ".providence"
         assert content["governance_fingerprint"] == "abc12345"
         assert content["mandates_count"] == 2
 
@@ -737,7 +737,7 @@ class TestIDESeedsGeneratorMethods:
         seed_file = tmp_seedlings_dir / "cursor.seed.json"
         content = json.loads(seed_file.read_text(encoding="utf-8"))
         assert content["agent"] == "cursor"
-        assert content["load_compiled_from"] == ".sdd"
+        assert content["load_compiled_from"] == ".providence"
         assert "commands_ref" in content
 
 
@@ -778,7 +778,7 @@ class TestAISeedsGeneratorClaudeSeed:
         content = (tmp_path / "CLAUDE.md").read_text(encoding="utf-8")
         assert "CRITICAL: Governance Source of Truth" in content
         assert ".claude/commands/" in content
-        assert ".sdd/agent-instructions.md" in content
+        assert ".providence/agent-instructions.md" in content
         assert "Version: 3.0" in content
         assert (tmp_path / ".claude" / "sdd-bootstrap.sh").exists()
         assert (tmp_path / ".claude" / "settings.json").exists()
@@ -879,7 +879,7 @@ class TestGovernanceSeedsGeneratorMethods:
         assert "providence skills list" in content
         assert "providence skills describe sdd-validate-governance" in content
         assert "providence ask --full" in content
-        assert "Copy-Item -Path .sdd\\seedlings -Destination . -Recurse" in content
+        assert "Copy-Item -Path .providence\\seedlings -Destination . -Recurse" in content
         assert "Activation Checklist" in content
         assert "providence governance hook disable" in content
 
@@ -924,7 +924,7 @@ class TestGovernanceSeedsGeneratorMethods:
     def test_generate_agnostic_agent_instructions(
         self, tmp_path: Path, tmp_seedlings_dir: Path, base_config: dict[str, Any]
     ) -> None:
-        """Should generate .sdd/agent-instructions.md file."""
+        """Should generate .providence/agent-instructions.md file."""
         gen = GovernanceSeedsGenerator(
             output_base=tmp_path,
             seedlings_dir=tmp_seedlings_dir,
@@ -937,7 +937,7 @@ class TestGovernanceSeedsGeneratorMethods:
         )
         success = gen.generate_agnostic_agent_instructions()
         assert success is True
-        instructions_file = tmp_path / ".sdd" / "agent-instructions.md"
+        instructions_file = tmp_path / ".providence" / "agent-instructions.md"
         assert instructions_file.exists()
         content = instructions_file.read_text(encoding="utf-8")
         assert "governance_fingerprint" in content
@@ -957,7 +957,7 @@ class TestGovernanceSeedsGeneratorMethods:
             verbose=False,
         )
 
-        # Both are deprecated no-ops — verify they return True without creating files
+        # Both are deprecated no-ops  verify they return True without creating files
         assert gen.generate_ai_instructions() is True
         assert gen.generate_openai_instructions() is True
 
@@ -993,11 +993,11 @@ class TestGovernanceSeedsGeneratorMethods:
         )
         assert "OpenAI" not in content
         assert ".openai" not in content
-        assert ".sdd/agent-instructions.md" in content
-        assert ".sdd/commands/registry.json" in content
-        assert ".sdd/skills/registry.json" in content
-        assert ".sdd/commands/<command-id>/command.yaml" in content
-        assert ".sdd/skills/<skill-name>/skill.yaml" in content
+        assert ".providence/agent-instructions.md" in content
+        assert ".providence/commands/registry.json" in content
+        assert ".providence/skills/registry.json" in content
+        assert ".providence/commands/<command-id>/command.yaml" in content
+        assert ".providence/skills/<skill-name>/skill.yaml" in content
 
     def test_should_auto_activate_with_standard_adoption(
         self, tmp_path: Path, tmp_seedlings_dir: Path
@@ -1201,9 +1201,9 @@ class TestBaseSeedlingGeneratorIsolation:
             environment.find_workspace_root = original
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# GovernanceSeedsGenerator — Additional Coverage Tests
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# GovernanceSeedsGenerator  Additional Coverage Tests
+# 
 
 
 class TestGovernanceSeedsGeneratorGeneratePromptCommands:
@@ -1458,13 +1458,13 @@ class TestGovernanceSeedsGeneratorWithMandates:
         success = gen.generate_agnostic_agent_instructions()
         assert success is True
 
-        content = (tmp_path / ".sdd" / "agent-instructions.md").read_text(
+        content = (tmp_path / ".providence" / "agent-instructions.md").read_text(
             encoding="utf-8"
         )
         assert "M001" in content
         assert "metadata-core.json" not in content
         assert "trust the compiled file" not in content
-        assert "validate this against `.sdd/metadata.json`" in content
+        assert "validate this against `.providence/metadata.json`" in content
 
 
 class TestGovernanceSeedsGeneratorConfigVariations:
@@ -1562,7 +1562,7 @@ class TestGovernanceSeedsGeneratorMandateVariations:
         success = gen.generate_agnostic_agent_instructions()
         assert success is True
 
-        content = (tmp_path / ".sdd" / "agent-instructions.md").read_text(
+        content = (tmp_path / ".providence" / "agent-instructions.md").read_text(
             encoding="utf-8"
         )
         assert "M001" in content
@@ -1741,12 +1741,12 @@ class TestIntelligentSeedlingsGeneratorCodex:
         )
 
         assert generator.generate_all(selected={"codex"}) is True
-        codex_seed = tmp_path / ".sdd" / "seedlings" / "codex.seed.json"
+        codex_seed = tmp_path / ".providence" / "seedlings" / "codex.seed.json"
         assert codex_seed.exists()
         manifest = json.loads(
             (tmp_path / "DEPLOYMENT_MANIFEST.json").read_text(encoding="utf-8")
         )
-        assert ".sdd/seedlings/codex.seed.json" in manifest.get("seed_files", {})
+        assert ".providence/seedlings/codex.seed.json" in manifest.get("seed_files", {})
 
     def test_generate_all_full_includes_codex_seed(self, tmp_path: Path) -> None:
         from providence_wizard.orchestration.intelligent_seedlings_generator import (
@@ -1798,7 +1798,7 @@ class TestIntelligentSeedlingsGeneratorCodex:
             ),
         ):
             assert generator.generate_all(selected=None) is True
-        assert (tmp_path / ".sdd" / "seedlings" / "codex.seed.json").exists()
+        assert (tmp_path / ".providence" / "seedlings" / "codex.seed.json").exists()
 
     def test_compute_fingerprint_returns_default_when_json_corrupted(
         self, tmp_path: Path
@@ -1874,15 +1874,15 @@ class TestIntelligentSeedlingsGeneratorCodex:
 class TestWizardMessagesConsistency:
     def test_phase3_message_uses_sdd_seedlings_path_only(self) -> None:
         content = phase3_completed_message()
-        assert ".sdd/seedlings/" in content
+        assert ".providence/seedlings/" in content
         assert ".ai\\seedlings" not in content  # legacy-path-ok: asserting absence
         assert "STEP 6: PASTE THIS IN YOUR AGENT PROMPT" in content
-        assert "Read `AGENTS.md`, `.sdd/agent-instructions.md`" in content
+        assert "Read `AGENTS.md`, `.providence/agent-instructions.md`" in content
 
     def test_phase3_message_instructs_agent_to_complete_handshake(self) -> None:
         """Regression: the wizard's paste-into-agent prompt must instruct the
         agent to complete the M015 handshake itself (see
-        wizard-handshake-init-eval-20260706 — wizard-side auto-completion was
+        wizard-handshake-init-eval-20260706  wizard-side auto-completion was
         evaluated and rejected; agents must be instructed instead)."""
         content = phase3_completed_message()
         assert "providence governance handshake --init" in content
@@ -1901,7 +1901,7 @@ class TestRootReadmeOnboarding:
 
 
 # ---------------------------------------------------------------------------
-# AISeedsGenerator — exception-path coverage (lines 118-120, 177-179,
+# AISeedsGenerator  exception-path coverage (lines 118-120, 177-179,
 # 263-265, 344-346)
 # ---------------------------------------------------------------------------
 

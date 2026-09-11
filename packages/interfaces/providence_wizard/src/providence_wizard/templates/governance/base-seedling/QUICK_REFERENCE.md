@@ -8,32 +8,32 @@
 
 | Task | Command | Expected Output |
 |------|---------|-----------------|
-| Check governance status | `python packages/agent_handshake.py --mode=compact` | 🟢 HEALTHY (if adopted) |
+| Check governance status | `python packages/agent_handshake.py --mode=compact` |  HEALTHY (if adopted) |
 | Initialize governance | `python packages/interfaces/providence_wizard/src/providence_wizard/SCRIPTS/phase-0-agent-onboarding.py` | Wizard walks you through setup |
-| List governance policies | `cat .sdd/metadata.json` | JSON config |
-| Check authority roles | `grep -A5 '"authority"' .sdd/metadata.json` | Lists architect, governance, ops |
+| List governance policies | `cat .providence/metadata.json` | JSON config |
+| Check authority roles | `grep -A5 '"authority"' .providence/metadata.json` | Lists architect, governance, ops |
 | Validate compliance | `python packages/quiz_executor.py --topic=governance` | Score + topic breakdown |
-| View seedlings | `ls -la .sdd/seedlings/` | List of active domains |
-| Update enforcement | Edit `.sdd/metadata.json` → set `"enforcement": "strict"` | Blocks bypasses |
+| View seedlings | `ls -la .providence/seedlings/` | List of active domains |
+| Update enforcement | Edit `.providence/metadata.json`  set `"enforcement": "strict"` | Blocks bypasses |
 
 ---
 
 ## File Locations
 
 ```
-.sdd/
-├── metadata.json        ← Main config (user edits this)
-├── seedlings/
-│   └── {domain}/               ← Domain-specific templates
-│       ├── governance-specialization.json
-│       ├── README.md
-│       └── implementation/
-├── phases/                      ← Phase tracking
-│   ├── PHASE_0_ENTRY.json
-│   └── ...PHASE_7_DELIVERY.json
-└── enforcement/                 ← Rules & validation
-    ├── mandatory-rules.json
-    └── adoption-checklist.json
+.providence/
+ metadata.json         Main config (user edits this)
+ seedlings/
+    {domain}/                Domain-specific templates
+        governance-specialization.json
+        README.md
+        implementation/
+ phases/                       Phase tracking
+    PHASE_0_ENTRY.json
+    ...PHASE_7_DELIVERY.json
+ enforcement/                  Rules & validation
+     mandatory-rules.json
+     adoption-checklist.json
 ```
 
 ---
@@ -42,11 +42,11 @@
 
 | State | Symbol | Meaning | Next Action |
 |-------|--------|---------|------------|
-| HEALTHY | 🟢 | Governance fully adopted | Proceed with work |
-| PARTIAL | 🟡 | Governance incomplete | Complete setup steps |
-| NOT_INITIALIZED | ⚠️ | PHASE 0 not run | `python phase-0-agent-onboarding.py` |
-| MISCONFIGURED | ⚠️ | Governance files broken | Fix .sdd/metadata.json |
-| NOT_CONNECTED | ❌ | No governance found | Initialize with wizard |
+| HEALTHY |  | Governance fully adopted | Proceed with work |
+| PARTIAL |  | Governance incomplete | Complete setup steps |
+| NOT_INITIALIZED |  | PHASE 0 not run | `python phase-0-agent-onboarding.py` |
+| MISCONFIGURED |  | Governance files broken | Fix .providence/metadata.json |
+| NOT_CONNECTED |  | No governance found | Initialize with wizard |
 
 ---
 
@@ -54,20 +54,20 @@
 
 ```
 User asks about governance?
-├─ Yes, wants to ADOPT
-│  └─ → Send to WIZARD_ADOPTION.md
-│     └─ Recommend: python packages/interfaces/providence_wizard/src/providence_wizard/SCRIPTS/phase-0-agent-onboarding.py
-│
-├─ Yes, wants to IMPLEMENT
-│  └─ → Send to GOVERNANCE_IMPLEMENTATION.md
-│     └─ Show structure & step-by-step
-│
-├─ Yes, wants to ENFORCE
-│  └─ → Send to ENFORCEMENT_GUIDE.md
-│     └─ Enable strict mode + manual bypass disabled
-│
-└─ Yes, needs QUICK_REFERENCE
-   └─ → This document (you're reading it!)
+ Yes, wants to ADOPT
+    Send to WIZARD_ADOPTION.md
+      Recommend: python packages/interfaces/providence_wizard/src/providence_wizard/SCRIPTS/phase-0-agent-onboarding.py
+
+ Yes, wants to IMPLEMENT
+    Send to GOVERNANCE_IMPLEMENTATION.md
+      Show structure & step-by-step
+
+ Yes, wants to ENFORCE
+    Send to ENFORCEMENT_GUIDE.md
+      Enable strict mode + manual bypass disabled
+
+ Yes, needs QUICK_REFERENCE
+     This document (you're reading it!)
 ```
 
 ---
@@ -76,9 +76,9 @@ User asks about governance?
 
 | Level | Strictness | Bypass Allowed | Use Case |
 |-------|-----------|---|---|
-| `strict` | 🔒 Maximum | No | Production, critical systems |
-| `standard` | 🔐 Moderate | Only by architect | Most projects |
-| `permissive` | 🔓 Low | Anyone can override | Dev/experimental |
+| `strict` |  Maximum | No | Production, critical systems |
+| `standard` |  Moderate | Only by architect | Most projects |
+| `permissive` |  Low | Anyone can override | Dev/experimental |
 
 Set in `metadata.json`:
 ```json
@@ -96,32 +96,32 @@ Set in `metadata.json`:
 python packages/interfaces/providence_wizard/src/providence_wizard/SCRIPTS/phase-0-agent-onboarding.py
 
 # 2. Verify governance created
-ls -la .sdd/metadata.json
+ls -la .providence/metadata.json
 
 # 3. Validate with health check
 python packages/agent_handshake.py --mode=compact
 
 # 4. If healthy, you're done!
-# 🟢 HEALTHY → ready for PHASE 1
+#  HEALTHY  ready for PHASE 1
 ```
 
 ---
 
 ## Error Messages & Fixes
 
-### ❌ "metadata.json not found"
+###  "metadata.json not found"
 **Fix:** Run wizard: `python packages/interfaces/providence_wizard/src/providence_wizard/SCRIPTS/phase-0-agent-onboarding.py`
 
-### ❌ "Governance files not valid JSON"
-**Fix:** `python3 -m json.tool .sdd/metadata.json` to find errors, fix them
+###  "Governance files not valid JSON"
+**Fix:** `python3 -m json.tool .providence/metadata.json` to find errors, fix them
 
-### ❌ "Authority not recognized"
+###  "Authority not recognized"
 **Fix:** Add your email to `authority` section in metadata.json
 
-### ❌ "Manual bypass blocked"
+###  "Manual bypass blocked"
 **Fix:** Change `"manual_bypass_allowed": true` if you need override (not recommended)
 
-### ❌ "Phase progression blocked"
+###  "Phase progression blocked"
 **Fix:** Update `"phases"."current"` in metadata.json to match progress
 
 ---
@@ -166,15 +166,15 @@ Add users to roles in metadata.json:
 
 ## Checklist: Is Governance Adopted?
 
-- [ ] `.sdd/metadata.json` exists
-- [ ] `.sdd/seedlings/` has at least one domain
+- [ ] `.providence/metadata.json` exists
+- [ ] `.providence/seedlings/` has at least one domain
 - [ ] Authority roles assigned
 - [ ] Enforcement level set (strict/standard/permissive)
 - [ ] AHP reports HEALTHY status
 - [ ] Quiz passes (governance topic)
 - [ ] Phase 0 marked complete
 
-If all checked: **Governance is adopted!** ✅
+If all checked: **Governance is adopted!** 
 
 ---
 

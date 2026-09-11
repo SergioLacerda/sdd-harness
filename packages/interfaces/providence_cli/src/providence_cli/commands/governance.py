@@ -90,7 +90,7 @@ def hook_default(ctx: typer.Context) -> None:
 @app.command()
 @handle_cli_errors(
     command_name="governance compile",
-    next_hint="check .sdd/source artifacts or run 'providence governance validate'",
+    next_hint="check .providence/source artifacts or run 'providence governance validate'",
 )
 def compile(
     profile: str | None = typer.Option(
@@ -111,7 +111,7 @@ def generate(
         None, help="Output directory for generated files (defaults to workspace root)"
     ),  # noqa: UP045
     path: str = typer.Option(
-        "", help="Path to governance configuration (defaults to .sdd/compiled)"
+        "", help="Path to governance configuration (defaults to .providence/compiled)"
     ),
     full_bootstrap: bool = typer.Option(
         False,
@@ -150,7 +150,7 @@ def keygen(
         "auditor-01", help="Key ID for the new key (e.g. dev-01, prod-01)"
     ),
     output_dir: str = typer.Option(
-        ".sdd/trust", help="Where to save the keys (should be git-ignored)"
+        ".providence/trust", help="Where to save the keys (should be git-ignored)"
     ),
 ) -> None:
     """Generate a new Ed25519 key pair for signing governance artifacts."""
@@ -163,12 +163,12 @@ def sign(
     key_id: str = typer.Option("auditor-01", help="Key ID to use for signing"),
     key_path: str | None = typer.Option(None, help="Path to private key (.key file)"),  # noqa: UP045
     compiled_dir: str | None = typer.Option(
-        None, help="Directory containing artifacts to sign (default: .sdd/compiled)"
+        None, help="Directory containing artifacts to sign (default: .providence/compiled)"
     ),  # noqa: UP045
     source: bool = typer.Option(
         False,
         "--source",
-        help="Sign the source governance file (.sdd/source/governance-core.json)",
+        help="Sign the source governance file (.providence/source/governance-core.json)",
     ),
 ) -> None:
     """Sign governance artifacts (JSON) with an Ed25519 private key."""

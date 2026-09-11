@@ -1,5 +1,5 @@
 """
-GovernanceLoader — Phase 4 step: parse compiled governance JSON into mandates/guidelines.
+GovernanceLoader  Phase 4 step: parse compiled governance JSON into mandates/guidelines.
 """
 
 import json

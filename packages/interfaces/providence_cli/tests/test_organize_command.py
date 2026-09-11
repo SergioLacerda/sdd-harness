@@ -31,7 +31,7 @@ def _patch_profile_gate(monkeypatch) -> None:
 def test_organize_output_json_uses_canonical_envelope(
     monkeypatch, tmp_path: Path
 ) -> None:
-    artifact_path = tmp_path / ".sdd" / "runtime" / "organized.json"
+    artifact_path = tmp_path / ".providence" / "runtime" / "organized.json"
     monkeypatch.setattr(
         "providence_cli.commands.organize._resolve_workspace_root",
         lambda: tmp_path,
@@ -60,7 +60,7 @@ def test_organize_output_json_uses_canonical_envelope(
 def test_organize_global_json_uses_canonical_envelope(
     monkeypatch, tmp_path: Path
 ) -> None:
-    artifact_path = tmp_path / ".sdd" / "runtime" / "organized.json"
+    artifact_path = tmp_path / ".providence" / "runtime" / "organized.json"
     monkeypatch.setattr(
         "providence_cli.commands.organize._resolve_workspace_root",
         lambda: tmp_path,
@@ -85,7 +85,7 @@ def test_organize_global_json_uses_canonical_envelope(
 
 
 def test_organize_json_uses_canonical_data_payload(monkeypatch, tmp_path: Path) -> None:
-    artifact_path = tmp_path / ".sdd" / "runtime" / "organized.json"
+    artifact_path = tmp_path / ".providence" / "runtime" / "organized.json"
     monkeypatch.setattr(
         "providence_cli.commands.organize._resolve_workspace_root",
         lambda: tmp_path,
@@ -113,7 +113,7 @@ def test_organize_json_uses_canonical_data_payload(monkeypatch, tmp_path: Path) 
 def test_organize_accepts_input_file_after_query_argument(
     monkeypatch, tmp_path: Path
 ) -> None:
-    artifact_path = tmp_path / ".sdd" / "runtime" / "organized.json"
+    artifact_path = tmp_path / ".providence" / "runtime" / "organized.json"
     input_file = tmp_path / "context.txt"
     input_text = "traceback\nerror\nfull file content"
     input_file.write_text(input_text, encoding="utf-8")

@@ -1,4 +1,4 @@
-"""providence runtime — workspace runtime state commands."""
+"""providence runtime  workspace runtime state commands."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ from providence_cli.services.runtime_handler_status import (
     _footer_drift_status,
 )
 from providence_cli.utils.output import emit_json, is_json_mode, is_verbose_mode
-from providence_cli.utils.sdd_authority import (
+from providence_cli.utils.providence_authority import (
     PathPolicyViolation,
     enforce_path_policy,
     profile_active_path,
@@ -74,7 +74,7 @@ def status(
         root = enforce_path_policy(root, workspace_root=root, mode="normal")
     except PathPolicyViolation as exc:
         typer.echo(
-            f"[SDD] ERROR: workspace path rejected — {exc.reason}\n  Hint: {exc.hint}",
+            f"[SDD] ERROR: workspace path rejected  {exc.reason}\n  Hint: {exc.hint}",
             err=True,
         )
         raise typer.Exit(2) from exc
@@ -88,7 +88,7 @@ def status(
 
         from providence_core.governance.handshake import AgentHandshakeProtocol
     except ImportError as exc:
-        typer.echo(f"ERROR: providence_core not installed — {exc}", err=True)
+        typer.echo(f"ERROR: providence_core not installed  {exc}", err=True)
         raise typer.Exit(2) from exc
 
     effective_verbose = bool(verbose or is_verbose_mode(ctx))
@@ -99,7 +99,7 @@ def status(
     )
 
     if effective_verbose and not output_json:
-        cache_file = root / ".sdd" / "runtime" / "governance-state.json"
+        cache_file = root / ".providence" / "runtime" / "governance-state.json"
         typer.echo(_format_diagnostic_block(root, cache_file=cache_file))
         typer.echo("")
 
@@ -130,7 +130,7 @@ def status(
             current_profile=current_profile,
         )
     except ImportError as exc:
-        typer.echo(f"ERROR: providence_runtime not installed — {exc}", err=True)
+        typer.echo(f"ERROR: providence_runtime not installed  {exc}", err=True)
         raise typer.Exit(2) from exc
 
     governance_footer = format_governance_footer(

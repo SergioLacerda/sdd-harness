@@ -1,4 +1,4 @@
-"""providence telemetry — query, summary, init subcommands.
+"""providence telemetry  query, summary, init subcommands.
 
 Split out of `telemetry.py` (T13,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`).
@@ -117,6 +117,6 @@ def summary(
 
 @app.command()
 def init() -> None:
-    """Initialize telemetry storage (.sdd/runtime/ dir + empty JSONL file)."""
+    """Initialize telemetry storage (.providence/runtime/ dir + empty JSONL file)."""
     path = _resolve_events_path("telemetry init")
     emit_init(path, build_init_result(path), output_json=_ctx_json())

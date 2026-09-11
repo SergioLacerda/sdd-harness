@@ -61,7 +61,7 @@ def _validate_markdown_anchors(markdown_files: list[Path], repo_root: Path) -> i
                 and unquote(fragment).lower() not in anchors
             ):
                 typer.echo(
-                    f"  ❌ {source_file.relative_to(repo_root)}: "
+                    f"   {source_file.relative_to(repo_root)}: "
                     f"anchor '#{fragment}' not found in {target_file.relative_to(repo_root)}"
                 )
                 errors += 1
@@ -87,12 +87,12 @@ def _validate_link_fragment_style(
         return 0
     if "%" in fragment:
         typer.echo(
-            f"  ❌ {source_file.relative_to(repo_root)}: URL-encoded anchor fragment '#{fragment}' is not allowed"
+            f"   {source_file.relative_to(repo_root)}: URL-encoded anchor fragment '#{fragment}' is not allowed"
         )
         return 1
     if not _slugify_anchor(fragment):
         typer.echo(
-            f"  ❌ {source_file.relative_to(repo_root)}: anchor fragment '#{fragment}' resolves to empty slug"
+            f"   {source_file.relative_to(repo_root)}: anchor fragment '#{fragment}' resolves to empty slug"
         )
         return 1
     return 0
@@ -115,7 +115,7 @@ def _validate_anchor_style(markdown_files: list[Path], repo_root: Path) -> int:
         for line_number, line in enumerate(filtered_lines, start=1):
             if re.match(r"^#{1,6}\s+", line) and line.rstrip() != line:
                 typer.echo(
-                    f"  ❌ {source_file.relative_to(repo_root)}:{line_number}: "
+                    f"   {source_file.relative_to(repo_root)}:{line_number}: "
                     "heading has trailing whitespace, which can destabilize generated anchors"
                 )
                 errors += 1
@@ -131,7 +131,7 @@ def _check_legacy_patterns(canonical_dir: Path, repo_root: Path) -> int:
     """Check for legacy path references in canonical docs. Returns error count."""
     patterns = [
         (re.compile(r"docs/specs"), "Legacy 'docs/specs' used (should be docs/spec)"),
-        (re.compile(r"(?<!\.sdd)/runtime/"), "Legacy '/runtime/' reference"),
+        (re.compile(r"(?<!\.providence)/runtime/"), "Legacy '/runtime/' reference"),
         (re.compile(r"/REALITY/"), "Legacy '/REALITY/' reference"),
         (re.compile(r"/DEVELOPMENT/"), "Legacy '/DEVELOPMENT/' reference"),
         (re.compile(r"sdd-generated"), "Legacy 'sdd-generated' reference"),
@@ -141,7 +141,7 @@ def _check_legacy_patterns(canonical_dir: Path, repo_root: Path) -> int:
         content = file.read_text(encoding="utf-8")
         for pattern, msg in patterns:
             if pattern.search(content):
-                typer.echo(f"  ❌ {file.relative_to(repo_root)}: {msg}")
+                typer.echo(f"   {file.relative_to(repo_root)}: {msg}")
                 errors += 1
     return errors
 
@@ -157,7 +157,7 @@ def _check_project_leaks(canonical_dir: Path, repo_root: Path) -> int:
         content = file.read_text(encoding="utf-8")
         for pattern, msg in patterns:
             if pattern.search(content):
-                typer.echo(f"  ❌ {file.relative_to(repo_root)}: {msg}")
+                typer.echo(f"   {file.relative_to(repo_root)}: {msg}")
                 errors += 1
     return errors
 

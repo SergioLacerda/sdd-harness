@@ -17,7 +17,7 @@ def _write_mission(path: Path, days_ago: int = 0) -> None:
 
 def _make_analysis_workspace(tmp_path: Path) -> Path:
     for state in ("todo", "pending", "refined", "done"):
-        (tmp_path / ".sdd" / "analysis" / state).mkdir(parents=True, exist_ok=True)
+        (tmp_path / ".providence" / "analysis" / state).mkdir(parents=True, exist_ok=True)
     return tmp_path
 
 
@@ -29,11 +29,11 @@ def test_parse_duration_variants() -> None:
 
 
 def test_analysis_root_builds_expected_path(tmp_path: Path) -> None:
-    assert analysis_helpers._analysis_root(tmp_path) == tmp_path / ".sdd" / "analysis"
+    assert analysis_helpers._analysis_root(tmp_path) == tmp_path / ".providence" / "analysis"
 
 
 def test_collect_missions_skips_non_markdown_and_missing_dirs(tmp_path: Path) -> None:
-    analysis_root = _make_analysis_workspace(tmp_path) / ".sdd" / "analysis"
+    analysis_root = _make_analysis_workspace(tmp_path) / ".providence" / "analysis"
     _write_mission(analysis_root / "pending" / "mission-a.md", days_ago=1)
     (analysis_root / "pending" / "ignore.txt").write_text("x", encoding="utf-8")
 
@@ -45,7 +45,7 @@ def test_collect_missions_skips_non_markdown_and_missing_dirs(tmp_path: Path) ->
 
 
 def test_collect_missions_with_missing_state_dir(tmp_path: Path) -> None:
-    analysis_root = tmp_path / ".sdd" / "analysis"
+    analysis_root = tmp_path / ".providence" / "analysis"
     (analysis_root / "todo").mkdir(parents=True, exist_ok=True)
     _write_mission(analysis_root / "todo" / "mission-a.md")
 
@@ -65,7 +65,7 @@ def test_collect_expired_handles_missing_dir(tmp_path: Path) -> None:
 
 
 def test_collect_expired_dry_run_and_delete(tmp_path: Path) -> None:
-    done_dir = _make_analysis_workspace(tmp_path) / ".sdd" / "analysis" / "done"
+    done_dir = _make_analysis_workspace(tmp_path) / ".providence" / "analysis" / "done"
     old_file = done_dir / "old.md"
     new_file = done_dir / "new.md"
     (done_dir / "folder").mkdir()

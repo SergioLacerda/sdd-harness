@@ -1,4 +1,4 @@
-"""Tests for providence_cli.services.governance_generate_handlers — bootstrap and artifact generation."""
+"""Tests for providence_cli.services.governance_generate_handlers  bootstrap and artifact generation."""
 
 from __future__ import annotations
 
@@ -77,7 +77,7 @@ class TestRunBootstrapSigning:
         ):
             run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)
 
-        keygen_fn.assert_called_once_with(key_id="dev-01", output_dir=".sdd/trust")
+        keygen_fn.assert_called_once_with(key_id="dev-01", output_dir=".providence/trust")
         sign_fn.assert_called_once_with(
             key_id="dev-01", key_path=None, compiled_dir=None, source=False
         )
@@ -107,7 +107,7 @@ class TestRunBootstrapSigning:
             run_bootstrap_signing("dev-01", keygen_fn=keygen_fn, sign_fn=sign_fn)
 
         assert exc_info.value.exit_code == 1
-        keygen_fn.assert_called_once_with(key_id="dev-01", output_dir=".sdd/trust")
+        keygen_fn.assert_called_once_with(key_id="dev-01", output_dir=".providence/trust")
         sign_fn.assert_called_once_with(
             key_id="dev-01", key_path=None, compiled_dir=None, source=False
         )
@@ -127,7 +127,7 @@ class TestRunBootstrapSigning:
         sign_fn.assert_not_called()
 
     def test_source_artifact_present_signs_twice(self, tmp_path: Path) -> None:
-        source_dir = tmp_path / ".sdd" / "source"
+        source_dir = tmp_path / ".providence" / "source"
         source_dir.mkdir(parents=True)
         (source_dir / "governance-core.json").write_text("{}", encoding="utf-8")
 

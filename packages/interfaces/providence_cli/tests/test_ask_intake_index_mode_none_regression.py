@@ -119,7 +119,7 @@ def test_light_input_with_execution_gate_allowed_is_not_blocked(
 ) -> None:
     """A short query that organize legitimately skipped (``light_input``)
     must resolve to ``intake_index_mode: none`` + ``execution_gate:
-    allowed`` — not blocked. This mirrors the real ``providence ask "test"``
+    allowed``  not blocked. This mirrors the real ``providence ask "test"``
     behavior observed on the live CLI.
     """
     stdout = _run_ask_capture_stdout(

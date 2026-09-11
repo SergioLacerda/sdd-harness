@@ -53,7 +53,7 @@ def get_compiled_fingerprint(workspace_root: Path | None = None) -> str:
     root = workspace_root_or_none(workspace_root)
     if root is None:
         return ""
-    artifact = root / ".sdd" / "compiled" / "governance-core.json"
+    artifact = root / ".providence" / "compiled" / "governance-core.json"
     if not artifact.exists():
         return ""
     try:

@@ -1,4 +1,4 @@
-"""Tests for providence_cli.services.governance_artifact_handlers — output/JSON helpers."""
+"""Tests for providence_cli.services.governance_artifact_handlers  output/JSON helpers."""
 
 from __future__ import annotations
 

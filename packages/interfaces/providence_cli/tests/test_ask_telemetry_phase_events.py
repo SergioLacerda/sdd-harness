@@ -34,8 +34,8 @@ def _run_ask_capture_events(
     monkeypatch.delenv("SDD_OTEL_ENDPOINT", raising=False)
     monkeypatch.setenv("SDD_AGENT_ID", "test-agent")
 
-    (tmp_path / ".sdd" / "runtime").mkdir(parents=True)
-    (tmp_path / ".sdd" / "profile").write_text(
+    (tmp_path / ".providence" / "runtime").mkdir(parents=True)
+    (tmp_path / ".providence" / "profile").write_text(
         "[sdd]\nworkspace_id=test-ws\n", encoding="utf-8"
     )
 
@@ -158,12 +158,12 @@ def test_phase_events_cover_expected_phase_ids(
         "ask.governance.snapshot",
     }
     # ask.runtime.handbook is absent here because this test mocks
-    # build_governed_ask_snapshot entirely (see module docstring) — the real
+    # build_governed_ask_snapshot entirely (see module docstring)  the real
     # function is what records that phase. ask.response.render and
     # ask.telemetry.emit are absent for a structural reason: telemetry
     # emission (which produces these captured events) necessarily runs
     # before rendering, and cannot emit an event for its own still-running
-    # phase — see _pipeline_runtime.py's _sync_ask_runtime/_ask_cmd_impl.
+    # phase  see _pipeline_runtime.py's _sync_ask_runtime/_ask_cmd_impl.
 
 
 def test_llm_exchange_phase_absent_when_not_observable(

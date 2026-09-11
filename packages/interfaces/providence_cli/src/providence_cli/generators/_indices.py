@@ -1,4 +1,4 @@
-"""Index generators — externalizes searchable indices to .sdd/indices/ directory."""
+"""Index generators  externalizes searchable indices to .providence/indices/ directory."""
 
 import json
 from pathlib import Path
@@ -16,7 +16,7 @@ def generate_skill_index(output_dir: str, config: dict[str, Any]) -> dict[str, A
     """Generate skill discovery index.
 
     Writes:
-    - .sdd/indices/skills.index.json — searchable skill metadata
+    - .providence/indices/skills.index.json  searchable skill metadata
 
     Args:
         output_dir: Base output directory (workspace root)
@@ -35,7 +35,7 @@ def generate_skill_index(output_dir: str, config: dict[str, Any]) -> dict[str, A
         skills = engine.list_skills()
 
         output_path = Path(output_dir)
-        indices_dir = output_path / ".sdd" / "indices"
+        indices_dir = output_path / ".providence" / "indices"
         indices_dir.mkdir(parents=True, exist_ok=True)
 
         skills_index = {
@@ -53,7 +53,7 @@ def generate_skill_index(output_dir: str, config: dict[str, Any]) -> dict[str, A
                     "executable_via_cli": bool(skill.cli_fallback),
                     "required_permissions": skill.required_permissions or [],
                     "budget_policy": skill.budget_policy or {},
-                    "yaml_path": f".sdd/skills/{skill.name}/skill.yaml",
+                    "yaml_path": f".providence/skills/{skill.name}/skill.yaml",
                 }
                 for skill in sorted(skills, key=lambda s: s.name)
             ],

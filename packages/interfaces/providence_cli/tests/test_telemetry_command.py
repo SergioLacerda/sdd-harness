@@ -13,7 +13,7 @@ runner = CliRunner()
 def test_telemetry_status_global_json_uses_canonical_envelope(
     monkeypatch, tmp_path: Path
 ) -> None:
-    runtime_dir = tmp_path / ".sdd" / "runtime"
+    runtime_dir = tmp_path / ".providence" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     events_file = runtime_dir / "compliance-events.jsonl"
     events_file.write_text(
@@ -61,7 +61,7 @@ def test_telemetry_init_json_uses_canonical_data_payload(
 def test_telemetry_dump_global_json_uses_canonical_envelope(
     monkeypatch, tmp_path: Path
 ) -> None:
-    runtime_dir = tmp_path / ".sdd" / "runtime"
+    runtime_dir = tmp_path / ".providence" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     events_file = runtime_dir / "compliance-events.jsonl"
     events_file.write_text(
@@ -101,7 +101,7 @@ def test_telemetry_query_invalid_since_still_errors(
 def test_telemetry_query_global_json_uses_canonical_envelope(
     monkeypatch, tmp_path: Path
 ) -> None:
-    runtime_dir = tmp_path / ".sdd" / "runtime"
+    runtime_dir = tmp_path / ".providence" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     events_file = runtime_dir / "compliance-events.jsonl"
     events_file.write_text(
@@ -132,7 +132,7 @@ def test_telemetry_query_global_json_uses_canonical_envelope(
 def test_telemetry_query_json_uses_canonical_data_payload(
     monkeypatch, tmp_path: Path
 ) -> None:
-    runtime_dir = tmp_path / ".sdd" / "runtime"
+    runtime_dir = tmp_path / ".providence" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     events_file = runtime_dir / "compliance-events.jsonl"
     events_file.write_text(
@@ -155,7 +155,7 @@ def test_telemetry_query_json_uses_canonical_data_payload(
 def test_telemetry_dump_json_uses_canonical_data_payload(
     monkeypatch, tmp_path: Path
 ) -> None:
-    runtime_dir = tmp_path / ".sdd" / "runtime"
+    runtime_dir = tmp_path / ".providence" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     events_file = runtime_dir / "compliance-events.jsonl"
     events_file.write_text(

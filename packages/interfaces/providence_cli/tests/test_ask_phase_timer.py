@@ -103,7 +103,7 @@ def test_phase_timer_per_phase_threshold_overrides_default():
 
 
 def test_phase_timer_watchdog_never_raises_or_changes_duration():
-    """A soft watchdog must never affect control flow — only mark the record."""
+    """A soft watchdog must never affect control flow  only mark the record."""
     timer = PhaseTimer(default_threshold_ms=0)
     with timer.phase("ask.workspace.resolve", latency_domain="local_fs"):
         time.sleep(0.01)  # duration_ms must be > 0 to exceed a 0ms threshold

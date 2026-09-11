@@ -2,7 +2,7 @@
 
 Covers:
 - B904: raise inside except without `from` (_ask_backend.py, pipeline.py)
-- Cyclic import: ask_snapshot.py ↔ commands/_ask_backend.py
+- Cyclic import: ask_snapshot.py  commands/_ask_backend.py
 - Unused import: yaml removed from skills.py (moved to _skill_registry.py)
 """
 
@@ -28,7 +28,7 @@ def test_ask_snapshot_importable_without_ask_commands() -> None:
         ):
             del sys.modules[mod]
 
-    # Import ask_snapshot first — must NOT trigger ask backend module-level code
+    # Import ask_snapshot first  must NOT trigger ask backend module-level code
     module = importlib.import_module("providence_cli.services.ask_snapshot")
     assert hasattr(module, "build_governed_ask_snapshot")
 
@@ -63,7 +63,7 @@ def test_ask_snapshot_has_no_module_level_ask_import() -> None:
 
 
 # ---------------------------------------------------------------------------
-# B904 guardrails — raise inside except must use `from`
+# B904 guardrails  raise inside except must use `from`
 # ---------------------------------------------------------------------------
 
 
@@ -131,7 +131,7 @@ def _assert_no_bare_raise_in_except(tree: object, filename: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Unused import guardrail — yaml must stay out of the public skills surface
+# Unused import guardrail  yaml must stay out of the public skills surface
 # ---------------------------------------------------------------------------
 
 

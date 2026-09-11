@@ -1,4 +1,4 @@
-"""GovernanceInstallSnapshot — single aggregation of governance data compiled in Phase 5.
+"""GovernanceInstallSnapshot  single aggregation of governance data compiled in Phase 5.
 
 Wraps the mandates/guidelines/fingerprint/timestamp already produced by
 ArtifactCompiler so downstream consumers (bootstrap metadata injection, IDE
@@ -52,7 +52,7 @@ class GovernanceInstallSnapshot:
 
         `workspace_root`, `handshake_mode`, `selected_agents`, `hook_agents`, and
         `generated_surfaces` are not derivable from the compiler alone (they come from
-        the wizard's resolved preferences/config) — callers pass them explicitly when
+        the wizard's resolved preferences/config)  callers pass them explicitly when
         available; each has a safe default so existing call sites keep working unchanged.
         """
         mandate_ids = [

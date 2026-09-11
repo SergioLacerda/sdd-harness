@@ -46,7 +46,7 @@ def test_resolve_compiled_dir_accepts_compiled_subdir(
 def test_resolve_compiled_dir_accepts_nested_sdd_compiled(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    compiled = tmp_path / ".sdd" / "compiled"
+    compiled = tmp_path / ".providence" / "compiled"
     _touch_required_files(compiled)
     monkeypatch.setattr(loader_mod, "resolve_workspace_root", lambda path: tmp_path)
     monkeypatch.setattr(

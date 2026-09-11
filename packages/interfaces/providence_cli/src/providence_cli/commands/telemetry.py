@@ -1,4 +1,4 @@
-"""providence telemetry — inspect and manage local compliance-events telemetry."""
+"""providence telemetry  inspect and manage local compliance-events telemetry."""
 
 from __future__ import annotations
 
@@ -78,7 +78,7 @@ def dump(
     )
 
 
-# Imported for its @app.command() registration side effect — query/summary/
+# Imported for its @app.command() registration side effect  query/summary/
 # init live in telemetry_query.py (T13 split) but must be imported here so
 # lazy command loading (which only imports `providence_cli.commands.telemetry`)
 # still registers them on `app`. Mirrors the existing `_ask_backend/__init__.py`

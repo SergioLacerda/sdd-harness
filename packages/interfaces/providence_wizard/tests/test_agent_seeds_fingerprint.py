@@ -2,7 +2,7 @@
 
 Acceptance criteria from design doc:
 - Fingerprint header present in every agent bootstrap markdown file
-- All bootstrap files reference .sdd/agent-instructions.md
+- All bootstrap files reference .providence/agent-instructions.md
 - No inline mandate descriptions in bootstrap files (redirector-only)
 - DEPLOYMENT_MANIFEST.json contains all bootstrap files with fingerprint
 - JSON seeds Tier 2 have governance_fingerprint field
@@ -36,7 +36,7 @@ MANDATE_DESCRIPTIONS = [
 
 
 def _make_ide_gen(tmp_path: Path) -> IDESeedsGenerator:
-    seedlings_dir = tmp_path / ".sdd" / "seedlings"
+    seedlings_dir = tmp_path / ".providence" / "seedlings"
     seedlings_dir.mkdir(parents=True, exist_ok=True)
     return IDESeedsGenerator(
         output_base=tmp_path,
@@ -51,7 +51,7 @@ def _make_ide_gen(tmp_path: Path) -> IDESeedsGenerator:
 
 
 def _make_sovereign_gen(tmp_path: Path) -> SovereignFactoryGenerator:
-    seedlings_dir = tmp_path / ".sdd" / "seedlings"
+    seedlings_dir = tmp_path / ".providence" / "seedlings"
     seedlings_dir.mkdir(parents=True, exist_ok=True)
     return SovereignFactoryGenerator(
         output_base=tmp_path,
@@ -66,7 +66,7 @@ def _make_sovereign_gen(tmp_path: Path) -> SovereignFactoryGenerator:
 
 
 def _make_ai_gen(tmp_path: Path) -> AISeedsGenerator:
-    seedlings_dir = tmp_path / ".sdd" / "seedlings"
+    seedlings_dir = tmp_path / ".providence" / "seedlings"
     seedlings_dir.mkdir(parents=True, exist_ok=True)
     return AISeedsGenerator(
         output_base=tmp_path,
@@ -81,7 +81,7 @@ def _make_ai_gen(tmp_path: Path) -> AISeedsGenerator:
 
 
 def _make_gov_gen(tmp_path: Path) -> GovernanceSeedsGenerator:
-    seedlings_dir = tmp_path / ".sdd" / "seedlings"
+    seedlings_dir = tmp_path / ".providence" / "seedlings"
     seedlings_dir.mkdir(parents=True, exist_ok=True)
     gov = GovernanceSeedsGenerator(
         output_base=tmp_path,
@@ -147,14 +147,14 @@ def test_copilot_seed_has_fingerprint(tmp_path: Path) -> None:
 def test_codex_seed_has_fingerprint(tmp_path: Path) -> None:
     gen = _make_ai_gen(tmp_path)
     assert gen.generate_codex_seed()
-    content = (tmp_path / ".sdd" / "seedlings" / "codex.seed.json").read_text(
+    content = (tmp_path / ".providence" / "seedlings" / "codex.seed.json").read_text(
         encoding="utf-8"
     )
     assert FINGERPRINT in content
 
 
 # ---------------------------------------------------------------------------
-# Reference to .sdd/agent-instructions.md
+# Reference to .providence/agent-instructions.md
 # ---------------------------------------------------------------------------
 
 
@@ -173,7 +173,7 @@ def test_all_bootstrap_files_reference_agent_instructions(tmp_path: Path) -> Non
     ]
     for f in files:
         content = f.read_text(encoding="utf-8")
-        assert ".sdd/agent-instructions.md" in content, f"missing redirect in {f.name}"
+        assert ".providence/agent-instructions.md" in content, f"missing redirect in {f.name}"
 
 
 # ---------------------------------------------------------------------------
@@ -206,7 +206,7 @@ def test_claude_seed_has_no_inline_mandate_descriptions(tmp_path: Path) -> None:
 def test_agent_instructions_contains_fingerprint(tmp_path: Path) -> None:
     gov = _make_gov_gen(tmp_path)
     assert gov.generate_agnostic_agent_instructions()
-    content = (tmp_path / ".sdd" / "agent-instructions.md").read_text(encoding="utf-8")
+    content = (tmp_path / ".providence" / "agent-instructions.md").read_text(encoding="utf-8")
     assert FINGERPRINT in content
     assert "Fingerprint" in content or "fingerprint" in content
 
@@ -224,7 +224,7 @@ def test_agent_instructions_from_config_standalone(tmp_path: Path) -> None:
         ],
     }
     assert generate_agent_instructions_from_config(tmp_path, config)
-    content = (tmp_path / ".sdd" / "agent-instructions.md").read_text(encoding="utf-8")
+    content = (tmp_path / ".providence" / "agent-instructions.md").read_text(encoding="utf-8")
     assert FINGERPRINT in content
     assert "M001" in content
 
@@ -238,7 +238,7 @@ def test_agent_prep_seed_has_fingerprint(tmp_path: Path) -> None:
     gen = _make_ide_gen(tmp_path)
     assert gen.generate_agent_prep_seed()
     with open(
-        tmp_path / ".sdd" / "seedlings" / "agent-prep.seed.json", encoding="utf-8"
+        tmp_path / ".providence" / "seedlings" / "agent-prep.seed.json", encoding="utf-8"
     ) as f:
         data = json.load(f)
     assert data.get("governance_fingerprint") == FINGERPRINT
@@ -256,7 +256,7 @@ def test_agents_md_has_fingerprint_comment(tmp_path: Path) -> None:
     content = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
     assert FINGERPRINT in content
     assert "<!-- Governance fingerprint:" in content
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
 
 
 # ---------------------------------------------------------------------------
@@ -268,7 +268,7 @@ def test_personal_overlay_seed_has_fingerprint(tmp_path: Path) -> None:
     gen = _make_ide_gen(tmp_path)
     assert gen.generate_personal_overlay_seed()
     with open(
-        tmp_path / ".sdd" / "seedlings" / "personal-overlay.seed.json", encoding="utf-8"
+        tmp_path / ".providence" / "seedlings" / "personal-overlay.seed.json", encoding="utf-8"
     ) as f:
         data = json.load(f)
     assert data.get("governance_fingerprint") == FINGERPRINT
@@ -283,7 +283,7 @@ def test_personal_overlay_seed_has_fingerprint(tmp_path: Path) -> None:
 def test_activation_guide_has_fingerprint(tmp_path: Path) -> None:
     gov = _make_gov_gen(tmp_path)
     assert gov.generate_activation_guide()
-    content = (tmp_path / ".sdd" / "seedlings" / "ACTIVATION_GUIDE.md").read_text(
+    content = (tmp_path / ".providence" / "seedlings" / "ACTIVATION_GUIDE.md").read_text(
         encoding="utf-8"
     )
     assert FINGERPRINT in content
@@ -300,7 +300,7 @@ def test_sovereign_factory_plants_antigravity_skill(tmp_path: Path) -> None:
     result = gen.generate_sovereign_factory_seed()
     # Either template was absent (returns False gracefully) or antigravity was planted
     if result:
-        # Template found — check prompts were planted
+        # Template found  check prompts were planted
         assert (tmp_path / ".github" / "prompts").exists()
 
 
@@ -327,7 +327,7 @@ _HAND_NOTE = "\n<!-- my own notes, unrelated to sdd -->\n"
 
 
 def _make_ai_gen_with_fingerprint(tmp_path: Path, fingerprint: str) -> AISeedsGenerator:
-    seedlings_dir = tmp_path / ".sdd" / "seedlings"
+    seedlings_dir = tmp_path / ".providence" / "seedlings"
     seedlings_dir.mkdir(parents=True, exist_ok=True)
     return AISeedsGenerator(
         output_base=tmp_path,

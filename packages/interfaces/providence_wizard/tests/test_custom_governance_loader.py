@@ -149,7 +149,7 @@ class TestLoadCustomGovernanceFile:
 
         assert ok is True
         assert errors == []
-        staged = output_base / ".sdd" / "source" / "governance-core.json"
+        staged = output_base / ".providence" / "source" / "governance-core.json"
         assert staged.exists()
         staged_data = json.loads(staged.read_text(encoding="utf-8"))
         assert staged_data["items"][0]["id"] == "M001"
@@ -164,11 +164,11 @@ class TestLoadCustomGovernanceFile:
 
         assert ok is False
         assert errors
-        assert not (output_base / ".sdd" / "source" / "governance-core.json").exists()
+        assert not (output_base / ".providence" / "source" / "governance-core.json").exists()
 
     def test_staged_file_converges_with_governance_loader(self, tmp_path: Path) -> None:
         """Proves Scenario A/B convergence: GovernanceLoader reads the staged
-        custom file exactly as it would read a wizard-generated one — no
+        custom file exactly as it would read a wizard-generated one  no
         Phase 4-6 code changes needed for Scenario B."""
         from providence_wizard.orchestration.phase4_governance_loader import (
             GovernanceLoader,
@@ -197,11 +197,11 @@ class TestLoadCustomGovernanceFile:
 
         loader = GovernanceLoader(
             governance_core_path=output_base
-            / ".sdd"
+            / ".providence"
             / "source"
             / "governance-core.json",
             governance_client_path=output_base
-            / ".sdd"
+            / ".providence"
             / "source"
             / "governance-client.json",
         )

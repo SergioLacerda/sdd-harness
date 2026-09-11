@@ -6,7 +6,7 @@ import logging
 
 import typer
 
-from providence_cli.utils.sdd_authority import (
+from providence_cli.utils.providence_authority import (
     compiled_active_dir,
     enforce_path_policy,
     resolve_workspace_root,

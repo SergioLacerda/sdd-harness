@@ -42,7 +42,7 @@ class ConsolidationResult(TypedDict):
 def validate_awareness_pack(target_dir: Path) -> dict[str, object]:
     """Validate skills/commands/CLI awareness artifacts in consolidated output."""
     required_paths = [
-        ".sdd/seedlings/ACTIVATION_GUIDE.md",
+        ".providence/seedlings/ACTIVATION_GUIDE.md",
         "AGENTS.md",
         ".github/prompts",
         ".cursor/rules/sdd-commands.mdc",

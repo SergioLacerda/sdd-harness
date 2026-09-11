@@ -53,7 +53,7 @@ def _handbook_match_payload(root: Path, entry: dict[str, Any]) -> dict[str, Any]
     """Build one lookup match payload.
 
     CTX-07 (`.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
-    `load_policy` here is metadata carried through from the handbook entry —
+    `load_policy` here is metadata carried through from the handbook entry 
     this lookup does not itself apply any token ceiling, truncate content,
     or rank matches by relevance beyond the `limit` cap and match order in
     `lookup_runtime_handbook`. A caller that needs a token budget enforced
@@ -91,7 +91,7 @@ def lookup_runtime_handbook(
     Filters entries by task type, mandate refs, operation phase, and risk
     level, capped to `limit` matches. This does not apply, or even inspect,
     any match's `load_policy` token ceiling, and does not rank matches by
-    semantic relevance — it returns entries in index order up to `limit`.
+    semantic relevance  it returns entries in index order up to `limit`.
     Budget enforcement is the caller's responsibility (CTX-07,
     `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`).
     """

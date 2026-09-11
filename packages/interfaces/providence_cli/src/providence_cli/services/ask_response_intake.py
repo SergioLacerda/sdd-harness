@@ -1,4 +1,4 @@
-"""ask_response_intake — structured intake/intent classification for `providence ask`.
+"""ask_response_intake  structured intake/intent classification for `providence ask`.
 
 Split out of `ask_response.py`/`ask_response_json.py` (T4,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`): these
@@ -10,7 +10,7 @@ The five classification/gate/routing functions below (and
 `providence_runtime.intake` per
 `.analysis/pending/20260907-backend-governance-reorg-refinement` (Fase 1).
 They are re-exported here unchanged so existing callers and test
-`mock.patch` targets at this module path keep working unmodified — this is a
+`mock.patch` targets at this module path keep working unmodified  this is a
 deliberate, temporary compatibility seam, not the end state.
 """
 
@@ -53,7 +53,7 @@ def emit_ask_intake_only_json_response(
     """Cheap hook-mode JSON response: gate + structured intent only.
 
     Deliberately omits fingerprint, mandates_loaded, degraded/drift status,
-    trust_source, and full runtime_handbook payloads — those require the full
+    trust_source, and full runtime_handbook payloads  those require the full
     governance snapshot this profile exists to avoid loading (spike:
     20260714-sdd-ask-single-entrypoint-spike, A-005/I-005). A compact
     runtime_handbook_hint may be present when a runtime-only lookup finds an

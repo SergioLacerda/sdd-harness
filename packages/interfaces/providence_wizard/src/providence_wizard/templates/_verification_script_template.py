@@ -43,7 +43,7 @@ class GovernanceVerifier:
     def check_directory(self, path: str, description: str) -> bool:
         full_path = self.project_root / path
         passed = full_path.exists() and full_path.is_dir()
-        status = "✅" if passed else "❌"
+        status = "" if passed else ""
         logger.info(f"  {status} {description}: {path}")
         self.checks[description] = "pass" if passed else "fail"
         if passed:
@@ -57,7 +57,7 @@ class GovernanceVerifier:
         exists = full_path.exists() and full_path.is_file()
 
         if not exists:
-            logger.warning(f"  ❌ {description}: {path}")
+            logger.warning(f"   {description}: {path}")
             self.checks[description] = "fail"
             self.failed += 1
             return False
@@ -66,16 +66,16 @@ class GovernanceVerifier:
             try:
                 with open(full_path, "r") as f:
                     json.load(f)
-                status = "✅"
+                status = ""
                 result = True
             except json.JSONDecodeError as e:
-                status = "❌"
+                status = ""
                 result = False
                 logger.info(f"  {status} {description} (Invalid JSON): {path}")
                 self.failed += 1
                 return False
         else:
-            status = "✅"
+            status = ""
             result = True
 
         logger.info(f"  {status} {description}: {path}")

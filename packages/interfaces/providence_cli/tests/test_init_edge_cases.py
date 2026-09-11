@@ -1,4 +1,4 @@
-"""Tests for providence init command — _run_cli_step helper, edge cases, profile display."""
+"""Tests for providence init command  _run_cli_step helper, edge cases, profile display."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ class TestRunCliStep:
 
 
 # ---------------------------------------------------------------------------
-# init — error branches and existing-profile display
+# init  error branches and existing-profile display
 # ---------------------------------------------------------------------------
 
 
@@ -65,7 +65,7 @@ class TestInitEdgeCases:
 
         runner = CliRunner()
         parent_root = tmp_path / "parent"
-        profile_path = parent_root / ".sdd" / "profile"
+        profile_path = parent_root / ".providence" / "profile"
         profile_path.parent.mkdir(parents=True)
         profile_path.write_text(
             "[sdd]\ntype = client\nname = client\nworkspace_id = ws-parent\n",
@@ -84,21 +84,21 @@ class TestInitEdgeCases:
         ):
             result = runner.invoke(app, ["--default", "--no-bootstrap"])
         assert result.exit_code == 1, result.output
-        assert not (tmp_path / "parent" / "child" / ".sdd" / "profile").exists()
+        assert not (tmp_path / "parent" / "child" / ".providence" / "profile").exists()
 
     def test_allows_init_when_parent_sdd_dir_has_no_profile(
         self, tmp_path: Path
     ) -> None:
-        """A bare `.sdd/` ancestor (e.g. the global CLI toolchain cache under
-        the user's home directory) must not block init — only a real
-        initialized workspace (`.sdd/profile` present) should."""
+        """A bare `.providence/` ancestor (e.g. the global CLI toolchain cache under
+        the user's home directory) must not block init  only a real
+        initialized workspace (`.providence/profile` present) should."""
         from typer.testing import CliRunner
 
         from providence_cli.commands.init import app
 
         runner = CliRunner()
         parent_root = tmp_path / "parent"
-        (parent_root / ".sdd" / "bin").mkdir(parents=True)
+        (parent_root / ".providence" / "bin").mkdir(parents=True)
 
         def _fake_cwd():
             return tmp_path / "parent" / "child"
@@ -112,7 +112,7 @@ class TestInitEdgeCases:
         ):
             result = runner.invoke(app, ["--default", "--no-bootstrap"])
         assert result.exit_code == 0, result.output
-        assert (tmp_path / "parent" / "child" / ".sdd" / "profile").exists()
+        assert (tmp_path / "parent" / "child" / ".providence" / "profile").exists()
 
     def test_allows_project_workspace_when_home_workspace_exists(
         self, tmp_path: Path
@@ -124,7 +124,7 @@ class TestInitEdgeCases:
         runner = CliRunner()
         home = tmp_path / "home"
         project = home / "dev" / "project"
-        (home / ".sdd").mkdir(parents=True)
+        (home / ".providence").mkdir(parents=True)
         (project / ".git").mkdir(parents=True)
 
         def _fake_cwd():
@@ -134,7 +134,7 @@ class TestInitEdgeCases:
             result = runner.invoke(app, ["--default", "--no-bootstrap"])
 
         assert result.exit_code == 0, result.output
-        assert (project / ".sdd" / "profile").exists()
+        assert (project / ".providence" / "profile").exists()
         assert "Workspace initialized" in result.output
 
     def test_exits_1_when_profile_exists_and_no_force(self, tmp_path: Path) -> None:
@@ -143,7 +143,7 @@ class TestInitEdgeCases:
         from providence_cli.commands.init import app
 
         runner = CliRunner()
-        profile_path = tmp_path / ".sdd" / "profile"
+        profile_path = tmp_path / ".providence" / "profile"
         profile_path.parent.mkdir(parents=True, exist_ok=True)
         profile_path.write_text(
             "[sdd]\ntype = client\nname = client\nworkspace_id = ws-old\n",
@@ -192,7 +192,7 @@ class TestInitEdgeCases:
         from providence_cli.commands.init import app
 
         runner = CliRunner()
-        profile_path = tmp_path / ".sdd" / "profile"
+        profile_path = tmp_path / ".providence" / "profile"
         profile_path.parent.mkdir(parents=True, exist_ok=True)
         profile_path.write_text(
             "[sdd]\ntype = client\nname = client\nworkspace_id = ws-old\n",
@@ -267,7 +267,7 @@ class TestInitEdgeCases:
         assert result.exit_code == 1
         assert "Could not write SDD workspace profile" in result.output
         assert "Step: profile" in result.output
-        assert str(tmp_path / ".sdd" / "profile") in result.output
+        assert str(tmp_path / ".providence" / "profile") in result.output
         assert "providence init --force" in result.output
         assert "Traceback" not in result.output
 
@@ -346,7 +346,7 @@ class TestShowExistingProfile:
 
         from providence_cli.commands.init import _show_existing_profile
 
-        profile = tmp_path / ".sdd" / "profile"
+        profile = tmp_path / ".providence" / "profile"
         profile.parent.mkdir(parents=True, exist_ok=True)
         cfg = configparser.ConfigParser()
         cfg["sdd"] = {"type": "client", "name": "my-project", "workspace_id": "ws-1"}

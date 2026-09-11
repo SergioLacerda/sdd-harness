@@ -6,26 +6,26 @@ Phase 5: Generate directory structure + organize by category + copy files
 Phase 6: Validate output + create manifest
 
 Output Structure (AI Agent Optimized):
-.sdd/
-├── source/                    (Unique source of truth for agent queries)
-│   ├── mandates/
-│   │   └── mandates.md       (Compiled, IA-FIRST optimized)
-│   ├── guidelines/
-│   │   ├── git.md
-│   │   ├── testing.md
-│   │   ├── naming.md
-│   │   ├── docs.md
-│   │   ├── style.md
-│   │   └── performance.md
-│   └── README.md             (Agent instructions)
-├── runtime/
-│   └── README.md             (Pre-cache instructions for agents)
-└── metadata.json
+.providence/
+ source/                    (Unique source of truth for agent queries)
+    mandates/
+       mandates.md       (Compiled, IA-FIRST optimized)
+    guidelines/
+       git.md
+       testing.md
+       naming.md
+       docs.md
+       style.md
+       performance.md
+    README.md             (Agent instructions)
+ runtime/
+    README.md             (Pre-cache instructions for agents)
+ metadata.json
 
 .github/workflows/
-└── sdd-validation.yml
+ sdd-validation.yml
 
-.vscode/, .cursor/ (seedlings with references to .sdd/source)
+.vscode/, .cursor/ (seedlings with references to .providence/source)
 """
 
 from collections.abc import Callable
@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any
 
 from providence_core.utils.environment import get_sdd_paths
+from providence_wizard.constants import RUNTIME_DIRNAME
 
 from ._phase456_governance_io import _resolve_governance_inputs
 from ._phase456_pipeline_steps import (
@@ -50,7 +51,7 @@ from .wizard.models import Phase456RunResult
 
 
 class Phase456Generator:
-    """Orchestrate Phase 4-6: load governance → write source → compile → deploy → validate."""
+    """Orchestrate Phase 4-6: load governance  write source  compile  deploy  validate."""
 
     def __init__(
         self,
@@ -70,7 +71,7 @@ class Phase456Generator:
         self.selected_seedlings = selected_seedlings
         self._emit = emitter or print
 
-        self.dir = output_base / ".sdd"
+        self.dir = output_base / RUNTIME_DIRNAME
         self.source_dir = self.dir / "source"
         self.runtime_dir = self.dir / "runtime"
         self.mandates_dir = self.source_dir / "mandates"

@@ -37,13 +37,26 @@ class TestPrompterProtocol:
         except ImportError:
             has_questionary = False
 
-        with patch.object(sys.stdin, "isatty", return_value=True):
+        with (
+            patch.object(sys.stdin, "isatty", return_value=True),
+            patch.dict("os.environ", {"PROVIDENCE_WIZARD_RICH_PROMPTS": "1"}),
+        ):
             p = make_prompter()
 
         if has_questionary:
             assert isinstance(p, RichPrompter)
         else:
             assert isinstance(p, PlainPrompter)
+
+    def test_make_prompter_windows_defaults_to_plain(self) -> None:
+        with (
+            patch("os.name", "nt"),
+            patch.object(sys.stdin, "isatty", return_value=True),
+            patch.dict("os.environ", {}, clear=True),
+        ):
+            p = make_prompter()
+
+        assert isinstance(p, PlainPrompter)
 
 
 class TestPlainPrompterSelect:
@@ -188,20 +201,20 @@ class TestMatchTokenValueWithDash:
         from providence_wizard.application.prompter import _match_token_value
 
         result = _match_token_value(
-            "governance", {"governance — GAP v1.0", "compliance — CI"}
+            "governance", {"governance  GAP v1.0", "compliance  CI"}
         )
-        assert result == "governance — GAP v1.0"
+        assert result == "governance  GAP v1.0"
 
     def test_no_match_returns_none(self) -> None:
         from providence_wizard.application.prompter import _match_token_value
 
-        result = _match_token_value("unknown", {"governance — GAP v1.0"})
+        result = _match_token_value("unknown", {"governance  GAP v1.0"})
         assert result is None
 
     def test_exact_match_short_circuits(self) -> None:
         from providence_wizard.application.prompter import _match_token_value
 
-        result = _match_token_value("foo", {"foo", "bar — baz"})
+        result = _match_token_value("foo", {"foo", "bar  baz"})
         assert result == "foo"
 
 

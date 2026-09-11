@@ -1,8 +1,8 @@
 """Tests for the `providence ask` routing-decision cache (T-03).
 
 Covers `ask_context`'s signature/cache primitives directly, plus the
-`_run_organize_intake` short-circuit that consumes them — mirrors the two
-scenarios `design.md` §D3 calls out: a signature hit skips the routing
+`_run_organize_intake` short-circuit that consumes them  mirrors the two
+scenarios `design.md` D3 calls out: a signature hit skips the routing
 heuristics, and a governance fingerprint change never reuses a stale
 decision.
 """
@@ -43,7 +43,7 @@ def test_compute_routing_signature_changes_with_query_skill_or_fingerprint() -> 
 
 def test_compute_routing_signature_is_16_char_cache_key_domain() -> None:
     """SEC-08 regression: this domain's contract is a 16-char truncated
-    cache key — distinct from `GovernanceFingerprinter`'s full 64-char
+    cache key  distinct from `GovernanceFingerprinter`'s full 64-char
     integrity digest and from `HandshakeCache.compute_spec_fingerprint`'s
     own 16-char (but differently normalized) governance fingerprint. Same
     length does not mean same domain; a length change here would silently
@@ -145,7 +145,7 @@ def test_store_routing_decision_caps_entry_count(tmp_path: Path) -> None:
             tmp_path, f"query-{i}", None, "fp1", {"organize_used": False}
         )
 
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     data = json.loads(state_path.read_text(encoding="utf-8"))
     assert (
         len(data["last_routing_decisions"])
@@ -157,7 +157,7 @@ def test_store_routing_decision_is_noop_without_fingerprint(tmp_path: Path) -> N
     ask_context_routing_mod.store_routing_decision(
         tmp_path, "query", None, "", {"organize_used": True}
     )
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     assert not state_path.exists()
 
 

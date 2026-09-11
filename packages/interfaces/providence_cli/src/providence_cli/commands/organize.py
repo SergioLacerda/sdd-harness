@@ -36,7 +36,7 @@ def organize_cmd(
     _json_mode = output_json or is_json_mode(click.get_current_context(silent=True))
     if input_file is None and len(query) < 200 and not _json_mode:
         typer.echo(
-            f"⚠  sdd-organize: indexing query string only ({len(query)} chars). "
+            f"  sdd-organize: indexing query string only ({len(query)} chars). "
             "Pass --input-file <path> to index file content.",
             err=True,
         )

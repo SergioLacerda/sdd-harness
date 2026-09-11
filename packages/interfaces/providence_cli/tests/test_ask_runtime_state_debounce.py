@@ -33,7 +33,7 @@ def test_write_runtime_cache_and_routing_decision_persists_both(
         },
     )
 
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     data = json.loads(state_path.read_text(encoding="utf-8"))
 
     assert data["last_ask"]["compiled_fingerprint_used"] == "fp1"
@@ -52,7 +52,7 @@ def test_write_runtime_cache_and_routing_decision_reads_state_once(
     """The combined write must do exactly one read of the state file, not the
     two independent reads `write_runtime_cache` + `store_routing_decision`
     would each perform on their own."""
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     state_path.parent.mkdir(parents=True)
     state_path.write_text(
         json.dumps({"spec_fingerprint": "existing"}), encoding="utf-8"
@@ -82,7 +82,7 @@ def test_write_runtime_cache_and_routing_decision_reads_state_once(
 def test_write_runtime_cache_and_routing_decision_preserves_existing_data(
     tmp_path: Path,
 ) -> None:
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     state_path.parent.mkdir(parents=True)
     state_path.write_text(
         json.dumps({"spec_fingerprint": "existing123"}), encoding="utf-8"
@@ -106,7 +106,7 @@ def test_write_runtime_cache_and_routing_decision_skips_routing_store_without_fi
         tmp_path, {"ts": "now"}, "q", None, "", {"organize_used": False}
     )
 
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     data = json.loads(state_path.read_text(encoding="utf-8"))
     assert "last_routing_decisions" not in data
 
@@ -126,9 +126,9 @@ def test_check_fingerprint_drift_and_end_of_call_write_share_one_read(
     """T-04a: `check_fingerprint_drift` (start of call) and
     `write_runtime_cache_and_routing_decision` (end of call) must share the
     per-process `_load_governance_state` cache instead of each independently
-    reading `governance-state.json` — collapsing 2 reads + 1 write per `providence
+    reading `governance-state.json`  collapsing 2 reads + 1 write per `providence
     ask` call into 1 read + 1 write (design.md D-01)."""
-    state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+    state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
     state_path.parent.mkdir(parents=True)
     state_path.write_text(
         json.dumps({"last_ask": {"compiled_fingerprint_used": "fp1"}}),
@@ -159,7 +159,7 @@ def test_check_fingerprint_drift_and_end_of_call_write_share_one_read(
 
 def test_emit_ask_telemetry_reuses_shared_sink_and_skips_flush() -> None:
     """`sink=`/`flush=False` must reuse the caller's sink and not enqueue a
-    flush — the caller batches all events onto one sink and flushes once."""
+    flush  the caller batches all events onto one sink and flushes once."""
     from providence_cli.services.ask_telemetry import emit_ask_telemetry
 
     fake_sink = MagicMock()

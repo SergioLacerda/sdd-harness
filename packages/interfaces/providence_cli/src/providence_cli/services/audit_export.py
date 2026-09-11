@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 
 def _resolve_governance_fingerprint() -> str:
@@ -19,13 +19,13 @@ def _resolve_governance_fingerprint() -> str:
         root = resolve_workspace_root()
     except Exception:
         root = Path.cwd()
-    agent_instructions = root / ".sdd" / "agent-instructions.md"
+    agent_instructions = root / ".providence" / "agent-instructions.md"
     if agent_instructions.exists():
         with contextlib.suppress(OSError):
             for line in agent_instructions.read_text(encoding="utf-8").splitlines():
                 if "Fingerprint this version:" in line:
                     return line.split(":", 1)[1].strip().strip("`")
-    metadata = root / ".sdd" / "metadata.json"
+    metadata = root / ".providence" / "metadata.json"
     if metadata.exists():
         with contextlib.suppress(OSError, json.JSONDecodeError):
             raw = json.loads(metadata.read_text(encoding="utf-8"))

@@ -1,4 +1,4 @@
-"""GuidelineSeeds — prompt command and AI instruction seed generation."""
+"""GuidelineSeeds  prompt command and AI instruction seed generation."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ class GuidelineSeeds:
 
             if not output_paths:
                 self._ctx.log(
-                    "⚠️  Prompt command generator returned no outputs, using fallback"
+                    "  Prompt command generator returned no outputs, using fallback"
                 )
                 return self._generate_minimal_prompt_commands()
 
@@ -43,16 +43,16 @@ class GuidelineSeeds:
                 str(Path(path).relative_to(self._ctx.output_base))
                 for path in output_paths
             )
-            self._ctx.log(f"✅ Generated {count} prompt command files")
+            self._ctx.log(f" Generated {count} prompt command files")
             return True
         except ImportError:
             self._ctx.log(
-                "⚠️  providence_cli not available, generating minimal prompt commands"
+                "  providence_cli not available, generating minimal prompt commands"
             )
             return self._generate_minimal_prompt_commands()
         except Exception as e:
             self._ctx.log(
-                f"⚠️  Failed to generate prompt commands via providence_cli ({e}), using fallback"
+                f"  Failed to generate prompt commands via providence_cli ({e}), using fallback"
             )
             return self._generate_minimal_prompt_commands()
 
@@ -111,15 +111,15 @@ class GuidelineSeeds:
             return True
         except Exception as e:
             self.prompt_commands_mode = "error"
-            self._ctx._emit(f"  ❌ Failed to generate minimal prompt commands: {e}")
+            self._ctx._emit(f"   Failed to generate minimal prompt commands: {e}")
             return False
 
     def generate_ai_instructions(self) -> bool:
         """Deprecated hook retained for API stability."""
-        self._ctx.log("ℹ️ Skipping deprecated legacy bootstrap instructions generation.")
+        self._ctx.log(" Skipping deprecated legacy bootstrap instructions generation.")
         return True
 
     def generate_openai_instructions(self) -> bool:
         """Deprecated hook retained for API stability."""
-        self._ctx.log("ℹ️ Skipping deprecated legacy OpenAI instructions generation.")
+        self._ctx.log(" Skipping deprecated legacy OpenAI instructions generation.")
         return True

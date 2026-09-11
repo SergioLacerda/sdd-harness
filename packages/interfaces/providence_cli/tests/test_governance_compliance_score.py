@@ -106,7 +106,7 @@ def test_score_components_dict_has_required_keys() -> None:
 def _make_compile_mocks(tmp_path: Path):
     """Return a dict of patches to simulate a successful governance compile."""
     ws_root = tmp_path
-    (ws_root / ".sdd" / "runtime").mkdir(parents=True, exist_ok=True)
+    (ws_root / ".providence" / "runtime").mkdir(parents=True, exist_ok=True)
 
     phase1 = {
         "core_item_count": 10,
@@ -122,9 +122,9 @@ def _make_compile_mocks(tmp_path: Path):
 
 
 def test_event_emitted_after_compile(tmp_path: Path) -> None:
-    """Successful governance compile → governance.compliance.score event in JSONL."""
+    """Successful governance compile  governance.compliance.score event in JSONL."""
     ws_root, phase1, phase2 = _make_compile_mocks(tmp_path)
-    events_path = ws_root / ".sdd" / "runtime" / "compliance-events.jsonl"
+    events_path = ws_root / ".providence" / "runtime" / "compliance-events.jsonl"
 
     with (
         patch(

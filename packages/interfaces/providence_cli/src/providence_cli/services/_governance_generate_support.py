@@ -26,7 +26,7 @@ def run_bootstrap_signing_flow(
     resolve_workspace_root_fn: Callable[[], Path | None],
 ) -> None:
     try:
-        keygen_fn(key_id=key_id, output_dir=".sdd/trust")
+        keygen_fn(key_id=key_id, output_dir=".providence/trust")
     except typer.Exit as exc:
         if int(exc.exit_code or 0) != 0:
             raise
@@ -34,7 +34,7 @@ def run_bootstrap_signing_flow(
     ws_root = resolve_workspace_root_fn()
     if (
         ws_root is not None
-        and (ws_root / ".sdd" / "source" / "governance-core.json").exists()
+        and (ws_root / ".providence" / "source" / "governance-core.json").exists()
     ):
         sign_fn(key_id=key_id, key_path=None, compiled_dir=None, source=True)
 

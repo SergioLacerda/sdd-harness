@@ -1,4 +1,4 @@
-"""providence ask — dossier build/load/error helpers.
+"""providence ask  dossier build/load/error helpers.
 
 Split out of `_telemetry.py` (T15,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`).
@@ -21,7 +21,7 @@ from providence_cli.services.ask_dossier import (
 from providence_cli.services.ask_dossier import (
     load_dossier_artifact as _load_dossier_artifact_impl,
 )
-from providence_cli.utils.sdd_authority import compiled_active_dir
+from providence_cli.utils.providence_authority import compiled_active_dir
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,4 @@
-"""Scaffold — registry.json append helper.
+"""Scaffold  registry.json append helper.
 
 Split out of `scaffold.py` (T18,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`).

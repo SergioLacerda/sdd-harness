@@ -22,7 +22,7 @@ def _free_port() -> int:
             return int(sock.getsockname()[1])
     except PermissionError:
         pytest.skip("Socket creation is restricted in this environment")
-        return 0  # unreachable — pytest.skip() raises Skipped
+        return 0  # unreachable  pytest.skip() raises Skipped
 
 
 class TestMetricsServeCommand:

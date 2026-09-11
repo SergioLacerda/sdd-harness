@@ -110,7 +110,7 @@ _ANALYSIS_SKILLS: dict[str, SkillDefinition] = {
         name="sdd-harness",
         version="1.0.0",
         category="bootstrap",
-        description="Bootstrap pointer skill for file-based skill-discovery agents (Claude Code, Antigravity/Gemini CLI). Points to .sdd/agent-instructions.md as the single governance authority.",
+        description="Bootstrap pointer skill for file-based skill-discovery agents (Claude Code, Antigravity/Gemini CLI). Points to .providence/agent-instructions.md as the single governance authority.",
         when_to_use=[
             "agent startup / skill discovery",
             "locating canonical governance entrypoints",
@@ -124,7 +124,7 @@ _ANALYSIS_SKILLS: dict[str, SkillDefinition] = {
         triggers=["startup", "bootstrap", "skill discovery"],
         forbidden=[
             "duplicate governance authority content",
-            "diverge from .sdd/agent-instructions.md",
+            "diverge from .providence/agent-instructions.md",
         ],
         fallback_to=None,
         idempotent=True,

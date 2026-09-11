@@ -58,7 +58,7 @@ def test_report_has_stable_top_level_keys(tmp_path: Path) -> None:
     assert report["handshake"]["status"] == "ok"
     assert report["validate"] == {
         "ran": False,
-        "compiled_dir": str(tmp_path / ".sdd" / "compiled"),
+        "compiled_dir": str(tmp_path / ".providence" / "compiled"),
     }
     json.dumps(report)
 
@@ -162,7 +162,7 @@ def test_run_prune_refuses_when_cli_version_unknown(
 
 
 def test_report_runs_dry_validate_when_compiled_dir_exists(tmp_path: Path) -> None:
-    (tmp_path / ".sdd" / "compiled").mkdir(parents=True)
+    (tmp_path / ".providence" / "compiled").mkdir(parents=True)
     runner = _mock_runner(tmp_path)
     runner.validate_compilation_detailed.return_value = {
         "ok": False,
@@ -234,7 +234,7 @@ def test_report_captures_binary_version_error(tmp_path: Path) -> None:
 
 
 def test_report_captures_validate_error(tmp_path: Path) -> None:
-    (tmp_path / ".sdd" / "compiled").mkdir(parents=True)
+    (tmp_path / ".providence" / "compiled").mkdir(parents=True)
     runner = _mock_runner(tmp_path)
     runner.validate_compilation_detailed.side_effect = RuntimeError("bad compiled")
 

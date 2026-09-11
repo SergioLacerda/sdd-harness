@@ -21,7 +21,7 @@ Soft/Standalone assurance is never equivalent to a connected Hard/Connected Prov
 
 1. Provider or organization safety controls (Devin's own permissions/config).
 2. Connected SDD hard policy (not active in this profile).
-3. Project canonical policy (this project's own `.sdd/`, if present).
+3. Project canonical policy (this project's own `.providence/`, if present).
 4. Embedded SDD snapshot (this plugin's governance summary{% if include_skills %} and `skills/`{% endif %}).
 5. Provider local rules (`.devin/config.json`, project `AGENTS.md`, `rules/`).
 6. User task instructions.
@@ -29,9 +29,9 @@ Soft/Standalone assurance is never equivalent to a connected Hard/Connected Prov
 ## Skill discovery
 
 {% if include_skills %}
-Skills embedded in this plugin are listed under `skills/`. Each skill file documents its own allowed CLI commands and risk score. Do not invent commands beyond what a skill file declares. Each skill's allowed CLI assumes the `sdd` CLI is installed in this environment — if it is not, treat that skill as unavailable rather than improvising an equivalent command.
+Skills embedded in this plugin are listed under `skills/`. Each skill file documents its own allowed CLI commands and risk score. Do not invent commands beyond what a skill file declares. Each skill's allowed CLI assumes the `sdd` CLI is installed in this environment â€” if it is not, treat that skill as unavailable rather than improvising an equivalent command.
 {% else %}
-This build does not embed the SDD skill catalog (`include_skills=False`). No `skills/` directory is present. This plugin provides governance context only (assurance disclosure, precedence order, Providence summary below) — it does not teach Devin any `sdd`-CLI-backed operations.
+This build does not embed the SDD skill catalog (`include_skills=False`). No `skills/` directory is present. This plugin provides governance context only (assurance disclosure, precedence order, Providence summary below) â€” it does not teach Devin any `sdd`-CLI-backed operations.
 {% endif %}
 {% if has_coding_practices %}
 See `rules/sdd-coding-practices.md` for coding anti-patterns and cures (currently: universal + Go-specific).
@@ -45,11 +45,11 @@ Mandate count: `{{ mandate_count }}`
 Mandates with a source description: `{{ mandate_described_count }}/{{ mandate_count }}`
 Governance summary digest: `sha256:{{ governance_summary_digest }}`
 
-This is an index, not policy text — mandate IDs and titles only. Full detail (where available in the source) is in `rules/providence-summary.md`. A general, CLI-independent behavioral ruleset is in `rules/sdd-soft-governance-behavior.md`. None of these are canonical; see `metadata/provenance.json` for the source revision this was compiled from.
+This is an index, not policy text â€” mandate IDs and titles only. Full detail (where available in the source) is in `rules/providence-summary.md`. A general, CLI-independent behavioral ruleset is in `rules/sdd-soft-governance-behavior.md`. None of these are canonical; see `metadata/provenance.json` for the source revision this was compiled from.
 
 Mandates:
 {% for m in mandates %}
-- `{{ m.id }}` — {{ m.title }}
+- `{{ m.id }}` â€” {{ m.title }}
 {% endfor %}
 
 Guideline categories:
@@ -59,4 +59,4 @@ Guideline categories:
 
 ## Canonical source
 
-This plugin is a generated projection. It is **not** the canonical governance source. Canonical Providence policy lives in the `.sdd/` directory of the Providence project this plugin was compiled from — see `metadata/provenance.json` for the exact source revision.
+This plugin is a generated projection. It is **not** the canonical governance source. Canonical Providence policy lives in the `.providence/` directory of the Providence project this plugin was compiled from â€” see `metadata/provenance.json` for the exact source revision.

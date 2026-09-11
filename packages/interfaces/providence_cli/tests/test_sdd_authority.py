@@ -43,10 +43,10 @@ def test_repo_root_disables_file_fallback_and_uses_cwd_when_not_found(
     """Regression test: `_repo_root()` used to call `detect_repo_root()` with
     its default (file-fallback-enabled) behavior, which under an editable
     install resolves to this harness's own checkout instead of the caller's
-    actual directory — breaking `enforce_path_policy()`'s `is_repo_workspace`
+    actual directory  breaking `enforce_path_policy()`'s `is_repo_workspace`
     comparison for a real client workspace. It must pass
     `allow_file_fallback=False` and fall back to `Path.cwd()` when no real
-    repo/workspace marker is found — see
+    repo/workspace marker is found  see
     .analysis/done/20260906-detect-repo-root-callsite-audit.md."""
     monkeypatch.setattr(
         "providence_core.utils.environment.find_workspace_root", lambda: None
@@ -123,7 +123,7 @@ def test_enforce_path_policy_allows_generated_workspace(
 ) -> None:
     repo = tmp_path / "repo"
     ws = repo / "generated" / "client-a"
-    req = ws / ".sdd" / "compiled"
+    req = ws / ".providence" / "compiled"
     req.mkdir(parents=True)
     monkeypatch.setattr(authority_mod, "_repo_root", lambda: repo)
     assert authority_mod.enforce_path_policy(req, workspace_root=ws) == req.resolve()
@@ -146,7 +146,7 @@ def test_enforce_path_policy_rejects_path_outside_workspace(
 ) -> None:
     repo = tmp_path / "repo"
     ws = repo
-    (ws / ".sdd").mkdir(parents=True)
+    (ws / ".providence").mkdir(parents=True)
     req = tmp_path / "outside"
     req.mkdir(parents=True)
     monkeypatch.setattr(authority_mod, "_repo_root", lambda: repo)
@@ -181,6 +181,6 @@ def test_authority_paths_use_resolved_workspace(
     monkeypatch.setattr(
         authority_mod, "resolve_workspace_root", lambda root=None: tmp_path
     )
-    assert authority_mod.compiled_active_dir() == tmp_path / ".sdd" / "compiled"
-    assert authority_mod.source_semantic_dir() == tmp_path / ".sdd" / "source"
-    assert authority_mod.profile_active_path() == tmp_path / ".sdd" / "profile"
+    assert authority_mod.compiled_active_dir() == tmp_path / ".providence" / "compiled"
+    assert authority_mod.source_semantic_dir() == tmp_path / ".providence" / "source"
+    assert authority_mod.profile_active_path() == tmp_path / ".providence" / "profile"

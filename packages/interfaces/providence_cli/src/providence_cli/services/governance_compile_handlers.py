@@ -19,7 +19,7 @@ from providence_cli.services.governance_compile_telemetry import (
     emit_compile_telemetry,
     regenerate_seeds,
 )
-from providence_cli.utils.sdd_authority import (
+from providence_cli.utils.providence_authority import (
     compiled_active_dir,
     resolve_workspace_root,
 )
@@ -61,7 +61,7 @@ def run_compilation(
     if not result or not result.get("full_pipeline_success"):
         console.print("[red]ERROR: governance compilation failed[/red]")
         console.print(
-            "  Next: check .sdd/source artifacts or run 'providence governance validate'"
+            "  Next: check .providence/source artifacts or run 'providence governance validate'"
         )
         raise typer.Exit(1)
     return result
@@ -70,7 +70,7 @@ def run_compilation(
 def update_profile_hash(
     core_fingerprint: str, *, console: Console | None = None
 ) -> None:
-    """Update the `.sdd/profile` core_hash with the given fingerprint."""
+    """Update the `.providence/profile` core_hash with the given fingerprint."""
     if console is None:
         console = Console()
     if not core_fingerprint:
@@ -86,7 +86,7 @@ def update_profile_hash(
         )
 
         output_base = resolve_output_base(ws_root)
-        profile_path = output_base / ".sdd" / "profile"
+        profile_path = output_base / ".providence" / "profile"
         if profile_path.exists():
             parser = configparser.ConfigParser()
             parser.read(profile_path)
@@ -95,11 +95,11 @@ def update_profile_hash(
                 with open(profile_path, "w", encoding="utf-8") as f:
                     parser.write(f)
                 console.print(
-                    f"[cyan]core_hash updated in .sdd/profile ({core_fingerprint[:16]})[/cyan]"
+                    f"[cyan]core_hash updated in .providence/profile ({core_fingerprint[:16]})[/cyan]"
                 )
     except Exception as _e:
         console.print(
-            f"[yellow]WARN: could not update core_hash in .sdd/profile: {_e}[/yellow]"
+            f"[yellow]WARN: could not update core_hash in .providence/profile: {_e}[/yellow]"
         )
 
 
@@ -116,7 +116,7 @@ def run_compile(
         run_governance_compile_json,
     )
     from providence_cli.services.governance_command_output import handle_compile_output
-    from providence_cli.utils.sdd_authority import resolve_workspace_root
+    from providence_cli.utils.providence_authority import resolve_workspace_root
 
     run_compile_flow(
         profile=profile,

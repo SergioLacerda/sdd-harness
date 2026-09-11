@@ -49,7 +49,7 @@ def _is_informational_invocation(ctx: click.Context, invoked: str) -> bool:
     Covers `<cmd> --list` (informational, never touches governance) and a bare
     `<cmd>` with no arguments at all for sensitive commands like `ask`, which
     will fail its own required-argument validation (usage error) regardless of
-    governance state — the gate must not preempt that with an unrelated
+    governance state  the gate must not preempt that with an unrelated
     governance message.
     """
     tokens = _raw_invocation_tokens(ctx)
@@ -69,11 +69,11 @@ def _is_sensitive_command(cmd: str, subcmd: str) -> bool:
 def governance_gate(ctx: click.Context) -> None:
     """Validate workspace governance state before command execution.
 
-    Runs the AHP check (cached — fast on re-runs) and:
-    - HEALTHY / PARTIAL  → proceed silently
-    - NOT_INITIALIZED    → warn once, then proceed (setup may still be in progress)
-    - MISCONFIGURED      → warn with actionable message, then proceed
-    - NOT_CONNECTED      → skip silently (not an SDD workspace)
+    Runs the AHP check (cached  fast on re-runs) and:
+    - HEALTHY / PARTIAL   proceed silently
+    - NOT_INITIALIZED     warn once, then proceed (setup may still be in progress)
+    - MISCONFIGURED       warn with actionable message, then proceed
+    - NOT_CONNECTED       skip silently (not an SDD workspace)
 
     Exempt commands (init, version) bypass this gate entirely.
     """
@@ -132,7 +132,7 @@ def governance_gate(ctx: click.Context) -> None:
         json_mode = is_json_mode(ctx)
         for msg, next_step, reason in directives:
             is_hard = "HARD [governance]" in msg
-            # Suppress SOFT warnings in JSON mode — they would corrupt machine-parseable output.
+            # Suppress SOFT warnings in JSON mode  they would corrupt machine-parseable output.
             if is_hard or not json_mode:
                 click.echo(f"{msg} Next: {next_step}", err=True)
             sink.emit(
@@ -157,11 +157,11 @@ def governance_gate(ctx: click.Context) -> None:
                 raise click.exceptions.Exit(1)
 
         enqueue_flush(sink)
-        # HEALTHY / NOT_CONNECTED with no profile directive → silent
+        # HEALTHY / NOT_CONNECTED with no profile directive  silent
     except click.exceptions.Exit:
         raise
     except Exception as _exc:  # nosec B110
-        # typer.Exit (and typer._click.exceptions.Exit) must propagate — hard-block exits
+        # typer.Exit (and typer._click.exceptions.Exit) must propagate  hard-block exits
         # must not be silenced even when the broader exception handler is active.
         if type(_exc).__name__ == "Exit" and hasattr(_exc, "exit_code"):
             raise

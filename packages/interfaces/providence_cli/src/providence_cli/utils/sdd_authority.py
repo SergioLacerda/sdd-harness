@@ -1,9 +1,9 @@
-"""Canonical `.sdd` authority path helpers.
+"""Canonical `.providence` authority path helpers.
 
 Centralizes the operational contract:
-- active profile: `.sdd/profile`
-- executable governance: `.sdd/compiled`
-- semantic governance source: `.sdd/source`
+- active profile: `.providence/profile`
+- executable governance: `.providence/compiled`
+- semantic governance source: `.providence/source`
 """
 
 from __future__ import annotations
@@ -39,8 +39,8 @@ def _repo_root() -> Path:
 
     `allow_file_fallback=False`: under an editable/dev install of this
     monorepo, `detect_repo_root()`'s default fallback resolves to wherever
-    the installed package's own code physically lives — this harness's own
-    checkout — regardless of which project is actually being operated on.
+    the installed package's own code physically lives  this harness's own
+    checkout  regardless of which project is actually being operated on.
     For `enforce_path_policy()` and `resolve_workspace_root()`, that leak
     is not just a content-correctness issue: `enforce_path_policy()`
     compares the caller's workspace against this "repo" to decide whether
@@ -66,7 +66,7 @@ def _repo_root() -> Path:
 def _workspace_root_from_env() -> Path | None:
     """Return SDD_WORKSPACE_ROOT if set (highest-priority explicit override).
 
-    Delegates to providence_core's implementation — this used to be a
+    Delegates to providence_core's implementation  this used to be a
     character-for-character duplicate of
     `providence_core.utils.environment.workspace_root_from_env`, which risked the two
     silently diverging over time.
@@ -82,7 +82,7 @@ def resolve_workspace_root(explicit_root: Path | None = None) -> Path:
     Resolution order:
     1. ``explicit_root`` argument (``--workspace-root`` CLI flag)
     2. ``SDD_WORKSPACE_ROOT`` environment variable
-    3. Detected workspace with ``.sdd/profile``
+    3. Detected workspace with ``.providence/profile``
     4. Repository root fallback
     """
     if explicit_root is not None:
@@ -145,7 +145,7 @@ def enforce_path_policy(
         or _is_relative_to(ws, Path("/var/tmp").resolve())  # nosec B108
         or _is_within_system_temp(ws)
     )
-    is_repo_workspace = (ws == repo) and (ws / ".sdd").is_dir()
+    is_repo_workspace = (ws == repo) and (ws / ".providence").is_dir()
     req_in_repo = _is_relative_to(req, repo)
 
     if (
@@ -177,16 +177,16 @@ def enforce_path_policy(
 def compiled_active_dir(root: Path | None = None) -> Path:
     """Compiled Active Dir."""
     workspace_root = resolve_workspace_root(root)
-    return workspace_root / ".sdd" / "compiled"
+    return workspace_root / ".providence" / "compiled"
 
 
 def source_semantic_dir(root: Path | None = None) -> Path:
     """Source Semantic Dir."""
     workspace_root = resolve_workspace_root(root)
-    return workspace_root / ".sdd" / "source"
+    return workspace_root / ".providence" / "source"
 
 
 def profile_active_path(root: Path | None = None) -> Path:
     """Profile Active Path."""
     workspace_root = resolve_workspace_root(root)
-    return workspace_root / ".sdd" / "profile"
+    return workspace_root / ".providence" / "profile"

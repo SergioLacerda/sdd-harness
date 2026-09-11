@@ -1,4 +1,4 @@
-"""Template builder for .sdd/runtime/README.md."""
+"""Template builder for .providence/runtime/README.md."""
 
 from __future__ import annotations
 
@@ -16,13 +16,13 @@ def _overview_and_workflow_section(
     language_context_lines: str,
     runtime_guideline_load_snippet: str,
 ) -> str:
-    return f"""# .sdd/runtime - Agent Pre-Cache Strategy
+    return f"""# .providence/runtime - Agent Pre-Cache Strategy
 
-⚡ **For AI Agents: Instructions on using .sdd/source as pre-cache**
+ **For AI Agents: Instructions on using .providence/source as pre-cache**
 
 ## Overview
 
-This directory provides guidance on how to use `.sdd/source/` as a **pre-cache**
+This directory provides guidance on how to use `.providence/source/` as a **pre-cache**
 mechanism for AI agents to reduce context token usage and improve performance.
 
 **Generated**: {generated_at}
@@ -53,7 +53,7 @@ Pre-caching is a strategy where:
 ```python
 # When agent starts, load governance once
 def init_agent():
-    mandates = read_file('.sdd/source/mandates/mandates.md')
+    mandates = read_file('.providence/source/mandates/mandates.md')
 {runtime_guideline_load_snippet}
     # Cache in agent memory/context
     agent.context['mandates'] = mandates
@@ -69,7 +69,7 @@ def execute_task(task):
     guideline = agent.context['guidelines'][relevant_category]
 
     # Use guideline in task execution
-    # DO NOT re-read from .sdd/source
+    # DO NOT re-read from .providence/source
 ```
 
 ### Session End
@@ -86,7 +86,7 @@ def build_runtime_readme(
     language_context_lines: str,
     runtime_guideline_load_snippet: str,
 ) -> str:
-    """Return the full .sdd/runtime/README.md content."""
+    """Return the full .providence/runtime/README.md content."""
     return (
         _overview_and_workflow_section(
             generated_at, language_context_lines, runtime_guideline_load_snippet

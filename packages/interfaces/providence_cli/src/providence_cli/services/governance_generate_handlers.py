@@ -33,7 +33,7 @@ from providence_cli.services.governance_generate_prereqs import (
 )
 from providence_cli.utils.loader import load_governance_config, validate_governance_path
 from providence_cli.utils.output import emit_json
-from providence_cli.utils.sdd_authority import (
+from providence_cli.utils.providence_authority import (
     enforce_path_policy,
     resolve_workspace_root,
 )
@@ -49,7 +49,7 @@ def resolve_generate_path(path: str) -> str:
     if ws_root is None:
         raise typer.Exit(1)
     ws_root = enforce_path_policy(ws_root, workspace_root=ws_root, mode="normal")
-    return str(ws_root / ".sdd" / "compiled")
+    return str(ws_root / ".providence" / "compiled")
 
 
 def generate_seeds(

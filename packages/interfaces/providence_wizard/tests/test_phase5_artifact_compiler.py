@@ -8,7 +8,7 @@ from providence_wizard.orchestration.phase5_artifact_compiler import ArtifactCom
 
 
 def _make_compiler(tmp_path: Path) -> ArtifactCompiler:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     runtime_dir = sdd_dir / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     return ArtifactCompiler(
@@ -116,7 +116,7 @@ def test_generate_metadata_sets_fingerprint_and_timestamp(tmp_path: Path) -> Non
     assert compiler.generate_metadata() is True
 
     payload = json.loads(
-        (tmp_path / ".sdd" / "metadata.json").read_text(encoding="utf-8")
+        (tmp_path / ".providence" / "metadata.json").read_text(encoding="utf-8")
     )
     assert compiler.governance_fingerprint == payload["fingerprints"]["combined"]
     assert compiler.generated_at == payload["generated_at"]

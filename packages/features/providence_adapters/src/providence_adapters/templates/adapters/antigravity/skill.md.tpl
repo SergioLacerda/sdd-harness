@@ -9,8 +9,8 @@ description: {{ item_description }}
 
 ## Source
 
-- `{% if is_command %}.sdd/commands/{{ item_name }}/command.yaml{% else %}.sdd/skills/{{ item_name }}/skill.yaml{% endif %}`
-{% if skill.skill_md is defined %}- `.sdd/skills/{{ item_name }}/SKILL.md` (full protocol)
+- `{% if is_command %}.providence/commands/{{ item_name }}/command.yaml{% else %}.providence/skills/{{ item_name }}/skill.yaml{% endif %}`
+{% if skill.skill_md is defined %}- `.providence/skills/{{ item_name }}/SKILL.md` (full protocol)
 {% endif %}
 
 ## Invocation
@@ -26,8 +26,8 @@ Use when:
 
 ## Required steps
 
-1. Load `.sdd/agent-instructions.md`
-2. Load `{% if is_command %}.sdd/commands/registry.json{% else %}.sdd/skills/registry.json{% endif %}`
+1. Load `.providence/agent-instructions.md`
+2. Load `{% if is_command %}.providence/commands/registry.json{% else %}.providence/skills/registry.json{% endif %}`
 3. Confirm {% if is_command %}command{% else %}skill{% endif %} `{{ item_name }}` is registered
 4. Follow the SDD {% if is_command %}command{% else %}skill{% endif %} protocol
 5. Use only allowed CLI
@@ -52,7 +52,7 @@ Use when:
 {% elif routes_to and routes_to.type == "skill" %}
 - `providence skills run {{ routes_to.id }}`
 {% else %}
-- see `.sdd/commands/{{ item_name }}/command.yaml`
+- see `.providence/commands/{{ item_name }}/command.yaml`
 {% endif %}
 {% else %}
 {% for cmd in skill.allowed_tools %}

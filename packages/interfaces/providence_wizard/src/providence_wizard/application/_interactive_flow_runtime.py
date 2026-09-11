@@ -2,10 +2,10 @@
 
 Replaces the old "Choose Starting Phase" menu dispatch. Preferences and
 agent/seedling selection are resolved once at the top (interactively or,
-when `non_interactive`, without prompting — see `PreferencesFlow`), then the
+when `non_interactive`, without prompting  see `PreferencesFlow`), then the
 flow branches exactly once on `custom_governance_path`:
 
-- Scenario A (None): generate templates → stage → compile (Phase 1-3).
+- Scenario A (None): generate templates  stage  compile (Phase 1-3).
 - Scenario B (set): validate + load the custom governance file, skipping
   Phase 1-3 entirely.
 
@@ -93,10 +93,10 @@ class InteractiveFlowRuntime:
                 ctx._emit("--- WIZARD OK ---")
             return success
         except KeyboardInterrupt:
-            ctx._emit("\n\n❌ Wizard cancelled by user")
+            ctx._emit("\n\n Wizard cancelled by user")
             return False
         except Exception as exc:
-            ctx._emit(f"\n❌ Error: {exc}")
+            ctx._emit(f"\n Error: {exc}")
             import traceback
 
             traceback.print_exc()
@@ -132,7 +132,7 @@ class InteractiveFlowRuntime:
         )
         if not ok:
             for error in errors:
-                ctx._emit(f"  ❌ {error}")
+                ctx._emit(f"   {error}")
             return False
 
         preferences = ctx.ask_user_preferences()

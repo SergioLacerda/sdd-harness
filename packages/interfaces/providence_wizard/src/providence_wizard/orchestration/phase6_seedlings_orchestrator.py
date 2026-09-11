@@ -1,5 +1,5 @@
 """
-SeedlingsOrchestrator — Phase 6 step: generate .sdd/seedlings/ files.
+SeedlingsOrchestrator  Phase 6 step: generate .providence/seedlings/ files.
 
 Supports selective generation: pass a set of seedling keys to generate only
 the chosen ones. Omit (or pass None) to generate all (default behaviour).
@@ -62,7 +62,7 @@ class SeedlingsOrchestrator:
         for path in candidates:
             if path and path.exists():
                 return path
-        self._log(f"⚠️  governance-core.json not found in {candidates}")
+        self._log(f"  governance-core.json not found in {candidates}")
         return self.governance_core_path  # best-effort fallback
 
     def generate(self, selected: set[str] | None = None) -> bool:
@@ -87,17 +87,17 @@ class SeedlingsOrchestrator:
             )
 
             if not generator.generate_all(selected=selected):
-                self._emit("  ❌ Failed to generate intelligent seedlings")
+                self._emit("   Failed to generate intelligent seedlings")
                 return False
 
             summary = generator.get_summary()
-            self._log(f"✅ Generated {summary['count']} intelligent seedlings")
+            self._log(f" Generated {summary['count']} intelligent seedlings")
             self._log(f"   Fingerprint: {summary['fingerprint']}")
             self._log(f"   Mandates: {', '.join(summary['mandates'])}")
             self._log(f"   Categories: {', '.join(summary['guidelines'])}")
             return True
         except Exception as e:
-            self._emit(f"  ❌ Failed to generate intelligent seedlings: {e}")
+            self._emit(f"   Failed to generate intelligent seedlings: {e}")
             import traceback
 
             traceback.print_exc()

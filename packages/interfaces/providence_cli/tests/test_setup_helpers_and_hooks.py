@@ -17,7 +17,7 @@ pytestmark = pytest.mark.unit
 class TestModuleImportRepoRootGuard:
     def test_import_does_not_crash_when_detect_repo_root_raises(self) -> None:
         """Regression test: a real standalone install has no repo markers,
-        so `detect_repo_root()` correctly raises RuntimeError — importing
+        so `detect_repo_root()` correctly raises RuntimeError  importing
         this module must not propagate that (see
         .analysis/pending/20260906-detect-repo-root-callsite-audit.md)."""
         import importlib.util
@@ -85,14 +85,14 @@ class TestEnsurePhase0Marker:
     def test_creates_marker_file(self, tmp_path: Path) -> None:
         with patch.object(setup_mod, "_REPO_ROOT", tmp_path):
             setup_mod._ensure_phase_0_marker()
-        marker = tmp_path / ".sdd" / "runtime" / ".phase-0-complete"
+        marker = tmp_path / ".providence" / "runtime" / ".phase-0-complete"
         assert marker.exists()
 
     def test_idempotent_if_already_exists(self, tmp_path: Path) -> None:
         with patch.object(setup_mod, "_REPO_ROOT", tmp_path):
             setup_mod._ensure_phase_0_marker()
             setup_mod._ensure_phase_0_marker()
-        marker = tmp_path / ".sdd" / "runtime" / ".phase-0-complete"
+        marker = tmp_path / ".providence" / "runtime" / ".phase-0-complete"
         assert marker.exists()
 
 

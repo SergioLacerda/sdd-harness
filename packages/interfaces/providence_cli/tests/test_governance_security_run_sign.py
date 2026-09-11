@@ -1,4 +1,4 @@
-"""Tests for providence_cli.services.governance_security_handlers — run_sign orchestration."""
+"""Tests for providence_cli.services.governance_security_handlers  run_sign orchestration."""
 
 from __future__ import annotations
 
@@ -51,11 +51,11 @@ class TestRunSign:
 
         assert exc_info.value.exit_code == 1
         text = output.getvalue()
-        assert str(tmp_path / ".sdd" / "trust" / "my-org-01.key") in text
+        assert str(tmp_path / ".providence" / "trust" / "my-org-01.key") in text
         assert "providence governance keygen --key-id my-org-01" in text
 
     def test_custom_key_id_does_not_fall_back_to_dev_01(self, tmp_path: Path) -> None:
-        custom_key = tmp_path / ".sdd" / "trust" / "my-org-01.key"
+        custom_key = tmp_path / ".providence" / "trust" / "my-org-01.key"
         custom_key.parent.mkdir(parents=True)
         custom_key.write_text("priv", encoding="utf-8")
 
@@ -103,7 +103,7 @@ class TestRunSign:
             )
 
     def test_no_artifacts_prints_warning(self, tmp_path: Path) -> None:
-        k_path = tmp_path / ".sdd" / "trust" / "nokey.key"
+        k_path = tmp_path / ".providence" / "trust" / "nokey.key"
         k_path.parent.mkdir(parents=True)
         k_path.write_text("priv", encoding="utf-8")
 
@@ -126,7 +126,7 @@ class TestRunSign:
             )
 
     def test_success_prints_summary(self, tmp_path: Path) -> None:
-        k_path = tmp_path / ".sdd" / "trust" / "testkey.key"
+        k_path = tmp_path / ".providence" / "trust" / "testkey.key"
         k_path.parent.mkdir(parents=True)
         k_path.write_text("priv", encoding="utf-8")
 

@@ -13,7 +13,7 @@ from providence_wizard.application.prompter import Prompter, make_prompter
 # User-confirmed canonical defaults for non-interactive bootstrap when no
 # prior wizard-config.json exists to reuse (see
 # wizard-interactive-flow-redesign-20260705 design.md).
-_NON_INTERACTIVE_DEFAULT_INTERACTION_LANGUAGE = "Português (Brasil)"
+_NON_INTERACTIVE_DEFAULT_INTERACTION_LANGUAGE = "Portugus (Brasil)"
 _NON_INTERACTIVE_DEFAULT_DOCS_LANGUAGE = "English"
 _NON_INTERACTIVE_DEFAULT_ENFORCEMENT_MODE = "strict_mode"
 _NON_INTERACTIVE_DEFAULT_HANDSHAKE_MODE = "hook"
@@ -76,7 +76,7 @@ class PreferencesFlow:
             docs_language=_NON_INTERACTIVE_DEFAULT_DOCS_LANGUAGE,
             locale_by_language={
                 "English": "en",
-                "Português (Brasil)": "pt-BR",
+                "Portugus (Brasil)": "pt-BR",
             },
             handshake_mode=_NON_INTERACTIVE_DEFAULT_HANDSHAKE_MODE,
         )
@@ -123,33 +123,33 @@ class PreferencesFlow:
     def _select_enforcement(
         self, enforcement_choices: list[str], enforcement_map: dict[str, str]
     ) -> str:
-        self._emit("\n1️⃣  How should governance violations be handled?")
+        self._emit("\n1  How should governance violations be handled?")
         selected = self._prompter.select("Select enforcement:", enforcement_choices)
-        self._emit(f"   ✅ Selected: {selected}")
+        self._emit(f"    Selected: {selected}")
         return enforcement_map.get(selected, "warn_mode")
 
     def _select_interaction_language(
         self, interaction_language_choices: list[str]
     ) -> str:
         self._emit(
-            "\n2️⃣  Which language should the wizard prefer for chat and operational prompts?"
+            "\n2  Which language should the wizard prefer for chat and operational prompts?"
         )
         selected = self._prompter.select(
             "Select interaction language:", interaction_language_choices
         )
-        self._emit(f"   ✅ Selected: {selected}")
+        self._emit(f"    Selected: {selected}")
         return selected
 
     def _select_docs_language(
         self, interaction_language: str, local_docs_language_choices: list[str]
     ) -> str:
         self._emit(
-            "\n3️⃣  Which language should local workspace notes prefer when the workspace allows it?"
+            "\n3  Which language should local workspace notes prefer when the workspace allows it?"
         )
         selected = self._prompter.select(
             "Select local docs preference:", local_docs_language_choices
         )
-        self._emit(f"   ✅ Selected: {selected}")
+        self._emit(f"    Selected: {selected}")
         if selected == "Same as interaction":
             return interaction_language
         return selected
@@ -158,13 +158,13 @@ class PreferencesFlow:
         self, handshake_choices: list[str], handshake_map: dict[str, str]
     ) -> str:
         self._emit(
-            "\n4️⃣  Prefere que todo prompt seja filtrado pela governança (hook) OU"
-            " invocar a governança seletivamente (slash commands, CLI)?"
+            "\n4  Prefere que todo prompt seja filtrado pela governana (hook) OU"
+            " invocar a governana seletivamente (slash commands, CLI)?"
             "\n   (modo hook pode ser desativado a qualquer momento com"
             " 'providence governance hook disable')"
         )
         selected = self._prompter.select("Selecione o handshake:", handshake_choices)
-        self._emit(f"   ✅ Selecionado: {selected}")
+        self._emit(f"    Selecionado: {selected}")
         return handshake_map.get(selected, "standard")
 
     def _build_config(

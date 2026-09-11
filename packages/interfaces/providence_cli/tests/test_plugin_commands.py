@@ -1,4 +1,4 @@
-"""Tests for sdd plugin commands (M017 — Analysis Plugin Compliance)."""
+"""Tests for sdd plugin commands (M017  Analysis Plugin Compliance)."""
 
 from __future__ import annotations
 
@@ -18,8 +18,8 @@ runner = CliRunner()
 
 @pytest.fixture
 def plugin_workspace(tmp_path: Path) -> Path:
-    """Create a minimal workspace with .sdd/plugins/registry.yaml."""
-    plugins_dir = tmp_path / ".sdd" / "plugins"
+    """Create a minimal workspace with .providence/plugins/registry.yaml."""
+    plugins_dir = tmp_path / ".providence" / "plugins"
     plugins_dir.mkdir(parents=True)
 
     compliant_entry = {
@@ -28,9 +28,9 @@ def plugin_workspace(tmp_path: Path) -> Path:
         "version": "1.0.0",
         "status": "active",
         "entrypoint": "/strategist",
-        "contract": ".sdd/contracts/analysis-provider.schema.yaml",
+        "contract": ".providence/contracts/analysis-provider.schema.yaml",
         "sdd_injection": {
-            "base_path": ".sdd/analysis",
+            "base_path": ".providence/analysis",
             "execution_provider": "sdd-ask",
             "approval_gate": "required",
             "knowledge_paths": [],
@@ -60,7 +60,7 @@ def plugin_workspace(tmp_path: Path) -> Path:
 
 
 # ---------------------------------------------------------------------------
-# 6.1 sdd plugin validate — compliant entry passes
+# 6.1 sdd plugin validate  compliant entry passes
 # ---------------------------------------------------------------------------
 
 
@@ -81,7 +81,7 @@ def test_plugin_validate_pass(
 
 
 # ---------------------------------------------------------------------------
-# 6.2 sdd plugin validate — non-compliant entry fails with violations listed
+# 6.2 sdd plugin validate  non-compliant entry fails with violations listed
 # ---------------------------------------------------------------------------
 
 
@@ -142,9 +142,9 @@ def test_validate_entry_detects_artifact_scope_violation() -> None:
         "version": "1.0.0",
         "status": "active",
         "entrypoint": "/bad",
-        "contract": ".sdd/contracts/analysis-provider.schema.yaml",
+        "contract": ".providence/contracts/analysis-provider.schema.yaml",
         "sdd_injection": {
-            "base_path": ".sdd/analysis",
+            "base_path": ".providence/analysis",
         },
     }
     violations = _validate_entry(entry_missing_injection)
@@ -183,7 +183,7 @@ def test_plugin_validate_pass_with_empty_knowledge_paths(
     """Plugin with empty knowledge_paths still passes validation."""
     import yaml  # type: ignore[import-untyped]
 
-    plugins_dir = tmp_path / ".sdd" / "plugins"
+    plugins_dir = tmp_path / ".providence" / "plugins"
     plugins_dir.mkdir(parents=True)
 
     entry = {
@@ -192,9 +192,9 @@ def test_plugin_validate_pass_with_empty_knowledge_paths(
         "version": "1.0.0",
         "status": "active",
         "entrypoint": "/minimal",
-        "contract": ".sdd/contracts/analysis-provider.schema.yaml",
+        "contract": ".providence/contracts/analysis-provider.schema.yaml",
         "sdd_injection": {
-            "base_path": ".sdd/analysis",
+            "base_path": ".providence/analysis",
             "execution_provider": "sdd-ask",
             "approval_gate": "required",
             "knowledge_paths": [],
@@ -217,7 +217,7 @@ def test_plugin_validate_pass_with_empty_knowledge_paths(
 def test_plugin_validate_blocks_strategist_base_path_mismatch(
     plugin_workspace: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """.sdd plugin injection must not silently conflict with Strategist runtime."""
+    """.providence plugin injection must not silently conflict with Strategist runtime."""
     strategist_dir = plugin_workspace / ".strategist"
     strategist_dir.mkdir()
     (strategist_dir / "active.yaml").write_text(
@@ -233,7 +233,7 @@ def test_plugin_validate_blocks_strategist_base_path_mismatch(
 
     assert result.exit_code != 0
     assert "strategist_base_path_mismatch" in result.output
-    assert "sdd_injection.base_path=.sdd/analysis" in result.output
+    assert "sdd_injection.base_path=.providence/analysis" in result.output
     assert "strategist.active.base_path=.analysis" in result.output
 
 

@@ -56,7 +56,7 @@ def test_guard_handshake_strict_invalid_raises_exit_and_prints_block_message(
     """Regression test for SEC-07: `typer.Exit(3)` used to be raised inside
     the same `try` block as a broad `except Exception`, which silently
     swallowed it (`typer.Exit` is `RuntimeError`-based). The strict-mode
-    block must actually propagate now — see
+    block must actually propagate now  see
     `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md` SEC-07."""
     with (
         patch(
@@ -80,7 +80,7 @@ def test_guard_handshake_resolution_error_fails_open(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """An unexpected error *resolving* handshake validity (not the block
-    decision itself) must still fail open — no exit, no message."""
+    decision itself) must still fail open  no exit, no message."""
     with patch(
         "providence_cli.commands._ask_backend._budget._signature_mode",
         side_effect=RuntimeError("boom"),

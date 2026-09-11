@@ -9,9 +9,9 @@ from providence_wizard.orchestration.language_policy import (
 def _config_with_context() -> dict[str, object]:
     return {
         "language_context": {
-            "preferred_chat_language": "Português (Brasil)",
-            "preferred_ui_language": "Português (Brasil)",
-            "preferred_local_docs_language": "Português (Brasil)",
+            "preferred_chat_language": "Portugus (Brasil)",
+            "preferred_ui_language": "Portugus (Brasil)",
+            "preferred_local_docs_language": "Portugus (Brasil)",
         }
     }
 
@@ -25,7 +25,7 @@ def test_resolve_language_policy_includes_analysis_docs() -> None:
 def test_evaluate_language_surface_fails_for_mandatory_non_english() -> None:
     result = evaluate_language_surface(
         surface="technical_docs",
-        artifact_language="Português (Brasil)",
+        artifact_language="Portugus (Brasil)",
         config=_config_with_context(),
     )
     assert result["severity"] == "fail"
@@ -43,7 +43,7 @@ def test_evaluate_language_surface_warns_on_context_divergence() -> None:
 def test_evaluate_language_surface_passes_on_context_match() -> None:
     result = evaluate_language_surface(
         surface="ui",
-        artifact_language="Português (Brasil)",
+        artifact_language="Portugus (Brasil)",
         config=_config_with_context(),
     )
     assert result["severity"] == "pass"
@@ -52,7 +52,7 @@ def test_evaluate_language_surface_passes_on_context_match() -> None:
 def test_evaluate_language_surface_info_when_context_missing() -> None:
     result = evaluate_language_surface(
         surface="workspace_local_docs",
-        artifact_language="Português (Brasil)",
+        artifact_language="Portugus (Brasil)",
         config={"language_context": {}},
     )
     assert result["severity"] == "info"

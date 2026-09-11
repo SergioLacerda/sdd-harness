@@ -17,7 +17,7 @@ runner = CliRunner()
 
 # Same workspace src dirs as [tool.pytest.ini_options].pythonpath in
 # pyproject.toml. pytest's own `pythonpath` setting only affects sys.path of
-# THIS process — a subprocess spawned via subprocess.run does not inherit
+# THIS process  a subprocess spawned via subprocess.run does not inherit
 # it, so `python -m providence_cli ...` below would fail to import providence_cli in any
 # venv without a full `uv sync --all-packages` editable install unless we
 # forward it explicitly via PYTHONPATH.

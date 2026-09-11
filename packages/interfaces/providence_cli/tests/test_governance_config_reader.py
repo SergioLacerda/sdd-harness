@@ -1,4 +1,4 @@
-"""Unit tests for governance_config_reader — pure config/drift checks."""
+"""Unit tests for governance_config_reader  pure config/drift checks."""
 
 from __future__ import annotations
 
@@ -17,8 +17,8 @@ pytestmark = pytest.mark.unit
 
 
 def _write_metadata(root: Path, **fields: object) -> None:
-    (root / ".sdd").mkdir(parents=True, exist_ok=True)
-    (root / ".sdd" / "metadata.json").write_text(json.dumps(fields), encoding="utf-8")
+    (root / ".providence").mkdir(parents=True, exist_ok=True)
+    (root / ".providence" / "metadata.json").write_text(json.dumps(fields), encoding="utf-8")
 
 
 def _write_seed(root: Path, name: str, fingerprint: str) -> None:
@@ -32,7 +32,7 @@ def _write_seed(root: Path, name: str, fingerprint: str) -> None:
 
 
 def _write_unmanaged_seed(root: Path, name: str, fingerprint: str) -> None:
-    """Write a seed file in the pre-managed-block format (no markers) —
+    """Write a seed file in the pre-managed-block format (no markers) 
     the realistic state of every already-deployed root seed file
     immediately after this fix ships."""
     (root / name).write_text(
@@ -68,13 +68,13 @@ class TestCheckNoConflicts:
 
 class TestCheckRootSeedDrift:
     def test_passes_when_metadata_missing(self, tmp_path: Path) -> None:
-        ok, reason = check_root_seed_drift(str(tmp_path / ".sdd"))
+        ok, reason = check_root_seed_drift(str(tmp_path / ".providence"))
         assert ok is True
         assert "not found" in reason
 
     def test_passes_when_no_fingerprint_in_metadata(self, tmp_path: Path) -> None:
         _write_metadata(tmp_path, version="3.0")
-        ok, reason = check_root_seed_drift(str(tmp_path / ".sdd"))
+        ok, reason = check_root_seed_drift(str(tmp_path / ".providence"))
         assert ok is True
         assert "no governance_fingerprint" in reason
 
@@ -84,7 +84,7 @@ class TestCheckRootSeedDrift:
         _write_metadata(tmp_path, governance_fingerprint="abc123")
         _write_seed(tmp_path, "AGENTS.md", "abc123")
         _write_seed(tmp_path, "CLAUDE.md", "abc123")
-        ok, reason = check_root_seed_drift(str(tmp_path / ".sdd"))
+        ok, reason = check_root_seed_drift(str(tmp_path / ".providence"))
         assert ok is True
         assert "no root-seed drift" in reason
 
@@ -93,36 +93,36 @@ class TestCheckRootSeedDrift:
     ) -> None:
         _write_metadata(tmp_path, fingerprints={"combined": "abc123"})
         _write_seed(tmp_path, "CLAUDE.md", "abc123")
-        ok, reason = check_root_seed_drift(str(tmp_path / ".sdd"))
+        ok, reason = check_root_seed_drift(str(tmp_path / ".providence"))
         assert ok is True
         assert "no root-seed drift" in reason
 
     def test_fails_when_seed_fingerprint_mismatches(self, tmp_path: Path) -> None:
         _write_metadata(tmp_path, governance_fingerprint="abc123")
         _write_seed(tmp_path, "CLAUDE.md", "deadbeef99")
-        ok, reason = check_root_seed_drift(str(tmp_path / ".sdd"))
+        ok, reason = check_root_seed_drift(str(tmp_path / ".providence"))
         assert ok is False
         assert "CLAUDE.md" in reason
 
     def test_missing_seed_files_are_not_drift(self, tmp_path: Path) -> None:
         _write_metadata(tmp_path, governance_fingerprint="abc123")
-        ok, reason = check_root_seed_drift(str(tmp_path / ".sdd"))
+        ok, reason = check_root_seed_drift(str(tmp_path / ".providence"))
         assert ok is True
         assert "no root-seed drift" in reason
 
     def test_unmanaged_seed_with_stale_fingerprint_is_not_drift(
         self, tmp_path: Path
     ) -> None:
-        """T3 regression: a file with no managed-block markers — the
+        """T3 regression: a file with no managed-block markers  the
         realistic state of every already-deployed root seed file right
-        after this fix ships — must never fail the check, even if its
+        after this fix ships  must never fail the check, even if its
         (unmanaged) content happens to mention a stale fingerprint. sdd has
         no claim over content it never delimited as its own.
         `.analysis/refined/20260906-root-seed-githook-necessity/design.md`.
         """
         _write_metadata(tmp_path, governance_fingerprint="abc123")
         _write_unmanaged_seed(tmp_path, "CLAUDE.md", "deadbeef99")
-        ok, reason = check_root_seed_drift(str(tmp_path / ".sdd"))
+        ok, reason = check_root_seed_drift(str(tmp_path / ".providence"))
         assert ok is True
         assert "no managed block found in: CLAUDE.md" in reason
 
@@ -134,14 +134,14 @@ class TestCheckRootSeedDrift:
             "<!-- sdd:managed:begin -->\nstale content, no end marker\n",
             encoding="utf-8",
         )
-        ok, reason = check_root_seed_drift(str(tmp_path / ".sdd"))
+        ok, reason = check_root_seed_drift(str(tmp_path / ".providence"))
         assert ok is True
 
     def test_tracked_status_is_irrelevant_to_managed_block_drift(
         self, tmp_path: Path
     ) -> None:
         """Revision 1 regression: a stale managed block fails the check
-        purely on content, independent of git-tracked status — there is no
+        purely on content, independent of git-tracked status  there is no
         tracked/untracked branch anywhere in `check_root_seed_drift`
         (Revision 0's tracked-only mechanism was fully replaced, not
         layered on top of). This test runs outside any git repository
@@ -149,6 +149,6 @@ class TestCheckRootSeedDrift:
         proving tracked status is never consulted."""
         _write_metadata(tmp_path, governance_fingerprint="abc123")
         _write_seed(tmp_path, "AGENTS.md", "deadbeef99")
-        ok, reason = check_root_seed_drift(str(tmp_path / ".sdd"))
+        ok, reason = check_root_seed_drift(str(tmp_path / ".providence"))
         assert ok is False
         assert "AGENTS.md" in reason

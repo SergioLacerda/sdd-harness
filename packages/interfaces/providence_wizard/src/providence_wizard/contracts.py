@@ -56,7 +56,7 @@ def generate_agent_instructions_from_config(
     output_base: Path,
     config: dict[str, Any],
 ) -> bool:
-    """Regenerate .sdd/agent-instructions.md from a governance config dict."""
+    """Regenerate .providence/agent-instructions.md from a governance config dict."""
     from providence_wizard.orchestration.seedlings.governance_seeds import (
         generate_agent_instructions_from_config as _impl,
     )

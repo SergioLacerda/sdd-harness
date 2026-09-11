@@ -1,4 +1,4 @@
-"""Tests for providence_cli.commands.docs — deploy command coverage."""
+"""Tests for providence_cli.commands.docs  deploy command coverage."""
 
 from __future__ import annotations
 
@@ -199,7 +199,7 @@ class TestDocsGovernanceSources:
             ),
             patch(
                 "providence_cli.commands.docs.generate_runtime_handbook",
-                return_value=[Path.cwd() / ".sdd/source/handbook/index.yaml"],
+                return_value=[Path.cwd() / ".providence/source/handbook/index.yaml"],
             ),
         ):
             result = runner.invoke(app, ["docs", "generate-handbook"])
@@ -218,7 +218,7 @@ class TestDocsGovernanceSources:
                         {
                             "id": "HBK",
                             "source_doc": "docs/a.md",
-                            "runtime_doc": ".sdd/source/handbook/a.yaml",
+                            "runtime_doc": ".providence/source/handbook/a.yaml",
                         }
                     ],
                 ),

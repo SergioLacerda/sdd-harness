@@ -75,7 +75,7 @@ def run_governance_audit(*, verbose: bool, output_json: bool, console: Console) 
 
     if not report.ok:
         console.print(f"\n[red]Veredito: BLOQUEADO (Score {report.score} < 70)[/red]")
-        console.print("Corrija as vulnerabilidades críticas/altas antes de prosseguir.")
+        console.print("Corrija as vulnerabilidades crticas/altas antes de prosseguir.")
         raise typer.Exit(1)
     console.print(f"\n[green]Veredito: APROVADO (Score {report.score})[/green]")
 

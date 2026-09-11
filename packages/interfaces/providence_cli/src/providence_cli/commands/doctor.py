@@ -11,7 +11,7 @@ from providence_cli.commands.doctor_gates import (
 from providence_cli.services.command_group_output import show_command_group
 from providence_cli.utils.command_errors import handle_cli_errors
 from providence_cli.utils.environment import detect_repo_root
-from providence_cli.utils.sdd_authority import (
+from providence_cli.utils.providence_authority import (
     enforce_path_policy,
     resolve_workspace_root,
 )
@@ -52,7 +52,7 @@ def compiler(
     prune: bool = typer.Option(
         False,
         "--prune",
-        help="Remove stale ~/.sdd/bin cache entries (keeps the versions the "
+        help="Remove stale ~/.providence/bin cache entries (keeps the versions the "
         "installed CLI resolves and the packaged digest in use).",
     ),
 ) -> None:

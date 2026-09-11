@@ -5,8 +5,8 @@ from __future__ import annotations
 CLAUDE_BOOTSTRAP_SCRIPT = """#!/usr/bin/env sh
 set -eu
 
-if [ ! -f ".sdd/metadata.json" ]; then
-  echo "[sdd-bootstrap] missing .sdd/metadata.json"
+if [ ! -f ".providence/metadata.json" ]; then
+  echo "[sdd-bootstrap] missing .providence/metadata.json"
   exit 0
 fi
 
@@ -43,29 +43,29 @@ You are operating in a workspace governed by **Spec Driven Development (SDD)**.
 
 1. You must learn commands and skills from your custom folder path:
    - `.github/prompts/`
-2. You are under governance. Always resolve instructions from `.sdd`.
+2. You are under governance. Always resolve instructions from `.providence`.
    Initial reference:
-   - `.sdd/agent-instructions.md`
+   - `.providence/agent-instructions.md`
 
 ## Commands And Skills (Source Of Truth)
 
-1. Commands source of truth: `.sdd/commands`.
-2. Skills source of truth: `.sdd/skills`.
+1. Commands source of truth: `.providence/commands`.
+2. Skills source of truth: `.providence/skills`.
 3. On startup, load:
-   - `.sdd/commands/registry.json`
-   - `.sdd/skills/registry.json`
+   - `.providence/commands/registry.json`
+   - `.providence/skills/registry.json`
 4. For each active command/skill in registries, read canonical files:
-   - Commands: `.sdd/commands/<command-id>/command.yaml`
-   - Skills: `.sdd/skills/<skill-name>/skill.yaml`
+   - Commands: `.providence/commands/<command-id>/command.yaml`
+   - Skills: `.providence/skills/<skill-name>/skill.yaml`
 5. Precedence rule:
    - Local path (`.github/prompts/*`) is for context and ergonomics.
-   - `.sdd` is authoritative for routing/policy and wins conflicts.
+   - `.providence` is authoritative for routing/policy and wins conflicts.
 
 ## Critical Instruction
 
 Read and adhere to the canonical governance rules in:
 ```
-.sdd/agent-instructions.md
+.providence/agent-instructions.md
 ```
 
 This file is the **single source of truth** for all governance policies in this workspace.
@@ -75,19 +75,19 @@ This file is the **single source of truth** for all governance policies in this 
 - **Mandate enforcement**: Non-negotiable rules (M001-M010, M015)
 - **Governance status**: Run `providence runtime status` to check workspace health
 - **Validation**: Run `providence governance validate` before finalizing changes
-- **Activation**: Governance activates automatically on project load via `.sdd/seedlings/`
+- **Activation**: Governance activates automatically on project load via `.providence/seedlings/`
 
 ## Governance Documentation
 
-All governance documentation lives in `.sdd/source/`:
-- `mandates/mandates.md` — Mandate descriptions and enforcement rules
-- `guidelines/` — Customizable guidelines by category (if any)
-- `README.md` — Onboarding guide for agents
+All governance documentation lives in `.providence/source/`:
+- `mandates/mandates.md`  Mandate descriptions and enforcement rules
+- `guidelines/`  Customizable guidelines by category (if any)
+- `README.md`  Onboarding guide for agents
 
 ## Operating Rules
 
 - Do not bypass mandatory mandates.
-- Prefer generated templates and `.sdd/*` canonical governance over improvised structure.
+- Prefer generated templates and `.providence/*` canonical governance over improvised structure.
 - When the workspace state is unclear, run `providence runtime status` first.
 
 ## Expected Validation Commands
@@ -113,36 +113,36 @@ def build_claude_md(fp_header: str) -> str:
 # Version: 3.0
 {fp_header}
 
-## ⚠️ CRITICAL: Governance Source of Truth
+##  CRITICAL: Governance Source of Truth
 
-**This Claude workspace is governed by `.sdd/` (Spec Driven Development artifacts).**
+**This Claude workspace is governed by `.providence/` (Spec Driven Development artifacts).**
 
 ## Entrypoint Contract
 
 1. You must learn commands and skills from your custom folder path:
    - `.claude/commands/`
    - `CLAUDE.md`
-2. You are under governance. Always resolve instructions from `.sdd`.
+2. You are under governance. Always resolve instructions from `.providence`.
    Initial reference:
-   - `.sdd/agent-instructions.md`
+   - `.providence/agent-instructions.md`
 
 ## Commands And Skills (Source Of Truth)
 
-1. Commands source of truth: `.sdd/commands`.
-2. Skills source of truth: `.sdd/skills`.
+1. Commands source of truth: `.providence/commands`.
+2. Skills source of truth: `.providence/skills`.
 3. On startup, load:
-   - `.sdd/commands/registry.json`
-   - `.sdd/skills/registry.json`
+   - `.providence/commands/registry.json`
+   - `.providence/skills/registry.json`
 4. For each active command/skill in registries, read canonical files:
-   - Commands: `.sdd/commands/<command-id>/command.yaml`
-   - Skills: `.sdd/skills/<skill-name>/skill.yaml`
+   - Commands: `.providence/commands/<command-id>/command.yaml`
+   - Skills: `.providence/skills/<skill-name>/skill.yaml`
 5. Precedence rule:
    - Local path (`.claude/*`, `CLAUDE.md`) is for context and ergonomics.
-   - `.sdd` is authoritative for routing/policy and wins conflicts.
+   - `.providence` is authoritative for routing/policy and wins conflicts.
 
-**You MUST read `.sdd/agent-instructions.md` BEFORE any other action.**
+**You MUST read `.providence/agent-instructions.md` BEFORE any other action.**
 
-No other file overrides or extends the governance in `.sdd/`. Everything you need is there.
+No other file overrides or extends the governance in `.providence/`. Everything you need is there.
 
 ---
 
@@ -150,18 +150,18 @@ No other file overrides or extends the governance in `.sdd/`. Everything you nee
 
 | File | Purpose |
 |------|---------|
-| `.sdd/agent-instructions.md` | **START HERE** — Complete agent bootstrap instructions |
-| `.sdd/metadata.json` | Workspace version, fingerprints, item counts |
-| `.sdd/metadata.json` | Human-readable mandates snapshot |
-| `.sdd/source/mandates/mandates.md` | Full mandate descriptions with enforcement rules |
+| `.providence/agent-instructions.md` | **START HERE**  Complete agent bootstrap instructions |
+| `.providence/metadata.json` | Workspace version, fingerprints, item counts |
+| `.providence/metadata.json` | Human-readable mandates snapshot |
+| `.providence/source/mandates/mandates.md` | Full mandate descriptions with enforcement rules |
 
 ---
 
 ## One Rule
 
-**Before planning, coding, or deciding:** read `.sdd/agent-instructions.md`.
+**Before planning, coding, or deciding:** read `.providence/agent-instructions.md`.
 
-If that file says something different from what you remember seeing in CLAUDE.md, **trust `.sdd/agent-instructions.md` — it is authoritative.**
+If that file says something different from what you remember seeing in CLAUDE.md, **trust `.providence/agent-instructions.md`  it is authoritative.**
 
 ---
 

@@ -62,7 +62,7 @@ class PhaseFourRuntime:
                     error="Configuration not found; run Phase 1 first.",
                 )
             if not self._context.client_compiled_dir.exists():
-                self._context._emit("\n❌ Phase 3 output not found!")
+                self._context._emit("\n Phase 3 output not found!")
                 self._context._emit("You must run Phase 3 first to compile governance.")
                 return build_interactive_phase4_result(
                     success=False,
@@ -70,7 +70,7 @@ class PhaseFourRuntime:
                 )
             return self._run_generator(config)
         except Exception as exc:
-            self._context._emit(f"\n❌ Error: {exc}")
+            self._context._emit(f"\n Error: {exc}")
             import traceback
 
             traceback.print_exc()
@@ -78,7 +78,7 @@ class PhaseFourRuntime:
 
     def _load_config(self) -> dict[str, Any] | None:
         if not self._context.wizard_config_path.exists():
-            self._context._emit("\n❌ Configuration not found!")
+            self._context._emit("\n Configuration not found!")
             self._context._emit("You must run Phase 1 first to set preferences.")
             return None
         with open(self._context.wizard_config_path, encoding="utf-8") as handle:
@@ -102,9 +102,9 @@ class PhaseFourRuntime:
         return self._build_success(result)
 
     def _build_failure(self, result: Phase456RunResult) -> Phase4GenerateResult:
-        self._context._emit("\n❌ Phase 4-6 generation failed!")
+        self._context._emit("\n Phase 4-6 generation failed!")
         for error in result.get("errors", []):
-            self._context._emit(f"   • {error}")
+            self._context._emit(f"    {error}")
         error_messages = result.get("errors", [])
         return build_interactive_phase4_result(
             success=False,
@@ -153,6 +153,6 @@ class PhaseFourRuntime:
         if not self._context.debug:
             self._context._emit(f"cleanup...OK ({len(cleaned)})")
             return
-        self._context._emit("  🧹 Cleaned temporary onboarding artifacts:")
+        self._context._emit("   Cleaned temporary onboarding artifacts:")
         for relative_path in cleaned:
             self._context._emit(f"     - {relative_path}")

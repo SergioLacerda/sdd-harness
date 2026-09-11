@@ -29,11 +29,11 @@ Load and execute SDD skill `{{ cmd_name }}`.
 
 ## Required steps
 
-1. Read `.sdd/agent-instructions.md`
-2. Read `.sdd/skills/registry.json`
+1. Read `.providence/agent-instructions.md`
+2. Read `.providence/skills/registry.json`
 3. Confirm skill is registered as `{{ cmd_name }}`
-4. Read `.sdd/skills/{{ cmd_name }}/skill.yaml`
-{% if skill.skill_md is defined %}5. Read `.sdd/skills/{{ cmd_name }}/SKILL.md` for full protocol
+4. Read `.providence/skills/{{ cmd_name }}/skill.yaml`
+{% if skill.skill_md is defined %}5. Read `.providence/skills/{{ cmd_name }}/SKILL.md` for full protocol
 {% endif %}5. Follow the skill protocol
 
 ## Allowed CLI
@@ -44,12 +44,12 @@ Load and execute SDD skill `{{ cmd_name }}`.
 
 ## Risk
 
-`{{ skill.risk_score }}` — {{ skill.description }}
+`{{ skill.risk_score }}` â€” {{ skill.description }}
 {% if skill.skill_md is defined %}
 
 ## Protocol
 
-Read `.sdd/skills/{{ cmd_name }}/SKILL.md` for the full execution protocol, output format, and non-compliance rules.
+Read `.providence/skills/{{ cmd_name }}/SKILL.md` for the full execution protocol, output format, and non-compliance rules.
 {% endif %}
 {% endif %}
 
@@ -57,4 +57,4 @@ Read `.sdd/skills/{{ cmd_name }}/SKILL.md` for the full execution protocol, outp
 
 Do not invent SDD commands.
 Do not bypass the skill registry.
-Declare degraded mode if `.sdd/skills/registry.json` is unavailable.
+Declare degraded mode if `.providence/skills/registry.json` is unavailable.

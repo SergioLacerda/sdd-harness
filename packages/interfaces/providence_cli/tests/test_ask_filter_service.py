@@ -213,7 +213,7 @@ class TestCollectLearningSignals:
         assert signals["window_days"] == 7
 
     def test_collects_from_failure_ledger(self, tmp_path: Path) -> None:
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         ledger = runtime_dir / "failure-ledger.jsonl"
         ledger.write_text(
@@ -225,7 +225,7 @@ class TestCollectLearningSignals:
         assert signals["diagnosis_inconclusive"] == 1
 
     def test_collects_from_compliance_events(self, tmp_path: Path) -> None:
-        runtime_dir = tmp_path / ".sdd" / "runtime"
+        runtime_dir = tmp_path / ".providence" / "runtime"
         runtime_dir.mkdir(parents=True)
         events = runtime_dir / "compliance-events.jsonl"
         events.write_text(

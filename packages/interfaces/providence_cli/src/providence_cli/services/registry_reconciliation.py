@@ -52,7 +52,7 @@ def _required(
 
 
 def _reconcile_commands(workspace_root: Path) -> tuple[dict[str, Any], dict[str, int]]:
-    commands_dir = workspace_root / ".sdd" / "commands"
+    commands_dir = workspace_root / ".providence" / "commands"
     registry_path = commands_dir / "registry.json"
 
     existing = _load_existing_entries(registry_path, "commands")
@@ -110,7 +110,7 @@ def _reconcile_commands(workspace_root: Path) -> tuple[dict[str, Any], dict[str,
 
 
 def _reconcile_skills(workspace_root: Path) -> tuple[dict[str, Any], dict[str, int]]:
-    skills_dir = workspace_root / ".sdd" / "skills"
+    skills_dir = workspace_root / ".providence" / "skills"
     registry_path = skills_dir / "registry.json"
 
     existing = _load_existing_entries(registry_path, "skills")
@@ -146,7 +146,7 @@ def _reconcile_skills(workspace_root: Path) -> tuple[dict[str, Any], dict[str, i
                 "description": str(payload["description"]),
                 "risk_score": payload.get("risk_score"),
                 "status": str(payload["status"]),
-                "skill_yaml": f".sdd/skills/{name}/skill.yaml",
+                "skill_yaml": f".providence/skills/{name}/skill.yaml",
             }
         )
 
@@ -178,10 +178,10 @@ def reconcile_registries(
 
     if not check_only:
         _atomic_write_json(
-            workspace_root / ".sdd" / "commands" / "registry.json", commands_registry
+            workspace_root / ".providence" / "commands" / "registry.json", commands_registry
         )
         _atomic_write_json(
-            workspace_root / ".sdd" / "skills" / "registry.json", skills_registry
+            workspace_root / ".providence" / "skills" / "registry.json", skills_registry
         )
     return ReconciliationSummary(
         commands=command_stats, skills=skill_stats, drift_detected=drift_detected

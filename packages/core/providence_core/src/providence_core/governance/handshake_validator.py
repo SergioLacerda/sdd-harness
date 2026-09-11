@@ -18,15 +18,15 @@ class GovernanceValidator:
 
     def layer_1_discovery(self) -> tuple[str, list[ValidationResult]]:
         """Validate that the workspace exposes the minimum SDD footprint."""
-        sdd_dir = self.project_root / ".sdd"
+        sdd_dir = self.project_root / ".providence"
         sdd_exists = sdd_dir.exists()
         profile_exists = (sdd_dir / "profile").exists()
         governance_exists = (
-            self.project_root / ".sdd" / "compiled" / "governance-core.json"
+            self.project_root / ".providence" / "compiled" / "governance-core.json"
         ).exists()
         results = [
             _result(
-                ".sdd/ directory",
+                ".providence/ directory",
                 sdd_exists,
                 f"Found at {sdd_dir}"
                 if sdd_exists
@@ -34,7 +34,7 @@ class GovernanceValidator:
                 "DISCOVERY",
             ),
             _result(
-                ".sdd/profile",
+                ".providence/profile",
                 profile_exists,
                 "Found" if profile_exists else "Missing — run 'providence init'",
                 "DISCOVERY",
@@ -52,7 +52,7 @@ class GovernanceValidator:
 
     def layer_2_link_validation(self) -> tuple[str, list[ValidationResult]]:
         """Validate profile and framework links required by the workspace."""
-        profile_path = self.project_root / ".sdd" / "profile"
+        profile_path = self.project_root / ".providence" / "profile"
         profile_readable = profile_valid = False
         if profile_path.exists():
             try:
@@ -67,13 +67,13 @@ class GovernanceValidator:
                 profile_readable = False
         results = [
             _result(
-                ".sdd/profile readable",
+                ".providence/profile readable",
                 profile_readable,
                 "Parses correctly" if profile_readable else "Invalid or missing",
                 "LINK_VALIDATION",
             ),
             _result(
-                ".sdd/profile type valid",
+                ".providence/profile type valid",
                 profile_valid,
                 "type=master|client"
                 if profile_valid
@@ -95,7 +95,7 @@ class GovernanceValidator:
 
     def layer_3_runtime_validation(self) -> tuple[str, list[ValidationResult]]:
         """Validate runtime cache and initialization state."""
-        runtime_dir = self.project_root / ".sdd" / "runtime"
+        runtime_dir = self.project_root / ".providence" / "runtime"
         runtime_exists = runtime_dir.exists()
         state_exists = (
             (runtime_dir / "governance-state.json").exists()
@@ -105,7 +105,7 @@ class GovernanceValidator:
         phase_0_done = (runtime_dir / ".phase-0-complete").exists()
         results = [
             _result(
-                ".sdd/runtime/",
+                ".providence/runtime/",
                 runtime_exists,
                 "Initialized" if runtime_exists else "Not initialized",
                 "RUNTIME_VALIDATION",
@@ -130,7 +130,7 @@ class GovernanceValidator:
     def layer_4_governance_health(self) -> tuple[str, list[ValidationResult]]:
         """Validate compiled governance artifacts and their readability."""
         governance_path = (
-            self.project_root / ".sdd" / "compiled" / "governance-core.json"
+            self.project_root / ".providence" / "compiled" / "governance-core.json"
         )
         governance_valid, governance_items = False, 0
         if governance_path.exists():
@@ -143,7 +143,7 @@ class GovernanceValidator:
                 governance_valid = True
             except Exception:
                 governance_valid = False
-        compiled_exists = (self.project_root / ".sdd" / "compiled").exists()
+        compiled_exists = (self.project_root / ".providence" / "compiled").exists()
         results = [
             _result(
                 "governance integrity",

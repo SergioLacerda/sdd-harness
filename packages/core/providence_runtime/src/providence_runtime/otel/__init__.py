@@ -35,7 +35,7 @@ Usage example
         endpoint="https://api.datadoghq.com/api/v0.2/traces",
         headers={"DD-API-KEY": "..."},
     )
-    sink = OtelBridge(exporter=exporter, jsonl_path=Path(".sdd/runtime/events.jsonl"))
+    sink = OtelBridge(exporter=exporter, jsonl_path=Path(".providence/runtime/events.jsonl"))
     sink.emit(RuntimeEvent(event="governance.compile", command="compile", ...))
 """
 

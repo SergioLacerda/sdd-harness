@@ -5,7 +5,7 @@ mode: agent
 
 ## Source
 
-`.sdd/commands/{{ command.id }}/command.yaml`
+`.providence/commands/{{ command.id }}/command.yaml`
 
 ## Required behavior
 

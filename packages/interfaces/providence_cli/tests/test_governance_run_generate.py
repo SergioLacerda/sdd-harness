@@ -1,4 +1,4 @@
-"""Tests for providence_cli.services.governance_generate_handlers — run_generate orchestration."""
+"""Tests for providence_cli.services.governance_generate_handlers  run_generate orchestration."""
 
 from __future__ import annotations
 

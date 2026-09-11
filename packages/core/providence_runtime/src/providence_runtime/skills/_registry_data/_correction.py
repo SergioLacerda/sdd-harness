@@ -40,7 +40,7 @@ _CORRECTION_SKILLS: dict[str, SkillDefinition] = {
             "apply multiple corrections in one pass",
             "skip postcheck",
         ],
-        config={"gate_rules_file": ".sdd/skills/sdd-correct/gate-rules.yaml"},
+        config={"gate_rules_file": ".providence/skills/sdd-correct/gate-rules.yaml"},
         fallback_to="sdd-diagnose",
         idempotent=False,
         hard_mode_invariants={

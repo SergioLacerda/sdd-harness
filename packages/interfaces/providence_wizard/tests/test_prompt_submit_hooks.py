@@ -58,7 +58,7 @@ def test_prompt_submit_hook_generator_writes_central_hook_and_selected_adapter(
     central_hook = tmp_path / CENTRAL_PROMPT_SUBMIT_HOOK
     assert central_hook.exists()
     central_hook_text = central_hook.read_text(encoding="utf-8")
-    assert ".sdd/runtime/hook-disabled" in central_hook_text
+    assert ".providence/runtime/hook-disabled" in central_hook_text
     assert "SDD GOVERNANCE ACTIVE" in central_hook_text
     assert "prompt-submit-hook" in central_hook_text
     codex_config = tmp_path / ".codex" / "config.toml"
@@ -117,7 +117,7 @@ def test_prompt_submit_hook_generator_all_three_agents_together(
 def test_phase6_output_validator_imports_stay_in_sync_with_prompt_submit_hooks() -> (
     None
 ):
-    """Regression (SQ-001): guards the hidden cross-module coupling Ranger found —
+    """Regression (SQ-001): guards the hidden cross-module coupling Ranger found 
     phase6_output_validator.py imports these three names directly from
     prompt_submit_hooks.py; if they were ever renamed here without updating that
     import, this test fails loudly instead of the coupling breaking silently."""
@@ -143,7 +143,7 @@ def test_prompt_submit_hook_injects_governance_activation_header(
 ) -> None:
     generator = PromptSubmitHookGenerator(tmp_path, {"codex"})
     generator.generate()
-    (tmp_path / ".sdd" / "metadata.json").write_text("{}", encoding="utf-8")
+    (tmp_path / ".providence" / "metadata.json").write_text("{}", encoding="utf-8")
 
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -191,11 +191,11 @@ def test_prompt_submit_hook_skips_full_sdd_ask_for_explicit_slash_command(
 ) -> None:
     """Spike follow-up (20260714-sdd-ask-single-entrypoint-spike, R-001
     preferred strategy): when the raw prompt starts with /sdd-ask, the hook
-    must not run a full `providence ask` subprocess — the slash-command adapter
+    must not run a full `providence ask` subprocess  the slash-command adapter
     performs the single full invocation for that turn instead."""
     generator = PromptSubmitHookGenerator(tmp_path, {"codex"})
     generator.generate()
-    (tmp_path / ".sdd" / "metadata.json").write_text("{}", encoding="utf-8")
+    (tmp_path / ".providence" / "metadata.json").write_text("{}", encoding="utf-8")
 
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -242,7 +242,7 @@ def test_prompt_submit_hook_runs_full_path_for_non_slash_prompt(
     report `entrypoint: hook` in its structured output."""
     generator = PromptSubmitHookGenerator(tmp_path, {"codex"})
     generator.generate()
-    (tmp_path / ".sdd" / "metadata.json").write_text("{}", encoding="utf-8")
+    (tmp_path / ".providence" / "metadata.json").write_text("{}", encoding="utf-8")
 
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()

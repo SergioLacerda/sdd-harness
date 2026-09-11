@@ -1,4 +1,4 @@
-""".sdd/runtime/README.md sections: cache invalidation, optimization tips,
+""".providence/runtime/README.md sections: cache invalidation, optimization tips,
 troubleshooting, best practices, metrics, and footer. Split out of
 _runtime_readme_template.py to keep files under the 200-line convention.
 """
@@ -9,7 +9,7 @@ from __future__ import annotations
 def _cache_invalidation_section() -> str:
     return """## Cache Invalidation
 
-Re-read governance from `.sdd/source/` if:
+Re-read governance from `.providence/source/` if:
 
 1. **Manual update**: Files are explicitly updated by developer
 2. **Time-based**: Cache expires (e.g., 24 hours)
@@ -41,7 +41,7 @@ Don't load all guidelines at once. Load on demand:
 ```python
 def get_guideline(category):
     if category not in agent.memory.get('guidelines', {}):
-        path = Path('.sdd/source/guidelines') / f'{category}.md'
+        path = Path('.providence/source/guidelines') / f'{category}.md'
         agent.memory['guidelines'][category] = path.read_text()
     return agent.memory['guidelines'][category]
 ```
@@ -98,7 +98,7 @@ print(len(agent.memory.get('mandates', '')))  # noqa: T201
 
 **Solution**: Implement cache invalidation based on file mtime
 ```python
-governance_mtime = Path('.sdd/source/mandates/mandates.md').stat().st_mtime
+governance_mtime = Path('.providence/source/mandates/mandates.md').stat().st_mtime
 if governance_mtime > agent.memory.get('governance_loaded_at', 0):
     refresh_cache()
 ```
@@ -109,12 +109,12 @@ if governance_mtime > agent.memory.get('governance_loaded_at', 0):
 def _best_practices_and_footer_section() -> str:
     return """## Best Practices
 
-1. ✅ **Load once per session** - Don't re-read governance files repeatedly
-2. ✅ **Cache in memory** - Keep governance in agent context/memory
-3. ✅ **Reference by category** - Use structured memory keys
-4. ✅ **Implement cache invalidation** - Refresh on updates
-5. ✅ **Monitor cache size** - Warn if governance grows too large
-6. ✅ **Document cache strategy** - Clarify to team how governance is cached
+1.  **Load once per session** - Don't re-read governance files repeatedly
+2.  **Cache in memory** - Keep governance in agent context/memory
+3.  **Reference by category** - Use structured memory keys
+4.  **Implement cache invalidation** - Refresh on updates
+5.  **Monitor cache size** - Warn if governance grows too large
+6.  **Document cache strategy** - Clarify to team how governance is cached
 
 ## Metrics to Track
 

@@ -47,7 +47,7 @@ class TestHandshakeModeSeedlingSelection:
             assert excluded not in selected
         for included in ("claude", "codex", "gemini"):
             assert included in selected
-        assert (tmp_path / ".sdd" / "runtime" / "hooks" / "prompt-submit.py").exists()
+        assert (tmp_path / ".providence" / "runtime" / "hooks" / "prompt-submit.py").exists()
         assert (tmp_path / ".codex" / "config.toml").exists()
 
     @patch(

@@ -1,4 +1,4 @@
-"""Tests for providence_cli.services.governance_security_handlers — keygen and compiled-dir resolution."""
+"""Tests for providence_cli.services.governance_security_handlers  keygen and compiled-dir resolution."""
 
 from __future__ import annotations
 
@@ -98,7 +98,7 @@ class TestResolveCompiledDir:
         assert result == compiled
 
     def test_default_path_used_when_exists(self, tmp_path: Path) -> None:
-        compiled = tmp_path / ".sdd" / "compiled"
+        compiled = tmp_path / ".providence" / "compiled"
         compiled.mkdir(parents=True)
         result = resolve_compiled_dir(
             ws_root=tmp_path, compiled_dir=None, console=_CONSOLE

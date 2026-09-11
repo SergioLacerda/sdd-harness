@@ -1,4 +1,4 @@
-# SDD Agent Instructions — Authority & Bootstrap
+# SDD Agent Instructions  Authority & Bootstrap
 
 **This workspace is governed by Spec Driven Development (SDD).**
 
@@ -8,20 +8,20 @@ You MUST NOT proceed without reading this file in its entirety.
 
 ## 1. Authority Hierarchy
 
-**The source of truth for all governance is this directory (`.sdd/`).**
+**The source of truth for all governance is this directory (`.providence/`).**
 
 ```
-.sdd/
-├── metadata.json                      ← Workspace version + fingerprints
-├── agent-instructions.md              ← THIS FILE (you are reading it)
-├── compiled/                          ← Optional binary/runtime artifacts (may be absent in template handoff)
-└── source/
-    ├── metadata.json                  ← Workspace version + fingerprints — READ THIS
-    ├── mandates/mandates.md           ← Mandate descriptions (enforcement rules)
-    └── README.md
+.providence/
+ metadata.json                       Workspace version + fingerprints
+ agent-instructions.md               THIS FILE (you are reading it)
+ compiled/                           Optional binary/runtime artifacts (may be absent in template handoff)
+ source/
+     metadata.json                   Workspace version + fingerprints  READ THIS
+     mandates/mandates.md            Mandate descriptions (enforcement rules)
+     README.md
 ```
 
-**Do not trust CLAUDE.md, .vscode/, .cursor/, or any other "convenience" pointers over what is in `.sdd/`.**
+**Do not trust CLAUDE.md, .vscode/, .cursor/, or any other "convenience" pointers over what is in `.providence/`.**
 
 ---
 
@@ -29,18 +29,18 @@ You MUST NOT proceed without reading this file in its entirety.
 
 Before planning, coding, or deciding:
 
-1. **Read `.sdd/metadata.json`**
+1. **Read `.providence/metadata.json`**
    - Check `version` (currently 3.0)
    - Check `mandates_count` (count of active mandates)
    - Verify workspace is not stale
    - Expected fingerprint prefix (first 8 chars): 8d00f2d0
 
-2. **Read `.sdd/metadata.json`**
+2. **Read `.providence/metadata.json`**
    - Extract mandate IDs and titles
    - Example: `"items": [{"id": "M001", "title": "Clean Architecture"}, ...]`
-   - If `items` is empty or count < 4, governance is broken → escalate to human
+   - If `items` is empty or count < 4, governance is broken  escalate to human
 
-3. **Read `.sdd/source/mandates/mandates.md`**
+3. **Read `.providence/source/mandates/mandates.md`**
    - Understand enforcement rules for each active mandate
    - If descriptions are stale or missing, request governance regeneration from the human
 
@@ -60,11 +60,11 @@ For explicit HARD paths (example: `/sdd-ask`), missing/invalid governance must f
 
 ---
 
-## 3. Active Mandates (read from `.sdd/source/`)
+## 3. Active Mandates (read from `.providence/source/`)
 
-The authoritative human-readable list is in `.sdd/metadata.json`, not this file.
+The authoritative human-readable list is in `.providence/metadata.json`, not this file.
 
-**Current snapshot** (validate this against `.sdd/metadata.json`):
+**Current snapshot** (validate this against `.providence/metadata.json`):
 - **M001**: Clean Architecture
 - **M002**: Test-Driven Development (TDD)
 - **M003**: Context Awareness & Task Caching
@@ -84,12 +84,12 @@ The authoritative human-readable list is in `.sdd/metadata.json`, not this file.
 
 Before starting any work:
 
-- [ ] `.sdd/metadata.json` read → version, fingerprint, count verified
-- [ ] `.sdd/metadata.json` read → mandates extracted
-- [ ] `.sdd/source/mandates/mandates.md` read → enforcement rules understood
-- [ ] No contradictions between this file and `.sdd/` (if found → escalate)
+- [ ] `.providence/metadata.json` read  version, fingerprint, count verified
+- [ ] `.providence/metadata.json` read  mandates extracted
+- [ ] `.providence/source/mandates/mandates.md` read  enforcement rules understood
+- [ ] No contradictions between this file and `.providence/` (if found  escalate)
 
-**If you cannot complete this checklist, do not proceed — ask the human first.**
+**If you cannot complete this checklist, do not proceed  ask the human first.**
 
 ---
 
@@ -101,7 +101,7 @@ Policies, rules, and guidelines (SOFT) must also be applied when they do not con
 
 Git protocol (M010), testing, architecture, and token budgets must be followed.
 
-### HARD Constraints — Never Violate
+### HARD Constraints  Never Violate
 
 These constraints are non-negotiable. Violation requires human escalation, not auto-correction.
 
@@ -109,8 +109,8 @@ These constraints are non-negotiable. Violation requires human escalation, not a
   - **Explicit Authorization Required**: Only the human can authorize git operations with an explicit request: `"commita"`, `"commit"`, `"push"`, etc.
   - **Invalid Triggers** (NOT authorization): "continuar", "seguir", "pronto", "ok", "aplicar", code changes completion, test passing, linting passing.
   - **Corollary**: Task completion does NOT authorize a commit. Only explicit user request does.
-  - **Pre-Bash Checklist**: Before every Bash call, ask "Does this command modify git state?" If YES → present as code block and STOP. Never execute.
-  - **Read**: `.sdd/source/mandates/mandates.md#M010` and `docs/spec/canonical/core/mandates/M010_DELIVERY_HYGIENE.md`
+  - **Pre-Bash Checklist**: Before every Bash call, ask "Does this command modify git state?" If YES  present as code block and STOP. Never execute.
+  - **Read**: `.providence/source/mandates/mandates.md#M010` and `docs/spec/canonical/core/mandates/M010_DELIVERY_HYGIENE.md`
 
 - **M016 (Guardrail Non-Regression)**: Guardrails MAY be incremented and optimized, but MUST NEVER regress. No removal of coverage, no hacks, no code smells.
   - **Allowed**: adding checks, refactoring for clarity/performance, composing new behavior on top of existing guardrails.
@@ -118,7 +118,7 @@ These constraints are non-negotiable. Violation requires human escalation, not a
   - **Composition over replacement**: Extend guardrail behavior; never replace it wholesale.
   - **Audit required**: Any change to guardrail code MUST emit a `GovernanceEvent` with `event_type=GUARDRAIL_MODIFIED`.
   - **RFC gate**: Any regression (prohibited action) requires an active RFC token approved by the human owner.
-  - **Read**: `.sdd/source/mandates/mandates.md#M016` and `docs/spec/core/M016-guardrail-immutability.md`
+  - **Read**: `.providence/source/mandates/mandates.md#M016` and `docs/spec/core/M016-guardrail-immutability.md`
 
 ---
 
@@ -134,22 +134,22 @@ These constraints are non-negotiable. Violation requires human escalation, not a
    - Wait for explicit user authorization (e.g., "commita", "push", "merge")
 3. **If NO**:
    - Proceed with the Bash call
-   - For read-only git commands (status, log, diff) → allowed
-   - For non-git commands → allowed
-   - For linters, tests, formatters → allowed
+   - For read-only git commands (status, log, diff)  allowed
+   - For non-git commands  allowed
+   - For linters, tests, formatters  allowed
 
-**This gate is MANDATORY — it is the operational enforcement of M010.**
+**This gate is MANDATORY  it is the operational enforcement of M010.**
 
 ---
 
 ## 6. Fallback & Escalation
 
-**If `.sdd/` is incomplete or inconsistent:**
+**If `.providence/` is incomplete or inconsistent:**
 - Do not guess or interpolate
-- Escalate to human: "`.sdd/` is broken: [specific problem]"
-- Example: "`.sdd/metadata.json` has only 1 mandate but `.sdd/metadata.json` claims 4"
+- Escalate to human: "`.providence/` is broken: [specific problem]"
+- Example: "`.providence/metadata.json` has only 1 mandate but `.providence/metadata.json` claims 4"
 
-**This is not a blocker — it's a signal that the human should regenerate the workspace.**
+**This is not a blocker  it's a signal that the human should regenerate the workspace.**
 
 ---
 
@@ -157,15 +157,15 @@ These constraints are non-negotiable. Violation requires human escalation, not a
 
 The following aliases are mapped to the operational prompt templates in `.github/prompts/`. When a user provides a command starting with `/sdd-`, you MUST read the corresponding template and follow its mission protocol exactly.
 
-- `/sdd-ask`: → `.github/prompts/sdd-ask.prompt.md` (Governance Context Query)
-- `/sdd-diagnose`: → `.github/prompts/sdd-diagnose.prompt.md` (Diagnose runtime/workspace problems)
-- `/sdd-validate-governance`: → `.github/prompts/sdd-validate-governance.prompt.md` (Governance integrity preflight)
-- `/sdd-stabilize`: → `.github/prompts/sdd-stabilize.prompt.md` (Stabilization checks before handoff)
-- `/sdd-compress-context`: → `.github/prompts/sdd-compress-context.prompt.md` (Context footprint reduction)
-- `/sdd-review-architecture`: → `.github/prompts/sdd-review-architecture.prompt.md` (Architecture adherence review)
-- `/sdd-correct`: → `.github/prompts/sdd-correct.prompt.md` (Targeted governance correction)
-- `/sdd-converge`: → `.github/prompts/sdd-converge.prompt.md` (Systemic alignment convergence)
-- `/sdd-organize`: → `.github/prompts/sdd-organize.prompt.md` (Large context intake/indexing)
+- `/sdd-ask`:  `.github/prompts/sdd-ask.prompt.md` (Governance Context Query)
+- `/sdd-diagnose`:  `.github/prompts/sdd-diagnose.prompt.md` (Diagnose runtime/workspace problems)
+- `/sdd-validate-governance`:  `.github/prompts/sdd-validate-governance.prompt.md` (Governance integrity preflight)
+- `/sdd-stabilize`:  `.github/prompts/sdd-stabilize.prompt.md` (Stabilization checks before handoff)
+- `/sdd-compress-context`:  `.github/prompts/sdd-compress-context.prompt.md` (Context footprint reduction)
+- `/sdd-review-architecture`:  `.github/prompts/sdd-review-architecture.prompt.md` (Architecture adherence review)
+- `/sdd-correct`:  `.github/prompts/sdd-correct.prompt.md` (Targeted governance correction)
+- `/sdd-converge`:  `.github/prompts/sdd-converge.prompt.md` (Systemic alignment convergence)
+- `/sdd-organize`:  `.github/prompts/sdd-organize.prompt.md` (Large context intake/indexing)
 
 **Mandate**: All responses triggered by these commands MUST include the mandatory SDD footer:
 `SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`

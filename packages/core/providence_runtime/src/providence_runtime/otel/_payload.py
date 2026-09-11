@@ -50,16 +50,16 @@ def _build_otlp_payload(event: RuntimeEvent, attrs: OtelAttributes) -> dict[str,
     span: dict[str, Any] = {
         "traceId": attrs.trace_id,
         "spanId": attrs.span_id,
-        "name": attrs.sdd_event,
+        "name": attrs.providence_event,
         "kind": 1,  # SPAN_KIND_INTERNAL
         "startTimeUnixNano": start_ns,
         "endTimeUnixNano": end_ns,
         "attributes": _to_kv_list(attrs.to_otel_dict()),
         "status": {
-            "code": _status_code(attrs.sdd_status),
+            "code": _status_code(attrs.providence_status),
         },
     }
-    if attrs.sdd_parent_event_id:
+    if attrs.providence_parent_event_id:
         # TEL-08 (`.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`):
         # `sdd_parent_event_id` is populated with the parent RuntimeEvent's
         # own `span_id` (see `_pipeline_runtime_telemetry.py`) — it is
@@ -68,7 +68,7 @@ def _build_otlp_payload(event: RuntimeEvent, attrs: OtelAttributes) -> dict[str,
         # collector reconstruct the span tree; the `sdd.parent_event_id`
         # attribute (in `attributes` above) is kept for backward-compatible
         # correlation by anything already reading it.
-        span["parentSpanId"] = attrs.sdd_parent_event_id
+        span["parentSpanId"] = attrs.providence_parent_event_id
 
     return {
         "resourceSpans": [

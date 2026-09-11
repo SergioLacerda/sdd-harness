@@ -54,7 +54,7 @@ def check_root_seed_drift(
 ) -> DriftReport:
     """Compare a root seed's embedded fingerprint against metadata.json's canonical one.
 
-    `metadata_fingerprint` is the workspace's `.sdd/metadata.json` → `governance_fingerprint`
+    `metadata_fingerprint` is the workspace's `.providence/metadata.json` → `governance_fingerprint`
     top-level field (see the Metadata Contract this check enforces). A seed with no
     embedded fingerprint comment, or a workspace with no canonical fingerprint yet, is
     reported as `DRIFT_MISSING` (cannot verify) rather than silently treated as clean.
@@ -77,7 +77,7 @@ def check_root_seed_drift(
             remediation_command=_REMEDIATION[DRIFT_BOOTSTRAP],
             details=(
                 f"{seed_name} fingerprint '{seed_fingerprint}' does not match "
-                f".sdd/metadata.json governance_fingerprint '{metadata_fingerprint}'."
+                f".providence/metadata.json governance_fingerprint '{metadata_fingerprint}'."
             ),
         )
     return DriftReport(drift_detected=False, drift_type=DRIFT_NONE)

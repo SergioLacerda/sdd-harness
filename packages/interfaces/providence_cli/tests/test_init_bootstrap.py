@@ -1,4 +1,4 @@
-"""Tests for providence init command — --full-bootstrap orchestration (Phase 4)."""
+"""Tests for providence init command  --full-bootstrap orchestration (Phase 4)."""
 
 from __future__ import annotations
 

@@ -17,7 +17,7 @@ from providence_runtime.cache import get_context_cache
 
 @pytest.fixture(autouse=True)
 def _clear_shared_context_cache():
-    """The `ContextCache` singleton is process-global — isolate each test."""
+    """The `ContextCache` singleton is process-global  isolate each test."""
     get_context_cache().clear()
     yield
     get_context_cache().clear()

@@ -56,7 +56,7 @@ class SessionDriftScorer:
             reason = distribution.reason
 
         # From JSONL audit log
-        distribution = SessionDriftScorer.from_jsonl(Path(".sdd/runtime/compliance-events.jsonl"))
+        distribution = SessionDriftScorer.from_jsonl(Path(".providence/runtime/compliance-events.jsonl"))
     """
 
     @staticmethod

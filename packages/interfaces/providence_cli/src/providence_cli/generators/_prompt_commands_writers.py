@@ -42,7 +42,7 @@ def _write_cursor_commands(cursor_rules_dir: Path) -> tuple[str, Path]:
     cursor_commands = cursor_rules_dir / "sdd-commands.mdc"
     cursor_commands.write_text(
         "---\n"
-        "description: SDD CLI commands — invoked when user asks to run tests, lint, governance, etc.\n"
+        "description: SDD CLI commands  invoked when user asks to run tests, lint, governance, etc.\n"
         "globs: ['**/*']\n"
         "alwaysApply: false\n"
         "---\n\n"
@@ -111,14 +111,14 @@ def _write_codex_commands(
         "1. You must learn commands and skills from your custom folder path:\n"
         "   - `.codex/commands.md`\n"
         "   - `.codex/skills/`\n"
-        "2. You are under governance. Always resolve instructions from `.sdd`.\n"
-        "   Initial reference: `.sdd/agent-instructions.md`\n\n"
+        "2. You are under governance. Always resolve instructions from `.providence`.\n"
+        "   Initial reference: `.providence/agent-instructions.md`\n\n"
         "Use the aliases below as slash commands and route each one to its generated adapter.\n\n"
         + _slash_aliases_markdown(aliases)
         + "\n"
         + "Notes:\n"
-        + "- Canonical commands registry: `.sdd/commands/registry.json`\n"
-        + "- Canonical skills registry: `.sdd/skills/registry.json`\n",
+        + "- Canonical commands registry: `.providence/commands/registry.json`\n"
+        + "- Canonical skills registry: `.providence/skills/registry.json`\n",
         encoding="utf-8",
     )
     codex_commands.write_text(

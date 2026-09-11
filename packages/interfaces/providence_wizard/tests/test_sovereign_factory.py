@@ -11,7 +11,7 @@ from providence_wizard.orchestration.seedlings.sovereign_factory import (
 
 
 def _make_gen(tmp_path: Path) -> SovereignFactoryGenerator:
-    seedlings_dir = tmp_path / ".sdd" / "seedlings"
+    seedlings_dir = tmp_path / ".providence" / "seedlings"
     seedlings_dir.mkdir(parents=True)
     return SovereignFactoryGenerator(
         output_base=tmp_path,
@@ -45,7 +45,7 @@ class TestSovereignFactoryGenerator:
     def test_generate_creates_prompts_from_template(self, tmp_path: Path) -> None:
         gen = _make_gen(tmp_path)
         result = gen.generate_sovereign_factory_seed()
-        # Template exists → must succeed
+        # Template exists  must succeed
         assert result is True
         # Check that something was created
         assert (tmp_path / ".github").exists() or True  # prompts dir if templates found

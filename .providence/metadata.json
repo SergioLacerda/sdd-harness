@@ -1,0 +1,84 @@
+{
+  "version": "3.0",
+  "generated_at": "2026-09-10T20:48:10.501650",
+  "language": "all",
+  "language_context": {
+    "preferred_human_language": "Portugu\u00c3\u00aas (Brasil)",
+    "preferred_chat_language": "Portugu\u00c3\u00aas (Brasil)",
+    "preferred_ui_language": "Portugu\u00c3\u00aas (Brasil)",
+    "preferred_local_docs_language": "English"
+  },
+  "language_policy": {
+    "mandatory_surfaces": [
+      "code",
+      "technical_docs",
+      "governance",
+      "cli_help"
+    ],
+    "contextual_surfaces": [
+      "chat",
+      "ui",
+      "workspace_local_docs",
+      "analysis_docs"
+    ],
+    "workspace_local_docs_paths": [
+      ".analysis/"
+    ],
+    "mandate_anchor": "M011",
+    "guideline_anchors": [
+      "G021",
+      "G022"
+    ]
+  },
+  "adoption_level": "FULL",
+  "mandates_count": 16,
+  "guidelines_count": 23,
+  "categories": [
+    "other"
+  ],
+  "governance_fingerprint": "194680d14eb23e07",
+  "fingerprints": {
+    "combined": "194680d14eb23e07",
+    "mandates": {
+      "M001": "5f4f03bf40f26137",
+      "M002": "36d095b07f639422",
+      "M003": "d84941fa45d49141",
+      "M005": "db7c6059d9efd800",
+      "M006": "3b755d44e27ac834",
+      "M007": "dc6630711f360e03",
+      "M008": "de664dfe7c25c420",
+      "M009": "5a47a1015ecb74f2",
+      "M010": "2046a1dadeb5e4a5",
+      "M011": "b8a34b9ffb448aa9",
+      "M015": "de6c2b03784fe127",
+      "M016": "a847458d5fcbc462",
+      "M017": "5d94dc192f3aae3e",
+      "M018": "b7522f7e93d1019b",
+      "M019": "12e9fe933a1b5ac0",
+      "M020": "71ffd257b79a6ae6"
+    }
+  },
+  "mandates": {
+    "M001": "Clean Architecture",
+    "M002": "Test-Driven Development (TDD)",
+    "M003": "Context Awareness & Task Caching",
+    "M005": "Token Economy Enforcement",
+    "M006": "RFC Process for Breaking Changes",
+    "M007": "Telemetry Enforcement",
+    "M008": "Audit Integrity",
+    "M009": "OpenTelemetry Compliance",
+    "M010": "Delivery Hygiene Enforcement",
+    "M011": "English Language Standard",
+    "M015": "Bidirectional Agent Handshake",
+    "M016": "Guardrail Non-Regression",
+    "M017": "Analysis Plugin Compliance",
+    "M018": "Code Quality Baseline",
+    "M019": "Governance Federation",
+    "M020": "Governed Compact Logging"
+  },
+  "structure": {
+    "source": "Governance source of truth for agent queries",
+    "runtime": "Pre-cache instructions for agents",
+    "seedlings": ".vscode, .cursor directories with references to .providence/source"
+  }
+}

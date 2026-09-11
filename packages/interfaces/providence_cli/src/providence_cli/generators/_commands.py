@@ -1,4 +1,4 @@
-"""Commands registry generator — creates .sdd/commands/ with CLI and skill-routed commands."""
+"""Commands registry generator  creates .providence/commands/ with CLI and skill-routed commands."""
 
 import json
 from pathlib import Path
@@ -74,11 +74,11 @@ def _registry_entry(cmd: dict[str, Any]) -> dict[str, Any]:
 def generate_commands_registry(
     output_dir: str, config: dict[str, Any]
 ) -> dict[str, Any]:
-    """Generate commands registry at .sdd/commands/registry.json.
+    """Generate commands registry at .providence/commands/registry.json.
 
     Writes:
-    - .sdd/commands/registry.json — index of skill-routed + CLI-routed commands
-    - .sdd/commands/<id>/command.yaml — individual command definitions
+    - .providence/commands/registry.json  index of skill-routed + CLI-routed commands
+    - .providence/commands/<id>/command.yaml  individual command definitions
 
     Args:
         output_dir: Base output directory (workspace root)
@@ -93,7 +93,7 @@ def generate_commands_registry(
         from providence_runtime.skills import _REGISTRY
 
         output_path = Path(output_dir)
-        commands_dir = output_path / ".sdd" / "commands"
+        commands_dir = output_path / ".providence" / "commands"
         commands_dir.mkdir(parents=True, exist_ok=True)
 
         commands: list[dict[str, Any]] = []

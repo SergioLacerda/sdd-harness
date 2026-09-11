@@ -1,4 +1,4 @@
-"""providence ask — JSON-mode detection and learning-signal helpers.
+"""providence ask  JSON-mode detection and learning-signal helpers.
 
 Split out of `_helpers.py` (T16,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`).

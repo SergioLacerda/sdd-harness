@@ -22,13 +22,13 @@ def _write_json(path: Path, data: dict[str, object]) -> None:
 
 
 def _runtime(root: Path) -> None:
-    _write_json(root / ".sdd" / "metadata.json", {"mandates": {"M001": "One"}})
+    _write_json(root / ".providence" / "metadata.json", {"mandates": {"M001": "One"}})
     _write_json(
-        root / ".sdd" / "compiled" / "governance-core.json",
+        root / ".providence" / "compiled" / "governance-core.json",
         {"items": [{"id": "M001", "type": "MANDATE"}]},
     )
     _write_json(
-        root / ".sdd" / "compiled" / "governance-client.json",
+        root / ".providence" / "compiled" / "governance-client.json",
         {"items": [{"id": "G01", "type": "GUIDELINE"}]},
     )
 
@@ -158,16 +158,16 @@ def test_generate_runtime_handbook_writes_index_and_item(tmp_path: Path) -> None
                 "task_types": ["planning"],
                 "operation_phases": ["context_loading"],
                 "load_policy": {"mode": "selective", "max_tokens": 700},
-                "outputs": [".sdd/source/handbook/context-loading/context-flow.yaml"],
+                "outputs": [".providence/source/handbook/context-loading/context-flow.yaml"],
             },
         ],
     )
 
     written = generate_runtime_handbook(tmp_path)
 
-    assert tmp_path / ".sdd/source/handbook/index.yaml" in written
+    assert tmp_path / ".providence/source/handbook/index.yaml" in written
     item = yaml.safe_load(
-        (tmp_path / ".sdd/source/handbook/context-loading/context-flow.yaml").read_text(
+        (tmp_path / ".providence/source/handbook/context-loading/context-flow.yaml").read_text(
             encoding="utf-8"
         )
     )
@@ -178,7 +178,7 @@ def test_generate_runtime_handbook_writes_index_and_item(tmp_path: Path) -> None
 def test_generate_runtime_handbook_skips_when_registry_is_absent(
     tmp_path: Path,
 ) -> None:
-    existing = tmp_path / ".sdd/source/handbook/index.yaml"
+    existing = tmp_path / ".providence/source/handbook/index.yaml"
     existing.parent.mkdir(parents=True)
     existing.write_text("schema_version: '1'\nitems: []\n", encoding="utf-8")
 
@@ -219,7 +219,7 @@ def test_validate_governance_sources_detects_missing_handbook_output(
                 "path": "docs/cognition/context-loading/context_flow.md",
                 "refs": ["M001"],
                 "load_policy": {"max_tokens": 700},
-                "outputs": [".sdd/source/handbook/context-loading/context-flow.yaml"],
+                "outputs": [".providence/source/handbook/context-loading/context-flow.yaml"],
             },
         ],
     )
@@ -346,7 +346,7 @@ def test_generate_and_lookup_roundtrip_risk_levels(tmp_path: Path) -> None:
                 "operation_phases": ["context_loading"],
                 "risk_levels": ["high"],
                 "load_policy": {"mode": "selective", "max_tokens": 700},
-                "outputs": [".sdd/source/handbook/context-loading/context-flow.yaml"],
+                "outputs": [".providence/source/handbook/context-loading/context-flow.yaml"],
             },
         ],
     )
@@ -354,7 +354,7 @@ def test_generate_and_lookup_roundtrip_risk_levels(tmp_path: Path) -> None:
     generate_runtime_handbook(tmp_path)
 
     index = yaml.safe_load(
-        (tmp_path / ".sdd/source/handbook/index.yaml").read_text(encoding="utf-8")
+        (tmp_path / ".providence/source/handbook/index.yaml").read_text(encoding="utf-8")
     )
     assert index["items"][0]["risk_levels"] == ["high"]
 
@@ -393,7 +393,7 @@ def test_validate_governance_sources_rejects_wrong_schema_version(
 def test_validate_governance_sources_detects_stale_handbook_output(
     tmp_path: Path,
 ) -> None:
-    """A `.sdd/source/handbook/` file not declared by any active handbook
+    """A `.providence/source/handbook/` file not declared by any active handbook
     entry (here: no handbook entries at all) must be flagged as stale."""
     _runtime(tmp_path)
     docs = tmp_path / "docs"
@@ -417,7 +417,7 @@ def test_validate_governance_sources_detects_stale_handbook_output(
             },
         ],
     )
-    stale = tmp_path / ".sdd" / "source" / "handbook" / "orphan.yaml"
+    stale = tmp_path / ".providence" / "source" / "handbook" / "orphan.yaml"
     stale.parent.mkdir(parents=True)
     stale.write_text("id: ORPHAN\n", encoding="utf-8")
 
@@ -433,8 +433,8 @@ def test_validate_governance_sources_detects_stale_handbook_output(
 def test_validate_governance_sources_detects_readable_source_output_drift(
     tmp_path: Path,
 ) -> None:
-    """`.sdd/source/` outputs are checked against every entry's declared
-    `outputs`, not just handbook entries — covers both directions: a
+    """`.providence/source/` outputs are checked against every entry's declared
+    `outputs`, not just handbook entries  covers both directions: a
     declared-but-missing file and a present-but-undeclared (stale) file."""
     _runtime(tmp_path)
     docs = tmp_path / "docs"
@@ -449,7 +449,7 @@ def test_validate_governance_sources_detects_readable_source_output_drift(
                 "type": "mandate",
                 "status": "active",
                 "path": "docs/m001.md",
-                "outputs": [".sdd/source/mandates/mandates.md"],
+                "outputs": [".providence/source/mandates/mandates.md"],
             },
             {
                 "id": "G01",
@@ -467,10 +467,10 @@ def test_validate_governance_sources_detects_readable_source_output_drift(
             },
         ],
     )
-    # Declared (.sdd/source/mandates/mandates.md, and the handbook index.yaml
+    # Declared (.providence/source/mandates/mandates.md, and the handbook index.yaml
     # implied by the active handbook entry above) are never written to disk;
     # an undeclared stray file is written instead.
-    stray = tmp_path / ".sdd" / "source" / "stray.txt"
+    stray = tmp_path / ".providence" / "source" / "stray.txt"
     stray.parent.mkdir(parents=True)
     stray.write_text("unexpected", encoding="utf-8")
 

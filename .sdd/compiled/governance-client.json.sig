@@ -2,9 +2,9 @@
   "algorithm": "ed25519",
   "artifact_name": "governance-client.json",
   "key_id": "dev-01",
-  "payload_hash": "f2d6a1de9bf76d50c730350f96e39098899c159bc93ce98df950e7c2ffe868f2",
+  "payload_hash": "928c331b6096cfdb3aed76e8d125dbe9ce909629a166de7195802ec0a507690f",
   "profile": "client",
   "schema_version": "1.0",
-  "signature": "pOgRH8c9Xi3ECwKWbAL8ZkX8eJI2dxJ2iBclBxrNRRafOlmnwnYQMCkW1faIqswrEahHfsoig1YM0Apsv1olBg==",
-  "signed_at": "2026-09-02T22:11:51Z"
+  "signature": "DBt6cW1EHOaUOWdutB+8ePZvEj/IZoL5EO842yLMLvd98fTf2TMp8tXuaC8LG1wcnY/hFsKE2eCUsaEAALu3AQ==",
+  "signed_at": "2026-09-10T23:48:32Z"
 }

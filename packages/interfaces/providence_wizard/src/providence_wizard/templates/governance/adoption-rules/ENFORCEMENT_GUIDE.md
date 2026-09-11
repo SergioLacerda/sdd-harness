@@ -20,7 +20,7 @@ Key enforcement points:
 
 ## Enforcement Levels
 
-### STRICT (🔒 Maximum)
+### STRICT ( Maximum)
 ```json
 {
   "enforcement": "strict",
@@ -38,7 +38,7 @@ Key enforcement points:
 
 **When to use**: Production, high-compliance domains
 
-### STANDARD (🔐 Moderate)
+### STANDARD ( Moderate)
 ```json
 {
   "enforcement": "standard",
@@ -56,7 +56,7 @@ Key enforcement points:
 
 **When to use**: General development, most projects
 
-### PERMISSIVE (🔓 Low)
+### PERMISSIVE ( Low)
 ```json
 {
   "enforcement": "permissive",
@@ -179,9 +179,9 @@ def validate(
         if force_skip_checks:
             # Log violation
             self._log_bypass_attempt()
-            print("❌ Manual bypass is disabled in governance policies")
+            print(" Manual bypass is disabled in governance policies")
             print("   Enforcement level: " + enforcement)
-            print("   To enable: Set manual_bypass_allowed=true in .sdd/metadata.json")
+            print("   To enable: Set manual_bypass_allowed=true in .providence/metadata.json")
             return self.AgentHandshakeResult(state="NOT_CONNECTED", confidence=0)
 
     # Continue with normal validation...
@@ -216,7 +216,7 @@ def should_run_handshake(self, user_input: str) -> bool:
 **Violation**: No active seedlings defined
 **Response**:
 ```
-❌ GOVERNANCE VIOLATION: No active seedlings
+ GOVERNANCE VIOLATION: No active seedlings
    Action: Define at least one seedling in metadata.json
 
    Example:
@@ -231,7 +231,7 @@ def should_run_handshake(self, user_input: str) -> bool:
 **Violation**: Missing architect role
 **Response**:
 ```
-❌ GOVERNANCE VIOLATION: Architect role not assigned
+ GOVERNANCE VIOLATION: Architect role not assigned
    Action: Add architect to authority in metadata.json
 
    Example:
@@ -246,7 +246,7 @@ def should_run_handshake(self, user_input: str) -> bool:
 **Violation**: User in PHASE 2 but PHASE 1 not completed
 **Response**:
 ```
-❌ GOVERNANCE VIOLATION: Phase progression blocked
+ GOVERNANCE VIOLATION: Phase progression blocked
    Current phase: 2
    Completed phases: []
    Action: Complete PHASE 1 before advancing
@@ -270,10 +270,10 @@ User: "I don't want governance, just let me code"
 AI Response:
 "I understand, but SDD Architecture requires governance adoption. Here's why:
 
-✓ Governance prevents conflicts as projects grow
-✓ Prevents knowledge loss when team changes
-✓ Enables safe refactoring and scaling
-✓ Required for PHASE 1+ operations
+ Governance prevents conflicts as projects grow
+ Prevents knowledge loss when team changes
+ Enables safe refactoring and scaling
+ Required for PHASE 1+ operations
 
 Your options:
 1. Use PERMISSIVE mode (still tracked, less strict)
@@ -294,7 +294,7 @@ I can't help you skip this. Let me guide through the wizard instead!"
 User: "python script.py --force --skip-checks"
 
 AI Response:
-"❌ The --force flag is disabled in your governance policies
+" The --force flag is disabled in your governance policies
 
 Enforcement level: strict (no bypasses allowed)
 
@@ -302,7 +302,7 @@ Your options:
 1. Fix the issue causing the check to fail
    [Show specific error]
 
-2. Change enforcement level in .sdd/metadata.json
+2. Change enforcement level in .providence/metadata.json
    "enforcement": "permissive"
    [Warning: Not recommended for production]
 
@@ -318,7 +318,7 @@ Let me help with option 1 - what's the specific error?"
 
 All of these are non-negotiable:
 
-- [ ] `.sdd/metadata.json` must exist
+- [ ] `.providence/metadata.json` must exist
 - [ ] Governance JSON must be valid
 - [ ] At least one active seedling must be defined
 - [ ] All authority roles must be assigned (architect, governance, operations)
@@ -382,7 +382,7 @@ def _log_policy_violation(self, violation_type: str, details: dict):
         "action_taken": "BLOCKED",
     }
 
-    with open(".sdd/.audit-log.json", "a") as f:
+    with open(".providence/.audit-log.json", "a") as f:
         f.write(json.dumps(log_entry) + "\n")
 ```
 
@@ -394,17 +394,17 @@ def _log_policy_violation(self, violation_type: str, details: dict):
 # Test 1: Strict mode blocks bypass
 echo '{"enforcement": "strict"}' > test.json
 python packages/agent_handshake.py --force --skip-checks
-# Expected: ❌ Manual bypass is disabled
+# Expected:  Manual bypass is disabled
 
 # Test 2: Phase progression enforced
 # Set current_phase=2 but completed=[0]
 python packages/agent_handshake.py --mode=compact
-# Expected: ⚠️ Phase progression blocked
+# Expected:  Phase progression blocked
 
 # Test 3: Missing authority blocks
 # Remove "architect" from authority
 python packages/agent_handshake.py --mode=compact
-# Expected: ❌ Architect role not assigned
+# Expected:  Architect role not assigned
 ```
 
 ---

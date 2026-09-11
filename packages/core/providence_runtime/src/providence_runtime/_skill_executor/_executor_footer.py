@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def resolve_footer_policy(project_root: Path | None) -> str:
     root = project_root or Path.cwd()
-    state_path = root / ".sdd" / "runtime" / "governance-state.json"
+    state_path = root / ".providence" / "runtime" / "governance-state.json"
     try:
         if state_path.exists():
             payload = json.loads(state_path.read_text(encoding="utf-8"))

@@ -52,7 +52,7 @@ class BaseExtension(ABC):
 
     @abstractmethod
     def initialize(self) -> None:
-        """Initialize extension — called on load."""
+        """Initialize extension  called on load."""
 
     @abstractmethod
     def validate(self) -> list[str]:

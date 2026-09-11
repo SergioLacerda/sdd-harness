@@ -1,4 +1,4 @@
-"""Tests for providence_cli.generators._commands — generate_commands_registry."""
+"""Tests for providence_cli.generators._commands  generate_commands_registry."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class TestGenerateCommandsRegistry:
 
     def test_registry_in_sdd_commands_dir(self, tmp_path: Path) -> None:
         result = generate_commands_registry(str(tmp_path), {})
-        assert ".sdd/commands" in result["registry_path"]
+        assert ".providence/commands" in result["registry_path"]
 
     def test_command_count_includes_skills_and_cli_commands(
         self, tmp_path: Path
@@ -40,7 +40,7 @@ class TestGenerateCommandsRegistry:
         from providence_runtime.skills import _REGISTRY
 
         generate_commands_registry(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "commands" / "registry.json")
+        content = read_text_utf8(tmp_path / ".providence" / "commands" / "registry.json")
         data = json.loads(content)
         assert data["schema_version"] == "1.0.0"
         ids = {cmd["id"] for cmd in data["commands"]}
@@ -49,7 +49,7 @@ class TestGenerateCommandsRegistry:
 
     def test_registry_json_contains_cli_routed_commands(self, tmp_path: Path) -> None:
         generate_commands_registry(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "commands" / "registry.json")
+        content = read_text_utf8(tmp_path / ".providence" / "commands" / "registry.json")
         data = json.loads(content)
         by_id = {cmd["id"]: cmd for cmd in data["commands"]}
         assert by_id["sdd-ask"]["routes_to"] == {
@@ -65,7 +65,7 @@ class TestGenerateCommandsRegistry:
         generate_commands_registry(str(tmp_path), {})
         cli_ids = {cmd["id"] for cmd in _CLI_COMMANDS}
         skill_name = next(name for name in _REGISTRY if name not in cli_ids)
-        cmd_yaml = tmp_path / ".sdd" / "commands" / skill_name / "command.yaml"
+        cmd_yaml = tmp_path / ".providence" / "commands" / skill_name / "command.yaml"
         assert cmd_yaml.exists()
         content = read_text_utf8(cmd_yaml)
         assert f'id: "{skill_name}"' in content
@@ -75,7 +75,7 @@ class TestGenerateCommandsRegistry:
 
     def test_cli_routed_command_yaml(self, tmp_path: Path) -> None:
         generate_commands_registry(str(tmp_path), {})
-        cmd_yaml = tmp_path / ".sdd" / "commands" / "sdd-ask" / "command.yaml"
+        cmd_yaml = tmp_path / ".providence" / "commands" / "sdd-ask" / "command.yaml"
         assert cmd_yaml.exists()
         content = read_text_utf8(cmd_yaml)
         assert 'id: "sdd-ask"' in content
@@ -91,36 +91,36 @@ class TestGenerateCommandsRegistry:
         self, tmp_path: Path
     ) -> None:
         generate_commands_registry(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "commands" / "registry.json")
+        content = read_text_utf8(tmp_path / ".providence" / "commands" / "registry.json")
         data = json.loads(content)
         by_id = {cmd["id"]: cmd for cmd in data["commands"]}
         assert by_id["sdd-diagnose"]["capability_id"] == "diagnose"
 
-        cmd_yaml = tmp_path / ".sdd" / "commands" / "sdd-diagnose" / "command.yaml"
+        cmd_yaml = tmp_path / ".providence" / "commands" / "sdd-diagnose" / "command.yaml"
         assert "capability_id: diagnose" in read_text_utf8(cmd_yaml)
 
     def test_unmapped_skill_has_no_capability_id(self, tmp_path: Path) -> None:
         generate_commands_registry(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "commands" / "registry.json")
+        content = read_text_utf8(tmp_path / ".providence" / "commands" / "registry.json")
         data = json.loads(content)
         by_id = {cmd["id"]: cmd for cmd in data["commands"]}
         assert "capability_id" not in by_id["sdd-validate-governance"]
 
         cmd_yaml = (
-            tmp_path / ".sdd" / "commands" / "sdd-validate-governance" / "command.yaml"
+            tmp_path / ".providence" / "commands" / "sdd-validate-governance" / "command.yaml"
         )
         assert "capability_id" not in read_text_utf8(cmd_yaml)
 
     def test_cli_routed_command_has_no_capability_id(self, tmp_path: Path) -> None:
         """sdd-ask the skill has capability_id="query", but the /sdd-ask command
-        routes to the CLI, not the skill — no SkillDefinition in that path."""
+        routes to the CLI, not the skill  no SkillDefinition in that path."""
         generate_commands_registry(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "commands" / "registry.json")
+        content = read_text_utf8(tmp_path / ".providence" / "commands" / "registry.json")
         data = json.loads(content)
         by_id = {cmd["id"]: cmd for cmd in data["commands"]}
         assert "capability_id" not in by_id["sdd-ask"]
 
-        cmd_yaml = tmp_path / ".sdd" / "commands" / "sdd-ask" / "command.yaml"
+        cmd_yaml = tmp_path / ".providence" / "commands" / "sdd-ask" / "command.yaml"
         assert "capability_id" not in read_text_utf8(cmd_yaml)
 
     def test_import_error_returns_fallback(self, tmp_path: Path) -> None:

@@ -21,14 +21,14 @@ from providence_cli.services._runtime_handler_support import (
     runtime_context,
 )
 from providence_cli.shared.constants import RUNTIME_DIR as _RUNTIME_DIR
-from providence_cli.utils.sdd_authority import compiled_active_dir, profile_active_path
+from providence_cli.utils.providence_authority import compiled_active_dir, profile_active_path
 from providence_cli.utils.telemetry_paths import resolve_compliance_events_path
 
 logger = logging.getLogger(__name__)
 
 
 def _read_workspace_id(root: Path) -> str:
-    """Extract workspace_id from .sdd/profile, best-effort."""
+    """Extract workspace_id from .providence/profile, best-effort."""
     return read_profile_value(
         root=root,
         profile_active_path_fn=profile_active_path,
@@ -38,7 +38,7 @@ def _read_workspace_id(root: Path) -> str:
 
 
 def _read_profile(root: Path) -> str:
-    """Extract profile type from .sdd/profile, best-effort."""
+    """Extract profile type from .providence/profile, best-effort."""
     return read_profile_value(
         root=root,
         profile_active_path_fn=profile_active_path,
@@ -90,7 +90,7 @@ def _emit_runtime_status(
 ) -> dict[str, Any]:
     """Load compiled artifact, classify drift, upsert session, emit telemetry.
 
-    All providence_runtime calls are best-effort — a failure here must never crash
+    All providence_runtime calls are best-effort  a failure here must never crash
     the status command. Raises ImportError if providence_runtime is unavailable (let
     the command handle typer.Exit).
     """
@@ -123,7 +123,7 @@ def _emit_runtime_status(
             )
 
         session_manager = SessionManager(state_dir=context["runtime_dir"])
-        # Read the prior session BEFORE upserting the new one — classify()
+        # Read the prior session BEFORE upserting the new one  classify()
         # must compare the artifact against the baseline recorded on the
         # *previous* run, not against a session that was just built from
         # (and therefore trivially matches) the current artifact. Upserting
@@ -147,7 +147,7 @@ def _emit_runtime_status(
         drift_detected = False
         if artifact is not None:
             if previous_session is None:
-                # First session for this (workspace, agent, work item) key —
+                # First session for this (workspace, agent, work item) key 
                 # there is no prior baseline to classify against.
                 drift_info = {
                     "detected": False,
@@ -170,7 +170,7 @@ def _emit_runtime_status(
                     }
                     emit_fn(
                         f"\n[runtime] drift detected: {drift_type}"
-                        f"  →  {drift_report.remediation_command}",
+                        f"    {drift_report.remediation_command}",
                     )
                 else:
                     drift_info = {"detected": False, "type": drift_type, "reason": ""}
@@ -197,11 +197,11 @@ def _emit_runtime_status(
         )
 
     except FileNotFoundError as exc:
-        logger.debug("providence_runtime: compiled artifact not found — %s", exc)
+        logger.debug("providence_runtime: compiled artifact not found  %s", exc)
 
     except Exception as exc:  # noqa: BLE001
         logger.debug(
-            "providence_runtime: non-critical failure in status emit — %s", exc
+            "providence_runtime: non-critical failure in status emit  %s", exc
         )
 
     return drift_info

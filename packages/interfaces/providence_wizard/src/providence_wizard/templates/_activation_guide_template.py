@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from providence_wizard.constants import RUNTIME_DIRNAME
+
 from ._activation_guide_reference_sections import (
     _footer_section,
     _invocation_playbook_section,
@@ -16,6 +18,14 @@ from ._activation_guide_setup_sections import (
 )
 
 
+def _use_runtime_dir(content: str) -> str:
+    return (
+        content.replace(".providence/", f"{RUNTIME_DIRNAME}/")
+        .replace(".providence\\\\", f"{RUNTIME_DIRNAME}\\\\")
+        .replace(".providence", RUNTIME_DIRNAME)
+    )
+
+
 def _intro_and_quickstart_section(
     fingerprint: str,
     generated_at: str,
@@ -26,38 +36,38 @@ def _intro_and_quickstart_section(
     return f"""# Governance Activation Guide
 <!-- Governance fingerprint: {fingerprint} -->
 <!-- Generated: {generated_at} -->
-<!-- Drift check: if fingerprint differs from .sdd/metadata.json, run providence governance generate -->
+<!-- Drift check: if fingerprint differs from .providence/metadata.json, run providence governance generate -->
 
 ## What This Is
 
-This `.sdd/seedlings/` directory contains **auto-activation files** for the Governance Activation Protocol (GAP v1.0).
+This `.providence/seedlings/` directory contains **auto-activation files** for the Governance Activation Protocol (GAP v1.0).
 
 **Generated for:**
-- 🔐 Enforcement Mode: **{enforcement_label}**
+-  Enforcement Mode: **{enforcement_label}**
   - {enforcement_explanation}
-- 🔤 Language: **{language}**
-- 📅 Generated: {generated_at}
+-  Language: **{language}**
+-  Generated: {generated_at}
 
 ---
 
-## ✅ Quick Start (3 Steps)
+##  Quick Start (3 Steps)
 
 ### Step 1: Copy Governance Files
 
 **Linux/macOS:**
 ```bash
-cp -r .sdd/ .
-cp -r .sdd/seedlings/ .
-ls -la .sdd/source/mandates/
-ls -la .sdd/seedlings/
+cp -r .providence/ .
+cp -r .providence/seedlings/ .
+ls -la .providence/source/mandates/
+ls -la .providence/seedlings/
 ```
 
 **Windows (PowerShell):**
 ```powershell
-Copy-Item -Path .sdd -Destination . -Recurse
-Copy-Item -Path .sdd\\seedlings -Destination . -Recurse
-dir .sdd\\source\\mandates
-dir .sdd\\seedlings
+Copy-Item -Path .providence -Destination . -Recurse
+Copy-Item -Path .providence\\seedlings -Destination . -Recurse
+dir .providence\\source\\mandates
+dir .providence\\seedlings
 ```
 
 ### Step 2: Restart IDE
@@ -80,14 +90,14 @@ windsurf .
 ### Step 3: Verify Activation
 ```bash
 # Run verification script
-python3 .sdd/seedlings/verify.py
+python3 .providence/seedlings/verify.py
 
 # Expected output:
-# ✅ .sdd/source/mandates/ exists
-# ✅ .sdd/seedlings/ exists
-# ✅ governance.seed.json valid
-# ✅ SeedlingLoader works
-# ✅ GAP is ACTIVE
+#  .providence/source/mandates/ exists
+#  .providence/seedlings/ exists
+#  governance.seed.json valid
+#  SeedlingLoader works
+#  GAP is ACTIVE
 ```
 
 ---
@@ -107,7 +117,7 @@ def build_activation_guide(
     mandate_ids_joined: str,
 ) -> str:
     """Render ACTIVATION_GUIDE.md content."""
-    return (
+    content = (
         _intro_and_quickstart_section(
             fingerprint,
             generated_at,
@@ -126,3 +136,4 @@ def build_activation_guide(
         + _troubleshooting_section(fingerprint)
         + _footer_section(generated_at)
     )
+    return _use_runtime_dir(content)

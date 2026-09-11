@@ -34,13 +34,13 @@ def test_copilot_instructions_use_sdd_only_redirector(tmp_path: Path) -> None:
     content = (tmp_path / ".github" / "copilot-instructions.md").read_text(
         encoding="utf-8"
     )
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
     assert "providence runtime status" in content
     assert "providence governance validate" in content
-    assert ".sdd/commands/registry.json" in content
-    assert ".sdd/skills/registry.json" in content
-    assert ".sdd/commands/<command-id>/command.yaml" in content
-    assert ".sdd/skills/<skill-name>/skill.yaml" in content
+    assert ".providence/commands/registry.json" in content
+    assert ".providence/skills/registry.json" in content
+    assert ".providence/commands/<command-id>/command.yaml" in content
+    assert ".providence/skills/<skill-name>/skill.yaml" in content
     assert ".spec.config" not in content
     assert ".../EXECUTION/" not in content
 
@@ -64,7 +64,7 @@ def test_static_claude_instructions_no_spec_config() -> None:
     assert ".spec.config" not in content, (
         "claude-instructions.md still references legacy .spec.config"
     )
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
 
 
 def test_static_gemini_instructions_no_spec_config() -> None:
@@ -75,7 +75,7 @@ def test_static_gemini_instructions_no_spec_config() -> None:
     assert ".spec.config" not in content, (
         "gemini-instructions.md still references legacy .spec.config"
     )
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
 
 
 def test_no_legacy_antigravity_template_shipped() -> None:
@@ -101,7 +101,7 @@ def test_antigravity_regenerated_by_governance_generate(tmp_path: Path) -> None:
         ".gemini/antigravity/antigravity-instructions.md not generated"
     )
     content = antigravity_file.read_text(encoding="utf-8")
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
     assert FINGERPRINT in content
 
 
@@ -122,7 +122,7 @@ def test_vscode_no_inline_mandate_descriptions(tmp_path: Path) -> None:
     generate_agent_instruction_files(tmp_path, _sample_config())
     content = (tmp_path / ".vscode" / "ai-rules.md").read_text(encoding="utf-8")
     assert MANDATE_DESC not in content
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
     assert FINGERPRINT in content
 
 
@@ -132,5 +132,5 @@ def test_cursor_no_inline_mandate_descriptions(tmp_path: Path) -> None:
         encoding="utf-8"
     )
     assert MANDATE_DESC not in content
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
     assert FINGERPRINT in content

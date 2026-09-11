@@ -2,7 +2,7 @@
 <!-- Governance fingerprint: abc12345 -->
 <!-- Active mandates: 3 (M001, M002, M003) -->
 <!-- Generated: 2026-05-22T00:00:00Z -->
-<!-- Drift check: fingerprint must match .sdd/metadata.json → fingerprints.combined -->
+<!-- Drift check: fingerprint must match .sdd/metadata.json  fingerprints.combined -->
 
 Objective: standardize where each agent must load local instructions, commands, and skills in this project.
 

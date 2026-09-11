@@ -8,7 +8,7 @@ Usage::
     from providence_runtime.reader import TelemetryReader
     from pathlib import Path
 
-    reader = TelemetryReader(Path(".sdd/runtime/events.jsonl"))
+    reader = TelemetryReader(Path(".providence/runtime/events.jsonl"))
 
     # Get recent events of a specific type
     events = reader.get_events_by_type("economy.token.consume", last_hours=24)

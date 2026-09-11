@@ -53,8 +53,8 @@ class ClaudeStandaloneGenerator:
 
         Content is curated, static text (same approach as
         ``DevinPluginGenerator.generate_standalone()`` and
-        ``CopilotStandaloneGenerator.generate_standalone()``) — it is not parsed
-        from this repository's own ``.sdd/`` governance sources. Embedding this
+        ``CopilotStandaloneGenerator.generate_standalone()``) â€” it is not parsed
+        from this repository's own ``.providence/`` governance sources. Embedding this
         project's specific mandate/guideline content would tie "standalone"
         output to the Providence's own governance framework, which contradicts
         the zero-SDD-mention, reusable-in-any-project guarantee this mode makes.
@@ -62,7 +62,7 @@ class ClaudeStandaloneGenerator:
         Args:
             output_dir: project root (used only to resolve the default dest).
             dest: output directory. Defaults to {output_dir}/dist/claude-standalone
-                — a build artifact, never the project's real root CLAUDE.md/.claude/
+                â€” a build artifact, never the project's real root CLAUDE.md/.claude/
                 files.
         """
         result = ClaudeStandaloneResult()

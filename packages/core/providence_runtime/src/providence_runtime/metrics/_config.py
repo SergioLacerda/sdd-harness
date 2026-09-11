@@ -12,7 +12,7 @@ def _load_token_budget_config() -> dict[str, Any]:
 
     Resolution order:
     1. Environment variables (SDD_TOKEN_BUDGET_CEILING, SDD_CONTEXT_COMPRESSION_THRESHOLD, SDD_CONTEXT_COMPRESSION_TARGET)
-    2. pyproject.toml [tool.sdd.runtime] configuration
+    2. pyproject.toml [tool.providence.runtime] configuration
     3. Default values
 
     Returns:

@@ -40,7 +40,7 @@ class HandshakeTelemetry:
             from providence_runtime.telemetry import RuntimeEvent, TelemetrySink
 
             # Determine context_source from canonical .providence governance artifact
-            gov_path = project_root / ".sdd" / "compiled" / "governance-core.json"
+            gov_path = project_root / ".providence" / "compiled" / "governance-core.json"
             context_source = "json" if gov_path.exists() else "none"
 
             sink = TelemetrySink()

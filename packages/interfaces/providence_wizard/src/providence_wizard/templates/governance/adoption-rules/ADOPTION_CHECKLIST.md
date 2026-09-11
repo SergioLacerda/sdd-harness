@@ -16,7 +16,7 @@ Complete this BEFORE running wizard:
 - [ ] I've read WIZARD_ADOPTION.md
 - [ ] I'm ready to commit to governance (no option to skip this)
 
-**Proceed if all checked** ✓
+**Proceed if all checked** 
 
 ---
 
@@ -43,7 +43,7 @@ Complete these steps during `phase-0-agent-onboarding.py`:
 - [ ] Customize seedling options if needed
 
 ### Validation Phase (Automatic)
-- [ ] Wizard creates `.sdd/` directory
+- [ ] Wizard creates `.providence/` directory
 - [ ] Wizard generates `metadata.json`
 - [ ] Wizard creates seedling directories
 - [ ] Wizard validates JSON syntax
@@ -63,27 +63,27 @@ Complete these IMMEDIATELY after wizard finishes:
 ### File Verification
 ```bash
 # Check 1: metadata.json exists and is valid JSON
-[ -f .sdd/metadata.json ] && echo "✓" || echo "✗"
-python3 -m json.tool .sdd/metadata.json > /dev/null && echo "✓" || echo "✗"
+[ -f .providence/metadata.json ] && echo "" || echo ""
+python3 -m json.tool .providence/metadata.json > /dev/null && echo "" || echo ""
 
 # Check 2: Seedlings directory exists
-[ -d .sdd/seedlings ] && echo "✓" || echo "✗"
+[ -d .providence/seedlings ] && echo "" || echo ""
 
 # Check 3: At least one seedling created
-[ "$(ls -1 .sdd/seedlings | wc -l)" -gt 0 ] && echo "✓" || echo "✗"
+[ "$(ls -1 .providence/seedlings | wc -l)" -gt 0 ] && echo "" || echo ""
 
 # Check 4: Phases directory exists
-[ -d .sdd/phases ] && echo "✓" || echo "✗"
+[ -d .providence/phases ] && echo "" || echo ""
 ```
 
-- [ ] All file checks pass (✓)
+- [ ] All file checks pass ()
 
 ### Configuration Verification
 ```bash
 # Check metadata.json content
 python3 << 'EOF'
 import json
-cfg = json.load(open('.sdd/metadata.json'))
+cfg = json.load(open('.providence/metadata.json'))
 
 # Verify structure
 checks = {
@@ -97,11 +97,11 @@ checks = {
 }
 
 for check, result in checks.items():
-    print(f"{'✓' if result else '✗'} {check}")
+    print(f"{'' if result else ''} {check}")
 EOF
 ```
 
-- [ ] All configuration checks pass (✓)
+- [ ] All configuration checks pass ()
 
 ### Health Check Verification
 ```bash
@@ -111,8 +111,8 @@ python packages/agent_handshake.py --mode=compact
 
 **Expected output**:
 ```
-🧠 SDD STATUS
-State: 🟢 HEALTHY (or 🟡 PARTIAL)
+ SDD STATUS
+State:  HEALTHY (or  PARTIAL)
 Confidence: 70%+
 ```
 
@@ -134,7 +134,7 @@ python packages/quiz_executor.py --topic=governance
 - Questions: 3
 - Topics: governance, authority, seedlings
 
-- [ ] Quiz score ≥ 70%
+- [ ] Quiz score  70%
 - [ ] All topic questions answered
 
 ---
@@ -146,11 +146,11 @@ Verify governance integrates with existing systems:
 ### Git Integration
 ```bash
 # Governance files should be committed
-git status .sdd/
+git status .providence/
 ```
 
-- [ ] `.sdd/metadata.json` is tracked in git
-- [ ] `.sdd/seedlings/` is tracked in git
+- [ ] `.providence/metadata.json` is tracked in git
+- [ ] `.providence/seedlings/` is tracked in git
 - [ ] Files committed to main branch
 
 ### Wizard Integration
@@ -168,7 +168,7 @@ python packages/interfaces/providence_wizard/src/providence_wizard/SCRIPTS/phase
 cat .github/workflows/health-check.yml | grep -A5 "governance" || echo "Add governance checks to workflow"
 ```
 
-- [ ] Health check workflow references .sdd/
+- [ ] Health check workflow references .providence/
 - [ ] GitHub Actions validates governance on PR
 
 ---
@@ -214,7 +214,7 @@ Verify governance roles are properly assigned:
 # Extract authority from metadata.json
 python3 << 'EOF'
 import json
-cfg = json.load(open('.sdd/metadata.json'))
+cfg = json.load(open('.providence/metadata.json'))
 authority = cfg.get('authority', {})
 
 for role, emails in authority.items():
@@ -237,18 +237,18 @@ Verify seedlings are properly configured:
 # List active seedlings
 python3 << 'EOF'
 import json
-cfg = json.load(open('.sdd/metadata.json'))
+cfg = json.load(open('.providence/metadata.json'))
 active = cfg.get('seedlings', {}).get('active', [])
 print(f"Active seedlings: {active}")
 
 # Verify directories exist
 import os
 for seedling in active:
-    path = f".sdd/seedlings/{seedling}"
+    path = f".providence/seedlings/{seedling}"
     if os.path.isdir(path):
-        print(f"✓ {seedling}")
+        print(f" {seedling}")
     else:
-        print(f"✗ {seedling} (missing)")
+        print(f" {seedling} (missing)")
 EOF
 ```
 
@@ -273,7 +273,7 @@ EOF
 
 ---
 
-## Adoption Complete! 🎉
+## Adoption Complete! 
 
 **Date Adopted**: ____________
 **Adopted By**: ____________
@@ -284,7 +284,7 @@ EOF
 
 1. **Commit governance files to git**
    ```bash
-   git add .sdd/
+   git add .providence/
    git commit -m "chore: Initialize SDD Architecture governance"
    git push origin main
    ```
@@ -328,4 +328,4 @@ No. All checks must pass for governance adoption to be considered complete.
 
 ---
 
-**Version**: 1.0 | **Status**: ✅ Mandatory | **Last Updated**: 2026-04-26
+**Version**: 1.0 | **Status**:  Mandatory | **Last Updated**: 2026-04-26

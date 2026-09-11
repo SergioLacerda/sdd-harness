@@ -76,9 +76,9 @@ def emit_summary_output(
     console.print(build_summary_table(snap))
     util_pct = snap.budget_utilization_pct
     color, status = (
-        ("red", "🔴 BREACH")
+        ("red", " BREACH")
         if util_pct >= 100
-        else (("yellow", "🟡 WARNING (>90%)") if util_pct >= 90 else ("green", "🟢 OK"))
+        else (("yellow", " WARNING (>90%)") if util_pct >= 90 else ("green", " OK"))
     )
     console.print(
         f"\nBudget utilization: [{color}]{util_pct:.1f}%[/{color}] {status}",

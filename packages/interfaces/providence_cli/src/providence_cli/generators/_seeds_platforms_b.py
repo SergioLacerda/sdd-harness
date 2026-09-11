@@ -1,4 +1,4 @@
-"""Per-platform agent seed generators — Gemini, Antigravity."""
+"""Per-platform agent seed generators  Gemini, Antigravity."""
 
 from typing import Any
 
@@ -53,7 +53,7 @@ def _generate_antigravity_seed(
 
 ## Enforcement Notes
 1. Treat governance mandates as non-negotiable
-2. Use compiled artifacts as source of truth: `.sdd/compiled/`
+2. Use compiled artifacts as source of truth: `.providence/compiled/`
 3. Query context: `providence ask --full "<question>"`
 4. Run `providence governance validate` and `providence runtime status` before handoff
 """

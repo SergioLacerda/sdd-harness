@@ -34,7 +34,7 @@ class GovernanceAdherenceScorer:
         now = datetime.now()
         root = workspace_root_or_none(workspace_root)
         resolved_state = state_path or (
-            root / ".sdd" / "runtime" / "governance-state.json" if root else None
+            root / ".providence" / "runtime" / "governance-state.json" if root else None
         )
         all_events = GovernanceAdherenceScorer._read_all_events(
             workspace_root=workspace_root, log_path=log_path

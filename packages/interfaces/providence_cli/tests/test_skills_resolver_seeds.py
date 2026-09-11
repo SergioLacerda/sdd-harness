@@ -1,4 +1,4 @@
-"""Unit tests for providence_cli.services.skills_resolver — registry/seed reconciliation and adapters."""
+"""Unit tests for providence_cli.services.skills_resolver  registry/seed reconciliation and adapters."""
 
 from __future__ import annotations
 
@@ -34,8 +34,8 @@ class TestReadRegistryIds:
 
 class TestReconcileRootSeedArtifacts:
     def test_prunes_stale_files(self, tmp_path: Path) -> None:
-        commands_registry = tmp_path / ".sdd" / "commands"
-        skills_registry = tmp_path / ".sdd" / "skills"
+        commands_registry = tmp_path / ".providence" / "commands"
+        skills_registry = tmp_path / ".providence" / "skills"
         commands_registry.mkdir(parents=True, exist_ok=True)
         skills_registry.mkdir(parents=True, exist_ok=True)
         (commands_registry / "registry.json").write_text(
@@ -84,8 +84,8 @@ class TestReconcileRootSeedArtifacts:
         assert (gemini_skills / "sdd-governance").exists() is True
 
     def test_dry_run_does_not_delete(self, tmp_path: Path) -> None:
-        commands_registry = tmp_path / ".sdd" / "commands"
-        skills_registry = tmp_path / ".sdd" / "skills"
+        commands_registry = tmp_path / ".providence" / "commands"
+        skills_registry = tmp_path / ".providence" / "skills"
         commands_registry.mkdir(parents=True, exist_ok=True)
         skills_registry.mkdir(parents=True, exist_ok=True)
         (commands_registry / "registry.json").write_text(

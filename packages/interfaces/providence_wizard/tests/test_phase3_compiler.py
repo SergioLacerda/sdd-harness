@@ -168,7 +168,7 @@ def test_log_emits_only_when_verbose(tmp_path: Path) -> None:
 
     compiler.log("hello")
 
-    assert messages == ["  ℹ️  hello"]
+    assert messages == ["    hello"]
 
 
 def test_parse_markdown_items_updates_selected_guidelines(

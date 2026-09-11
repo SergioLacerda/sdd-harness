@@ -6,19 +6,19 @@ description: Bootstrap pointer skill for operating in this SDD-governed workspac
 # Providence Skill
 
 This is a **bootstrap/meta skill** (category: `bootstrap`). It has no independent
-authority — it points file-based skill-discovery agents (Claude Code, Antigravity/
+authority  it points file-based skill-discovery agents (Claude Code, Antigravity/
 Gemini CLI) at the canonical SDD governance sources below. Do not duplicate routing
-tables or mandate content here: if this file and `.sdd/agent-instructions.md` ever
-disagree, `.sdd/agent-instructions.md` wins.
+tables or mandate content here: if this file and `.providence/agent-instructions.md` ever
+disagree, `.providence/agent-instructions.md` wins.
 
 ## Entrypoint Contract
 
-1. Read `.sdd/agent-instructions.md` — governance authority, active mandates, bootstrap steps.
-2. Commands source of truth: `.sdd/commands/registry.json` + `.sdd/commands/<command-id>/command.yaml`.
-3. Skills source of truth: `.sdd/skills/registry.json` + `.sdd/skills/<skill-name>/skill.yaml`.
+1. Read `.providence/agent-instructions.md`  governance authority, active mandates, bootstrap steps.
+2. Commands source of truth: `.providence/commands/registry.json` + `.providence/commands/<command-id>/command.yaml`.
+3. Skills source of truth: `.providence/skills/registry.json` + `.providence/skills/<skill-name>/skill.yaml`.
 
-`providence` itself is registered in `.sdd/skills/registry.json` under category
-`bootstrap`. Its presence there — not absence — is what's canonical; do not report
+`providence` itself is registered in `.providence/skills/registry.json` under category
+`bootstrap`. Its presence there  not absence  is what's canonical; do not report
 this skill as governance drift.
 
 ## Mandatory Protocols

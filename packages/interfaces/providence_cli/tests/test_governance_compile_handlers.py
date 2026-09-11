@@ -158,7 +158,7 @@ class TestRunCompile:
                 "providence_cli.services.governance_compile_handlers.regenerate_seeds"
             ),
             patch(
-                "providence_cli.utils.sdd_authority.resolve_workspace_root",
+                "providence_cli.utils.providence_authority.resolve_workspace_root",
                 return_value=Path("/tmp/ws"),
             ),
         )

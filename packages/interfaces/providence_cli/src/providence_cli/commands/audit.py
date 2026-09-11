@@ -1,4 +1,4 @@
-"""providence audit — governance drift and telemetry summary."""
+"""providence audit  governance drift and telemetry summary."""
 
 from __future__ import annotations
 
@@ -142,7 +142,7 @@ def audit_view(
     )
 
 
-# Imported for its @app.command() registration side effect — export/
+# Imported for its @app.command() registration side effect  export/
 # legacy-check/bootstrap-check/compliance-pack live in audit_export_commands.py
 # (T12 split) but must be imported here so lazy command loading (which only
 # imports `providence_cli.commands.audit`) still registers them on `app`. Mirrors the

@@ -134,7 +134,7 @@ class TestRenderAskTextOutput:
         assert "my context text" in output
 
     def test_light_input_shows_allowed(self) -> None:
-        # light_input is too small to need indexing — gate should pass through
+        # light_input is too small to need indexing  gate should pass through
         output = self._make_output(organize_used=False)
         assert "allowed" in output
 

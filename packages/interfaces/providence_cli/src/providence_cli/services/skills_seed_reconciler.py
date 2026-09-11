@@ -61,8 +61,8 @@ def _prune_antigravity_skills(
 def _reconcile_root_seed_artifacts(
     root: Path, *, dry_run: bool = False
 ) -> dict[str, int]:
-    commands_registry = root / ".sdd" / "commands" / "registry.json"
-    skills_registry = root / ".sdd" / "skills" / "registry.json"
+    commands_registry = root / ".providence" / "commands" / "registry.json"
+    skills_registry = root / ".providence" / "skills" / "registry.json"
     missing = [str(p) for p in (commands_registry, skills_registry) if not p.exists()]
     if missing:
         raise FileNotFoundError(

@@ -9,7 +9,7 @@ from typing import Any
 from providence_cli.shared.constants import TRUE_VALUES as _TRUE_VALUES
 
 # Matches the `len(text)//4` convention already used for token estimation in
-# `ask_telemetry.resolve_tokens` — kept consistent so the budget percentage
+# `ask_telemetry.resolve_tokens`  kept consistent so the budget percentage
 # and the token counts shown elsewhere in `providence ask` agree on the same ratio.
 _BYTES_PER_TOKEN_ESTIMATE = 4
 
@@ -32,13 +32,13 @@ def handle_dossier_error(exc: Exception, *, logger: Any, typer_module: Any) -> N
 
     if isinstance(exc, BudgetBreachError):
         typer_module.echo(
-            f"[red]❌ Budget breach: {exc}[/red]",
+            f"[red] Budget breach: {exc}[/red]",
             err=True,
         )
         raise SystemExit(1) from exc
     logger.debug("Dossier builder failed: %s", exc)
     typer_module.echo(
-        "[yellow]⚠ Dossier generation failed (continuing with minimal output)[/yellow]",
+        "[yellow] Dossier generation failed (continuing with minimal output)[/yellow]",
         err=True,
     )
 

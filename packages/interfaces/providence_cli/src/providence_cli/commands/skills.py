@@ -40,7 +40,7 @@ from providence_cli.services.skills_resolver import (
 )
 from providence_cli.shared.constants import TRUE_VALUES as _TRUE_VALUES
 from providence_cli.utils.output import is_json_mode
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 __all__ = ["_generate_adapters", "_read_registry_ids", "_reconcile_root_seed_artifacts"]
 
@@ -100,7 +100,7 @@ def _(
         "--regenerate-seeds",
         help=(
             "Regenerate and reconcile root seed artifacts from canonical "
-            ".sdd command/skill registries (deletes stale managed seed files)."
+            ".providence command/skill registries (deletes stale managed seed files)."
         ),
     ),
     dry_run: bool = typer.Option(

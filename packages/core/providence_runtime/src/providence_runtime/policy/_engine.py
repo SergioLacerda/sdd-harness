@@ -150,7 +150,7 @@ class PolicyEngine:
         """
         try:
             root = project_root or Path.cwd()
-            response_file = root / ".sdd" / "runtime" / "handshake-response.json"
+            response_file = root / ".providence" / "runtime" / "handshake-response.json"
 
             if not response_file.exists():
                 # Handshake not established — opt-in model requires explicit authorization
@@ -178,7 +178,7 @@ class PolicyEngine:
                 allowed=False,
                 severity=SEVERITY_HARD,
                 reason="handshake response is malformed; skill execution blocked",
-                remediation="delete .sdd/runtime/handshake-response.json and run 'providence governance validate'",
+                remediation="delete .providence/runtime/handshake-response.json and run 'providence governance validate'",
             )
 
         return None

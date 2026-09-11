@@ -70,7 +70,7 @@ class PhaseOneRuntime:
                 return readiness_result
             return self._run_generator(generator_type, config)
         except Exception as exc:
-            self._context._emit(f"\n❌ Error: {exc}")
+            self._context._emit(f"\n Error: {exc}")
             import traceback
 
             traceback.print_exc()
@@ -101,7 +101,7 @@ class PhaseOneRuntime:
             )
             config["selector_discovery"]["validation_error"] = str(exc)
             reason = f"Invalid selector artifact: {exc}"
-            self._context._emit(f"\n❌ {reason}")
+            self._context._emit(f"\n {reason}")
             return self._persist_failure(config, reason)
         if selector_selection:
             config["selector_selection"] = selector_selection
@@ -124,7 +124,7 @@ class PhaseOneRuntime:
             status="failed", reason=reason
         )
         config_path = self._context.save_config(config)
-        self._context._emit(f"\n✅ Configuration saved to: {config_path}")
+        self._context._emit(f"\n Configuration saved to: {config_path}")
         return self._build_failure(
             error=reason, config_path=str(config_path), config=config
         )

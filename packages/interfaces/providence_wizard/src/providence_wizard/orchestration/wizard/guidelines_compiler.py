@@ -43,7 +43,7 @@ class GuidelinesCompiler:
                 lines = [
                     f"# {category.title()} Guidelines",
                     "",
-                    "⚡ IA-FIRST DESIGN NOTICE",
+                    " IA-FIRST DESIGN NOTICE",
                     "- **Status**: Customizable best practices",
                     "- **Optimization**: Optimized for AI agent parsing",
                     f"- **Category**: {category.title()}",
@@ -77,6 +77,6 @@ class GuidelinesCompiler:
 
             return True
         except Exception as exc:
-            self._emit(f"  ❌ Error generating guidelines files: {exc}")
+            self._emit(f"   Error generating guidelines files: {exc}")
             traceback.print_exc()
             return False

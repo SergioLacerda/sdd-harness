@@ -18,7 +18,7 @@ try:
     # installs from packages/core/providence_core, packages/interfaces/providence_cli,
     # etc., which don't exist in a real standalone client project). Under a
     # true standalone install, detect_repo_root() correctly finds no repo
-    # markers and raises — that must not crash importing this module (which
+    # markers and raises  that must not crash importing this module (which
     # would otherwise make the whole `sdd` CLI's lazy command loader mark
     # `setup` "unavailable" with an opaque error instead of the clear one
     # `run_setup()` gives below).
@@ -59,10 +59,10 @@ def _ensure_phase_0_marker() -> None:
     """Create AHP phase-0 marker used by runtime validation.
 
     Only ever called from `run_setup()`, after its own `_REPO_ROOT is None`
-    guard — the assert documents that invariant for type checking.
+    guard  the assert documents that invariant for type checking.
     """
     assert _REPO_ROOT is not None
-    runtime_dir = _REPO_ROOT / ".sdd" / "runtime"
+    runtime_dir = _REPO_ROOT / ".providence" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     (runtime_dir / ".phase-0-complete").touch(exist_ok=True)
 
@@ -155,7 +155,7 @@ def run_setup() -> None:  # noqa: C901
     if compile_bin.exists():
         typer.echo("  OK: sdd-compile binary found")
     else:
-        typer.echo("  WARN: sdd-compile binary not found — run 'make build-compiler'")
+        typer.echo("  WARN: sdd-compile binary not found  run 'make build-compiler'")
 
     _ensure_phase_0_marker()
     typer.echo("  OK: Runtime phase-0 marker initialized")

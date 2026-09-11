@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from providence_core.utils.text_io import read_text_utf8
+from providence_wizard.constants import RUNTIME_DIRNAME
 
 from ._seedlings_helpers import _validate_awareness_pack, _write_deployment_manifest
 from .seedlings.ai_seeds import AISeedsGenerator
@@ -28,7 +29,7 @@ class IntelligentSeedlingsGenerator:
         verbose: bool = False,
     ):
         self.output_base = output_base
-        self.seedlings_dir = output_base / ".sdd" / "seedlings"
+        self.seedlings_dir = output_base / RUNTIME_DIRNAME / "seedlings"
         self.mandates = mandates
         self.guidelines_by_category = guidelines_by_category
         self.config = config
@@ -94,7 +95,7 @@ class IntelligentSeedlingsGenerator:
     def log(self, message: str) -> None:
         """Log."""
         if self.verbose:
-            print(f"  ℹ️  {message}")  # noqa: T201
+            print(f"    {message}")  # noqa: T201
 
     def _compute_fingerprint(self) -> str:
         try:
@@ -102,7 +103,7 @@ class IntelligentSeedlingsGenerator:
                 content = read_text_utf8(self.governance_core_path)
                 clean_content = json.dumps(json.loads(content), separators=(",", ":"))
                 return hashlib.sha256(clean_content.encode()).hexdigest()[:8]
-        except Exception:  # nosec B110 noqa: BLE001 — intentional fallback; corrupted/missing file is non-fatal
+        except Exception:  # nosec B110 noqa: BLE001  intentional fallback; corrupted/missing file is non-fatal
             pass
         return "00000000"
 
@@ -163,13 +164,13 @@ class IntelligentSeedlingsGenerator:
                 success = False
 
             if success:
-                self.log(f"✅ Generated {len(to_run)} seedling/prompt artifacts")
+                self.log(f" Generated {len(to_run)} seedling/prompt artifacts")
                 self._write_deployment_manifest()
             else:
-                print("  ❌ Some seedling files failed to generate")  # noqa: T201
+                print("   Some seedling files failed to generate")  # noqa: T201
             return success
         except Exception as e:
-            print(f"  ❌ Failed to generate seedlings: {e}")  # noqa: T201
+            print(f"   Failed to generate seedlings: {e}")  # noqa: T201
             return False
 
     def _write_deployment_manifest(self) -> None:

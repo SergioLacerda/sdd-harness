@@ -15,22 +15,22 @@ golangci-lint run
 
 **Rules:**
 
-- All errors must be checked — never discard an error without a documented reason.
+- All errors must be checked â€” never discard an error without a documented reason.
 - Errors must be wrapped with context using `fmt.Errorf("...: %w", err)`.
-- No `panic` for expected application errors — return errors explicitly.
+- No `panic` for expected application errors â€” return errors explicitly.
 - Every goroutine must have a cancellation path via `context.Context`.
 - Package names must be lowercase, single words reflecting cohesive behavior.
 
 ## Architecture & Dependency Direction
 
-Domain and application packages must not import adapter packages. Enforce the boundary in CI with a dependency-direction linter. Dependencies are injected via constructor or parameter, never global state — see `architecture.md` for the general principle.
+Domain and application packages must not import adapter packages. Enforce the boundary in CI with a dependency-direction linter. Dependencies are injected via constructor or parameter, never global state â€” see `architecture.md` for the general principle.
 
 ## Dependency Versions
 
 - Pin direct dependencies to exact versions (`go.sum` is canonical).
-- Review changelogs before upgrading — never blindly bump.
+- Review changelogs before upgrading â€” never blindly bump.
 - Run `govulncheck ./...` as part of CI.
-- Minimize the dependency tree — every dependency is attack surface and maintenance burden.
+- Minimize the dependency tree â€” every dependency is attack surface and maintenance burden.
 
 ## Anti-Patterns
 
@@ -69,10 +69,10 @@ func GetUser(id string) (*User, error) {
 **Goroutine leak:**
 
 ```go
-// VIOLATION — no cancellation path
+// VIOLATION â€” no cancellation path
 go func() { for { process() } }()
 
-// OK — checks ctx before each iteration
+// OK â€” checks ctx before each iteration
 go func(ctx context.Context) {
     for ctx.Err() == nil { process() }
 }(ctx)
@@ -83,7 +83,7 @@ go func(ctx context.Context) {
 - Profile with `pprof` before optimizing any hot path.
 - Use `sync.Pool` for frequently allocated short-lived objects.
 - Avoid spawning a goroutine per request without a worker pool.
-- Use buffered channels intentionally — document the buffer size rationale.
+- Use buffered channels intentionally â€” document the buffer size rationale.
 - Prefer value types over pointers for small structs in hot paths.
 
 ## Project Structure
@@ -102,7 +102,7 @@ go.mod
 go.sum
 ```
 
-Avoid `internal/common`, `internal/utils` — name packages by behavior. No circular imports.
+Avoid `internal/common`, `internal/utils` â€” name packages by behavior. No circular imports.
 
 ## CI Checklist
 

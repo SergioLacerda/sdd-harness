@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from collections.abc import Callable
 from importlib import import_module
@@ -65,7 +66,7 @@ class PlainPrompter:
         sep_idx = 0
         for c in choices:
             if getattr(c, "disabled", None):
-                line = str(getattr(c, "title", f"── Group {sep_idx} ──"))
+                line = str(getattr(c, "title", f"-- Group {sep_idx} --"))
                 print(f"\n  {line}")
                 sep_idx += 1
             else:
@@ -112,6 +113,8 @@ class RichPrompter:
 
 def make_prompter() -> Prompter:
     """Return RichPrompter when stdin is a TTY and questionary is available."""
+    if os.name == "nt" and os.environ.get("PROVIDENCE_WIZARD_RICH_PROMPTS") != "1":
+        return PlainPrompter()
     if sys.stdin.isatty() and _questionary_available():
         return RichPrompter()
     return PlainPrompter()

@@ -125,4 +125,4 @@ def default_log_path(workspace_root: Path | None = None) -> Path | None:
             )
     if root is None:
         root = Path.cwd()
-    return root / ".sdd" / "runtime" / "compliance-events.jsonl"
+    return root / ".providence" / "runtime" / "compliance-events.jsonl"

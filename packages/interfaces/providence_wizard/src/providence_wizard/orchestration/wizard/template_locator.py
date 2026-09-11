@@ -54,7 +54,7 @@ class TemplateLocator:
             return True
         candidates = [str(self._repo_root.joinpath(*p)) for p in _TEMPLATE_CANDIDATES]
         self.last_error = f"Template root not found. Tried: {', '.join(candidates)}"
-        self._emit(f"  ❌ {self.last_error}")
+        self._emit(f"   {self.last_error}")
         return False
 
     def resolve_language_dir(self, language: str) -> Path | None:
@@ -64,7 +64,7 @@ class TemplateLocator:
         language_dirname = _LANGUAGE_DIRS.get(language)
         if language_dirname is None:
             self.last_error = f"Unsupported language template mapping: {language}"
-            self._emit(f"  ❌ {self.last_error}")
+            self._emit(f"   {self.last_error}")
             return None
         templates_root = _find_templates_dir(self._repo_root)
         if templates_root is None:
@@ -75,5 +75,5 @@ class TemplateLocator:
         self.last_error = (
             f"Language template directory missing for {language}: {template_dir}"
         )
-        self._emit(f"  ❌ {self.last_error}")
+        self._emit(f"   {self.last_error}")
         return None

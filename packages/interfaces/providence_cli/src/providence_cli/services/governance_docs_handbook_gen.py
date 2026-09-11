@@ -69,7 +69,7 @@ def generate_runtime_handbook(
             (
                 target_root / item
                 for item in outputs
-                if item.startswith(".sdd/source/handbook/")
+                if item.startswith(".providence/source/handbook/")
             ),
             handbook_root / f"{source_id.lower()}.yaml",
         )

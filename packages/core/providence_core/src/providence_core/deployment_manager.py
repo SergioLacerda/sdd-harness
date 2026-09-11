@@ -1,4 +1,4 @@
-"""Deploy compiled governance files into `.sdd/compiled/`."""
+"""Deploy compiled governance files into `.providence/compiled/`."""
 
 from collections.abc import Callable
 from pathlib import Path
@@ -40,7 +40,7 @@ class DeploymentManager:
         )
         self.paths = paths
 
-        self.runtime_compiled = self.workspace_root / ".sdd" / "compiled"
+        self.runtime_compiled = self.workspace_root / ".providence" / "compiled"
         self.runtime_audit = self.runtime_compiled / "audit"
         self.compiled_dir = paths["client_compiled"]
         self.master_compiled_dir = paths["master_compiled"]
@@ -161,7 +161,7 @@ class DeploymentManager:
         return DeploymentReporter.get_next_steps()
 
     def _cleanup_legacy_manifests(self) -> None:
-        """Remove legacy manifest files replaced by .sdd/compiled/audit/."""
+        """Remove legacy manifest files replaced by .providence/compiled/audit/."""
         DeploymentReporter.cleanup_legacy_manifests(
             self.repo_root, self.runtime_compiled
         )

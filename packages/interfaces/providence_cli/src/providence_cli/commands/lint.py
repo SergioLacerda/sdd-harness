@@ -106,7 +106,7 @@ def spec(
         typer.echo(f"  ERROR: Canonical directory not found: {canonical_dir}")
         raise typer.Exit(1)
 
-    typer.echo(f"🔍 Checking canonical documentation in {canonical_dir}...")
+    typer.echo(f" Checking canonical documentation in {canonical_dir}...")
     errors = _check_legacy_patterns(canonical_dir, repo_root)
     errors += _check_project_leaks(canonical_dir, repo_root)
 
@@ -117,10 +117,10 @@ def spec(
             errors += _validate_anchor_style(anchor_files, repo_root)
 
     if errors > 0:
-        typer.echo(f"\n❌ Spec linting failed with {errors} errors")
+        typer.echo(f"\n Spec linting failed with {errors} errors")
         raise typer.Exit(1)
 
-    typer.echo("✅ Spec structure OK")
+    typer.echo(" Spec structure OK")
 
 
 @app.command()

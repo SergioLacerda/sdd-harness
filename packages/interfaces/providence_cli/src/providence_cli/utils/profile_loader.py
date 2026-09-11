@@ -104,7 +104,7 @@ def enforce_profile_policy(command_name: str, ctx: click.Context | None = None) 
             f"ERROR [{profile}]: command '{command_name}' is not available in this context.",
             err=True,
         )
-        click.echo(f"  → {msg}", err=True)
+        click.echo(f"   {msg}", err=True)
         raise click.exceptions.Exit(1)
 
     if command_name in adapter.warned_commands:
@@ -117,5 +117,5 @@ def profile_context_display(obj: Any) -> str:
     if not isinstance(obj, dict):
         return ""
     profile = obj.get("profile", "client")
-    icon = "🏗️ " if profile == "master" else "📦"
+    icon = " " if profile == "master" else ""
     return f"{icon} profile={profile}"

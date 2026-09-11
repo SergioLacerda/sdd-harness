@@ -1,4 +1,4 @@
-"""Analysis workspace commands — list, status, and clean analysis missions."""
+"""Analysis workspace commands  list, status, and clean analysis missions."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from providence_cli.services.analysis_helpers import (
 )
 from providence_cli.services.command_group_output import show_command_group
 from providence_cli.utils.output import emit_json, is_json_mode
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 
 def _ctx_json() -> bool:

@@ -5,7 +5,7 @@ Last verified: `{{ last_verified }}`
 
 ## Governance Model
 
-This project uses file-based soft governance. Rules are advisory — they guide
+This project uses file-based soft governance. Rules are advisory â€” they guide
 your behavior but are not mechanically enforced at the tool level (see
 "Known limitations" below). Your compliance depends on reading and following
 the instruction files below.
@@ -23,7 +23,7 @@ the instruction files below.
 | Token Economy | `token-economy.instructions.md` | All files |
 
 GitHub Copilot applies each file automatically to matching files, based on its
-own `applyTo` frontmatter — no action is required to activate them beyond
+own `applyTo` frontmatter â€” no action is required to activate them beyond
 their presence in this repository.
 
 ## Compliance Priority
@@ -46,7 +46,7 @@ Before considering a task done, verify:
 - [ ] Changes have test-first evidence (test written/updated alongside code)
 - [ ] No generated files were hand-edited
 - [ ] Error messages include the offending value and expected shape
-- [ ] Output is concise — no unnecessary preambles or disclaimers
+- [ ] Output is concise â€” no unnecessary preambles or disclaimers
 
 This is an advisory checklist, not a blocking gate.
 
@@ -65,15 +65,15 @@ support:
   of a project-level file that declares tool permissions or a deny-list of
   operations. `.github/workflows/copilot-setup-steps.yml`, if present in this
   repository, configures the coding agent's *build environment* only (tools,
-  runtimes, dependencies) — it is not a governance or permissions surface, and this
+  runtimes, dependencies) â€” it is not a governance or permissions surface, and this
   bundle does not treat it as one.
 
 Because there is no permissions file to enforce it mechanically,
-`git-safety.instructions.md` is advisory only — it cannot be mechanically enforced
+`git-safety.instructions.md` is advisory only â€” it cannot be mechanically enforced
 the way an equivalent rule can be via a provider with a declarative permissions
 file.
 
 These are documented gaps, not files this generator failed to produce.
 
 These files are a generated starting point. Edit them directly to fit this project
-— there is no external source they must stay in sync with.
+â€” there is no external source they must stay in sync with.

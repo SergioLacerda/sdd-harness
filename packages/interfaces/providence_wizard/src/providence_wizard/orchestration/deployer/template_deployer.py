@@ -1,4 +1,4 @@
-"""TemplateDeployer — copy IDE/CI config templates to the output directory."""
+"""TemplateDeployer  copy IDE/CI config templates to the output directory."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from providence_core.utils.log import get_logger
+from providence_wizard.constants import RUNTIME_DIRNAME
 
 from ..wizard.seedling_catalog import resolve_selection
 
@@ -37,7 +38,7 @@ class TemplateDeployer:
             with contextlib.suppress(OSError, ValueError):
                 if self.output_base.resolve() == self.repo_root.resolve():
                     msg = f"SDD_ISOLATION_ERROR: Mutation of repo root blocked ({self.output_base})"
-                    print(f"  ❌ {msg}")  # noqa: T201
+                    print(f"   {msg}")  # noqa: T201
                     raise PermissionError(msg)
 
     def _log(self, message: str) -> None:
@@ -127,7 +128,7 @@ class TemplateDeployer:
                 self._log(f"Template not found: {workflow_rel}")
             return True
         except Exception as e:
-            print(f"  ❌ Failed to copy templates: {e}")  # noqa: T201
+            print(f"   Failed to copy templates: {e}")  # noqa: T201
             return False
 
     def create_ide_templates(self) -> bool:  # noqa: C901
@@ -139,7 +140,7 @@ class TemplateDeployer:
                 attempted = ", ".join(
                     str(path) for path in self._template_base_candidates()
                 )
-                print(f"  ❌ Template base not found: {template_base}")  # noqa: T201
+                print(f"   Template base not found: {template_base}")  # noqa: T201
                 self._log(f"Attempted template bases: {attempted}")
                 return False
 
@@ -173,7 +174,7 @@ class TemplateDeployer:
                 ),
                 (
                     template_base / ".sdd" / "templates",
-                    self.output_base / ".sdd" / "templates",
+                    self.output_base / RUNTIME_DIRNAME / "templates",
                     True,
                 ),
             ]
@@ -194,24 +195,24 @@ class TemplateDeployer:
                     else:
                         missing_needed.append(src.name)
                         print(  # noqa: T201
-                            f"  ❌ Required template directory not found: {src.name}/"
+                            f"   Required template directory not found: {src.name}/"
                         )
                 except Exception as e:
                     missing_needed.append(src.name)
-                    print(f"  ❌ Failed to copy {src.name}/: {e}")  # noqa: T201
+                    print(f"   Failed to copy {src.name}/: {e}")  # noqa: T201
 
             if missing_needed:
                 return False
 
             if copied_count == 0:
-                print("  ❌ No template files were copied")  # noqa: T201
+                print("   No template files were copied")  # noqa: T201
                 return False
 
             self._ensure_cursor_rule_aliases()
             self._log(f"Copied {copied_count} configuration files and project files")
             return True
         except Exception as e:
-            print(f"  ❌ Failed to copy IDE templates: {e}")  # noqa: T201
+            print(f"   Failed to copy IDE templates: {e}")  # noqa: T201
             import traceback
 
             traceback.print_exc()

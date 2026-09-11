@@ -21,13 +21,13 @@ HARD contract for this command:
 
 Response contract:
 - Show `fingerprint`, `context_source`, and `mandates_loaded` from runtime output.
-- Treat `.sdd` runtime artifacts as source of truth for these fields.
+- Treat `.providence` runtime artifacts as source of truth for these fields.
 
 SDD GOVERNANCE CHECK
 - Always end responses with this compact footer:
   `SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`
 
 Audit JSON policy:
-- `.sdd/compiled/audit/*.json` is human/audit oriented.
-- Agents should prefer `.sdd/source/*` for human-readable governance context and
+- `.providence/compiled/audit/*.json` is human/audit oriented.
+- Agents should prefer `.providence/source/*` for human-readable governance context and
   runtime checks (`providence runtime status`, `providence ask --full`) for operational state.

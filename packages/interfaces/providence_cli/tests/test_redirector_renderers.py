@@ -33,7 +33,7 @@ def test_render_agent_redirector_includes_fingerprint_and_mandates() -> None:
     )
     assert FINGERPRINT[:16] in content
     assert "Active mandates: 2 (M001, M002)" in content
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
     assert "providence governance validate" in content
 
 

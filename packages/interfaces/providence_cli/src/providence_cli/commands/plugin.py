@@ -1,4 +1,4 @@
-"""Plugin registry commands — list and validate analysis provider plugins."""
+"""Plugin registry commands  list and validate analysis provider plugins."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import typer
 
 from providence_cli.services.command_group_output import show_command_group
 from providence_cli.utils.output import emit_json, is_json_mode
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 
 def _ctx_json() -> bool:
@@ -49,7 +49,7 @@ _KNOWN_TYPES = {"analysis_orchestrator", "analysis_provider", "execution_provide
 
 
 def _registry_path(ws_root: Path) -> Path:
-    return ws_root / ".sdd" / "plugins" / "registry.yaml"
+    return ws_root / ".providence" / "plugins" / "registry.yaml"
 
 
 def _load_registry(ws_root: Path) -> dict[str, Any]:

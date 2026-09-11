@@ -12,18 +12,18 @@ from .wizard.models import Phase456RunResult
 def _resolve_governance_inputs(
     repo_root: Path, paths: dict[str, Any], output_base: Path
 ) -> tuple[Path, Path]:
-    """Resolve governance input files with .sdd-first precedence."""
+    """Resolve governance input files with .providence-first precedence."""
     core_candidates = [
-        repo_root / ".sdd" / "compiled" / "governance-core.json",
-        repo_root / ".sdd" / "source" / "governance-core.json",
+        repo_root / ".providence" / "compiled" / "governance-core.json",
+        repo_root / ".providence" / "source" / "governance-core.json",
         paths["client_compiled"] / "source" / "governance-core.json",
-        output_base / ".sdd" / "source" / "governance-core.json",
+        output_base / ".providence" / "source" / "governance-core.json",
     ]
     client_candidates = [
-        repo_root / ".sdd" / "compiled" / "governance-client.json",
-        repo_root / ".sdd" / "source" / "governance-client.json",
+        repo_root / ".providence" / "compiled" / "governance-client.json",
+        repo_root / ".providence" / "source" / "governance-client.json",
         paths["client_compiled"] / "source" / "governance-client.json",
-        output_base / ".sdd" / "source" / "governance-client.json",
+        output_base / ".providence" / "source" / "governance-client.json",
     ]
     core_path = next((p for p in core_candidates if p.exists()), core_candidates[0])
     client_path = next(

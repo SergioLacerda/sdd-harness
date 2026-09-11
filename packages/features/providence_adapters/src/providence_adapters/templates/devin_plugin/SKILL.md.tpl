@@ -13,7 +13,7 @@ triggers:
 
 # {{ skill.name }}
 
-Source of truth: `.sdd/skills/{{ skill.name }}/skill.yaml` in the Providence repository this plugin was generated from.
+Source of truth: `.providence/skills/{{ skill.name }}/skill.yaml` in the Providence repository this plugin was generated from.
 
 ## When to use
 

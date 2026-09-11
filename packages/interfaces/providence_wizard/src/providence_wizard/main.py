@@ -1,4 +1,4 @@
-"""SDD Wizard public entry point — consumed by providence_cli wizard command."""
+"""SDD Wizard public entry point  consumed by providence_cli wizard command."""
 
 from __future__ import annotations
 

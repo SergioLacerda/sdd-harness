@@ -18,9 +18,9 @@ def test_resolve_workspace_root_uses_authority_and_policy(
     monkeypatch.setattr(
         ask_context_mod,
         "enforce_path_policy",
-        lambda path, workspace_root, mode: workspace_root / ".sdd",
+        lambda path, workspace_root, mode: workspace_root / ".providence",
     )
-    assert ask_context_mod.resolve_workspace_root() == tmp_path / ".sdd"
+    assert ask_context_mod.resolve_workspace_root() == tmp_path / ".providence"
 
 
 def test_get_cached_ahp_reads_click_context(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -93,13 +93,13 @@ def test_check_root_seed_drift_detects_stale_root_seed(
     """A stale seed file's fingerprint header must be caught, independent of check_fingerprint_drift.
 
     The header must live inside the sdd-managed block
-    (`.analysis/refined/20260906-root-seed-githook-necessity/design.md`) —
+    (`.analysis/refined/20260906-root-seed-githook-necessity/design.md`) 
     a bare header with no markers is `unmanaged` and never fails the check
     (see `test_governance_config_reader.py`'s dedicated unmanaged-state
     coverage for that case).
     """
-    (tmp_path / ".sdd").mkdir(parents=True)
-    (tmp_path / ".sdd" / "metadata.json").write_text(
+    (tmp_path / ".providence").mkdir(parents=True)
+    (tmp_path / ".providence" / "metadata.json").write_text(
         '{"governance_fingerprint": "abc123"}', encoding="utf-8"
     )
     (tmp_path / "CLAUDE.md").write_text(
@@ -120,8 +120,8 @@ def test_check_root_seed_drift_and_check_fingerprint_drift_are_independent(
     A stale root seed file (root-seed drift) should not affect
     check_fingerprint_drift's cached-runtime-state comparison, and vice versa.
     """
-    (tmp_path / ".sdd").mkdir(parents=True)
-    (tmp_path / ".sdd" / "metadata.json").write_text(
+    (tmp_path / ".providence").mkdir(parents=True)
+    (tmp_path / ".providence" / "metadata.json").write_text(
         '{"governance_fingerprint": "abc123"}', encoding="utf-8"
     )
     (tmp_path / "CLAUDE.md").write_text(
@@ -130,7 +130,7 @@ def test_check_root_seed_drift_and_check_fingerprint_drift_are_independent(
         "<!-- sdd:managed:end -->\n",
         encoding="utf-8",
     )
-    # No .sdd/runtime/governance-state.json — check_fingerprint_drift must stay
+    # No .providence/runtime/governance-state.json  check_fingerprint_drift must stay
     # False (its own no-cached-state default), unaffected by the root-seed drift above.
     assert ask_context_drift_mod.check_root_seed_drift(tmp_path) is True
     assert ask_context_drift_mod.check_fingerprint_drift(tmp_path, "abc123") is False

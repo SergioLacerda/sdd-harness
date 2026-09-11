@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from providence_adapters import AdapterGenerator
+from providence_wizard.constants import RUNTIME_DIRNAME
 
 from .deployer.seedling_injector import SeedlingInjector
 from .deployer.template_deployer import TemplateDeployer
@@ -40,7 +41,7 @@ def _compile_artifacts(
         emitter=emit,
     )
     if not compiler.compile_artifacts() and verbose:
-        emit("  ℹ️  ⚠️  Artifact compilation skipped or failed (non-critical)")
+        emit("      Artifact compilation skipped or failed (non-critical)")
     if not compiler.generate_metadata():
         return False, compiler
     return True, compiler
@@ -100,7 +101,7 @@ def _validate_output(
     selected_seedlings: set[str] | None = None,
 ) -> bool:
     """Validate generated output structure (Phase 6)."""
-    sdd_dir = output_base / ".sdd"
+    sdd_dir = output_base / RUNTIME_DIRNAME
     source_dir = sdd_dir / "source"
     validator = OutputValidator(
         output_base=output_base,
@@ -129,7 +130,7 @@ def _create_source_directories(
     guidelines_dir: Path,
     runtime_dir: Path,
 ) -> bool:
-    """Create .sdd output directory structure."""
+    """Create governance runtime output directory structure."""
     try:
         mandates_dir.mkdir(parents=True, exist_ok=True)
         guidelines_dir.mkdir(parents=True, exist_ok=True)
@@ -137,7 +138,7 @@ def _create_source_directories(
         (output_base / ".github" / "workflows").mkdir(parents=True, exist_ok=True)
         return True
     except Exception as e:
-        print(f"  ❌ Failed to create directories: {e}")  # noqa: T201
+        print(f"   Failed to create directories: {e}")  # noqa: T201
         return False
 
 
@@ -145,7 +146,7 @@ def _generate_plugin_workspace_dirs(
     output_base: Path,
     config: dict[str, Any],
 ) -> bool:
-    """Generate plugin workspace: .sdd/plugins, .sdd/contracts, .sdd/analysis, .sdd/docs."""
+    """Generate plugin workspace under the governance runtime directory."""
     try:
         from providence_cli.generators._contracts import generate_contracts
         from providence_cli.generators._plugins import generate_plugins_registry
@@ -153,13 +154,13 @@ def _generate_plugin_workspace_dirs(
         generate_plugins_registry(str(output_base), config)
         generate_contracts(str(output_base), config)
         for state in ("todo", "pending", "refined", "done"):
-            (output_base / ".sdd" / "analysis" / state).mkdir(
+            (output_base / RUNTIME_DIRNAME / "analysis" / state).mkdir(
                 parents=True, exist_ok=True
             )
-        (output_base / ".sdd" / "docs").mkdir(parents=True, exist_ok=True)
+        (output_base / RUNTIME_DIRNAME / "docs").mkdir(parents=True, exist_ok=True)
         return True
     except Exception as e:
-        print(f"  ❌ Failed to generate plugin workspace: {e}")  # noqa: T201
+        print(f"   Failed to generate plugin workspace: {e}")  # noqa: T201
         return False
 
 
@@ -177,13 +178,13 @@ def _generate_adapters(
                 successes += 1
                 if verbose:
                     emit(
-                        f"✅ Generated {len(adapter_result.files_written)} adapter files for {target}"
+                        f" Generated {len(adapter_result.files_written)} adapter files for {target}"
                     )
             else:
                 failures.append(target)
                 if verbose:
                     emit(
-                        f"⚠️  Adapter generation for {target} had errors: {adapter_result.errors}"
+                        f"  Adapter generation for {target} had errors: {adapter_result.errors}"
                     )
         if failures:
             emit(f"adapters...WARN ({', '.join(failures)})")
@@ -191,5 +192,5 @@ def _generate_adapters(
             emit(f"adapters...OK ({successes})")
     except Exception as e:
         if verbose:
-            emit(f"⚠️  Adapter generation failed (non-critical): {e}")
+            emit(f"  Adapter generation failed (non-critical): {e}")
         emit("adapters...WARN")

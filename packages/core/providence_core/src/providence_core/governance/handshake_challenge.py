@@ -66,7 +66,7 @@ class HandshakeChallenge:
         if signature_mode not in {"warn", "strict"}:
             return "unavailable"
 
-        gov_path = self.project_root / ".sdd" / "compiled" / "governance-core.json"
+        gov_path = self.project_root / ".providence" / "compiled" / "governance-core.json"
         if not gov_path.exists():
             return "unsigned"
         sig_path = gov_path.with_suffix(gov_path.suffix + ".sig")
@@ -110,7 +110,7 @@ class HandshakeChallenge:
         workspace-wide singleton this module can read). Rather than present
         a fabricated ceiling as if it were a real computed limit (the SEC-06
         bug), this reads an optional configured ceiling from
-        `pyproject.toml`'s `[tool.sdd.runtime]` table — the same extension
+        `pyproject.toml`'s `[tool.providence.runtime]` table — the same extension
         point `HandshakeCache.resolve_ttl_minutes()` already uses for
         `handshake_ttl_minutes` — and otherwise reports "unknown" explicitly.
         See `.analysis/refined/20260906-gaps-e-melhorias-review/backlog.md`

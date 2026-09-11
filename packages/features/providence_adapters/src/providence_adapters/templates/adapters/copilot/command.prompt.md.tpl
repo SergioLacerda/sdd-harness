@@ -2,10 +2,10 @@
 description: {{ command.id }} command adapter
 ---
 
-Source: `.sdd/commands/{{ command.id }}/command.yaml`
+Source: `.providence/commands/{{ command.id }}/command.yaml`
 
 Steps:
-1. Read `.sdd/agent-instructions.md`
+1. Read `.providence/agent-instructions.md`
 2. Run `providence runtime status`
 3. Run `providence governance validate`
 4. Execute:

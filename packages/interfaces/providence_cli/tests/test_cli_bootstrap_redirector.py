@@ -3,7 +3,7 @@
 Acceptance criteria:
 - All agent instruction files from generate_agent_instruction_files() are redirectors
 - All files contain governance fingerprint
-- Copilot remains .sdd-only redirector (unchanged)
+- Copilot remains .providence-only redirector (unchanged)
 - generate_agent_instructions_from_config() produces valid agent-instructions.md
 """
 
@@ -90,7 +90,7 @@ def test_cli_cursor_instructions_has_fingerprint(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Redirector: reference to .sdd/agent-instructions.md
+# Redirector: reference to .providence/agent-instructions.md
 # ---------------------------------------------------------------------------
 
 
@@ -99,7 +99,7 @@ def test_cli_claude_instructions_is_redirector(tmp_path: Path) -> None:
     content = (tmp_path / ".claude" / "claude-instructions.md").read_text(
         encoding="utf-8"
     )
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
 
 
 def test_cli_gemini_instructions_is_redirector(tmp_path: Path) -> None:
@@ -107,13 +107,13 @@ def test_cli_gemini_instructions_is_redirector(tmp_path: Path) -> None:
     content = (tmp_path / ".gemini" / "gemini-instructions.md").read_text(
         encoding="utf-8"
     )
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
 
 
 def test_cli_vscode_instructions_is_redirector(tmp_path: Path) -> None:
     generate_agent_instruction_files(tmp_path, _sample_config())
     content = (tmp_path / ".vscode" / "ai-rules.md").read_text(encoding="utf-8")
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
 
 
 def test_cli_cursor_instructions_is_redirector(tmp_path: Path) -> None:
@@ -121,7 +121,7 @@ def test_cli_cursor_instructions_is_redirector(tmp_path: Path) -> None:
     content = (tmp_path / ".cursor" / "rules" / "sdd-governance.mdc").read_text(
         encoding="utf-8"
     )
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ def test_cli_copilot_is_still_redirector(tmp_path: Path) -> None:
     content = (tmp_path / ".github" / "copilot-instructions.md").read_text(
         encoding="utf-8"
     )
-    assert ".sdd/agent-instructions.md" in content
+    assert ".providence/agent-instructions.md" in content
     assert MANDATE_DESCRIPTION not in content
 
 
@@ -177,7 +177,7 @@ def test_standalone_agent_instructions_regeneration(tmp_path: Path) -> None:
         ],
     }
     assert generate_agent_instructions_from_config(tmp_path, config)
-    content = (tmp_path / ".sdd" / "agent-instructions.md").read_text(encoding="utf-8")
+    content = (tmp_path / ".providence" / "agent-instructions.md").read_text(encoding="utf-8")
     assert FINGERPRINT in content
     assert "M001" in content
     assert "governance_fingerprint" in content
@@ -188,5 +188,5 @@ def test_standalone_agent_instructions_contains_fingerprint_section(
 ) -> None:
     config = {"core_fingerprint": FINGERPRINT, "items": []}
     generate_agent_instructions_from_config(tmp_path, config)
-    content = (tmp_path / ".sdd" / "agent-instructions.md").read_text(encoding="utf-8")
+    content = (tmp_path / ".providence" / "agent-instructions.md").read_text(encoding="utf-8")
     assert "Fingerprint" in content or "fingerprint" in content

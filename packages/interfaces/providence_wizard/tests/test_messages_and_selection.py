@@ -83,7 +83,7 @@ class TestSeedlingSelection:
     def test_invalid_index_ignored(self) -> None:
         messages: list[str] = []
         result = ask_seedling_selection(messages.append, prompter=lambda _: "999")
-        # All invalid → returns None (all seedlings)
+        # All invalid  returns None (all seedlings)
         assert result is None
 
     def test_unknown_key_ignored(self) -> None:
@@ -111,7 +111,7 @@ class TestSeedlingSelection:
 
     def test_no_prompter_uses_input_by_default(self) -> None:
         messages: list[str] = []
-        # When prompter=None, falls back to built-in input — just verify the
+        # When prompter=None, falls back to built-in input  just verify the
         # signature doesn't raise when called with the prompter kwarg omitted.
         with patch("builtins.input", return_value="all"):
             result = ask_seedling_selection(messages.append)
@@ -195,14 +195,14 @@ class TestSeedlingSelection:
         assert result == {"governance"}
 
     def test_normalized_value_with_dash_separator(self) -> None:
-        """Covers the ' — ' normalization branch in ask_seedling_selection."""
+        """Covers the '  ' normalization branch in ask_seedling_selection."""
 
         class _RawChoicePrompter:
             def select(self, q: str, choices: list) -> str:
                 return ""
 
             def checkbox(self, q: str, choices: list) -> list:
-                return ["governance           — GAP v1.0 auto-activation"]
+                return ["governance            GAP v1.0 auto-activation"]
 
             def confirm(self, q: str, default: bool = True) -> bool:
                 return default

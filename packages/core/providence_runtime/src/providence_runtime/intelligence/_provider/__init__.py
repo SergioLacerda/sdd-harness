@@ -1,6 +1,6 @@
 """IntelligenceProvider Protocol and the always-available local provider.
 
-Reference: .sdd/runtime analytics design §Phase 5
+Reference: .providence/runtime analytics design §Phase 5
 """
 
 from __future__ import annotations

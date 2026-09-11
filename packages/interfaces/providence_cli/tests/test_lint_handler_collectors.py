@@ -1,4 +1,4 @@
-"""Unit tests for providence_cli.services.lint_handler — legacy patterns and file collection."""
+"""Unit tests for providence_cli.services.lint_handler  legacy patterns and file collection."""
 
 from __future__ import annotations
 

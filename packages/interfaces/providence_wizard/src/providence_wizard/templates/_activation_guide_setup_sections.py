@@ -7,13 +7,13 @@ from __future__ import annotations
 
 
 def _checklist_section() -> str:
-    return """## 📋 Activation Checklist
+    return """##  Activation Checklist
 
 ### Before Activation
-- [ ] `.sdd/source/mandates/mandates.md` exists
-- [ ] `.sdd/source/guidelines/` exists
-- [ ] `.sdd/metadata.json` exists
-- [ ] `.sdd/seedlings/` has 5 files (3 seeds + guide + verify)
+- [ ] `.providence/source/mandates/mandates.md` exists
+- [ ] `.providence/source/guidelines/` exists
+- [ ] `.providence/metadata.json` exists
+- [ ] `.providence/seedlings/` has 5 files (3 seeds + guide + verify)
 
 ### During Activation
 - [ ] Close all IDE windows
@@ -21,7 +21,7 @@ def _checklist_section() -> str:
 - [ ] Wait 5 seconds for seedlings to load
 
 ### After Activation
-- [ ] Run `python3 .sdd/seedlings/verify.py`
+- [ ] Run `python3 .providence/seedlings/verify.py`
 - [ ] Check SeedlingLoader output
 - [ ] Test agent knowledge of mandates
 - [ ] Confirm every governed response ends with:
@@ -35,7 +35,7 @@ def _checklist_section() -> str:
 def _governance_config_section(
     mandates_list: str, guidelines_list: str, fingerprint: str
 ) -> str:
-    return f"""## 🔑 Your Governance Configuration
+    return f"""##  Your Governance Configuration
 
 ### Mandates
 Your project enforces these mandatory principles:
@@ -65,7 +65,7 @@ This fingerprint will be used to detect if governance rules have changed.
 def _enforcement_mode_section(
     enforcement_label: str, enforcement_explanation: str, enforcement_behavior: str
 ) -> str:
-    return f"""## 🔒 Enforcement Mode
+    return f"""##  Enforcement Mode
 
 ### Your Configuration: **{enforcement_label}**
 
@@ -81,7 +81,7 @@ def _enforcement_mode_section(
 - CI/CD pipeline behavior on non-compliance
 
 **To change this after setup:**
-1. Edit `.sdd/seedlings/compliance.seed.json`
+1. Edit `.providence/seedlings/compliance.seed.json`
 2. Change `action_on_drift` value
 3. Restart IDE
 
@@ -91,7 +91,7 @@ def _enforcement_mode_section(
 
 
 def _seedling_descriptions_section() -> str:
-    return """## 📁 What Each Seedling Does
+    return """##  What Each Seedling Does
 
 ### 1. governance.seed.json (GAP v1.0)
 **Purpose:** Auto-activates governance on project load
@@ -105,7 +105,7 @@ def _seedling_descriptions_section() -> str:
 ### 2. agent-prep.seed.json (IDE Integration)
 **Purpose:** Configures AI agents in your IDE
 - Supports: Copilot, Claude, Gemini, Local LLM
-- Auto-injects `.sdd/source/` context
+- Auto-injects `.providence/source/` context
 - Configures IDE hooks (VS Code, Cursor, Windsurf)
 - Triggers on project load and editor focus
 

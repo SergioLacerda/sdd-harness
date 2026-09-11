@@ -66,7 +66,7 @@ class MandateCompiler:
 
             # Read source
             if not input_file.exists():
-                print(f"  ❌ Source not found: {input_file}")  # noqa: T201
+                print(f"   Source not found: {input_file}")  # noqa: T201
                 return False
 
             text = input_file.read_text(encoding="utf-8")
@@ -75,7 +75,7 @@ class MandateCompiler:
             self.log(f"  Parsed {count} mandates")
 
             if count == 0:
-                self.log("  ⚠️  No mandates found")
+                self.log("    No mandates found")
 
             # Compile to binary
             binary_data = compile_to_binary(mandates, format)
@@ -93,11 +93,11 @@ class MandateCompiler:
                 if isinstance(binary_data, bytes)
                 else len(binary_data.encode())
             )
-            self.log(f"  ✅ Compiled to {output_file.name} ({size:,} bytes)")
+            self.log(f"   Compiled to {output_file.name} ({size:,} bytes)")
 
             return True
         except Exception as e:
-            print(f"  ❌ Compilation failed: {e}")  # noqa: T201
+            print(f"   Compilation failed: {e}")  # noqa: T201
             import traceback
 
             traceback.print_exc()
@@ -112,7 +112,7 @@ class MandateCompiler:
 
             # Read source
             if not input_file.exists():
-                self.log(f"  ℹ️  Guidelines not found: {input_file}")
+                self.log(f"    Guidelines not found: {input_file}")
                 return True  # Optional
 
             text = input_file.read_text(encoding="utf-8")
@@ -149,9 +149,9 @@ class MandateCompiler:
                 if isinstance(binary_data, bytes)
                 else len(binary_data.encode())
             )
-            self.log(f"  ✅ Compiled to {output_file.name} ({size:,} bytes)")
+            self.log(f"   Compiled to {output_file.name} ({size:,} bytes)")
 
             return True
         except Exception as e:
-            print(f"  ❌ Compilation failed: {e}")  # noqa: T201
+            print(f"   Compilation failed: {e}")  # noqa: T201
             return False

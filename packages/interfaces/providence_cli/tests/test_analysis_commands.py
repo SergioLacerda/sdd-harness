@@ -1,4 +1,4 @@
-"""Tests for sdd analysis commands (M017 — Analysis Plugin Compliance)."""
+"""Tests for sdd analysis commands (M017  Analysis Plugin Compliance)."""
 
 from __future__ import annotations
 
@@ -18,23 +18,23 @@ runner = CliRunner()
 
 @pytest.fixture
 def analysis_workspace(tmp_path: Path) -> Path:
-    """Create a workspace with .sdd/analysis/ state dirs and sample missions."""
+    """Create a workspace with .providence/analysis/ state dirs and sample missions."""
     import yaml  # type: ignore[import-untyped]  # noqa: F401
 
     for state in ("todo", "pending", "refined", "done"):
-        (tmp_path / ".sdd" / "analysis" / state).mkdir(parents=True)
+        (tmp_path / ".providence" / "analysis" / state).mkdir(parents=True)
 
     (
-        tmp_path / ".sdd" / "analysis" / "pending" / "mission-2026-06-01-001.md"
+        tmp_path / ".providence" / "analysis" / "pending" / "mission-2026-06-01-001.md"
     ).write_text("# Mission", encoding="utf-8")
-    (tmp_path / ".sdd" / "plugins" / "registry.yaml").write_text(
+    (tmp_path / ".providence" / "plugins" / "registry.yaml").write_text(
         "schema_version: '1.0.0'\nplugins: []\n", encoding="utf-8"
     )
     return tmp_path
 
 
 # ---------------------------------------------------------------------------
-# 6.3 sdd analysis list — empty workspace returns no error
+# 6.3 sdd analysis list  empty workspace returns no error
 # ---------------------------------------------------------------------------
 
 
@@ -43,7 +43,7 @@ def test_analysis_list_empty_workspace(
 ) -> None:
     """sdd analysis list returns empty list with no error when workspace has no missions."""
     for state in ("todo", "pending", "refined", "done"):
-        (tmp_path / ".sdd" / "analysis" / state).mkdir(parents=True)
+        (tmp_path / ".providence" / "analysis" / state).mkdir(parents=True)
 
     from providence_cli.commands import analysis as analysis_mod
 

@@ -15,7 +15,7 @@ runner = CliRunner()
 
 
 def _make_sink(tmp_path: Path, events: list[dict]) -> Path:
-    runtime_dir = tmp_path / ".sdd" / "runtime"
+    runtime_dir = tmp_path / ".providence" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     sink = runtime_dir / "compliance-events.jsonl"
     sink.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
@@ -59,7 +59,7 @@ def test_init_idempotent(monkeypatch, tmp_path: Path) -> None:
 
 def test_init_validates_corrupt_jsonl(monkeypatch, tmp_path: Path) -> None:
     _patch_root(monkeypatch, tmp_path)
-    sink = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+    sink = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
     sink.parent.mkdir(parents=True, exist_ok=True)
     sink.write_text('{"event": "ok"}\nNOT JSON\n{"event": "ok"}\n', encoding="utf-8")
     result = runner.invoke(app, ["--json", "telemetry", "init"])
@@ -72,7 +72,7 @@ def test_init_validates_corrupt_jsonl(monkeypatch, tmp_path: Path) -> None:
 
 def test_init_skips_blank_lines(monkeypatch, tmp_path: Path) -> None:
     _patch_root(monkeypatch, tmp_path)
-    sink = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+    sink = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
     sink.parent.mkdir(parents=True, exist_ok=True)
     sink.write_text('{"event": "ok"}\n\n{"event": "ok2"}\n', encoding="utf-8")
     result = runner.invoke(app, ["--json", "telemetry", "init"])
@@ -124,7 +124,7 @@ def test_status_event_type_breakdown(monkeypatch, tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Plain-text (non-JSON) output paths — coverage for human-readable branches
+# Plain-text (non-JSON) output paths  coverage for human-readable branches
 # ---------------------------------------------------------------------------
 
 
@@ -183,7 +183,7 @@ def test_init_text_already_exists(monkeypatch, tmp_path: Path) -> None:
 
 def test_init_text_invalid_jsonl(monkeypatch, tmp_path: Path) -> None:
     _patch_root(monkeypatch, tmp_path)
-    sink = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+    sink = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
     sink.parent.mkdir(parents=True, exist_ok=True)
     sink.write_text('{"ok": true}\nBAD JSON\n', encoding="utf-8")
     result = runner.invoke(app, ["telemetry", "init"])

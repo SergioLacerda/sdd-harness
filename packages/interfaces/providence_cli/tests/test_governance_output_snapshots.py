@@ -23,50 +23,50 @@ class _FakeAHP:
 
 _BORDER_NORMALIZE = str.maketrans(
     {
-        "╭": "┌",
-        "╮": "┐",
-        "╰": "└",
-        "╯": "┘",
-        "┏": "┌",
-        "┓": "┐",
-        "┗": "└",
-        "┛": "┘",
-        "┡": "├",
-        "┩": "┤",
-        "╇": "┼",
-        "━": "─",
-        "┃": "│",
-        "┳": "┬",
-        "┻": "┴",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
+        "": "",
     }
 )
 
 
 def _normalize_snapshot_text(text: str) -> str:
-    # 1. Normalize box-drawing char variants (heavy/arc → light equivalents).
+    # 1. Normalize box-drawing char variants (heavy/arc  light equivalents).
     normalized = text.translate(_BORDER_NORMALIZE)
-    # 2. Collapse runs of ─ to a single sentinel. Box border lines like
-    #    ┌────────────┐ differ by 1–2 chars across platforms because terminal
+    # 2. Collapse runs of  to a single sentinel. Box border lines like
+    #     differ by 12 chars across platforms because terminal
     #    width detection varies (Windows uses ctypes, Linux uses shutil).
-    normalized = re.sub(r"─{2,}", "─", normalized)
+    normalized = re.sub(r"{2,}", "", normalized)
     # 3. Strip padding spaces before closing box vertical chars on content lines
-    #    (│ text      │ → │ text│). The padding is terminal-width-dependent.
-    normalized = re.sub(r" +(│)", r"\1", normalized)
+    #    ( text         text). The padding is terminal-width-dependent.
+    normalized = re.sub(r" +()", r"\1", normalized)
     # 4. Normalize centered/plain heading lines outside box borders. Rich may
     #    center table titles with variable left padding depending on console width.
     lines: list[str] = []
     for line in normalized.splitlines():
         if (
-            "│" not in line
-            and "┌" not in line
-            and "┐" not in line
-            and "└" not in line
-            and "┘" not in line
-            and "├" not in line
-            and "┤" not in line
-            and "┬" not in line
-            and "┴" not in line
-            and "┼" not in line
+            "" not in line
+            and "" not in line
+            and "" not in line
+            and "" not in line
+            and "" not in line
+            and "" not in line
+            and "" not in line
+            and "" not in line
+            and "" not in line
+            and "" not in line
         ):
             lines.append(line.strip())
         else:
@@ -80,7 +80,7 @@ def _assert_snapshot(name: str, actual: str) -> None:
     assert _normalize_snapshot_text(actual) == _normalize_snapshot_text(expected)
 
 
-_LIGHT_BOX_CHARS = frozenset("─│┌┐└┘├┤┬┴┼")
+_LIGHT_BOX_CHARS = frozenset("")
 
 
 def test_border_normalize_covers_all_snapshot_chars() -> None:

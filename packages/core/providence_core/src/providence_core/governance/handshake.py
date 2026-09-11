@@ -41,7 +41,7 @@ class AgentHandshakeProtocol:
         self, project_root: Path | None = None, cache_ttl_minutes: int | None = None
     ):
         self.project_root = find_project_root(project_root)
-        self.cache_dir = self.project_root / ".sdd" / "runtime"
+        self.cache_dir = self.project_root / ".providence" / "runtime"
         self.cache_file = self.cache_dir / "governance-state.json"
         self.response_file = self.cache_dir / "handshake-response.json"
         self.cache_ttl = resolve_cache_ttl(
@@ -160,7 +160,7 @@ class AgentHandshakeProtocol:
             if (
                 cache
                 and cache.get("state") == "NOT_CONNECTED"
-                and (self.project_root / ".sdd").is_dir()
+                and (self.project_root / ".providence").is_dir()
             ):
                 cache = None
             if cache:

@@ -46,17 +46,17 @@ def _check_seedling_loader_method() -> str:
             loaded = loader.load_all()
 
             if len(loaded) >= 3:
-                logger.info(f"  ✅ SeedlingLoader: Discovered {len(loaded)} seedlings")
+                logger.info(f"   SeedlingLoader: Discovered {len(loaded)} seedlings")
                 self.checks["SeedlingLoader"] = "pass"
                 self.passed += 1
                 return True
             else:
-                logger.warning(f"  ⚠️  SeedlingLoader: Found only {len(loaded)} seedlings (expected 3+)")
+                logger.warning(f"    SeedlingLoader: Found only {len(loaded)} seedlings (expected 3+)")
                 self.checks["SeedlingLoader"] = "warn"
                 self.warnings += 1
                 return False
         except Exception as e:
-            logger.warning(f"  ⚠️  SeedlingLoader: Could not test")
+            logger.warning(f"    SeedlingLoader: Could not test")
             self.checks["SeedlingLoader"] = "warn"
             self.warnings += 1
             return False
@@ -68,7 +68,7 @@ def _verify_mandates_method(mandate_ids_str: str) -> str:
     return f'''    def verify_mandates(self) -> bool:
         """Verify mandates are configured"""
         expected = {{'{mandate_ids_str}'}}
-        gov_seed_path = self.project_root / ".sdd/seedlings/governance.seed.json"
+        gov_seed_path = self.project_root / ".providence/seedlings/governance.seed.json"
 
         try:
             with open(gov_seed_path, "r") as f:
@@ -76,17 +76,17 @@ def _verify_mandates_method(mandate_ids_str: str) -> str:
                 configured = set(data.get("project_metadata", {{}}).get("mandates_selected", []))
 
             if configured == expected:
-                logger.info(f"  ✅ Mandates: {{', '.join(expected)}}")
+                logger.info(f"   Mandates: {{', '.join(expected)}}")
                 self.checks["Mandates"] = "pass"
                 self.passed += 1
                 return True
             else:
-                logger.warning(f"  ❌ Mandates mismatch: Expected {{expected}}, got {{configured}}")
+                logger.warning(f"   Mandates mismatch: Expected {{expected}}, got {{configured}}")
                 self.checks["Mandates"] = "fail"
                 self.failed += 1
                 return False
         except Exception as e:
-            logger.warning(f"  ❌ Mandates: Could not verify")
+            logger.warning(f"   Mandates: Could not verify")
             self.checks["Mandates"] = "fail"
             self.failed += 1
             return False

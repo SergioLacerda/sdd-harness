@@ -1,4 +1,4 @@
-"""Phase 1 Generator — orchestrates governance template generation."""
+"""Phase 1 Generator  orchestrates governance template generation."""
 
 from __future__ import annotations
 
@@ -85,7 +85,7 @@ class Phase1Generator:
     def log(self, message: str) -> None:
         """Emit a verbose-only info message."""
         if self.verbose:
-            self._emit(f"  ℹ️  {message}")
+            self._emit(f"    {message}")
 
     def _resolve_source_file(self, filename: str) -> Path | None:
         candidates = [
@@ -101,7 +101,7 @@ class Phase1Generator:
             f"{filename} not found. Searched: {', '.join(str(p) for p in candidates)}. "
             "Run 'providence governance compile' to regenerate governance artifacts."
         )
-        self._emit(f"  ❌ {self.last_error}")
+        self._emit(f"   {self.last_error}")
         return None
 
     def parse_mandate_spec(self) -> bool:
@@ -133,7 +133,7 @@ class Phase1Generator:
         )
         if error:
             self.last_error = error
-            self._emit(f"  ❌ {self.last_error}")
+            self._emit(f"   {self.last_error}")
             return False
         self.mandates = mandates
         self.guidelines = guidelines

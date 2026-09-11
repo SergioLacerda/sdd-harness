@@ -1,4 +1,4 @@
-"""Tests for providence_cli.services.governance_scoring_output — run_governance_score edge cases."""
+"""Tests for providence_cli.services.governance_scoring_output  run_governance_score edge cases."""
 
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ class TestRunGovernanceScoreEdgeCases:
                 return_value=profile_ctx,
             ),
             patch(
-                "providence_cli.utils.sdd_authority.compiled_active_dir",
+                "providence_cli.utils.providence_authority.compiled_active_dir",
                 return_value=compiled_dir,
             ),
             patch(
@@ -130,7 +130,7 @@ class TestRunGovernanceScoreEdgeCases:
                 return_value=profile_ctx,
             ),
             patch(
-                "providence_cli.utils.sdd_authority.compiled_active_dir",
+                "providence_cli.utils.providence_authority.compiled_active_dir",
                 return_value=compiled_dir,
             ),
             patch(
@@ -177,7 +177,7 @@ class TestRunGovernanceScoreEdgeCases:
                 return_value=profile_ctx,
             ),
             patch(
-                "providence_cli.utils.sdd_authority.compiled_active_dir",
+                "providence_cli.utils.providence_authority.compiled_active_dir",
                 return_value=compiled_dir,
             ),
             patch(

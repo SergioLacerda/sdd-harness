@@ -9,7 +9,7 @@ from typing import Any
 
 def _load_slash_aliases(output_dir: Path) -> list[tuple[str, str]]:
     """Load slash aliases from canonical command registry with safe fallback."""
-    registry_path = output_dir / ".sdd" / "commands" / "registry.json"
+    registry_path = output_dir / ".providence" / "commands" / "registry.json"
     aliases: list[tuple[str, str]] = []
     try:
         data = _json.loads(registry_path.read_text(encoding="utf-8"))
@@ -44,7 +44,7 @@ def _load_slash_aliases(output_dir: Path) -> list[tuple[str, str]]:
 
 def _load_command_entries(output_dir: Path) -> list[dict[str, Any]]:
     """Load full command entries from canonical registry with safe fallback."""
-    registry_path = output_dir / ".sdd" / "commands" / "registry.json"
+    registry_path = output_dir / ".providence" / "commands" / "registry.json"
     try:
         data = _json.loads(registry_path.read_text(encoding="utf-8"))
         commands = data.get("commands", [])

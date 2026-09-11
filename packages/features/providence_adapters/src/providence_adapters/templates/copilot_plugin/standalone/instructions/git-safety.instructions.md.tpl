@@ -11,4 +11,4 @@ Never execute git state-modifying commands (`add`, `commit`, `push`, `reset`, `m
 
 Completing a task does not authorize a commit. Only an explicit human request does.
 
-GitHub Copilot has no declarative permissions/config file to enforce this at the tool level (see `.github/copilot-instructions.md` § Known limitations) — this rule is advisory only, not mechanically enforced the way an equivalent rule can be on providers with a permissions config file.
+GitHub Copilot has no declarative permissions/config file to enforce this at the tool level (see `.github/copilot-instructions.md` Â§ Known limitations) â€” this rule is advisory only, not mechanically enforced the way an equivalent rule can be on providers with a permissions config file.

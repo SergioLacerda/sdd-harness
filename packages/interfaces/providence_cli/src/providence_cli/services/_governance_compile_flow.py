@@ -22,7 +22,7 @@ from providence_cli.services._governance_compile_support import (
 def sync_workspace_metadata_from_config(
     workspace_root: Path, config: dict[str, Any]
 ) -> bool:
-    """Align `.sdd/metadata.json` with the compiled governance snapshot."""
+    """Align `.providence/metadata.json` with the compiled governance snapshot."""
     import hashlib
     import json
 
@@ -34,7 +34,7 @@ def sync_workspace_metadata_from_config(
     if not fingerprint:
         return False
 
-    metadata_path = workspace_root / ".sdd" / "metadata.json"
+    metadata_path = workspace_root / ".providence" / "metadata.json"
     try:
         metadata = (
             json.loads(metadata_path.read_text(encoding="utf-8"))
@@ -114,7 +114,7 @@ def regenerate_seeds_flow(
     workspace_root = resolve_workspace_root_fn()
     if workspace_root is None:
         return
-    generate_path = str(workspace_root / ".sdd" / "compiled")
+    generate_path = str(workspace_root / ".providence" / "compiled")
     config = (
         load_governance_config_fn(generate_path)
         if validate_governance_path_fn(generate_path)
@@ -122,7 +122,7 @@ def regenerate_seeds_flow(
     )
     output_base = resolve_output_base_fn(workspace_root)
     if sync_workspace_metadata_from_config(output_base, config):
-        console.print("[cyan].sdd/metadata.json synchronized[/cyan]")
+        console.print("[cyan].providence/metadata.json synchronized[/cyan]")
     generate_agent_instruction_files_fn(output_base, config)
     console.print("[cyan]Agent instruction files regenerated[/cyan]")
     maybe_regenerate_wizard_contracts(output_base, config, console=console)

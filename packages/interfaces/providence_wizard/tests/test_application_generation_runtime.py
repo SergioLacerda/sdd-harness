@@ -31,7 +31,7 @@ def test_phase_three_runtime_emits_detail_lines_when_debug(tmp_path: Path) -> No
     context.debug = True
     runtime = PhaseThreeRuntime(context)
     runtime._emit_paths(tmp_path / "in", tmp_path / "out")
-    assert any("📂 Input" in message for message in context.messages)
+    assert any(" Input" in message for message in context.messages)
 
 
 def test_phase_three_runtime_suppresses_completion_block_by_default(
@@ -114,7 +114,7 @@ class _PhaseThreeContext:
     def _emit(self, message: str) -> None:
         self.messages.append(message)
 
-    def print_header(self, title: str, icon: str = "🧙") -> None:
+    def print_header(self, title: str, icon: str = "") -> None:
         self.messages.append(f"{icon} {title}")
 
     def phase_6_generate_seedlings(self, output_base: Path) -> bool:

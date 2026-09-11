@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def ensure_spec_mandates(repo_root: Path, workspace_root: Path) -> Path:
-    spec_mandates_path = workspace_root / ".sdd" / "spec" / "mandates.json"
+    spec_mandates_path = workspace_root / ".providence" / "spec" / "mandates.json"
     if spec_mandates_path.exists():
         return spec_mandates_path
     canonical_dir = repo_root / "docs" / "spec" / "canonical" / "core" / "mandates"
@@ -44,7 +44,7 @@ def copy_build_artifacts(build_dir: Path, compiled_dir: Path) -> None:
 
 def publish_canonical_artifacts(workspace_root: Path, compiled_dir: Path) -> None:
     audit_dir = compiled_dir / "audit"
-    sdd_compiled_dir = workspace_root / ".sdd" / "compiled"
+    sdd_compiled_dir = workspace_root / ".providence" / "compiled"
     sdd_compiled_dir.mkdir(parents=True, exist_ok=True)
     sdd_audit_dir = sdd_compiled_dir / "audit"
     sdd_audit_dir.mkdir(parents=True, exist_ok=True)

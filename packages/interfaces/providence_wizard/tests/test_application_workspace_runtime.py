@@ -81,7 +81,7 @@ def test_cleanup_post_generation_artifacts_keeps_final_template(tmp_path: Path) 
     final_template.mkdir(parents=True, exist_ok=True)
     (final_template / "keep.txt").write_text("ok", encoding="utf-8")
     (client_build / "docs-meta").mkdir(parents=True, exist_ok=True)
-    (client_compiled / ".sdd").mkdir(parents=True, exist_ok=True)
+    (client_compiled / ".providence").mkdir(parents=True, exist_ok=True)
     wizard_config = client_build / "wizard-config.json"
     wizard_config.write_text("{}", encoding="utf-8")
     cleaned = cleanup_post_generation_artifacts(
@@ -91,7 +91,7 @@ def test_cleanup_post_generation_artifacts_keeps_final_template(tmp_path: Path) 
         final_template_dir=final_template,
         wizard_config_path=wizard_config,
         temp_build_dirs=("docs-meta",),
-        temp_compiled_dirs=(".sdd",),
+        temp_compiled_dirs=(".providence",),
     )
     assert "build/docs-meta" in cleaned
     assert final_template.exists()
@@ -108,7 +108,7 @@ def test_cleanup_post_generation_artifacts_allows_external_build_dir(
     repo_root.mkdir(parents=True)
     final_template.mkdir(parents=True, exist_ok=True)
     (client_build / "docs-meta").mkdir(parents=True, exist_ok=True)
-    (client_compiled / ".sdd").mkdir(parents=True, exist_ok=True)
+    (client_compiled / ".providence").mkdir(parents=True, exist_ok=True)
     wizard_config = client_build / "wizard-config.json"
     wizard_config.write_text("{}", encoding="utf-8")
 
@@ -119,10 +119,10 @@ def test_cleanup_post_generation_artifacts_allows_external_build_dir(
         final_template_dir=final_template,
         wizard_config_path=wizard_config,
         temp_build_dirs=("docs-meta",),
-        temp_compiled_dirs=(".sdd",),
+        temp_compiled_dirs=(".providence",),
     )
 
     assert (client_build / "docs-meta").as_posix() in cleaned
     assert wizard_config.as_posix() in cleaned
-    assert (client_compiled / ".sdd").as_posix() in cleaned
+    assert (client_compiled / ".providence").as_posix() in cleaned
     assert final_template.exists()

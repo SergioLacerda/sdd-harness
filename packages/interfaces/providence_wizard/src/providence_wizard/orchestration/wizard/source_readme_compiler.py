@@ -1,4 +1,4 @@
-"""Source README compiler for Phase 3 .sdd/source output."""
+"""Source README compiler for Phase 3 .providence/source output."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import Any
 
 
 class SourceReadmeCompiler:
-    """Write the AI-agent README.md for .sdd/source."""
+    """Write the AI-agent README.md for .providence/source."""
 
     def __init__(
         self,
@@ -39,9 +39,9 @@ class SourceReadmeCompiler:
             first_cat = categories[0]
             second_cat = categories[1] if len(categories) > 1 else "other"
 
-            content = f"""# .sdd/source - Governance Source of Truth
+            content = f"""# .providence/source - Governance Source of Truth
 
-⚡ **For AI Agents: This is your primary query directory**
+ **For AI Agents: This is your primary query directory**
 
 ## Overview
 
@@ -53,25 +53,25 @@ This directory contains the **compiled and optimized** governance specifications
 ## Directory Structure
 
 ```
-.sdd/source/
-├── mandates/
-│   └── mandates.md              ← Read mandates first (hard rules)
-├── guidelines/
-│   ├── {first_cat}.md
-│   ├── {second_cat}.md
-│   └── (organized by category)
-└── README.md                    ← This file
+.providence/source/
+ mandates/
+    mandates.md               Read mandates first (hard rules)
+ guidelines/
+    {first_cat}.md
+    {second_cat}.md
+    (organized by category)
+ README.md                     This file
 ```
 
 ## For AI Agents: How to Use This
 
 ### 1. Query Mandates First
 
-Always read `.sdd/source/mandates/mandates.md` to understand **hard rules** that CANNOT be customized.
+Always read `.providence/source/mandates/mandates.md` to understand **hard rules** that CANNOT be customized.
 
 ### 2. Query Relevant Guidelines
 
-Based on the task, read relevant guidelines from `.sdd/source/guidelines/`.
+Based on the task, read relevant guidelines from `.providence/source/guidelines/`.
 
 ### 3. Use As Pre-Cache Context
 
@@ -80,11 +80,11 @@ These files are **optimized for AI parsing** (IA-FIRST format).
 ## File Organization
 
 ### Mandates (Non-customizable)
-- Location: `.sdd/source/mandates/mandates.md`
+- Location: `.providence/source/mandates/mandates.md`
 - Count: {len(mandates)}
 
 ### Guidelines (Customizable)
-- Location: `.sdd/source/guidelines/`
+- Location: `.providence/source/guidelines/`
 - Count: {len(guidelines)}
 
 ### Categories Covered
@@ -99,6 +99,6 @@ These files are **optimized for AI parsing** (IA-FIRST format).
             (source_dir / "README.md").write_text(content, encoding="utf-8")
             return True
         except Exception as exc:
-            self._emit(f"  ❌ Error generating source README: {exc}")
+            self._emit(f"   Error generating source README: {exc}")
             traceback.print_exc()
             return False

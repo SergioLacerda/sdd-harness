@@ -2,7 +2,7 @@
 
 Guards the structure-refactor split of _verification_script_template.py into
 _verification_script_checks.py / _verification_script_runner.py (see
-.analysis/pending/wizard-structure-refactor-20260708/) — output must stay
+.analysis/pending/wizard-structure-refactor-20260708/)  output must stay
 byte-identical across the split, and the generated verify.py source must
 remain syntactically valid Python.
 """
@@ -56,4 +56,4 @@ def test_build_verification_script_preserves_literal_braces_in_fstrings() -> Non
     output = build_verification_script(mandate_ids_str=_MANDATE_IDS_STR)
     assert 'logger.info(f"  {message}")' in output
     assert "self.checks = {}" in output
-    assert 'logger.info(f"✅ Passed: {self.passed}")' in output
+    assert 'logger.info(f" Passed: {self.passed}")' in output

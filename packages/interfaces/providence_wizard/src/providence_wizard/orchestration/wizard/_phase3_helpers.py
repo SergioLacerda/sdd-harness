@@ -50,7 +50,7 @@ def _copy_seedlings(
                         shutil.copy2(item, dest)
         return True
     except Exception as exc:
-        emitter(f"  ❌ Error copying seedlings: {exc}")
+        emitter(f"   Error copying seedlings: {exc}")
         import traceback
 
         traceback.print_exc()
@@ -76,10 +76,10 @@ def _generate_spec_file(
             generated_by="providence-wizard",
         )
         emitter(
-            f"  ✅ Spec file: {result['mandates_written']} mandates → {spec_output}"
+            f"   Spec file: {result['mandates_written']} mandates  {spec_output}"
         )
     except Exception as exc:
-        emitter(f"  ⚠️  Spec file generation skipped: {exc}")
+        emitter(f"    Spec file generation skipped: {exc}")
 
 
 def _compile_with_pipeline_builder(
@@ -88,7 +88,7 @@ def _compile_with_pipeline_builder(
     items: dict[str, list[dict[str, Any]]],
     emitter: Callable[[str], None],
 ) -> bool:
-    """Run PipelineBuilder on parsed items and save outputs to .sdd/source/."""
+    """Run PipelineBuilder on parsed items and save outputs to .providence/source/."""
     try:
         from providence_integration.builders.governance.pipeline_builder import (
             PipelineBuilder,
@@ -110,10 +110,10 @@ def _compile_with_pipeline_builder(
         builder.save_outputs(str(source))
         return True
     except ImportError as exc:
-        emitter(f"❌ PipelineBuilder not available as package: {exc}")
+        emitter(f" PipelineBuilder not available as package: {exc}")
         return False
     except Exception as exc:
-        emitter(f"❌ Pipeline builder error: {exc}")
+        emitter(f" Pipeline builder error: {exc}")
         import traceback
 
         traceback.print_exc()
@@ -162,7 +162,7 @@ def _load_compiled_governance(
                         guidelines.append(item)
         return mandates, guidelines
     except Exception as exc:
-        emitter(f"  ❌ Error loading compiled governance: {exc}")
+        emitter(f"   Error loading compiled governance: {exc}")
         import traceback
 
         traceback.print_exc()

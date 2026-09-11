@@ -20,7 +20,7 @@ class TelemetryReader:
     Parameters
     ----------
     jsonl_path:
-        Path to the JSONL event file (e.g., ``.sdd/runtime/events.jsonl``).
+        Path to the JSONL event file (e.g., ``.providence/runtime/events.jsonl``).
         If the file does not exist, operations return empty results gracefully.
     """
 

@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from providence_cli.utils.sdd_authority import (
+from providence_cli.utils.providence_authority import (
     PathPolicyViolation,
     enforce_path_policy,
     resolve_workspace_root,
@@ -39,13 +39,13 @@ def _all_exist(files: list[Path]) -> bool:
 def _resolve_compiled_dir(path: str) -> Path | None:  # noqa: C901
     """Resolve governance compiled directory from a user path.
 
-    Contract: .sdd is the only source of truth for governance artifacts.
+    Contract: .providence is the only source of truth for governance artifacts.
     Legacy /generated resolution is intentionally unsupported.
     """
     try:
         mode = "extraordinary_audit" if path.startswith("extraordinary:") else "normal"
         raw = path.removeprefix("extraordinary:")
-        # Resolve workspace root from the provided path (handles .sdd walk-up)
+        # Resolve workspace root from the provided path (handles .providence walk-up)
         workspace_root = resolve_workspace_root(Path(raw))
         path_obj = enforce_path_policy(
             Path(raw),
@@ -65,8 +65,8 @@ def _resolve_compiled_dir(path: str) -> Path | None:  # noqa: C901
     if _all_exist(_required_files(compiled_dir)):
         return compiled_dir
 
-    # 3. Final template nested runtime layout: `.sdd/compiled`.
-    sdd_compiled_dir = path_obj / ".sdd" / "compiled"
+    # 3. Final template nested runtime layout: `.providence/compiled`.
+    sdd_compiled_dir = path_obj / ".providence" / "compiled"
     if _all_exist(_required_files(sdd_compiled_dir)):
         return sdd_compiled_dir
 

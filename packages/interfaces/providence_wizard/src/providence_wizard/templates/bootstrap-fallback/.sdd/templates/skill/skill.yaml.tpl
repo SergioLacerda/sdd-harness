@@ -38,7 +38,7 @@ validation_policy:
 schema_version: 1.1.0
 deprecation_due: false
 
-# V6 fields — fill in before committing (skillsV6.md §3.2)
+# V6 fields  fill in before committing (skillsV6.md 3.2)
 triggers: []
 forbidden: []
 fallback_to: null

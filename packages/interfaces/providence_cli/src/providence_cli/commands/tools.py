@@ -156,7 +156,7 @@ def _format_manifest_entry(entry: ToolEntry) -> str:
     return details
 
 
-# Imported for its @app.command() registration side effect — the `run`
+# Imported for its @app.command() registration side effect  the `run`
 # subcommand lives in tools_run.py (T11 split) but must be imported here so
 # lazy command loading (which only imports `providence_cli.commands.tools`) still
 # registers it on `app`. Mirrors the existing `_ask_backend/__init__.py`

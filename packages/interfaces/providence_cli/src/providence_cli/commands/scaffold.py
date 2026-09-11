@@ -1,4 +1,4 @@
-"""Scaffold command — generate new skills and commands from canonical templates."""
+"""Scaffold command  generate new skills and commands from canonical templates."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ _CATEGORIES = [
 
 
 def _get_templates_dir(ws_root: Path) -> Path:
-    return ws_root / ".sdd" / "templates"
+    return ws_root / ".providence" / "templates"
 
 
 def _render(template_path: Path, context: Mapping[str, object]) -> str:
@@ -88,7 +88,7 @@ def skill(
 
     ws_root = find_workspace_root()
     if ws_root is None:
-        typer.echo("ERROR: Not inside an SDD workspace (.sdd/ not found)", err=True)
+        typer.echo("ERROR: Not inside an SDD workspace (.providence/ not found)", err=True)
         raise typer.Exit(1)
 
     templates_dir = _get_templates_dir(ws_root)
@@ -96,7 +96,7 @@ def skill(
         typer.echo(f"ERROR: Templates not found at {templates_dir}/skill/", err=True)
         raise typer.Exit(1)
 
-    skill_dir = ws_root / ".sdd" / "skills" / name
+    skill_dir = ws_root / ".providence" / "skills" / name
     if skill_dir.exists():
         typer.echo(f"ERROR: Skill '{name}' already exists at {skill_dir}", err=True)
         raise typer.Exit(1)
@@ -119,12 +119,12 @@ def skill(
         _render(templates_dir / "skill" / "SKILL.md.tpl", context), encoding="utf-8"
     )
 
-    registry_path = ws_root / ".sdd" / "skills" / "registry.json"
+    registry_path = ws_root / ".providence" / "skills" / "registry.json"
     _append_to_registry(
         registry_path, {"name": name, "description": context["description"]}
     )
 
-    typer.echo(f"✅ Skill '{name}' created at {skill_dir}")
+    typer.echo(f" Skill '{name}' created at {skill_dir}")
     typer.echo(f"   {skill_dir}/skill.yaml")
     typer.echo(f"   {skill_dir}/SKILL.md")
     typer.echo("   registry.json updated")
@@ -147,7 +147,7 @@ def command(
 
     ws_root = find_workspace_root()
     if ws_root is None:
-        typer.echo("ERROR: Not inside an SDD workspace (.sdd/ not found)", err=True)
+        typer.echo("ERROR: Not inside an SDD workspace (.providence/ not found)", err=True)
         raise typer.Exit(1)
 
     templates_dir = _get_templates_dir(ws_root)
@@ -155,7 +155,7 @@ def command(
         typer.echo(f"ERROR: Templates not found at {templates_dir}/command/", err=True)
         raise typer.Exit(1)
 
-    cmd_dir = ws_root / ".sdd" / "commands" / name
+    cmd_dir = ws_root / ".providence" / "commands" / name
     if cmd_dir.exists():
         typer.echo(f"ERROR: Command '{name}' already exists at {cmd_dir}", err=True)
         raise typer.Exit(1)
@@ -168,7 +168,7 @@ def command(
         encoding="utf-8",
     )
 
-    registry_path = ws_root / ".sdd" / "commands" / "registry.json"
+    registry_path = ws_root / ".providence" / "commands" / "registry.json"
     _append_to_registry(
         registry_path,
         {
@@ -179,6 +179,6 @@ def command(
         },
     )
 
-    typer.echo(f"✅ Command '/{name}' created at {cmd_dir}")
+    typer.echo(f" Command '/{name}' created at {cmd_dir}")
     typer.echo(f"   {cmd_dir}/command.yaml")
     typer.echo("   registry.json updated")

@@ -82,6 +82,6 @@ def _do_consolidate_final_template(
     )
     if result["success"]:
         emit(
-            f"  ✅ Consolidated {result['moved_items']} artifact(s) into {final_template_dir}"
+            f"   Consolidated {result['moved_items']} artifact(s) into {final_template_dir}"
         )
     return result

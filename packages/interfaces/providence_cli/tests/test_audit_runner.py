@@ -237,7 +237,7 @@ class TestWindowCorrelationTokenCoverage:
         ts = (now - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
         result = _window_correlation(_mixed_token_events(ts), days=7, now_utc=now)
         # 4 ask events in the window (2 invocations + 2 phase sub-events), but
-        # coverage counts only the parent invocations: 1 tokenized of 2 → 0.5.
+        # coverage counts only the parent invocations: 1 tokenized of 2  0.5.
         assert result["ask_events"] == 4
         assert result["tokens"]["coverage"] == 0.5
         assert result["tokens"]["input"] == 100
@@ -378,4 +378,4 @@ class TestDefaultEventsPath:
         ):
             result = _default_events_path()
 
-        assert result == tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        assert result == tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"

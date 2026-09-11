@@ -3,6 +3,8 @@
 import json
 import logging
 
+from providence_wizard.constants import RUNTIME_DIRNAME
+
 from .base_generator import BaseSeedlingGenerator
 
 logger = logging.getLogger(__name__)
@@ -28,14 +30,14 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
 
             seed_data = {
                 "auto_activate": True,
-                "load_compiled_from": ".sdd",
+                "load_compiled_from": RUNTIME_DIRNAME,
                 "on_load": "prepare_agent_context",
                 "triggers": ["on_project_load", "on_editor_focus"],
                 "description": "AI Agent Preparation - Sets up IDE context for Copilot, Claude, and other agents",
                 "required_context": [
-                    ".sdd/metadata.json",
-                    ".sdd/metadata.json",
-                    ".sdd/seedlings/personal-overlay.seed.json",
+                    f"{RUNTIME_DIRNAME}/metadata.json",
+                    f"{RUNTIME_DIRNAME}/metadata.json",
+                    f"{RUNTIME_DIRNAME}/seedlings/personal-overlay.seed.json",
                 ],
                 "agent_configuration": {
                     "supported_agents": [
@@ -46,8 +48,8 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                     "auto_inject_context": True,
                     "adoption_level": adoption_level,
                     "quick_access": {
-                        "compiled": ".sdd",
-                        "metadata": ".sdd/metadata.json",
+                        "compiled": RUNTIME_DIRNAME,
+                        "metadata": f"{RUNTIME_DIRNAME}/metadata.json",
                     },
                 },
                 "ide_hooks": {
@@ -76,10 +78,10 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
             with open(seed_file, "w", encoding="utf-8") as f:
                 json.dump(seed_data, f, indent=2)
 
-            self.log("✅ Generated agent-prep.seed.json")
+            self.log(" Generated agent-prep.seed.json")
             return True
         except Exception as e:
-            logger.warning(f"  ❌ Failed to generate agent-prep.seed.json: {e}")
+            logger.warning(f"   Failed to generate agent-prep.seed.json: {e}")
             return False
 
     def generate_personal_overlay_seed(self) -> bool:
@@ -89,13 +91,13 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
             seed_data = {
                 "schema_version": "1.0.0",
                 "auto_activate": True,
-                "load_compiled_from": ".sdd",
+                "load_compiled_from": RUNTIME_DIRNAME,
                 "on_load": "prepare_personal_overlay",
                 "triggers": ["on_project_load", "on_editor_focus"],
-                "description": "Personal seed overlay - merges personal .agents skills with governed .sdd registries",
+                "description": f"Personal seed overlay - merges personal .agents skills with governed {RUNTIME_DIRNAME} registries",
                 "required_context": [
-                    ".sdd/skills/registry.json",
-                    ".sdd/commands/registry.json",
+                    f"{RUNTIME_DIRNAME}/skills/registry.json",
+                    f"{RUNTIME_DIRNAME}/commands/registry.json",
                 ],
                 "governance_fingerprint": self.spec_fingerprint,
                 "mandates_count": len(self.mandate_ids),
@@ -103,21 +105,21 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
             }
             with open(seed_file, "w", encoding="utf-8") as f:
                 json.dump(seed_data, f, indent=2)
-            self.log("✅ Generated personal-overlay.seed.json")
+            self.log(" Generated personal-overlay.seed.json")
             return True
         except Exception as e:
-            logger.warning(f"  ❌ Failed to generate personal-overlay.seed.json: {e}")
+            logger.warning(f"   Failed to generate personal-overlay.seed.json: {e}")
             return False
 
     def generate_vscode_seed(self) -> bool:
-        """Generate vscode.seed.json — lightweight redirector for VS Code."""
+        """Generate vscode.seed.json  lightweight redirector for VS Code."""
         try:
             seed_file = self.seedlings_dir / "vscode.seed.json"
             seed_data = {
                 "auto_activate": True,
                 "agent": "vscode",
-                "description": "VS Code governance bootstrap — redirects to compiled SDD source",
-                "load_compiled_from": ".sdd",
+                "description": "VS Code governance bootstrap  redirects to compiled SDD source",
+                "load_compiled_from": RUNTIME_DIRNAME,
                 "instructions_ref": ".vscode/ai-rules.md",
                 "settings_ref": ".vscode/settings.json",
                 "governance_fingerprint": self.spec_fingerprint,
@@ -125,7 +127,7 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                 "auto_load": True,
                 "triggers": ["on_project_load", "on_editor_focus"],
                 "required_context": [
-                    ".sdd/metadata.json",
+                    f"{RUNTIME_DIRNAME}/metadata.json",
                     ".vscode/ai-rules.md",
                 ],
                 "on_load": "prepare_ide_context",
@@ -133,21 +135,21 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
             }
             with open(seed_file, "w", encoding="utf-8") as f:
                 json.dump(seed_data, f, indent=2)
-            self.log("✅ Generated vscode.seed.json")
+            self.log(" Generated vscode.seed.json")
             return True
         except Exception as e:
-            logger.warning(f"  ❌ Failed to generate vscode.seed.json: {e}")
+            logger.warning(f"   Failed to generate vscode.seed.json: {e}")
             return False
 
     def generate_cursor_seed(self) -> bool:
-        """Generate cursor.seed.json — lightweight redirector for Cursor IDE."""
+        """Generate cursor.seed.json  lightweight redirector for Cursor IDE."""
         try:
             seed_file = self.seedlings_dir / "cursor.seed.json"
             seed_data = {
                 "auto_activate": True,
                 "agent": "cursor",
-                "description": "Cursor IDE governance bootstrap — redirects to compiled SDD source",
-                "load_compiled_from": ".sdd",
+                "description": "Cursor IDE governance bootstrap  redirects to compiled SDD source",
+                "load_compiled_from": RUNTIME_DIRNAME,
                 "instructions_ref": ".cursor/rules/sdd-governance.mdc",
                 "commands_ref": ".cursor/rules/sdd-commands.mdc",
                 "governance_fingerprint": self.spec_fingerprint,
@@ -155,7 +157,7 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
                 "auto_load": True,
                 "triggers": ["on_project_load", "on_editor_focus"],
                 "required_context": [
-                    ".sdd/metadata.json",
+                    f"{RUNTIME_DIRNAME}/metadata.json",
                     ".cursor/rules/sdd-governance.mdc",
                 ],
                 "on_load": "prepare_ide_context",
@@ -163,8 +165,8 @@ class IDESeedsGenerator(BaseSeedlingGenerator):
             }
             with open(seed_file, "w", encoding="utf-8") as f:
                 json.dump(seed_data, f, indent=2)
-            self.log("✅ Generated cursor.seed.json")
+            self.log(" Generated cursor.seed.json")
             return True
         except Exception as e:
-            logger.warning(f"  ❌ Failed to generate cursor.seed.json: {e}")
+            logger.warning(f"   Failed to generate cursor.seed.json: {e}")
             return False

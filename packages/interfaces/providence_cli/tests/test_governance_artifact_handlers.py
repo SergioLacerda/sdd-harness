@@ -144,7 +144,7 @@ class TestValidatePayloadVsMetadata:
 def _write_artifacts(directory: Path) -> None:
     """Write a consistent, non-empty core+client artifact pair.
 
-    Both sides carry >=1 item deliberately — an all-zero-items fixture would
+    Both sides carry >=1 item deliberately  an all-zero-items fixture would
     accidentally double as "valid" input for the 0-client-items regression
     check in `check_artifact_consistency` (see
     `test_zero_client_items_returns_false` below for that check's own test).
@@ -292,7 +292,7 @@ class TestCheckArtifactConsistency:
 
     def test_zero_client_items_returns_false(self, tmp_path: Path) -> None:
         """Regression test: internal consistency alone (declared count ==
-        actual count) used to pass even when both are 0 — a silent, empty
+        actual count) used to pass even when both are 0  a silent, empty
         client governance compile that `governance validate` reported as
         healthy. See
         .analysis/pending/20260906-governance-validate-coverage-check.md."""

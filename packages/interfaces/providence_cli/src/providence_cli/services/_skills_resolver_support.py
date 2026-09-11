@@ -121,7 +121,7 @@ def run_bootstrap_generation_with_fallback(
             output_base=output_base, seeds_dir=seeds_dir, config=config
         )
     except OSError:
-        seeds_dir = output_base / ".sdd" / "agents"
+        seeds_dir = output_base / ".providence" / "agents"
         (
             seeds_info,
             skills_result,

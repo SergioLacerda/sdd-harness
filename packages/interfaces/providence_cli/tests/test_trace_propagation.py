@@ -21,14 +21,14 @@ from providence_cli.services.ask_telemetry import emit_ask_telemetry
 
 
 def _make_workspace(tmp_path: Path) -> Path:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     (sdd_dir / "runtime").mkdir(parents=True, exist_ok=True)
     (sdd_dir / "compiled" / "active").mkdir(parents=True, exist_ok=True)
     return tmp_path
 
 
 def _read_events(tmp_path: Path) -> list[dict]:
-    sink = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+    sink = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
     if not sink.exists():
         return []
     events = []
@@ -50,7 +50,7 @@ def test_single_ask_all_events_share_trace_id(tmp_path: Path, monkeypatch) -> No
     workspace = _make_workspace(tmp_path)
     monkeypatch.setenv(
         "SDD_COMPLIANCE_EVENTS_PATH",
-        str(tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"),
+        str(tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"),
     )
     trace_id = str(uuid.uuid4())
 
@@ -82,7 +82,7 @@ def test_two_asks_produce_distinct_trace_ids(tmp_path: Path, monkeypatch) -> Non
     workspace = _make_workspace(tmp_path)
     monkeypatch.setenv(
         "SDD_COMPLIANCE_EVENTS_PATH",
-        str(tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"),
+        str(tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"),
     )
 
     trace_id_1 = str(uuid.uuid4())
@@ -133,14 +133,14 @@ def test_empty_trace_id_still_produces_valid_uuid_in_event(
 
     RuntimeEvent.span_id has a default_factory; trace_id is a required field.
     The test verifies emit_ask_telemetry does not crash and emits an event with
-    a non-empty trace_id (even if the value is the empty string passed by caller —
+    a non-empty trace_id (even if the value is the empty string passed by caller 
     the contract is that the sink records whatever is given, not that it generates one).
     This test validates the path doesn't raise.
     """
     workspace = _make_workspace(tmp_path)
     monkeypatch.setenv(
         "SDD_COMPLIANCE_EVENTS_PATH",
-        str(tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"),
+        str(tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"),
     )
 
     # Should not raise

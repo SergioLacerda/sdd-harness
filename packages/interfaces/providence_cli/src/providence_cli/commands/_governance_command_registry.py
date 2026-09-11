@@ -26,7 +26,7 @@ from providence_cli.services.governance_validate_handlers import (
     run_governance_validate_cmd,
 )
 from providence_cli.utils.command_errors import handle_cli_errors
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 
 def register_governance_commands(
@@ -47,7 +47,7 @@ def register_governance_commands(
             help="Check drift without rewriting registries. Exits non-zero when drift exists.",
         ),
     ) -> None:
-        """Rebuild commands/skills registries from canonical .sdd disk artifacts."""
+        """Rebuild commands/skills registries from canonical .providence disk artifacts."""
         run_reconcile_registries(
             ws_root=resolve_workspace_root(),
             check=check,
@@ -59,8 +59,8 @@ def register_governance_commands(
     @handle_cli_errors(command_name="governance load")
     def load(
         path: str = typer.Option(
-            ".sdd/compiled",
-            help="Path to governance configuration (default: .sdd/compiled)",
+            ".providence/compiled",
+            help="Path to governance configuration (default: .providence/compiled)",
         ),
     ) -> None:
         """Load and display governance configuration summary."""
@@ -73,8 +73,8 @@ def register_governance_commands(
     )
     def validate(
         path: str = typer.Option(
-            ".sdd/compiled",
-            help="Path to governance configuration (default: .sdd/compiled)",
+            ".providence/compiled",
+            help="Path to governance configuration (default: .providence/compiled)",
         ),
         signature_mode: str = typer.Option(
             "warn", help="Signature enforcement mode: off|warn|strict"
@@ -98,8 +98,8 @@ def register_governance_commands(
     @handle_cli_errors(command_name="governance preflight")
     def preflight(
         path: str = typer.Option(
-            ".sdd/compiled",
-            help="Path to governance configuration (default: .sdd/compiled)",
+            ".providence/compiled",
+            help="Path to governance configuration (default: .providence/compiled)",
         ),
         dry_run: bool = typer.Option(
             True,

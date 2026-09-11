@@ -16,7 +16,7 @@ def _make_validator(
     config: dict | None = None,
     selected_seedlings: set[str] | None = None,
 ) -> OutputValidator:
-    sdd = tmp_path / ".sdd"
+    sdd = tmp_path / ".providence"
     return OutputValidator(
         output_base=tmp_path,
         sdd_dir=sdd,
@@ -32,7 +32,7 @@ def _make_validator(
 
 
 def _create_all_required(tmp_path: Path, categories: list[str] | None = None) -> None:
-    sdd = tmp_path / ".sdd"
+    sdd = tmp_path / ".providence"
     (sdd / "source" / "mandates").mkdir(parents=True)
     (sdd / "source" / "guidelines").mkdir(parents=True)
     (sdd / "runtime").mkdir(parents=True)
@@ -57,8 +57,8 @@ def _create_all_required(tmp_path: Path, categories: list[str] | None = None) ->
 
 
 def _create_prompt_submit_hooks(tmp_path: Path) -> None:
-    (tmp_path / ".sdd" / "runtime" / "hooks").mkdir(parents=True)
-    (tmp_path / ".sdd" / "runtime" / "hooks" / "prompt-submit.py").write_text(
+    (tmp_path / ".providence" / "runtime" / "hooks").mkdir(parents=True)
+    (tmp_path / ".providence" / "runtime" / "hooks" / "prompt-submit.py").write_text(
         "#!/usr/bin/env python3\n", encoding="utf-8"
     )
     (tmp_path / ".claude" / "settings.json").write_text(
@@ -113,7 +113,7 @@ class TestOutputValidatorAllPresent:
         self, tmp_path: Path
     ) -> None:
         """Regression (SQ-001): claude, codex, and gemini adapters are all checked
-        together when handshake_mode=hook with no agent restriction — protects
+        together when handshake_mode=hook with no agent restriction  protects
         the default all-supported-agents behavior through future refactors."""
         _create_all_required(tmp_path)
         _create_prompt_submit_hooks(tmp_path)
@@ -129,8 +129,8 @@ class TestOutputValidatorAllPresent:
         self, tmp_path: Path
     ) -> None:
         _create_all_required(tmp_path)
-        (tmp_path / ".sdd" / "runtime" / "hooks").mkdir(parents=True)
-        (tmp_path / ".sdd" / "runtime" / "hooks" / "prompt-submit.py").write_text(
+        (tmp_path / ".providence" / "runtime" / "hooks").mkdir(parents=True)
+        (tmp_path / ".providence" / "runtime" / "hooks" / "prompt-submit.py").write_text(
             "#!/usr/bin/env python3\n", encoding="utf-8"
         )
         (tmp_path / ".codex").mkdir(exist_ok=True)
@@ -163,7 +163,7 @@ class TestOutputValidatorMissingFiles:
 
     def test_missing_mandatory_file_invalid(self, tmp_path: Path) -> None:
         # Create dirs but no files
-        sdd = tmp_path / ".sdd"
+        sdd = tmp_path / ".providence"
         (sdd / "source" / "mandates").mkdir(parents=True)
         (sdd / "source" / "guidelines").mkdir(parents=True)
         (sdd / "runtime").mkdir(parents=True)
@@ -200,7 +200,7 @@ class TestOutputValidatorMissingFiles:
 
 
 def _create_core_required(tmp_path: Path) -> None:
-    sdd = tmp_path / ".sdd"
+    sdd = tmp_path / ".providence"
     (sdd / "source" / "mandates").mkdir(parents=True)
     (sdd / "source" / "guidelines").mkdir(parents=True)
     (sdd / "runtime").mkdir(parents=True)
@@ -272,11 +272,11 @@ class TestOutputValidatorVerbose:
     def test_verbose_mode_emits_log(self, tmp_path: Path, capsys) -> None:
         validator = OutputValidator(
             output_base=tmp_path,
-            sdd_dir=tmp_path / ".sdd",
-            source_dir=tmp_path / ".sdd" / "source",
-            runtime_dir=tmp_path / ".sdd" / "runtime",
-            mandates_dir=tmp_path / ".sdd" / "source" / "mandates",
-            guidelines_dir=tmp_path / ".sdd" / "source" / "guidelines",
+            sdd_dir=tmp_path / ".providence",
+            source_dir=tmp_path / ".providence" / "source",
+            runtime_dir=tmp_path / ".providence" / "runtime",
+            mandates_dir=tmp_path / ".providence" / "source" / "mandates",
+            guidelines_dir=tmp_path / ".providence" / "source" / "guidelines",
             guidelines_by_category={},
             verbose=True,
         )

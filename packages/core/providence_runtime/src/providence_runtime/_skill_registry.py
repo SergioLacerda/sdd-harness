@@ -35,7 +35,7 @@ class SkillRegistry:
             self._registry_source = "hardcoded"
 
     def _load_skills_from_disk(self, project_root: Path) -> None:
-        skills_dir = project_root / ".sdd" / "skills"
+        skills_dir = project_root / ".providence" / "skills"
         if not skills_dir.exists():
             return
         try:

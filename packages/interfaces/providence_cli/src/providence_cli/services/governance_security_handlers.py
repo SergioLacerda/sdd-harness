@@ -106,7 +106,7 @@ def run_sign(
 ) -> None:
     """Sign governance artifacts and update trusted keyring."""
     k_path = (
-        Path(key_path) if key_path else ws_root / ".sdd" / "trust" / f"{key_id}.key"
+        Path(key_path) if key_path else ws_root / ".providence" / "trust" / f"{key_id}.key"
     )
     if not k_path.exists():
         console.print(f"[red]ERROR: Private key not found: {k_path}[/red]")
@@ -138,7 +138,7 @@ def run_sign_cmd(
     console: Console,
 ) -> None:
     """Resolve targets from CLI flags and call run_sign."""
-    from providence_cli.utils.sdd_authority import (
+    from providence_cli.utils.providence_authority import (
         enforce_path_policy,
         resolve_workspace_root,
     )

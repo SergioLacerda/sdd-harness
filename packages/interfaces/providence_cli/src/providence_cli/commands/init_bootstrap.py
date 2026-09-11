@@ -1,4 +1,4 @@
-"""providence init — operational-error helpers, runtime marker, and bootstrap orchestration.
+"""providence init  operational-error helpers, runtime marker, and bootstrap orchestration.
 
 Split out of `init.py` (T5,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`):
@@ -73,7 +73,7 @@ def _create_runtime_marker_and_telemetry(
     force: bool,
     profile_type: SddProfile,
 ) -> None:
-    runtime_dir = cwd / ".sdd" / "runtime"
+    runtime_dir = cwd / ".providence" / "runtime"
     try:
         runtime_dir.mkdir(parents=True, exist_ok=True)
         (runtime_dir / ".phase-0-complete").touch(exist_ok=True)
@@ -107,13 +107,13 @@ def _run_init_bootstrap(cwd: Path, *, force: bool) -> None:
             command="providence init",
             step="bootstrap",
             operation="run onboarding",
-            next_hint="close programs that may be locking .sdd, then retry: providence init --force",
+            next_hint="close programs that may be locking .providence, then retry: providence init --force",
         )
         if operational_error is None:
             raise
         _exit_init_operational_error(operational_error)
     if bootstrap_result.success:
-        typer.echo("\n🟢 Onboarding complete — workspace is HEALTHY")
+        typer.echo("\n Onboarding complete  workspace is HEALTHY")
     else:
         if bootstrap_result.failed_step:
             typer.echo(f"  Step: {bootstrap_result.failed_step}", err=True)

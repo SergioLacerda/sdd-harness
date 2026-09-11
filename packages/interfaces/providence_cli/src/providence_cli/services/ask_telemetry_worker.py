@@ -42,7 +42,7 @@ def build_ask_telemetry_sink(
     `providence ask` call.
 
     Each `emit_ask_telemetry` call previously built (and flushed) its own
-    sink — up to 6-7 per call (one parent + one per recorded phase), each
+    sink  up to 6-7 per call (one parent + one per recorded phase), each
     triggering its own background flush. Building one sink up front and
     passing it into every `emit_ask_telemetry` call (with `flush=False`),
     then flushing once at the end, collapses that into a single flush per

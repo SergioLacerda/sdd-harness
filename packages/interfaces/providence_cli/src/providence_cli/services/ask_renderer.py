@@ -1,4 +1,4 @@
-"""ask_renderer — output formatting for providence ask.
+"""ask_renderer  output formatting for providence ask.
 
 All public functions return strings or dicts. No stdout/stderr writes.
 The caller (ask_dispatcher) is responsible for I/O.
@@ -70,7 +70,7 @@ def render_governance_footer(
     """Return the governance footer line (no I/O).
 
     `root_seed_drift_detected` is reported as a separate field from
-    `drift_detected` — the two are structurally different checks (in-session
+    `drift_detected`  the two are structurally different checks (in-session
     cached state vs. installed root files against source metadata) and must
     not be merged into one shared boolean.
     """

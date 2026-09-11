@@ -1,4 +1,4 @@
-"""Tests for providence_cli.commands.release — build command coverage."""
+"""Tests for providence_cli.commands.release  build command coverage."""
 
 from __future__ import annotations
 

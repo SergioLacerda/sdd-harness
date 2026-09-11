@@ -2,7 +2,7 @@
 
 Coding practices digest: `sha256:{{ coding_practices_digest }}`
 
-Not canonical — parsed from this source project's `docs/cognition/anti-patterns/` at generation time. Currently covers all 5 universal anti-patterns plus Go-specific guidance for one of them (dependency resolution). Other languages are not yet covered — see `metadata/provenance.json` for the source revision.
+Not canonical â€” parsed from this source project's `docs/cognition/anti-patterns/` at generation time. Currently covers all 5 universal anti-patterns plus Go-specific guidance for one of them (dependency resolution). Other languages are not yet covered â€” see `metadata/provenance.json` for the source revision.
 
 {% for ap in anti_patterns %}
 ## {{ ap.title }}
@@ -20,7 +20,7 @@ Not canonical — parsed from this source project's `docs/cognition/anti-pattern
 {% endif %}
 
 {% endfor %}
-## Go-Specific Guidance — Dependency Resolution
+## Go-Specific Guidance â€” Dependency Resolution
 
 **Hacks to avoid:**
 

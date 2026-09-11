@@ -27,7 +27,7 @@ def parse_mandate_spec_text(text: str) -> tuple[int, list[dict[str, Any]]]:
 
         mandate = {
             "id": mandate_id,
-            "id_num": int(mandate_id[1:]),  # M001 → 1
+            "id_num": int(mandate_id[1:]),  # M001  1
             "type": type_match.group(1) if type_match else "HARD",
             "title": title_match.group(1) if title_match else "Unknown",
             "description": (
@@ -64,7 +64,7 @@ def parse_guidelines_dsl_text(text: str) -> tuple[int, list[dict[str, Any]]]:
         )
         category_match = re.search(r"category:\s*(\w+)", guide_body)
 
-        # Extract number from guide_id (G01 → 1)
+        # Extract number from guide_id (G01  1)
         num_match = re.search(r"G(\d+)", guide_id)
         guide_num = int(num_match.group(1)) if num_match else guide_num + 1
 

@@ -1,5 +1,5 @@
 """
-OutputValidator — Phase 6 step: verify the generated output structure is complete.
+OutputValidator  Phase 6 step: verify the generated output structure is complete.
 """
 
 from collections.abc import Callable
@@ -33,7 +33,7 @@ class OutputValidator:
         selected_seedlings: set[str] | None = None,
     ) -> None:
         self.output_base = output_base
-        self.sdd_dir = sdd_dir
+        self.providence_dir = sdd_dir
         self.source_dir = source_dir
         self.runtime_dir = runtime_dir
         self.mandates_dir = mandates_dir
@@ -46,7 +46,7 @@ class OutputValidator:
 
     def _log(self, message: str) -> None:
         if self.verbose:
-            self._emit(f"  ℹ️  {message}")
+            self._emit(f"    {message}")
 
     def _path_exists(self, path: Path) -> bool:
         return path.exists()
@@ -125,7 +125,7 @@ class OutputValidator:
             (self.mandates_dir / "mandates.md", "Mandates"),
             (self.runtime_dir / "README.md", "Runtime README"),
             (self.source_dir / "README.md", "Source README"),
-            (self.sdd_dir / "metadata.json", "Metadata"),
+            (self.providence_dir / "metadata.json", "Metadata"),
         ]
         by_selection: list[tuple[str, Path, str]] = [
             (
@@ -224,7 +224,7 @@ class OutputValidator:
             self._validate_guidelines(result)
             return result["valid"], result
         except Exception as e:
-            self._emit(f"  ❌ Validation failed: {e}")
+            self._emit(f"   Validation failed: {e}")
             result["valid"] = False
             result["errors"].append(str(e))
             return False, result

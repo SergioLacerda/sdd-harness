@@ -34,12 +34,12 @@ def test_run_helpers_pass_expected_commands(monkeypatch, tmp_path: Path) -> None
 
 
 def test_find_artifact_and_save_golden(tmp_path: Path, capsys) -> None:
-    artifact = tmp_path / ".sdd" / "compiled" / "governance-core.json"
+    artifact = tmp_path / ".providence" / "compiled" / "governance-core.json"
     artifact.parent.mkdir(parents=True)
     artifact.write_text("{}", encoding="utf-8")
     assert handler._find_artifact(tmp_path) == artifact
 
-    golden = tmp_path / ".sdd" / "runtime" / "golden-ast.json"
+    golden = tmp_path / ".providence" / "runtime" / "golden-ast.json"
     fake_ast = SimpleNamespace(
         to_json=lambda: '{"items": []}',
         items=[],

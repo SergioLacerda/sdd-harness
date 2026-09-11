@@ -1,4 +1,4 @@
-"""Tests for skills_registry service — workspace root resolution fallback."""
+"""Tests for skills_registry service  workspace root resolution fallback."""
 
 from __future__ import annotations
 

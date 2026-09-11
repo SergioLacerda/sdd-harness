@@ -1,4 +1,4 @@
-"""Tests for providence test review-golden CLI command (Phase 2 §4).
+"""Tests for providence test review-golden CLI command (Phase 2 4).
 
 Covers:
 - First run: initialises golden snapshot and exits 0
@@ -59,8 +59,8 @@ def _invoke(
     tmp_path: Path, extra_args: list[str], artifact_items: list[dict] | None = None
 ):
     runner = CliRunner()
-    artifact_path = tmp_path / ".sdd" / "compiled" / "governance-core.json"
-    golden_path = tmp_path / ".sdd" / "runtime" / "golden-ast.json"
+    artifact_path = tmp_path / ".providence" / "compiled" / "governance-core.json"
+    golden_path = tmp_path / ".providence" / "runtime" / "golden-ast.json"
 
     if artifact_items is not None:
         _write_artifact(artifact_path, artifact_items)
@@ -99,7 +99,7 @@ class TestReviewGoldenClean:
         items = [_item("M001", "Clean Arch")]
         # First run: initialise
         _invoke(tmp_path, [], artifact_items=items)
-        # Second run: same artifact → clean
+        # Second run: same artifact  clean
         result, _, _ = _invoke(tmp_path, [], artifact_items=items)
         assert result.exit_code == 0
         assert "CLEAN" in result.output or "No changes" in result.output

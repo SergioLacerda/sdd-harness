@@ -103,7 +103,7 @@ class DeploymentReporter:
             runtime_compiled: Path to runtime/compiled directory
         """
         legacy_paths = [
-            repo_root / ".sdd" / "DEPLOYMENT_MANIFEST.json",
+            repo_root / ".providence" / "DEPLOYMENT_MANIFEST.json",
             runtime_compiled / "DEPLOYMENT_MANIFEST.json",
         ]
         for path in legacy_paths:

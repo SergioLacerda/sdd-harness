@@ -38,5 +38,5 @@ class MandateRenderer:
                 filepath.write_text(content, encoding="utf-8")
             return True
         except Exception as exc:
-            self._emit(f"  ❌ Error rendering mandates: {exc}")
+            self._emit(f"   Error rendering mandates: {exc}")
             return False

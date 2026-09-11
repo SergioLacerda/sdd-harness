@@ -25,7 +25,7 @@ class PhaseThreeContext(Protocol):
     def _emit(self, message: str) -> None:
         """Send an operator-facing message."""
 
-    def print_header(self, title: str, icon: str = "🧙") -> None:
+    def print_header(self, title: str, icon: str = "") -> None:
         """Print a formatted wizard header."""
 
     def phase_6_generate_seedlings(self, output_base: Path) -> bool:
@@ -53,7 +53,7 @@ class PhaseThreeRuntime:
             result = compiler.run()
             return self._handle_compiler_result(result, output_path)
         except Exception as exc:
-            self._context._emit(f"\n❌ Error: {exc}")
+            self._context._emit(f"\n Error: {exc}")
             import traceback
 
             traceback.print_exc()
@@ -66,13 +66,13 @@ class PhaseThreeRuntime:
     def _emit_paths(self, markdown_path: Path, output_path: Path) -> None:
         if not self._context.debug:
             return
-        self._context._emit(f"  📂 Input (phase-2-input): {markdown_path}")
-        self._context._emit(f"  📂 Output (client-compiled): {output_path}")
+        self._context._emit(f"   Input (phase-2-input): {markdown_path}")
+        self._context._emit(f"   Output (client-compiled): {output_path}")
 
     def _build_missing_templates(
         self, markdown_path: Path, output_path: Path
     ) -> Phase3CompileResult:
-        self._context._emit(f"\n❌ Templates not found: {markdown_path}")
+        self._context._emit(f"\n Templates not found: {markdown_path}")
         self._context._emit("\nYou need to:")
         self._context._emit("1. Run Phase 1 to generate templates")
         self._context._emit("2. Run Phase 2 to stage edited files into phase-2-input")
@@ -99,7 +99,7 @@ class PhaseThreeRuntime:
         self, result: dict[str, Any], output_path: Path
     ) -> Phase3CompileResult:
         if not result["success"]:
-            self._context._emit(f"\n❌ Failed: {result.get('error', 'Unknown error')}")
+            self._context._emit(f"\n Failed: {result.get('error', 'Unknown error')}")
             return build_interactive_phase3_result(
                 success=False,
                 output_path=Path(str(result.get("output_path", str(output_path)))),
@@ -130,13 +130,13 @@ class PhaseThreeRuntime:
             return
         self._context._emit(
             f"""
-✅ PHASE 3 COMPLETE!
+ PHASE 3 COMPLETE!
 
-📊 COMPILATION RESULTS:
-   ✓ Mandates: {result.get("mandates", 0)}
-   ✓ Guidelines: {result.get("guidelines", 0)}
-   ✓ Output Files: {", ".join(result.get("files", []))}
-   ✓ Location: {result.get("output_path")}
+ COMPILATION RESULTS:
+    Mandates: {result.get("mandates", 0)}
+    Guidelines: {result.get("guidelines", 0)}
+    Output Files: {", ".join(result.get("files", []))}
+    Location: {result.get("output_path")}
 
 """
         )
@@ -145,7 +145,7 @@ class PhaseThreeRuntime:
         if not self._context.debug:
             return
         self._context._emit("\n" + "=" * 70)
-        self._context.print_header("PHASE 6: Generate Intelligent Seedlings", "🌱")
+        self._context.print_header("PHASE 6: Generate Intelligent Seedlings", "")
         self._context._emit("=" * 70)
 
     def _emit_seedling_success(self) -> None:
@@ -154,18 +154,18 @@ class PhaseThreeRuntime:
         self._context._emit(phase3_completed_message())
         self._context._emit(
             f"""
-✓ Governance mandates are ready for agents
-✓ Enforcement mode: {self._context._get_enforcement_label()}
-✓ IDE integration configured
-✓ CI/CD compliance hooks ready
+ Governance mandates are ready for agents
+ Enforcement mode: {self._context._get_enforcement_label()}
+ IDE integration configured
+ CI/CD compliance hooks ready
 
-ℹ️  For more details, see README.md in your project root.
+  For more details, see README.md in your project root.
 """
         )
 
     def _emit_seedling_warning(self, output_path: Path) -> None:
         self._context._emit(
-            "\n⚠️  Phase 6 (Seedlings) had issues, but Phase 3 succeeded"
+            "\n  Phase 6 (Seedlings) had issues, but Phase 3 succeeded"
         )
         self._context._emit(
             f"   You can manually run Phase 6 or copy files from {output_path}"

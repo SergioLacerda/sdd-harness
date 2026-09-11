@@ -16,7 +16,7 @@ def _real_choices(choices: list[Any]) -> list[tuple[int, str, str]]:
     idx = 0
     for c in choices:
         if getattr(c, "disabled", None):
-            # questionary.Separator — skip
+            # questionary.Separator  skip
             continue
         if isinstance(c, str):
             result.append((idx, c, c))
@@ -29,14 +29,19 @@ def _real_choices(choices: list[Any]) -> list[tuple[int, str, str]]:
 
 
 def _match_token_value(token: str, value_set: set[str]) -> str | None:
-    """Resolve token to an allowed choice value (exact or '<key> — <desc>' prefix)."""
+    """Resolve token to an allowed choice value."""
     if token in value_set:
         return token
     for value in value_set:
-        if isinstance(value, str) and " — " in value:
-            key = value.split(" — ", 1)[0].strip()
-            if token == key:
-                return value
+        if not isinstance(value, str):
+            continue
+        if value.startswith(f"{token} "):
+            return value
+        for separator in (" - ", " -- ", "  "):
+            if separator in value:
+                key = value.split(separator, 1)[0].strip()
+                if token == key:
+                    return value
     return None
 
 

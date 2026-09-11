@@ -25,9 +25,9 @@ def guideline_block(guideline: Any) -> str:
         "### To Customize This Rule:",
         "",
         "Change the Status line above to ONE of:",
-        "- `required: true` — Keep as mandatory",
-        "- `optional: true` — Skip this rule",
-        "- `custom: true` — Include but customizable",
+        "- `required: true`  Keep as mandatory",
+        "- `optional: true`  Skip this rule",
+        "- `custom: true`  Include but customizable",
         "",
         "---",
         "",
@@ -39,5 +39,5 @@ def guideline_category_header(category: str) -> str:
     """Return the markdown header block for a guideline category file."""
     return (
         f"# Guidelines - {category.upper()}\n\n"
-        "💡 SOFT RECOMMENDATIONS - These are optional/customizable\n\n"
+        " SOFT RECOMMENDATIONS - These are optional/customizable\n\n"
     )

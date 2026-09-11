@@ -16,8 +16,8 @@ def test_resolve_governance_inputs_falls_back_to_first_candidate(
 
     core_path, client_path = _resolve_governance_inputs(tmp_path, paths, output_base)
 
-    assert core_path == tmp_path / ".sdd" / "compiled" / "governance-core.json"
-    assert client_path == tmp_path / ".sdd" / "compiled" / "governance-client.json"
+    assert core_path == tmp_path / ".providence" / "compiled" / "governance-core.json"
+    assert client_path == tmp_path / ".providence" / "compiled" / "governance-client.json"
 
 
 def test_load_governance_returns_error_result_when_core_missing(
@@ -25,7 +25,7 @@ def test_load_governance_returns_error_result_when_core_missing(
 ) -> None:
     core_path = tmp_path / "missing-core.json"
     client_path = tmp_path / "missing-client.json"
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
 
     mandates, guidelines, guidelines_by_category, result = _load_governance(
         core_path, client_path, verbose=False, sdd_dir=sdd_dir

@@ -1,4 +1,4 @@
-"""Tests for `providence telemetry summary` — phase latency aggregation."""
+"""Tests for `providence telemetry summary`  phase latency aggregation."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ runner = CliRunner()
 
 
 def _make_sink(tmp_path: Path, events: list[dict]) -> Path:
-    runtime_dir = tmp_path / ".sdd" / "runtime"
+    runtime_dir = tmp_path / ".providence" / "runtime"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     sink = runtime_dir / "compliance-events.jsonl"
     sink.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")

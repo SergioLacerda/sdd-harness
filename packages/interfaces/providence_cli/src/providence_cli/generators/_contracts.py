@@ -1,4 +1,4 @@
-"""Contracts generator — creates .sdd/contracts/ with the three plugin interface schemas."""
+"""Contracts generator  creates .providence/contracts/ with the three plugin interface schemas."""
 
 from pathlib import Path
 from typing import Any
@@ -47,7 +47,7 @@ required_fields:
   - mission_id        # format: mission-{YYYY-MM-DD}-{sequence}
   - prompt            # original user request string
   - constraints       # delivery_strategy, legacy_compatibility, execution_intent
-  - sdd_injection     # authoritative SDD configuration — plugin MUST NOT override
+  - sdd_injection     # authoritative SDD configuration  plugin MUST NOT override
   - artifacts         # dict of expected output artifact paths
 
 mission_id_format: "mission-{YYYY-MM-DD}-{sequence}"
@@ -56,7 +56,7 @@ sdd_injection:
   required:
     - base_path           # plugin writes artifacts only under this path
     - execution_provider  # plugin uses this skill for execution slot
-    - approval_gate       # "required" — plugin must not skip gate
+    - approval_gate       # "required"  plugin must not skip gate
     - knowledge_paths     # array (may be empty); plugin appends to its pool
     - governance_context  # workspace_version and active_mandates
 
@@ -103,7 +103,7 @@ m017_validation:
 
 
 def generate_contracts(output_dir: str, _config: dict[str, Any]) -> dict[str, Any]:
-    """Generate .sdd/contracts/ with the three plugin interface schema files.
+    """Generate .providence/contracts/ with the three plugin interface schema files.
 
     Args:
         output_dir: Base output directory (workspace root)
@@ -113,7 +113,7 @@ def generate_contracts(output_dir: str, _config: dict[str, Any]) -> dict[str, An
         Dict with contracts_dir and files_written.
     """
     output_path = Path(output_dir)
-    contracts_dir = output_path / ".sdd" / "contracts"
+    contracts_dir = output_path / ".providence" / "contracts"
     contracts_dir.mkdir(parents=True, exist_ok=True)
 
     files = {

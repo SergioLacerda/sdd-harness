@@ -57,7 +57,7 @@ def test_create_ide_templates_does_not_create_precommit_hooks(
     (template_base / ".gemini" / "gemini-instructions.md").write_text(
         "x", encoding="utf-8"
     )
-    (template_base / ".sdd" / "templates").mkdir(parents=True)
+    (template_base / ".providence" / "templates").mkdir(parents=True)
     deployer._template_base_candidates = lambda: [template_base]  # type: ignore[method-assign]
 
     assert deployer.copy_templates() is True
@@ -90,7 +90,7 @@ def test_create_ide_templates_merges_template_candidates(tmp_path: Path) -> None
     (fallback / ".gemini" / "gemini-instructions.md").write_text(
         "gemini", encoding="utf-8"
     )
-    (fallback / ".sdd" / "templates").mkdir(parents=True)
+    (fallback / ".providence" / "templates").mkdir(parents=True)
     deployer._template_base_candidates = lambda: [primary, fallback]  # type: ignore[method-assign]
 
     assert deployer.copy_templates() is True
@@ -247,7 +247,7 @@ def _write_full_template_tree(template_base: Path) -> None:
     (template_base / ".gemini" / "gemini-instructions.md").write_text(
         "gemini", encoding="utf-8"
     )
-    (template_base / ".sdd" / "templates").mkdir(parents=True)
+    (template_base / ".providence" / "templates").mkdir(parents=True)
 
 
 def test_vscode_only_selection_copies_vscode_and_nothing_else(
@@ -351,11 +351,11 @@ def test_create_ide_templates_fails_when_selected_template_dir_missing(
     """A selected adapter with no template dir must fail generation explicitly
 
     instead of silently succeeding because an unrelated always-needed
-    mapping (.sdd/templates) was copied.
+    mapping (.providence/templates) was copied.
     """
     output_base = tmp_path / "out"
     template_base = tmp_path / "templates"
-    (template_base / ".sdd" / "templates").mkdir(parents=True)
+    (template_base / ".providence" / "templates").mkdir(parents=True)
     deployer = TemplateDeployer(
         repo_root=tmp_path, output_base=output_base, selected_seedlings={"claude"}
     )

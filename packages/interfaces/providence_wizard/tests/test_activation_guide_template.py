@@ -2,7 +2,7 @@
 
 Guards the structure-refactor split of _activation_guide_template.py into
 _activation_guide_setup_sections.py / _activation_guide_reference_sections.py
-(see .analysis/pending/wizard-structure-refactor-20260708/) — output must stay
+(see .analysis/pending/wizard-structure-refactor-20260708/)  output must stay
 byte-identical across the split.
 """
 
@@ -36,16 +36,16 @@ def test_build_activation_guide_includes_all_sections() -> None:
     assert output.rstrip().endswith("Status:** Ready for activation")
     for heading in (
         "## What This Is",
-        "## ✅ Quick Start (3 Steps)",
-        "## 📋 Activation Checklist",
-        "## 🔑 Your Governance Configuration",
-        "## 🔒 Enforcement Mode",
-        "## 📁 What Each Seedling Does",
+        "##  Quick Start (3 Steps)",
+        "##  Activation Checklist",
+        "##  Your Governance Configuration",
+        "##  Enforcement Mode",
+        "##  What Each Seedling Does",
         "## Invocation Playbook (Skills + CLI)",
-        "## 🧪 Verification",
-        "## 🔧 Troubleshooting",
-        "## 📚 More Information",
-        "## ✨ After Activation",
+        "##  Verification",
+        "##  Troubleshooting",
+        "##  More Information",
+        "##  After Activation",
     ):
         assert heading in output, f"missing section: {heading}"
 
@@ -71,16 +71,16 @@ def test_build_activation_guide_section_order_is_stable() -> None:
     output = build_activation_guide(**_ARGS)
     headings = [
         "## What This Is",
-        "## ✅ Quick Start (3 Steps)",
-        "## 📋 Activation Checklist",
-        "## 🔑 Your Governance Configuration",
-        "## 🔒 Enforcement Mode",
-        "## 📁 What Each Seedling Does",
+        "##  Quick Start (3 Steps)",
+        "##  Activation Checklist",
+        "##  Your Governance Configuration",
+        "##  Enforcement Mode",
+        "##  What Each Seedling Does",
         "## Invocation Playbook (Skills + CLI)",
-        "## 🧪 Verification",
-        "## 🔧 Troubleshooting",
-        "## 📚 More Information",
-        "## ✨ After Activation",
+        "##  Verification",
+        "##  Troubleshooting",
+        "##  More Information",
+        "##  After Activation",
     ]
     positions = [output.index(h) for h in headings]
     assert positions == sorted(positions)

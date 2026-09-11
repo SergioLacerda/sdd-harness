@@ -1,16 +1,16 @@
 """In-process cache-hit vs. cache-miss timing for `build_governed_ask_snapshot`
-(T-U1, design.md D3 — `.analysis/refined/20260730-sdd-ask-tu1-cold-invocation-benchmark/`).
+(T-U1, design.md D3  `.analysis/refined/20260730-sdd-ask-tu1-cold-invocation-benchmark/`).
 
 A regression guard, not a report artifact: confirms the snapshot cache
 (T-A1-A3) still delivers a real, measurable speedup on a hit, without
 depending on the real repo's compiled-governance state (which may not exist
 in every environment this runs in). `_load_compiled_governance` is replaced
-with a small deterministic delay standing in for "real I/O work" — the
+with a small deterministic delay standing in for "real I/O work"  the
 timing signal being tested is whether the hit path skips that call entirely
 (already proven by call-count assertions in `test_ask_governance_snapshot_
 cache.py`), not the real duration of a live compiled-governance load.
 
-Report-only beyond the sanity assertion (no hard millisecond budget yet) —
+Report-only beyond the sanity assertion (no hard millisecond budget yet) 
 design.md D3's own risk note defers a hard budget assertion (T-BM4) until a
 real baseline exists from `tests/perf/benchmark_ask_cold_invocation.py`.
 """
@@ -128,6 +128,6 @@ def test_snapshot_cache_hit_is_faster_than_miss(
 
     assert hit_p50 < miss_p50, (
         f"cache hit (p50={hit_p50:.3f}ms) must be faster than a miss "
-        f"(p50={miss_p50:.3f}ms) — the snapshot cache may not be skipping "
+        f"(p50={miss_p50:.3f}ms)  the snapshot cache may not be skipping "
         f"_load_compiled_governance on a hit anymore"
     )

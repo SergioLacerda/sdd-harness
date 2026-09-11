@@ -1,7 +1,7 @@
 """Full-pipeline wall-time regression test for Phase 4-6 generation.
 
 Guards the BigBang refactor's Day 8/9 performance target: generating a
-complete `.sdd/` project structure (governance sources, compiled artifacts,
+complete `.providence/` project structure (governance sources, compiled artifacts,
 IDE templates, seedlings, adapters, output validation) for a typical-sized
 spec must stay well under the 250ms budget.
 """

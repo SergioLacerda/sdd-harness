@@ -70,14 +70,14 @@ def generate_runtime_handbook_required(
     )
     from providence_cli.services.governance_docs_sources import DEFAULT_REGISTRY
     from providence_cli.utils.environment import detect_repo_root
-    from providence_cli.utils.sdd_authority import resolve_workspace_root
+    from providence_cli.utils.providence_authority import resolve_workspace_root
 
     source_root = resolve_workspace_root() or output_base
     if not (source_root / DEFAULT_REGISTRY).exists():
         try:
             # allow_file_fallback=False: this repo's own docs registry must
             # never be substituted for a client workspace's registry under
-            # an editable/dev install — see _environment_repo.detect_repo_root.
+            # an editable/dev install  see _environment_repo.detect_repo_root.
             repo_root = detect_repo_root(allow_file_fallback=False)
         except RuntimeError:
             repo_root = None

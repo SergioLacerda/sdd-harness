@@ -5,6 +5,8 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+from providence_wizard.constants import RUNTIME_DIRNAME
+
 from ._final_template_layout_helpers import ensure_context_cache
 
 
@@ -16,8 +18,8 @@ def organize_final_template_layout(
     manifest_file: str,
     context_cache_relative_file: str,
 ) -> None:
-    """Keep runtime governance artifacts under .sdd/ to reduce top-level clutter."""
-    sdd_dir = target_dir / ".sdd"
+    """Keep runtime governance artifacts under the runtime directory."""
+    sdd_dir = target_dir / RUNTIME_DIRNAME
     move_compiled_artifacts(target_dir, sdd_dir, compiled_files)
     move_audit_artifacts(target_dir, sdd_dir, audit_files)
     move_manifest(target_dir, sdd_dir, manifest_file)
@@ -29,7 +31,7 @@ def organize_final_template_layout(
 def move_compiled_artifacts(
     target_dir: Path, sdd_dir: Path, compiled_files: tuple[str, ...]
 ) -> None:
-    """Move governance compiled artifacts to .sdd/compiled."""
+    """Move governance compiled artifacts to .providence/compiled."""
     sdd_compiled_dir = sdd_dir / "compiled"
     sdd_audit_dir = sdd_compiled_dir / "audit"
     sdd_compiled_dir.mkdir(parents=True, exist_ok=True)
@@ -48,7 +50,7 @@ def move_compiled_artifacts(
 def move_audit_artifacts(
     target_dir: Path, sdd_dir: Path, audit_files: tuple[str, ...]
 ) -> None:
-    """Move JSON governance snapshots and audit dir to .sdd/audit."""
+    """Move JSON governance snapshots and audit dir to .providence/audit."""
     sdd_audit_dir = sdd_dir / "audit"
     sdd_compiled_audit_dir = sdd_dir / "compiled" / "audit"
     sdd_audit_dir.mkdir(parents=True, exist_ok=True)
@@ -81,7 +83,7 @@ def move_audit_artifacts(
 
 
 def move_manifest(target_dir: Path, sdd_dir: Path, manifest_file: str) -> None:
-    """Move deployment manifest to .sdd and mirror it in .sdd/compiled/audit."""
+    """Move deployment manifest to .providence and mirror it in .providence/compiled/audit."""
     top_level_manifest = target_dir / manifest_file
     sdd_manifest = sdd_dir / manifest_file
     audit_manifest = sdd_dir / "compiled" / "audit" / manifest_file
@@ -100,7 +102,7 @@ def move_manifest(target_dir: Path, sdd_dir: Path, manifest_file: str) -> None:
 
 
 def merge_and_normalize_source(target_dir: Path, sdd_dir: Path) -> None:
-    """Merge governance source files under .sdd/source."""
+    """Merge governance source files under .providence/source."""
     top_level_source = target_dir / "source"
     nested_source = sdd_dir / "source"
 

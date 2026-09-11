@@ -115,21 +115,21 @@ class DevinPluginGenerator:
         Generate the Devin plugin bundle.
 
         Args:
-            output_dir: project root where .sdd/ (and optionally LICENSE) live.
+            output_dir: project root where .providence/ (and optionally LICENSE) live.
             dest: bundle output directory. Defaults to {output_dir}/dist/devin-plugin.
             source_revision: caller-supplied revision identifier (e.g. a git SHA
-                obtained by the caller — this method never shells out to git).
+                obtained by the caller â€” this method never shells out to git).
             built_at: ISO-8601 timestamp. Defaults to current UTC time; pass a
                 fixed value in tests for reproducible output.
             include_skills: when False, skip the SDD skill catalog entirely
                 (no skills/ directory, no "skills" key in plugin.json). Each
                 skill's "Allowed CLI" commands assume the sdd CLI is installed
-                in the Devin environment — a real dependency the base
+                in the Devin environment â€” a real dependency the base
                 AGENTS.md/rules/ governance summary does not have. Default True
                 preserves existing behavior.
         """
         result = DevinPluginResult()
-        sdd_dir = Path(output_dir) / ".sdd"
+        sdd_dir = Path(output_dir) / ".providence"
         skills_sorted: list[dict[str, Any]] = []
 
         if include_skills:
@@ -279,7 +279,7 @@ class DevinPluginGenerator:
         Args:
             output_dir: project root (used only to resolve the default dest).
             dest: output directory. Defaults to {output_dir}/dist/devin-standalone
-                — a build artifact, same convention as generate()'s
+                â€” a build artifact, same convention as generate()'s
                 dist/devin-plugin default, never the project's real root files.
         """
         result = DevinStandaloneResult()

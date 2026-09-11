@@ -8,7 +8,7 @@ from typing import Any
 
 
 def resolve_workspace_id(*, workspace_root: Path, logger: Any | None = None) -> str:
-    profile_path = workspace_root / ".sdd" / "profile"
+    profile_path = workspace_root / ".providence" / "profile"
     if not profile_path.exists():
         return "unknown"
     try:

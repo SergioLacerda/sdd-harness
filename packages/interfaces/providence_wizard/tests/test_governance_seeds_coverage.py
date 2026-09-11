@@ -14,7 +14,7 @@ from providence_wizard.orchestration.seedlings.governance_seeds import (
 def _make_gen(
     tmp_path: Path, config: dict[str, Any] | None = None
 ) -> GovernanceSeedsGenerator:
-    seedlings_dir = tmp_path / ".sdd" / "seedlings"
+    seedlings_dir = tmp_path / ".providence" / "seedlings"
     seedlings_dir.mkdir(parents=True)
     return GovernanceSeedsGenerator(
         output_base=tmp_path,
@@ -58,7 +58,7 @@ class TestGovernanceSeedsExceptionPaths:
 
     def test_generate_openai_instructions_is_noop(self, tmp_path: Path) -> None:
         gen = _make_gen(tmp_path)
-        # generate_openai_instructions is a deprecated no-op — always returns True
+        # generate_openai_instructions is a deprecated no-op  always returns True
         # without creating any files, even when disk operations would fail
         with patch.object(Path, "write_text", side_effect=OSError("disk full")):
             result = gen.generate_openai_instructions()

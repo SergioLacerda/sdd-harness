@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from providence_wizard.constants import PHASE2_INPUT_DIRNAME
+from providence_wizard.constants import PHASE2_INPUT_DIRNAME, RUNTIME_DIRNAME
 
 __all__ = [
     "_ENFORCEMENT_CHOICES",
@@ -35,10 +35,10 @@ _FINAL_TEMPLATE_AUDIT_FILES = (
     "metadata-client-template.json",
 )
 _FINAL_TEMPLATE_MANIFEST_FILE = "DEPLOYMENT_MANIFEST.json"
-_FINAL_TEMPLATE_CONTEXT_CACHE_FILE = ".sdd/runtime/.sdd-cache.md"
+_FINAL_TEMPLATE_CONTEXT_CACHE_FILE = f"{RUNTIME_DIRNAME}/runtime/.sdd-cache.md"
 _TEMP_BUILD_DIRS = ("docs-meta", _PHASE1_CHOICES_DIRNAME, _PHASE2_INPUT_DIRNAME)
 _TEMP_COMPILED_DIRS = (
-    ".sdd",
+    RUNTIME_DIRNAME,
     ".github",
     ".vscode",
     ".cursor",
@@ -65,21 +65,21 @@ _ENFORCEMENT_MAP = {
     "Alertas": "warn_mode",
     "Bloquear": "strict_mode",
 }
-_INTERACTION_LANGUAGE_CHOICES = ["English", "Português (Brasil)"]
+_INTERACTION_LANGUAGE_CHOICES = ["English", "Portugus (Brasil)"]
 _LOCAL_DOCS_LANGUAGE_CHOICES = [
     "English",
-    "Português (Brasil)",
+    "Portugus (Brasil)",
     "Same as interaction",
 ]
 _LOCALE_BY_LANGUAGE = {
     "English": "en",
-    "Português (Brasil)": "pt-BR",
+    "Portugus (Brasil)": "pt-BR",
 }
 _HANDSHAKE_CHOICES = [
-    "Todo prompt filtrado pela governança (hook)",
-    "Governança seletiva (slash commands, CLI)",
+    "Todo prompt filtrado pela governana (hook)",
+    "Governana seletiva (slash commands, CLI)",
 ]
 _HANDSHAKE_MAP = {
-    "Todo prompt filtrado pela governança (hook)": "hook",
-    "Governança seletiva (slash commands, CLI)": "standard",
+    "Todo prompt filtrado pela governana (hook)": "hook",
+    "Governana seletiva (slash commands, CLI)": "standard",
 }

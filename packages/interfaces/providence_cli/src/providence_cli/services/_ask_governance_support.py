@@ -166,7 +166,7 @@ def try_sdd_compiled_fallback_result(
 
 
 def log_workspace_metadata(workspace_root: Path, *, logger: Any | None = None) -> None:
-    sdd_metadata = workspace_root / ".sdd" / "metadata.json"
+    sdd_metadata = workspace_root / ".providence" / "metadata.json"
     if not sdd_metadata.exists():
         return
     try:
@@ -179,4 +179,4 @@ def log_workspace_metadata(workspace_root: Path, *, logger: Any | None = None) -
             )
     except Exception as exc:
         if logger is not None:
-            logger.debug(".sdd/metadata.json exists but invalid: %s", exc)
+            logger.debug(".providence/metadata.json exists but invalid: %s", exc)

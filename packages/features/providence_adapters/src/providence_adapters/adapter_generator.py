@@ -54,7 +54,7 @@ class AdapterGenerator:
         Generate adapters for all targets.
 
         Args:
-            output_dir: path to project root (where .sdd/ lives)
+            output_dir: path to project root (where .providence/ lives)
 
         Returns:
             dict of target -> AdapterResult
@@ -78,7 +78,7 @@ class AdapterGenerator:
         """Generate adapters for a single target."""
         result = AdapterResult(target=target)
 
-        sdd_dir = Path(output_dir) / ".sdd"
+        sdd_dir = Path(output_dir) / ".providence"
         skills = self.skill_loader.load_skills(sdd_dir)
         commands = self.skill_loader.load_commands(sdd_dir)
 

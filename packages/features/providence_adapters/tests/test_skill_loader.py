@@ -11,8 +11,8 @@ from providence_adapters.skill_loader import SkillLoader, _safe_path
 
 @pytest.fixture
 def sdd_dir(tmp_path: Path) -> Path:
-    """Create a minimal .sdd/ structure for testing."""
-    sdd = tmp_path / ".sdd"
+    """Create a minimal .providence/ structure for testing."""
+    sdd = tmp_path / ".providence"
     skills_dir = sdd / "skills"
     skills_dir.mkdir(parents=True)
     commands_dir = sdd / "commands"
@@ -29,7 +29,7 @@ def sdd_dir(tmp_path: Path) -> Path:
                 "description": "Diagnose workspace problems.",
                 "risk_score": "low",
                 "status": "active",
-                "skill_yaml": ".sdd/skills/diagnose/skill.yaml",
+                "skill_yaml": ".providence/skills/diagnose/skill.yaml",
             }
         ],
     }
@@ -92,11 +92,11 @@ class TestSkillLoader:
 
     def test_load_skills_missing_registry_returns_empty(self, tmp_path: Path) -> None:
         loader = SkillLoader()
-        skills = loader.load_skills(tmp_path / ".sdd")
+        skills = loader.load_skills(tmp_path / ".providence")
         assert skills == []
 
     def test_load_skills_skips_missing_yaml(self, tmp_path: Path) -> None:
-        sdd = tmp_path / ".sdd" / "skills"
+        sdd = tmp_path / ".providence" / "skills"
         sdd.mkdir(parents=True)
         registry = {
             "schema_version": "1.0.0",
@@ -105,7 +105,7 @@ class TestSkillLoader:
         (sdd / "registry.json").write_text(json.dumps(registry), encoding="utf-8")
 
         loader = SkillLoader()
-        skills = loader.load_skills(tmp_path / ".sdd")
+        skills = loader.load_skills(tmp_path / ".providence")
         assert skills == []
 
     def test_load_commands_returns_merged_data(self, sdd_dir: Path) -> None:
@@ -119,11 +119,11 @@ class TestSkillLoader:
 
     def test_load_commands_missing_registry_returns_empty(self, tmp_path: Path) -> None:
         loader = SkillLoader()
-        commands = loader.load_commands(tmp_path / ".sdd")
+        commands = loader.load_commands(tmp_path / ".providence")
         assert commands == []
 
     def test_load_commands_skips_missing_yaml(self, tmp_path: Path) -> None:
-        commands_dir = tmp_path / ".sdd" / "commands"
+        commands_dir = tmp_path / ".providence" / "commands"
         commands_dir.mkdir(parents=True)
         registry = {
             "schema_version": "1.0.0",
@@ -134,7 +134,7 @@ class TestSkillLoader:
         )
 
         loader = SkillLoader()
-        commands = loader.load_commands(tmp_path / ".sdd")
+        commands = loader.load_commands(tmp_path / ".providence")
         assert commands == []
 
     def test_load_skills_reads_skill_md_when_present(self, sdd_dir: Path) -> None:
@@ -149,7 +149,7 @@ class TestSkillLoader:
     def test_load_skills_skips_unsafe_yaml_path(
         self, tmp_path: Path, monkeypatch
     ) -> None:
-        sdd = tmp_path / ".sdd"
+        sdd = tmp_path / ".providence"
         skills_dir = sdd / "skills"
         skills_dir.mkdir(parents=True)
         registry = {"schema_version": "1.0.0", "skills": [{"name": "unsafe"}]}
@@ -166,7 +166,7 @@ class TestSkillLoader:
     def test_load_commands_skips_unsafe_yaml_path(
         self, tmp_path: Path, monkeypatch
     ) -> None:
-        sdd = tmp_path / ".sdd"
+        sdd = tmp_path / ".providence"
         commands_dir = sdd / "commands"
         commands_dir.mkdir(parents=True)
         registry = {"schema_version": "1.0.0", "commands": [{"id": "unsafe"}]}

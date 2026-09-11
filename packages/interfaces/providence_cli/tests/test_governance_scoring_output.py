@@ -100,7 +100,7 @@ class TestRunGovernanceScoreCmd:
     def test_no_workspace_exits_1(self) -> None:
         with (
             patch(
-                "providence_cli.utils.sdd_authority.resolve_workspace_root",
+                "providence_cli.utils.providence_authority.resolve_workspace_root",
                 return_value=None,
             ),
             pytest.raises(typer.Exit) as exc_info,
@@ -116,11 +116,11 @@ class TestRunGovernanceScoreCmd:
 
         with (
             patch(
-                "providence_cli.utils.sdd_authority.resolve_workspace_root",
+                "providence_cli.utils.providence_authority.resolve_workspace_root",
                 return_value=tmp_path,
             ),
             patch(
-                "providence_cli.utils.sdd_authority.enforce_path_policy",
+                "providence_cli.utils.providence_authority.enforce_path_policy",
                 side_effect=lambda root, **_: root,
             ),
             patch(
@@ -157,7 +157,7 @@ class TestRunGovernanceAdherenceCmd:
 
         with (
             patch(
-                "providence_cli.utils.sdd_authority.resolve_workspace_root",
+                "providence_cli.utils.providence_authority.resolve_workspace_root",
                 return_value=tmp_path,
             ),
             patch(
@@ -180,7 +180,7 @@ class TestRunGovernanceAdherenceCmd:
     def test_exception_exits_1(self, tmp_path: Path) -> None:
         with (
             patch(
-                "providence_cli.utils.sdd_authority.resolve_workspace_root",
+                "providence_cli.utils.providence_authority.resolve_workspace_root",
                 return_value=tmp_path,
             ),
             patch(

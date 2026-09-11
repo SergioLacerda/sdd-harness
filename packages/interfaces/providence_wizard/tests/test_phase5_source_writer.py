@@ -1,4 +1,4 @@
-"""Tests for source writers and directory utilities — Phase 5 generation."""
+"""Tests for source writers and directory utilities  Phase 5 generation."""
 
 from __future__ import annotations
 
@@ -94,13 +94,13 @@ _CONFIG = {
 
 def _dirs(tmp_path: Path) -> tuple[Path, Path, Path, Path, Path]:
     output_base = tmp_path / "out"
-    source_dir = output_base / ".sdd" / "source"
+    source_dir = output_base / ".providence" / "source"
     return (
         output_base,
         source_dir,
         source_dir / "mandates",
         source_dir / "guidelines",
-        output_base / ".sdd" / "runtime",
+        output_base / ".providence" / "runtime",
     )
 
 
@@ -306,7 +306,7 @@ class TestMandatesWriter:
         writer.generate()
         content = read_text_utf8(mandates_dir / "mandates.md")
         assert "**Criticality**: MANDATORY" in content
-        assert "OBRIGATÓRIO" not in content
+        assert "OBRIGATRIO" not in content
 
     def test_m011_renders_language_policy_summary(self, tmp_path: Path) -> None:
         _, _, mandates_dir, _, _ = _setup_dirs(tmp_path)
@@ -529,7 +529,7 @@ class TestGeneratePluginWorkspaceDirs:
         ):
             _generate_plugin_workspace_dirs(output_base, _CONFIG)
         for state in ("todo", "pending", "refined", "done"):
-            assert (output_base / ".sdd" / "analysis" / state).exists()
+            assert (output_base / ".providence" / "analysis" / state).exists()
 
     def test_creates_docs_dir(self, tmp_path: Path) -> None:
         output_base, _, mandates_dir, guidelines_dir, runtime_dir = _setup_dirs(
@@ -546,7 +546,7 @@ class TestGeneratePluginWorkspaceDirs:
             ),
         ):
             _generate_plugin_workspace_dirs(output_base, _CONFIG)
-        assert (output_base / ".sdd" / "docs").exists()
+        assert (output_base / ".providence" / "docs").exists()
 
     def test_returns_false_on_exception(self, tmp_path: Path) -> None:
         output_base, _, mandates_dir, guidelines_dir, runtime_dir = _setup_dirs(

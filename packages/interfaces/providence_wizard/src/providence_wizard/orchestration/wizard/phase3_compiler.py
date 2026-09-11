@@ -1,4 +1,4 @@
-"""Phase 3 Compiler — orchestrates template compilation pipeline."""
+"""Phase 3 Compiler  orchestrates template compilation pipeline."""
 
 from __future__ import annotations
 
@@ -70,7 +70,7 @@ class Phase3Compiler:
     def log(self, message: str) -> None:
         """Emit a verbose-only info message."""
         if self.verbose:
-            self._emit(f"  ℹ️  {message}")
+            self._emit(f"    {message}")
 
     def validate_template_root(self) -> bool:
         """Return True if the wizard templates directory exists under repo_root."""
@@ -95,20 +95,20 @@ class Phase3Compiler:
                     self.language = self.config.get("language", "Python")
             return True
         except Exception as exc:
-            self._emit(f"  ❌ Error loading config: {exc}")
+            self._emit(f"   Error loading config: {exc}")
             return False
 
     def create_structure(self) -> bool:
-        """Create .sdd/source/ directory tree."""
+        """Create .providence/source/ directory tree."""
         try:
             (self.output_path / "source").mkdir(parents=True, exist_ok=True)
             return True
         except Exception as exc:
-            self._emit(f"  ❌ Error creating structure: {exc}")
+            self._emit(f"   Error creating structure: {exc}")
             return False
 
     def copy_seedlings(self) -> bool:
-        """Copy pre-built seedling JSON files into the output .sdd/seedlings/ directory."""
+        """Copy pre-built seedling JSON files into the output .providence/seedlings/ directory."""
         return _copy_seedlings(self.repo_root, self.output_path, self._emit)
 
     def parse_markdown_items(self) -> ParsedItems:
@@ -118,7 +118,7 @@ class Phase3Compiler:
         return items
 
     def compile_with_pipeline_builder(self, items: ParsedItems) -> bool:
-        """Run PipelineBuilder on parsed items and save outputs to .sdd/source/."""
+        """Run PipelineBuilder on parsed items and save outputs to .providence/source/."""
         return _compile_with_pipeline_builder(
             self.repo_root, self.output_path, cast(dict[str, Any], items), self._emit
         )
@@ -126,7 +126,7 @@ class Phase3Compiler:
     def load_compiled_governance(
         self,
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-        """Load compiled mandates and guidelines from .sdd/source/."""
+        """Load compiled mandates and guidelines from .providence/source/."""
         return _load_compiled_governance(self.output_path, self._emit)
 
     def run(self) -> Phase3RunResult:
@@ -145,7 +145,7 @@ class Phase3Compiler:
         if not self.load_wizard_config():
             return {"success": False, "error": "Failed to load config"}
         if not self.create_structure():
-            return {"success": False, "error": "Failed to create .sdd structure"}
+            return {"success": False, "error": "Failed to create .providence structure"}
 
         items = self.parse_markdown_items()
         self._emit(f"parse...OK ({len(items['mandates'])} mandates)")

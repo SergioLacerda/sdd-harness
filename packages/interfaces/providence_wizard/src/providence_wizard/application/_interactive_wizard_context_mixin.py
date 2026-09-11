@@ -1,7 +1,7 @@
 """Thin wiring methods shared by InteractiveWizard, called back into by the
 phase-runtime classes (PhaseOneRuntime, PhaseThreeRuntime, PhaseFourRuntime,
 etc.) via `self._context.<method>()`. Split out of interactive_wizard.py to
-keep that file under the 200-line convention; behavior is unchanged — these
+keep that file under the 200-line convention; behavior is unchanged  these
 remain regular instance methods via mixin inheritance.
 """
 
@@ -50,7 +50,7 @@ from ._interactive_wizard_helpers import (
 class InteractiveWizardContextMixin:
     """Selector wiring, config persistence, and scaffold helpers for the wizard.
 
-    Always mixed into InteractiveWizard, never instantiated standalone — the
+    Always mixed into InteractiveWizard, never instantiated standalone  the
     attributes below are declared (not assigned) so mypy can type-check the
     methods that reference them; actual values come from
     InteractiveWizard.__init__.
@@ -119,7 +119,7 @@ class InteractiveWizardContextMixin:
             consolidate_final_template,
         )
 
-    def print_header(self, title: str, icon: str = "🧙") -> None:
+    def print_header(self, title: str, icon: str = "") -> None:
         """Print formatted header"""
         self._emit(f"\n{icon} {title}")
         self._emit("=" * 70)
@@ -160,7 +160,7 @@ class InteractiveWizardContextMixin:
     def _ask_seedling_selection(self) -> set[str] | None:
         """Resolve which seedlings to include. Returns None for all.
 
-        Resolved once and cached — safe to call multiple times without
+        Resolved once and cached  safe to call multiple times without
         prompting twice. When `non_interactive` is set, resolves to `None`
         (all seedlings) without prompting.
         """

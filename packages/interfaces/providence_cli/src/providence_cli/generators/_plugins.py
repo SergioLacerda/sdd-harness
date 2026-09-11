@@ -1,4 +1,4 @@
-"""Plugin registry generator — creates .sdd/plugins/ with registry.yaml and Strategist entry."""
+"""Plugin registry generator  creates .providence/plugins/ with registry.yaml and Strategist entry."""
 
 from pathlib import Path
 from typing import Any
@@ -9,14 +9,14 @@ _STRATEGIST_ENTRY: dict[str, Any] = {
     "version": "1.0.0",
     "status": "active",
     "entrypoint": "/strategist",
-    "contract": ".sdd/contracts/analysis-provider.schema.yaml",
+    "contract": ".providence/contracts/analysis-provider.schema.yaml",
     "sdd_injection": {
-        "base_path": ".sdd/analysis",
+        "base_path": ".providence/analysis",
         "execution_provider": "sdd-ask",
         "approval_gate": "required",
         "knowledge_paths": [
-            ".sdd/docs",
-            ".sdd/source/mandates",
+            ".providence/docs",
+            ".providence/source/mandates",
         ],
         "governance_context": {
             "workspace_version": "3.0",
@@ -34,7 +34,7 @@ _STRATEGIST_ENTRY: dict[str, Any] = {
 def generate_plugins_registry(
     output_dir: str, _config: dict[str, Any]
 ) -> dict[str, Any]:
-    """Generate .sdd/plugins/registry.yaml with schema and Strategist plugin entry.
+    """Generate .providence/plugins/registry.yaml with schema and Strategist plugin entry.
 
     Args:
         output_dir: Base output directory (workspace root)
@@ -53,7 +53,7 @@ def generate_plugins_registry(
         }
 
     output_path = Path(output_dir)
-    plugins_dir = output_path / ".sdd" / "plugins"
+    plugins_dir = output_path / ".providence" / "plugins"
     plugins_dir.mkdir(parents=True, exist_ok=True)
 
     registry: dict[str, Any] = {

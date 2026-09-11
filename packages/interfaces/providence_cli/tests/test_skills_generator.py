@@ -1,4 +1,4 @@
-"""Tests for providence_cli.generators._skills — generate_skills_registry."""
+"""Tests for providence_cli.generators._skills  generate_skills_registry."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class TestGenerateSkillsRegistry:
 
     def test_registry_in_providence_skills_dir(self, tmp_path: Path) -> None:
         result = generate_skills_registry(str(tmp_path), {})
-        assert ".sdd/skills" in result["registry_path"]
+        assert ".providence/skills" in result["registry_path"]
 
     def test_skill_count_matches_canonical_registry(self, tmp_path: Path) -> None:
         from providence_runtime.skills import _REGISTRY
@@ -41,23 +41,23 @@ class TestGenerateSkillsRegistry:
 
     def test_registry_json_contains_skill_entries(self, tmp_path: Path) -> None:
         generate_skills_registry(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "skills" / "registry.json")
+        content = read_text_utf8(tmp_path / ".providence" / "skills" / "registry.json")
         data = json.loads(content)
         assert data["schema_version"] == "1.1.0"
         assert any(skill["name"] == "sdd-ask" for skill in data["skills"])
         for skill in data["skills"]:
-            assert skill["skill_yaml"] == f".sdd/skills/{skill['name']}/skill.yaml"
+            assert skill["skill_yaml"] == f".providence/skills/{skill['name']}/skill.yaml"
 
     def test_skill_yaml_round_trips(self, tmp_path: Path) -> None:
         generate_skills_registry(str(tmp_path), {})
-        ask_yaml = tmp_path / ".sdd" / "skills" / "sdd-ask" / "skill.yaml"
+        ask_yaml = tmp_path / ".providence" / "skills" / "sdd-ask" / "skill.yaml"
         assert ask_yaml.exists()
         content = read_text_utf8(ask_yaml)
         assert "name: sdd-ask" in content
 
     def test_skills_md_generated(self, tmp_path: Path) -> None:
         generate_skills_registry(str(tmp_path), {})
-        skills_md = tmp_path / ".sdd" / "skills" / "SKILLS.md"
+        skills_md = tmp_path / ".providence" / "skills" / "SKILLS.md"
         assert skills_md.exists()
         content = read_text_utf8(skills_md)
         assert "# SDD Skills Registry" in content
@@ -99,7 +99,7 @@ class TestGenerateSkillsRegistry:
         ):
             result = generate_skills_registry(str(tmp_path), {})
         assert result["skill_count"] == 1
-        fake_yaml = tmp_path / ".sdd" / "skills" / "fake-skill" / "skill.yaml"
+        fake_yaml = tmp_path / ".providence" / "skills" / "fake-skill" / "skill.yaml"
         assert fake_yaml.exists()
 
     def test_skill_write_failure_is_skipped(self, tmp_path: Path) -> None:
@@ -161,7 +161,7 @@ class TestGenerateSkillsDocumentation:
         assert a_index < z_index
         assert "**Category:** orchestrator" in doc
         assert "**Risk:** controlled" in doc
-        assert ".sdd/skills/a-skill/skill.yaml" in doc
+        assert ".providence/skills/a-skill/skill.yaml" in doc
 
     def test_handles_missing_fields_with_defaults(self) -> None:
         doc = _generate_skills_documentation([{}])

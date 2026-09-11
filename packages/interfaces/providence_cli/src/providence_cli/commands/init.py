@@ -1,4 +1,4 @@
-"""providence init — initialize an SDD workspace."""
+"""providence init  initialize an SDD workspace."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from providence_cli.commands.init_workspace_boundary import (
 )
 from providence_cli.services.command_group_output import show_command_group
 from providence_cli.utils.operational_errors import OperationalCliError
-from providence_cli.utils.sdd_console import format_sdd_line
+from providence_cli.utils.providence_console import format_sdd_line
 from providence_core.utils.environment import ProfileContext, SddProfile, write_profile
 
 app = typer.Typer()
@@ -43,7 +43,7 @@ def _write_profile_or_exit(
                 command="providence init",
                 step="profile",
                 operation="write profile",
-                path=cwd / ".sdd" / "profile",
+                path=cwd / ".providence" / "profile",
                 next_hint="upgrade the standalone tool so providence-cli and providence-core come from the same release, then retry: uv tool upgrade providence-cli",
             )
         )
@@ -53,7 +53,7 @@ def _write_profile_or_exit(
             headline="Could not write SDD workspace profile.",
             step="profile",
             operation="write profile",
-            path=cwd / ".sdd" / "profile",
+            path=cwd / ".providence" / "profile",
         )
         raise
 
@@ -100,7 +100,7 @@ def init(  # noqa: C901
         False,
         "--force",
         "-f",
-        help="Overwrite existing .sdd/profile without prompting (safe in CI).",
+        help="Overwrite existing .providence/profile without prompting (safe in CI).",
     ),
     no_bootstrap: bool = typer.Option(
         False,
@@ -117,11 +117,11 @@ def init(  # noqa: C901
         "--language",
         "-l",
         help="Client language preference (en|pt-BR), case-insensitive. "
-        "Written to .sdd/profile and bridged into compiled language_context.",
+        "Written to .providence/profile and bridged into compiled language_context.",
     ),
     list_commands: bool = typer.Option(False, "--list", help="List init commands."),
 ) -> None:
-    """Initialize an SDD workspace in the current directory (`.sdd/profile`; refuses nested workspaces)."""
+    """Initialize an SDD workspace in the current directory (`.providence/profile`; refuses nested workspaces)."""
     cwd = Path.cwd()
 
     if list_commands:
@@ -141,13 +141,13 @@ def init(  # noqa: C901
         )
         raise typer.Exit(1)
 
-    profile_path = cwd / ".sdd" / "profile"
+    profile_path = cwd / ".providence" / "profile"
     overwriting_existing = profile_path.exists() and force
 
     if profile_path.exists() and not force:
         _show_existing_profile(profile_path, cwd)
         typer.echo(
-            "\n[SDD] Workspace already initialized.\nUse --force to overwrite, or edit .sdd/profile directly.",
+            "\n[SDD] Workspace already initialized.\nUse --force to overwrite, or edit .providence/profile directly.",
             err=True,
         )
         raise typer.Exit(1)
@@ -176,13 +176,13 @@ def init(  # noqa: C901
     if profile_ctx.language:
         typer.echo(f"  language:     {profile_ctx.language}")
     typer.echo(
-        "  core_hash:    (empty — run 'providence governance compile' to populate)"
+        "  core_hash:    (empty  run 'providence governance compile' to populate)"
     )
     typer.echo("  phase_0:      completed")
     run_bootstrap = (profile_type == "client") and not no_bootstrap
     if run_bootstrap:
         typer.echo("")
-        typer.echo("[1/4] Workspace profile created ✓")
+        typer.echo("[1/4] Workspace profile created ")
         _run_init_bootstrap(cwd, force=force)
     else:
         typer.echo("")
@@ -197,7 +197,7 @@ def init(  # noqa: C901
 
 
 def _show_existing_profile(profile_path: Path, root: Path) -> None:
-    """Display the current .sdd/profile contents."""
+    """Display the current .providence/profile contents."""
     import configparser
 
     parser = configparser.ConfigParser()

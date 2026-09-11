@@ -1,4 +1,4 @@
-"""GeneratedManifest — tracks files written during a generation run."""
+"""GeneratedManifest  tracks files written during a generation run."""
 
 from __future__ import annotations
 

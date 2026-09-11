@@ -2,7 +2,7 @@
 
 Specialized domain extensions for SDD v3.0. Create custom mandates and guidelines for your specific use case.
 
-**Status:** ✅ Phase 8 Workstream 4 (Week 3-4)
+**Status:**  Phase 8 Workstream 4 (Week 3-4)
 
 ## Overview
 
@@ -77,10 +77,10 @@ Save your extension in `.providence-core/extensions/examples/my-domain/__init__.
 
 ```
 .providence-core/extensions/
-└── examples/
-    └── my-domain/
-        ├── __init__.py          # Your Extension class here
-        └── README.md            # Documentation
+ examples/
+     my-domain/
+         __init__.py          # Your Extension class here
+         README.md            # Documentation
 ```
 
 The module MUST export an `Extension` class that inherits from `BaseExtension`.
@@ -135,50 +135,50 @@ For RPG narrative systems with:
 
 ```
 extension_framework.py          # Base classes
-├── ItemType                    # MANDATE, GUIDELINE enums
-├── Category                    # Standard categories
-├── CustomMandate               # Domain mandate class
-├── CustomGuideline             # Domain guideline class
-├── ExtensionMetadata           # Extension metadata
-├── BaseExtension               # Base extension class
-└── ExtensionRegistry           # Registry for managing extensions
+ ItemType                    # MANDATE, GUIDELINE enums
+ Category                    # Standard categories
+ CustomMandate               # Domain mandate class
+ CustomGuideline             # Domain guideline class
+ ExtensionMetadata           # Extension metadata
+ BaseExtension               # Base extension class
+ ExtensionRegistry           # Registry for managing extensions
 
 plugin_loader.py                # Plugin discovery & loading
-├── PluginLoader                # Load plugins from filesystem
-└── load_all_plugins()          # Convenience function
+ PluginLoader                # Load plugins from filesystem
+ load_all_plugins()          # Convenience function
 ```
 
 ### Data Model
 
 ```
 Extension
-├── metadata
-│   ├── name
-│   ├── version
-│   ├── author
-│   ├── domain
-│   ├── description
-│   └── dependencies
-│
-├── mandates[]
-│   ├── id
-│   ├── type (HARD/SOFT)
-│   ├── title
-│   ├── description
-│   ├── category
-│   ├── rationale
-│   ├── validation_commands
-│   └── metadata
-│
-└── guidelines[]
-    ├── id
-    ├── type (HARD/SOFT)
-    ├── title
-    ├── description
-    ├── category
-    ├── examples[]
-    ├── related_mandate
-    └── metadata
+ metadata
+    name
+    version
+    author
+    domain
+    description
+    dependencies
+
+ mandates[]
+    id
+    type (HARD/SOFT)
+    title
+    description
+    category
+    rationale
+    validation_commands
+    metadata
+
+ guidelines[]
+     id
+     type (HARD/SOFT)
+     title
+     description
+     category
+     examples[]
+     related_mandate
+     metadata
 ```
 
 ## Key Features
@@ -197,9 +197,9 @@ The loader automatically finds extensions in subdirectories:
 
 ```
 .providence-core/extensions/examples/
-├── game-master-api/      → Loaded as "game-master-api"
-├── rpg-narrative-server/ → Loaded as "rpg-narrative-server"
-└── my-domain/            → Loaded as "my-domain"
+ game-master-api/       Loaded as "game-master-api"
+ rpg-narrative-server/  Loaded as "rpg-narrative-server"
+ my-domain/             Loaded as "my-domain"
 ```
 
 ### 3. Registry System
@@ -354,25 +354,25 @@ async def get_extension(domain: str):
 
 ```
 .providence-core/extensions/
-├── __init__.py                              # Module init
-├── README.md                                # This file
-│
-├── framework/
-│   ├── __init__.py
-│   ├── extension_framework.py              # Core classes (700+ lines)
-│   ├── plugin_loader.py                    # Plugin loading (300+ lines)
-│   └── security.py                         # (Planned: sandboxing)
-│
-├── examples/
-│   ├── __init__.py
-│   ├── game-master-api/
-│   │   └── __init__.py                    # 2 mandates, 3 guidelines
-│   └── rpg-narrative-server/
-│       └── __init__.py                    # 2 mandates, 4 guidelines
-│
-└── tests/
-    ├── __init__.py
-    └── test_extensions.py                 # Test suite (500+ lines)
+ __init__.py                              # Module init
+ README.md                                # This file
+
+ framework/
+    __init__.py
+    extension_framework.py              # Core classes (700+ lines)
+    plugin_loader.py                    # Plugin loading (300+ lines)
+    security.py                         # (Planned: sandboxing)
+
+ examples/
+    __init__.py
+    game-master-api/
+       __init__.py                    # 2 mandates, 3 guidelines
+    rpg-narrative-server/
+        __init__.py                    # 2 mandates, 4 guidelines
+
+ tests/
+     __init__.py
+     test_extensions.py                 # Test suite (500+ lines)
 ```
 
 ## Success Criteria
@@ -461,9 +461,9 @@ class HealthcareExtension(BaseExtension):
 
 ## References
 
-- **SDD v3.0:** [Migration Guide](../.sdd-migration/MIGRATION_v2_to_v3.md)
-- **Phase 8 Planning:** [../.sdd-migration/PHASE_8_PLANNING.md](../.sdd-migration/PHASE_8_PLANNING.md)
-- **API Integration:** [../.sdd-api/README.md](../.sdd-api/README.md)
+- **SDD v3.0:** [Migration Guide](../.providence-migration/MIGRATION_v2_to_v3.md)
+- **Phase 8 Planning:** [../.providence-migration/PHASE_8_PLANNING.md](../.providence-migration/PHASE_8_PLANNING.md)
+- **API Integration:** [../.providence-api/README.md](../.providence-api/README.md)
 
 ## Author
 

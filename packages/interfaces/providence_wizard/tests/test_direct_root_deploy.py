@@ -10,8 +10,8 @@ from providence_wizard.orchestration.wizard._direct_root_deploy import deploy_to
 
 def _make_final_template(tmp_path: Path, fingerprint: str = "abc123") -> Path:
     source = tmp_path / "final-template"
-    (source / ".sdd").mkdir(parents=True)
-    (source / ".sdd" / "metadata.json").write_text(
+    (source / ".providence").mkdir(parents=True)
+    (source / ".providence" / "metadata.json").write_text(
         json.dumps({"governance_fingerprint": fingerprint}), encoding="utf-8"
     )
     (source / "AGENTS.md").write_text("root seed content\n", encoding="utf-8")
@@ -25,7 +25,7 @@ def test_new_files_are_created(tmp_path: Path) -> None:
 
     result = deploy_to_root(target_root=target, final_template_dir=source)
 
-    assert sorted(result.created) == [".sdd/metadata.json", "AGENTS.md"]
+    assert sorted(result.created) == [".providence/metadata.json", "AGENTS.md"]
     assert result.updated == []
     assert result.unchanged == []
     assert result.skipped == []
@@ -42,7 +42,7 @@ def test_rerun_with_identical_content_is_unchanged(tmp_path: Path) -> None:
 
     assert result.created == []
     assert result.updated == []
-    assert sorted(result.unchanged) == [".sdd/metadata.json", "AGENTS.md"]
+    assert sorted(result.unchanged) == [".providence/metadata.json", "AGENTS.md"]
 
 
 def test_managed_file_is_updated_when_source_changes(tmp_path: Path) -> None:
@@ -96,7 +96,7 @@ def test_manifest_records_generator_and_fingerprint(tmp_path: Path) -> None:
     deploy_to_root(target_root=target, final_template_dir=source)
 
     manifest = json.loads(
-        (target / ".sdd" / "runtime" / "direct-root-manifest.json").read_text(
+        (target / ".providence" / "runtime" / "direct-root-manifest.json").read_text(
             encoding="utf-8"
         )
     )

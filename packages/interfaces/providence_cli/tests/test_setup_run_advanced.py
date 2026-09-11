@@ -1,4 +1,4 @@
-"""Tests for providence_cli.commands.setup — `providence setup run` advanced scenarios."""
+"""Tests for providence_cli.commands.setup  `providence setup run` advanced scenarios."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ class TestRunSetupAdvanced:
     def test_run_setup_creates_venv_when_missing(self, tmp_path: Path) -> None:
         from providence_cli.main import app
 
-        # No .venv directory — venv creation branch (line 118) must run
+        # No .venv directory  venv creation branch (line 118) must run
         mock_runner = MagicMock()
         mock_runner.run.return_value = MagicMock(success=True)
 

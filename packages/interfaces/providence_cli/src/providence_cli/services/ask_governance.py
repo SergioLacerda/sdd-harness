@@ -53,7 +53,7 @@ def try_sdd_compiled_dir(
     *,
     logger: Any | None = None,
 ) -> tuple[str, str, int] | None:
-    """Try loading governance artifacts from a `.sdd/compiled` directory."""
+    """Try loading governance artifacts from a `.providence/compiled` directory."""
     return try_sdd_compiled_artifact(
         sdd_compiled, logger=logger, fingerprint_file_fn=fingerprint_file
     )
@@ -90,7 +90,7 @@ def try_sdd_compiled_fallback(
     *,
     logger: Any | None = None,
 ) -> GovResult | None:
-    """Fall back to loading governance artifacts directly from `.sdd/compiled`."""
+    """Fall back to loading governance artifacts directly from `.providence/compiled`."""
     return try_sdd_compiled_fallback_result(
         sdd_compiled,
         signature_mode_value,

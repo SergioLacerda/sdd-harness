@@ -3,7 +3,7 @@
 Scenario B (see wizard-bootstrap-two-scenarios-20260705 design): instead of
 generating a fresh mandates/guidelines set from markdown templates (Phase
 1-3), the user supplies their own hand-edited JSON file. This module checks
-that file's item-level schema *before* compilation — distinct in scope from
+that file's item-level schema *before* compilation  distinct in scope from
 `providence governance validate`, which only validates already-compiled artifact
 directories (fingerprint/conflict checks), never a raw pre-compilation
 source file.
@@ -49,7 +49,7 @@ def validate_custom_governance_file(path: Path) -> tuple[bool, list[str]]:
     """Validate a user-supplied mandates/guidelines JSON file.
 
     Returns (True, []) if the file is well-formed and usable, or
-    (False, [human-readable errors]) otherwise. Never raises — all failure
+    (False, [human-readable errors]) otherwise. Never raises  all failure
     modes (missing file, bad JSON, bad schema) are reported as errors.
     """
     if not path.exists():
@@ -74,7 +74,7 @@ def validate_custom_governance_file(path: Path) -> tuple[bool, list[str]]:
 
     if not items:
         return False, [
-            f'{path}: "items" array is empty — at least one item is required'
+            f'{path}: "items" array is empty  at least one item is required'
         ]
 
     seen_ids: set[str] = set()
@@ -91,7 +91,7 @@ def load_custom_governance_file(
     """Validate and stage a custom governance file for Phase 4-6 to consume.
 
     On success, writes the (already-validated) JSON to
-    `output_base/.sdd/source/governance-core.json` — one of the candidate
+    `output_base/.providence/source/governance-core.json`  one of the candidate
     paths `_resolve_governance_inputs` (`_phase456_governance_io.py`) already
     checks, so Phase 4's `GovernanceLoader` picks it up with zero changes to
     Phase 4-6 code. This is what lets Scenario B skip Phase 1-3 (markdown
@@ -107,10 +107,10 @@ def load_custom_governance_file(
     except (OSError, json.JSONDecodeError) as exc:
         return False, [f"could not re-read validated file {custom_path}: {exc}"]
 
-    target = output_base / ".sdd" / "source" / "governance-core.json"
+    target = output_base / ".providence" / "source" / "governance-core.json"
     try:
         # Incidentally creates output_base (client_compiled_dir) itself when
-        # it doesn't yet exist — this is what lets PhaseFourRuntime's
+        # it doesn't yet exist  this is what lets PhaseFourRuntime's
         # client_compiled_dir.exists() precheck pass for Scenario B, even
         # though Phase 3 never ran.
         target.parent.mkdir(parents=True, exist_ok=True)

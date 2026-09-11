@@ -23,7 +23,7 @@ def render_agent_redirector(
 ) -> str:
     """Render a lightweight governance redirector for an AI agent instruction file.
 
-    Mirror of providence_wizard._renderer.render_agent_redirector — keep output format in sync.
+    Mirror of providence_wizard._renderer.render_agent_redirector  keep output format in sync.
     Used by generate_agent_instruction_files() for all agents except Copilot.
     """
     ids_preview = ", ".join(mandate_ids[:5])
@@ -34,7 +34,7 @@ def render_agent_redirector(
         f"# Governance fingerprint: {fingerprint[:16]}",
         f"# Active mandates: {len(mandate_ids)}"
         + (f" ({ids_preview})" if ids_preview else ""),
-        "# Drift check: fingerprint must match .sdd/metadata.json → fingerprints.combined",
+        "# Drift check: fingerprint must match .providence/metadata.json  fingerprints.combined",
     ]
 
     lines: list[str] = list(header_lines) + fp_lines
@@ -42,39 +42,39 @@ def render_agent_redirector(
         "",
         "## Agent Entrypoint",
         "",
-        "Bootstrap sequence for this agent starts with `.sdd/agent-instructions.md`.",
+        "Bootstrap sequence for this agent starts with `.providence/agent-instructions.md`.",
         "",
         "## Entrypoint Contract",
         "",
-        "1. You are under governance. Always resolve instructions from `.sdd`.",
-        "   Initial reference: `.sdd/agent-instructions.md`",
+        "1. You are under governance. Always resolve instructions from `.providence`.",
+        "   Initial reference: `.providence/agent-instructions.md`",
         "",
         "## Commands And Skills (Source Of Truth)",
         "",
-        "1. Commands source of truth: `.sdd/commands`.",
-        "2. Skills source of truth: `.sdd/skills`.",
+        "1. Commands source of truth: `.providence/commands`.",
+        "2. Skills source of truth: `.providence/skills`.",
         "3. On startup, load:",
-        "   - `.sdd/commands/registry.json`",
-        "   - `.sdd/skills/registry.json`",
+        "   - `.providence/commands/registry.json`",
+        "   - `.providence/skills/registry.json`",
         "4. For each active command/skill in registries, read canonical files:",
-        "   - Commands: `.sdd/commands/<command-id>/command.yaml`",
-        "   - Skills: `.sdd/skills/<skill-name>/skill.yaml`",
+        "   - Commands: `.providence/commands/<command-id>/command.yaml`",
+        "   - Skills: `.providence/skills/<skill-name>/skill.yaml`",
         "5. Precedence rule:",
         "   - Local path is for context and ergonomics.",
-        "   - `.sdd` is authoritative for routing/policy and wins conflicts.",
+        "   - `.providence` is authoritative for routing/policy and wins conflicts.",
         "",
         "## One Rule",
         "",
-        "**Before planning, coding, or deciding:** read `.sdd/agent-instructions.md`.",
+        "**Before planning, coding, or deciding:** read `.providence/agent-instructions.md`.",
         "",
         "## Quick Reference",
         "",
         "| File | Purpose |",
         "|------|---------|",
-        "| `.sdd/agent-instructions.md` | **START HERE** — Complete agent bootstrap |",
-        "| `.sdd/metadata.json` | Workspace version, fingerprints, item counts |",
-        "| `.sdd/source/governance-core.json` | Human-readable mandates snapshot |",
-        "| `.sdd/source/mandates/mandates.md` | Full mandate descriptions |",
+        "| `.providence/agent-instructions.md` | **START HERE**  Complete agent bootstrap |",
+        "| `.providence/metadata.json` | Workspace version, fingerprints, item counts |",
+        "| `.providence/source/governance-core.json` | Human-readable mandates snapshot |",
+        "| `.providence/source/mandates/mandates.md` | Full mandate descriptions |",
         "",
         "## Validation",
         "",

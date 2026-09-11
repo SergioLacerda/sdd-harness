@@ -1,4 +1,4 @@
-"""Direct-to-root deployment — opt-in alternative to the final-template staging flow.
+"""Direct-to-root deployment  opt-in alternative to the final-template staging flow.
 
 Copies the wizard's compiled final-template output directly into the project
 root, tracking managed files via a side-car manifest so reruns are idempotent:
@@ -17,8 +17,12 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from providence_wizard.constants import RUNTIME_DIRNAME
+
 _GENERATOR_ID = "providence_wizard.direct_root_deploy"
-_MANIFEST_RELATIVE_PATH = Path(".sdd") / "runtime" / "direct-root-manifest.json"
+_MANIFEST_RELATIVE_PATH = (
+    Path(RUNTIME_DIRNAME) / "runtime" / "direct-root-manifest.json"
+)
 
 
 @dataclass(frozen=True)
@@ -33,7 +37,7 @@ class DeployToRootResult:
 
 
 def _read_fingerprint(final_template_dir: Path) -> str:
-    metadata_file = final_template_dir / ".sdd" / "metadata.json"
+    metadata_file = final_template_dir / RUNTIME_DIRNAME / "metadata.json"
     if not metadata_file.exists():
         return "unknown"
     try:
@@ -85,13 +89,13 @@ def deploy_to_root(
     """Copy final_template_dir's contents directly into target_root, idempotently.
 
     Rules:
-    - New file → copied, classified "created".
-    - Existing file, identical bytes → "unchanged" (no write).
-    - Existing file, different bytes, previously managed by this generator →
+    - New file  copied, classified "created".
+    - Existing file, identical bytes  "unchanged" (no write).
+    - Existing file, different bytes, previously managed by this generator 
       overwritten, classified "updated".
-    - Existing file, different bytes, NOT previously managed → left alone,
+    - Existing file, different bytes, NOT previously managed  left alone,
       classified "skipped" (never clobber a file this generator doesn't own).
-    - Previously-managed file no longer present in the source → dropped from
+    - Previously-managed file no longer present in the source  dropped from
       the manifest, classified "removed" (the file itself is left on disk).
     """
     fingerprint = _read_fingerprint(final_template_dir)

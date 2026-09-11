@@ -72,7 +72,7 @@ def _resolve_jsonl_path(jsonl: Path | None) -> Path:
 
     Priority:
     1. Explicit --jsonl argument
-    2. {cwd}/.sdd/runtime/compliance-events.jsonl
+    2. {cwd}/.providence/runtime/compliance-events.jsonl
     3. Fallback to just the filename (for testing)
     """
     if jsonl:

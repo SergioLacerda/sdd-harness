@@ -110,4 +110,4 @@ def default_events_path(*, resolve_workspace_root_fn: Any) -> Path:
         root = resolve_workspace_root_fn()
     except Exception:
         root = Path.cwd()
-    return Path(root) / ".sdd" / "runtime" / "compliance-events.jsonl"
+    return Path(root) / ".providence" / "runtime" / "compliance-events.jsonl"

@@ -14,9 +14,9 @@ devin_app = devin_mod.app
 
 
 def _write_minimal_registry(ws_root: Path) -> None:
-    skills_dir = ws_root / ".sdd" / "skills" / "alpha"
+    skills_dir = ws_root / ".providence" / "skills" / "alpha"
     skills_dir.mkdir(parents=True)
-    (ws_root / ".sdd" / "skills" / "registry.json").write_text(
+    (ws_root / ".providence" / "skills" / "registry.json").write_text(
         json.dumps({"skills": [{"name": "alpha"}]}), encoding="utf-8"
     )
     (skills_dir / "skill.yaml").write_text(

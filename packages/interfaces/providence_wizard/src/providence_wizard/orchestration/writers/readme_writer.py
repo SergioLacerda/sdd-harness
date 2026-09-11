@@ -1,4 +1,4 @@
-"""ReadmeWriter — generates .sdd/source/README.md and .sdd/runtime/README.md."""
+"""ReadmeWriter  generates .providence/source/README.md and .providence/runtime/README.md."""
 
 from __future__ import annotations
 
@@ -74,20 +74,20 @@ class ReadmeWriter:
     def _guideline_category_block(self) -> str:
         """Return directory-tree lines for guideline categories."""
         if not self._guidelines_by_category:
-            return "│   └── (rendered by category when generated)\n"
+            return "    (rendered by category when generated)\n"
         lines = []
         for category in sorted(self._guidelines_by_category.keys()):
-            lines.append(f"│   ├── {category}.md")
-        lines[-1] = lines[-1].replace("├──", "└──", 1)
+            lines.append(f"    {category}.md")
+        lines[-1] = lines[-1].replace("", "", 1)
         return "\n".join(lines) + "\n"
 
     def _guideline_read_examples(self) -> str:
         """Return example `cat` commands for the first few guideline categories."""
         if not self._guidelines_by_category:
-            return "# No rendered category files available yet\ncat .sdd/source/guidelines.dsl\n"
+            return "# No rendered category files available yet\ncat .providence/source/guidelines.dsl\n"
         return (
             "\n".join(
-                f"cat .sdd/source/guidelines/{category}.md"
+                f"cat .providence/source/guidelines/{category}.md"
                 for category in sorted(self._guidelines_by_category.keys())[:3]
             )
             + "\n"
@@ -96,19 +96,19 @@ class ReadmeWriter:
     def _runtime_guideline_load_snippet(self) -> str:
         """Return the Python snippet that loads guidelines by category."""
         if not self._guidelines_by_category:
-            return "    guidelines = {'dsl': read_file('.sdd/source/guidelines.dsl')}\n"
+            return "    guidelines = {'dsl': read_file('.providence/source/guidelines.dsl')}\n"
         categories = ", ".join(
             repr(category) for category in sorted(self._guidelines_by_category.keys())
         )
         return (
             "    guidelines = {}\n"
             f"    for category in [{categories}]:\n"
-            "        guidelines[category] = read_file(f'.sdd/source/guidelines/{category}.md')\n"
+            "        guidelines[category] = read_file(f'.providence/source/guidelines/{category}.md')\n"
         )
 
     def generate_source_readme(self) -> bool:
-        """Write .sdd/source/README.md; return True on success."""
-        self._log("Generating .sdd/source/README.md")
+        """Write .providence/source/README.md; return True on success."""
+        self._log("Generating .providence/source/README.md")
         try:
             categories_list = "\n".join(
                 f"- {cat.title()}"
@@ -127,15 +127,15 @@ class ReadmeWriter:
             )
             with open(self._source_dir / "README.md", "w", encoding="utf-8") as f:
                 f.write(content)
-            self._log("Generated .sdd/source/README.md")
+            self._log("Generated .providence/source/README.md")
             return True
         except Exception as e:
-            print(f"  ❌ Failed to generate source README: {e}")  # noqa: T201
+            print(f"   Failed to generate source README: {e}")  # noqa: T201
             return False
 
     def generate_runtime_readme(self) -> bool:
-        """Write .sdd/runtime/README.md; return True on success."""
-        self._log("Generating .sdd/runtime/README.md")
+        """Write .providence/runtime/README.md; return True on success."""
+        self._log("Generating .providence/runtime/README.md")
         try:
             content = build_runtime_readme(
                 generated_at=datetime.now().isoformat(),
@@ -144,8 +144,8 @@ class ReadmeWriter:
             )
             with open(self._runtime_dir / "README.md", "w", encoding="utf-8") as f:
                 f.write(content)
-            self._log("Generated .sdd/runtime/README.md")
+            self._log("Generated .providence/runtime/README.md")
             return True
         except Exception as e:
-            print(f"  ❌ Failed to generate runtime README: {e}")  # noqa: T201
+            print(f"   Failed to generate runtime README: {e}")  # noqa: T201
             return False

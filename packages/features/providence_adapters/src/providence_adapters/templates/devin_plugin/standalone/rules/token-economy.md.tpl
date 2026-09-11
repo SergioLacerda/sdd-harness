@@ -7,7 +7,7 @@ Last verified: `{{ last_verified }}`
 
 - Prefer concise, information-dense output over verbose explanations.
 - When suggesting code, emit only the changed lines plus minimal surrounding
-  context — not the entire file.
+  context â€” not the entire file.
 - Do not repeat the user's question back before answering.
 - Do not emit disclaimers, preambles, or summaries unless explicitly asked.
 
@@ -18,7 +18,7 @@ Last verified: `{{ last_verified }}`
 - Avoid generating boilerplate that a scaffold tool should handle (e.g., license
   headers, empty constructors, trivial getters/setters).
 - When multiple approaches exist, present the recommended one first with a brief
-  rationale — do not enumerate all alternatives unless asked.
+  rationale â€” do not enumerate all alternatives unless asked.
 
 ## Response Budget
 

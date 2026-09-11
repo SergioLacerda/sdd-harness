@@ -15,43 +15,43 @@ You are operating in a workspace governed by **Spec Driven Development (SDD)**.
 
 Read and adhere to the canonical governance rules in:
 ```
-.sdd/agent-instructions.md
+.providence/agent-instructions.md
 ```
 
 This file is the **single source of truth** for all governance policies in this workspace.
 
 ## Commands And Skills (Source Of Truth)
 
-1. Commands source of truth: `.sdd/commands`.
-2. Skills source of truth: `.sdd/skills`.
+1. Commands source of truth: `.providence/commands`.
+2. Skills source of truth: `.providence/skills`.
 3. On startup, load:
-   - `.sdd/commands/registry.json`
-   - `.sdd/skills/registry.json`
+   - `.providence/commands/registry.json`
+   - `.providence/skills/registry.json`
 4. For each active command/skill in registries, read canonical files:
-   - Commands: `.sdd/commands/<command-id>/command.yaml`
-   - Skills: `.sdd/skills/<skill-name>/skill.yaml`
+   - Commands: `.providence/commands/<command-id>/command.yaml`
+   - Skills: `.providence/skills/<skill-name>/skill.yaml`
 5. Precedence rule:
    - Local path (`.github/prompts/*`) is for context and ergonomics.
-   - `.sdd` is authoritative for routing/policy and wins conflicts.
+   - `.providence` is authoritative for routing/policy and wins conflicts.
 
 ## Quick Reference
 
 - **Mandate enforcement**: Non-negotiable rules (M001-M010, M015)
 - **Governance status**: Run `providence runtime status` to check workspace health
 - **Validation**: Run `providence governance validate` before finalizing changes
-- **Activation**: Governance activates automatically on project load via `.sdd/seedlings/`
+- **Activation**: Governance activates automatically on project load via `.providence/seedlings/`
 
 ## Governance Documentation
 
-All governance documentation lives in `.sdd/source/`:
-- `mandates/mandates.md` — Mandate descriptions and enforcement rules
-- `guidelines/` — Customizable guidelines by category (if any)
-- `README.md` — Onboarding guide for agents
+All governance documentation lives in `.providence/source/`:
+- `mandates/mandates.md`  Mandate descriptions and enforcement rules
+- `guidelines/`  Customizable guidelines by category (if any)
+- `README.md`  Onboarding guide for agents
 
 ## Operating Rules
 
 - Do not bypass mandatory mandates.
-- Prefer generated templates and `.sdd/*` canonical governance over improvised structure.
+- Prefer generated templates and `.providence/*` canonical governance over improvised structure.
 - When the workspace state is unclear, run `providence runtime status` first.
 
 ## Expected Validation Commands
@@ -86,7 +86,7 @@ def guard_repo_root_mutation(output_dir: Path) -> None:
 
     if should_block:
         msg = f"SDD_ISOLATION_ERROR: Mutation of repo root blocked ({output_dir})"
-        print(f"  ❌ {msg}")  # noqa: T201
+        print(f"   {msg}")  # noqa: T201
         raise PermissionError(msg)
 
 
@@ -143,7 +143,7 @@ def build_instruction_targets(
             "Cursor",
             [
                 "---",
-                "description: SDD governance context — loaded automatically for all files.",
+                "description: SDD governance context  loaded automatically for all files.",
                 "globs: ['**/*']",
                 "alwaysApply: true",
                 "---",
@@ -176,7 +176,7 @@ def write_instruction_files(
     for label, target, tool_name, header_lines in outputs:
         target.parent.mkdir(parents=True, exist_ok=True)
         if label == "GitHub Copilot":
-            # Canonical contract: Copilot bootstrap is .sdd-only redirector.
+            # Canonical contract: Copilot bootstrap is .providence-only redirector.
             target.write_text(_COPILOT_SDD_ONLY, encoding="utf-8")
         else:
             target.write_text(

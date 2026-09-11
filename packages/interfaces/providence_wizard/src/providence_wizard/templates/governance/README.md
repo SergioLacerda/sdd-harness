@@ -1,4 +1,4 @@
-# 🎯 SDD Architecture Governance Seedlings
+#  SDD Architecture Governance Seedlings
 
 **Quick Start for AI Agents** - Optimized for Wizard Integration
 
@@ -7,16 +7,16 @@
 If you're an AI agent helping a user adopt SDD Architecture governance:
 
 1. **First Time Setup?**
-   → Go to [WIZARD_ADOPTION.md](./base-seedling/WIZARD_ADOPTION.md)
+    Go to [WIZARD_ADOPTION.md](./base-seedling/WIZARD_ADOPTION.md)
 
 2. **Implementing Governance?**
-   → Go to [GOVERNANCE_IMPLEMENTATION.md](./base-seedling/GOVERNANCE_IMPLEMENTATION.md)
+    Go to [GOVERNANCE_IMPLEMENTATION.md](./base-seedling/GOVERNANCE_IMPLEMENTATION.md)
 
 3. **Enforcing Rules?**
-   → Go to [ENFORCEMENT_GUIDE.md](./adoption-rules/ENFORCEMENT_GUIDE.md)
+    Go to [ENFORCEMENT_GUIDE.md](./adoption-rules/ENFORCEMENT_GUIDE.md)
 
 4. **Need Quick Reference?**
-   → Go to [QUICK_REFERENCE.md](./base-seedling/QUICK_REFERENCE.md)
+    Go to [QUICK_REFERENCE.md](./base-seedling/QUICK_REFERENCE.md)
 
 ---
 
@@ -72,5 +72,5 @@ See: `base-seedling/WIZARD_ADOPTION.md` - Phase 0 Integration
 
 ---
 
-**Version**: 1.0 | **Status**: ✅ Production Ready
+**Version**: 1.0 | **Status**:  Production Ready
 **Last Updated**: 2026-04-26 | **Target**: AI Agent Optimization

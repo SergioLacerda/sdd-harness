@@ -4,7 +4,7 @@ Centralizes the `[SDD] ...` prefix convention already used ad hoc across
 `commands/init.py`, `commands/_ask_backend/_budget.py`, and
 `commands/_metrics_command_support.py`, and adds a phase/duration line
 formatter for per-phase timing summaries (see
-`.analysis/refined/20260730-sdd-ask-telemetry-critique/design.md` §4).
+`.analysis/refined/20260730-sdd-ask-telemetry-critique/design.md` 4).
 """
 
 from __future__ import annotations

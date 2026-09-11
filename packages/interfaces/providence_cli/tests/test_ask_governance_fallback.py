@@ -76,7 +76,7 @@ def test_log_sdd_metadata_file_not_exists(tmp_path: Path) -> None:
 
 def test_log_sdd_metadata_valid_file(tmp_path: Path) -> None:
     logger = MagicMock()
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     sdd_dir.mkdir()
     (sdd_dir / "metadata.json").write_text(
         json.dumps({"version": "3.0", "item_count": 12}), encoding="utf-8"
@@ -87,7 +87,7 @@ def test_log_sdd_metadata_valid_file(tmp_path: Path) -> None:
 
 def test_log_sdd_metadata_invalid_json(tmp_path: Path) -> None:
     logger = MagicMock()
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     sdd_dir.mkdir()
     (sdd_dir / "metadata.json").write_bytes(b"\xff\xfe invalid")
     log_sdd_metadata(tmp_path, logger=logger)
@@ -95,7 +95,7 @@ def test_log_sdd_metadata_invalid_json(tmp_path: Path) -> None:
 
 
 def test_log_sdd_metadata_no_logger(tmp_path: Path) -> None:
-    sdd_dir = tmp_path / ".sdd"
+    sdd_dir = tmp_path / ".providence"
     sdd_dir.mkdir()
     (sdd_dir / "metadata.json").write_text(
         json.dumps({"version": "3.0"}), encoding="utf-8"
@@ -104,7 +104,7 @@ def test_log_sdd_metadata_no_logger(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# load_compiled_governance — runtime_result not None path
+# load_compiled_governance  runtime_result not None path
 # ---------------------------------------------------------------------------
 
 

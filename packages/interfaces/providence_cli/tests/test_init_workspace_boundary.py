@@ -55,7 +55,7 @@ class TestFindProjectBoundary:
 class TestFindParentWorkspaceWithProfile:
     def test_finds_ancestor_with_real_profile(self, tmp_path: Path) -> None:
         home = tmp_path / "home"
-        _write_profile(home / ".sdd" / "profile")
+        _write_profile(home / ".providence" / "profile")
         deep = home / "dev" / "project"
         deep.mkdir(parents=True)
         assert _find_parent_workspace_with_profile(deep) == home
@@ -66,9 +66,9 @@ class TestFindParentWorkspaceWithProfile:
         assert _find_parent_workspace_with_profile(deep) is None
 
     def test_ignores_bare_sdd_dir_without_profile_file(self, tmp_path: Path) -> None:
-        """A bare `.sdd/` (e.g. a toolchain cache) must not count as a workspace."""
+        """A bare `.providence/` (e.g. a toolchain cache) must not count as a workspace."""
         home = tmp_path / "home"
-        (home / ".sdd" / "bin").mkdir(parents=True)
+        (home / ".providence" / "bin").mkdir(parents=True)
         deep = home / "dev" / "project"
         deep.mkdir(parents=True)
         assert _find_parent_workspace_with_profile(deep) is None
@@ -86,7 +86,7 @@ class TestFindBlockingParentWorkspace:
         """Defensive branch: even if a caller-supplied ancestor claims to have a
         profile, a missing real file on disk must not block init. Exercised via
         a direct patch since `_find_parent_workspace_with_profile` itself never
-        returns a candidate without a real profile file — this guards against
+        returns a candidate without a real profile file  this guards against
         that invariant being violated by a future change."""
         home = tmp_path / "home"
         home.mkdir()
@@ -103,10 +103,10 @@ class TestFindBlockingParentWorkspace:
     ) -> None:
         """A real ancestor workspace exists, but the project's own boundary
         marker (.git) sits in a subtree the workspace is not an ancestor of
-        relative to — e.g. the workspace is itself nested *inside* the
+        relative to  e.g. the workspace is itself nested *inside* the
         project, not the other way around."""
         home = tmp_path / "home"
-        _write_profile(home / ".sdd" / "profile")
+        _write_profile(home / ".providence" / "profile")
         project = home / "dev" / "project"
         (project / ".git").mkdir(parents=True)
 
@@ -114,7 +114,7 @@ class TestFindBlockingParentWorkspace:
 
     def test_returns_parent_workspace_when_blocking(self, tmp_path: Path) -> None:
         home = tmp_path / "home"
-        _write_profile(home / ".sdd" / "profile")
+        _write_profile(home / ".providence" / "profile")
         cwd = home / "dev" / "project"
         cwd.mkdir(parents=True)
 

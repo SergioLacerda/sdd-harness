@@ -52,11 +52,11 @@ class SelectorCompiler:
         return output_dir
 
     # ------------------------------------------------------------------
-    # Item building — primary path then fallback
+    # Item building  primary path then fallback
     # ------------------------------------------------------------------
 
     def _build_items(self) -> list[SelectorItem]:
-        # Primary path: governed .sdd artifacts exist
+        # Primary path: governed .providence artifacts exist
         if self._metadata_path().exists() and self._mandates_path().exists():
             return self._build_items_from_sdd()
 
@@ -64,17 +64,17 @@ class SelectorCompiler:
         docs_items = _build_items_from_canonical_docs(self.repo_root)
         if docs_items:
             print(
-                "[selector_compiler] INFO: .sdd artifacts not found — "
+                "[selector_compiler] INFO: .providence artifacts not found  "
                 "using docs/spec/canonical fallback. "
                 "Run 'providence governance generate' to use compiled artifacts.",
                 file=sys.stderr,
             )
             return docs_items
 
-        # Nothing available — emit warning and return empty list
+        # Nothing available  emit warning and return empty list
         print(
             f"[selector_compiler] WARN: governance artifacts not found at "
-            f"{self.repo_root / '.sdd'} and no canonical docs found at "
+            f"{self.repo_root / '.providence'} and no canonical docs found at "
             f"{self.repo_root / 'docs' / 'spec' / 'canonical'}. "
             "Run 'providence governance generate' to populate. Emitting empty selector.",
             file=sys.stderr,
@@ -82,7 +82,7 @@ class SelectorCompiler:
         return []
 
     def _build_items_from_sdd(self) -> list[SelectorItem]:
-        """Build items from governed .sdd artifacts (primary path)."""
+        """Build items from governed .providence artifacts (primary path)."""
         metadata = _load_metadata(self._metadata_path())
         sections = _parse_mandate_sections(self._mandates_path())
         mandate_items = [
@@ -105,7 +105,7 @@ class SelectorCompiler:
         return all_items
 
     # ------------------------------------------------------------------
-    # Item builder (used by primary .sdd path)
+    # Item builder (used by primary .providence path)
     # ------------------------------------------------------------------
 
     def _build_item(
@@ -159,10 +159,10 @@ class SelectorCompiler:
     # ------------------------------------------------------------------
 
     def _metadata_path(self) -> Path:
-        return self.repo_root / ".sdd" / "metadata.json"
+        return self.repo_root / ".providence" / "metadata.json"
 
     def _mandates_path(self) -> Path:
-        return self.repo_root / ".sdd" / "source" / "mandates" / "mandates.md"
+        return self.repo_root / ".providence" / "source" / "mandates" / "mandates.md"
 
     def _guidelines_path(self) -> Path:
-        return self.repo_root / ".sdd" / "source" / "guidelines.dsl"
+        return self.repo_root / ".providence" / "source" / "guidelines.dsl"

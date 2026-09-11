@@ -14,7 +14,7 @@ from providence_cli.services._governance_compile_support import (
     compliance_components,
     resolve_output_base_path,
 )
-from providence_cli.utils.sdd_authority import resolve_workspace_root
+from providence_cli.utils.providence_authority import resolve_workspace_root
 
 logger = logging.getLogger(__name__)
 

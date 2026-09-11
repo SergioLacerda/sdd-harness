@@ -20,7 +20,7 @@ pytestmark = pytest.mark.unit
 
 
 def _write_profile(workspace_root: Path, profile_type: str) -> None:
-    sdd_dir = workspace_root / ".sdd"
+    sdd_dir = workspace_root / ".providence"
     sdd_dir.mkdir(parents=True, exist_ok=True)
     parser = configparser.ConfigParser()
     parser["sdd"] = {"type": profile_type}
@@ -81,7 +81,7 @@ class TestCheckFingerprintDrift:
         assert check_fingerprint_drift(tmp_path, "") is False
 
     def test_detects_drift(self, tmp_path: Path) -> None:
-        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
         state_path.parent.mkdir(parents=True)
         state_path.write_text(
             json.dumps({"last_ask": {"compiled_fingerprint_used": "zzzzzzzz"}}),
@@ -94,11 +94,11 @@ class TestCheckFingerprintDrift:
     ) -> None:
         """DRF-02 regression: `spec_fingerprint` (a source-hash domain) must
         never be compared against `loaded_fingerprint` (a compiled-artifact
-        domain) — a mismatch there is not evidence of drift, and reporting
+        domain)  a mismatch there is not evidence of drift, and reporting
         it as one was the exact bug. With no same-domain reference
         (`compiled_fingerprint_used`), the outcome is "unverifiable", which
         `check_fingerprint_drift`'s boolean projects to False."""
-        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
         state_path.parent.mkdir(parents=True)
         state_path.write_text(
             json.dumps({"spec_fingerprint": "zzzzzzzz"}), encoding="utf-8"
@@ -108,7 +108,7 @@ class TestCheckFingerprintDrift:
         assert resolve_fingerprint_drift_status(tmp_path, "abc12345") == "unverifiable"
 
     def test_no_drift_when_fingerprints_match(self, tmp_path: Path) -> None:
-        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
         state_path.parent.mkdir(parents=True)
         state_path.write_text(
             json.dumps({"spec_fingerprint": "abc12345xyz"}), encoding="utf-8"
@@ -116,13 +116,13 @@ class TestCheckFingerprintDrift:
         assert check_fingerprint_drift(tmp_path, "abc12345") is False
 
     def test_no_drift_when_no_cached_fingerprint(self, tmp_path: Path) -> None:
-        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
         state_path.parent.mkdir(parents=True)
         state_path.write_text(json.dumps({}), encoding="utf-8")
         assert check_fingerprint_drift(tmp_path, "abc12345") is False
 
     def test_no_drift_when_last_ask_fingerprint_matches(self, tmp_path: Path) -> None:
-        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
         state_path.parent.mkdir(parents=True)
         state_path.write_text(
             json.dumps(
@@ -138,7 +138,7 @@ class TestCheckFingerprintDrift:
     def test_drift_detected_when_last_ask_fingerprint_differs(
         self, tmp_path: Path
     ) -> None:
-        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
         state_path.parent.mkdir(parents=True)
         state_path.write_text(
             json.dumps({"last_ask": {"compiled_fingerprint_used": "oldoldold"}}),
@@ -149,7 +149,7 @@ class TestCheckFingerprintDrift:
     def test_last_ask_takes_precedence_over_spec_fingerprint(
         self, tmp_path: Path
     ) -> None:
-        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
         state_path.parent.mkdir(parents=True)
         state_path.write_text(
             json.dumps(
@@ -160,7 +160,7 @@ class TestCheckFingerprintDrift:
             ),
             encoding="utf-8",
         )
-        # spec_fingerprint matches but last_ask differs — last_ask wins
+        # spec_fingerprint matches but last_ask differs  last_ask wins
         assert check_fingerprint_drift(tmp_path, "abc12345") is True
 
 
@@ -169,13 +169,13 @@ class TestWriteRuntimeCache:
         write_runtime_cache(
             tmp_path, {"ts": "2026-01-01T00:00:00Z", "context_source": "compiled"}
         )
-        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
         assert state_path.exists()
         data = json.loads(state_path.read_text(encoding="utf-8"))
         assert data["last_ask"]["context_source"] == "compiled"
 
     def test_preserves_existing_data(self, tmp_path: Path) -> None:
-        state_path = tmp_path / ".sdd" / "runtime" / "governance-state.json"
+        state_path = tmp_path / ".providence" / "runtime" / "governance-state.json"
         state_path.parent.mkdir(parents=True)
         state_path.write_text(
             json.dumps({"spec_fingerprint": "existing123"}), encoding="utf-8"

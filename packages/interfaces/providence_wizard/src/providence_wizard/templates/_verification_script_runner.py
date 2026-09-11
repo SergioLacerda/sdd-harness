@@ -10,47 +10,47 @@ def _run_method() -> str:
     return '''    def run(self) -> bool:
         """Run all verification checks"""
         logger.debug("=" * 70)
-        logger.info("🔍 Governance Activation Verification")
+        logger.info(" Governance Activation Verification")
         logger.debug("=" * 70)
 
-        logger.info("\\n📂 Directory Structure:")
-        self.check_directory(".sdd/source/mandates", ".sdd/source/mandates")
-        self.check_directory(".sdd/source/guidelines", ".sdd/source/guidelines")
-        self.check_directory(".sdd/runtime", ".sdd/runtime")
-        self.check_directory(".sdd/seedlings", ".sdd/seedlings")
+        logger.info("\\n Directory Structure:")
+        self.check_directory(".providence/source/mandates", ".providence/source/mandates")
+        self.check_directory(".providence/source/guidelines", ".providence/source/guidelines")
+        self.check_directory(".providence/runtime", ".providence/runtime")
+        self.check_directory(".providence/seedlings", ".providence/seedlings")
 
-        logger.info("\\n📄 Required Files:")
-        self.check_file(".sdd/metadata.json", ".sdd/metadata.json", must_be_json=True)
-        self.check_file(".sdd/runtime/mandate.bin", "mandate.bin")
-        self.check_file(".sdd/source/mandates/mandates.md", "mandates.md")
-        self.check_file(".sdd/seedlings/governance.seed.json", "governance.seed.json", must_be_json=True)
-        self.check_file(".sdd/seedlings/agent-prep.seed.json", "agent-prep.seed.json", must_be_json=True)
-        self.check_file(".sdd/seedlings/compliance.seed.json", "compliance.seed.json", must_be_json=True)
+        logger.info("\\n Required Files:")
+        self.check_file(".providence/metadata.json", ".providence/metadata.json", must_be_json=True)
+        self.check_file(".providence/runtime/mandate.bin", "mandate.bin")
+        self.check_file(".providence/source/mandates/mandates.md", "mandates.md")
+        self.check_file(".providence/seedlings/governance.seed.json", "governance.seed.json", must_be_json=True)
+        self.check_file(".providence/seedlings/agent-prep.seed.json", "agent-prep.seed.json", must_be_json=True)
+        self.check_file(".providence/seedlings/compliance.seed.json", "compliance.seed.json", must_be_json=True)
 
-        logger.info("\\n🔑 Governance Configuration:")
+        logger.info("\\n Governance Configuration:")
         self.verify_mandates()
 
-        logger.info("\\n🧩 Integration Tests:")
+        logger.info("\\n Integration Tests:")
         self.check_seedling_loader()
 
         logger.debug("=" * 70)
-        logger.info("📊 Summary")
+        logger.info(" Summary")
         logger.debug("=" * 70)
-        logger.info(f"✅ Passed: {self.passed}")
+        logger.info(f" Passed: {self.passed}")
         if self.warnings:
-            logger.info(f"⚠️  Warnings: {self.warnings}")
+            logger.info(f"  Warnings: {self.warnings}")
         if self.failed:
-            logger.info(f"❌ Failed: {self.failed}")
+            logger.info(f" Failed: {self.failed}")
 
         if self.failed == 0 and self.warnings == 0:
-            logger.info("\\n🎉 Governance is fully activated!")
+            logger.info("\\n Governance is fully activated!")
             return True
         elif self.failed == 0:
-            logger.info(f"\\n⚠️  Governance is mostly activated ({self.warnings} warnings)")
+            logger.info(f"\\n  Governance is mostly activated ({self.warnings} warnings)")
             return True
         else:
-            logger.info(f"\\n❌ Governance activation failed ({self.failed} critical issues)")
-            logger.info("\\n💡 Next Steps:")
+            logger.info(f"\\n Governance activation failed ({self.failed} critical issues)")
+            logger.info("\\n Next Steps:")
             logger.info("   1. Review ACTIVATION_GUIDE.md for troubleshooting")
             logger.info("   2. Verify all files copied from wizard output")
             logger.info("   3. Restart IDE and try again")

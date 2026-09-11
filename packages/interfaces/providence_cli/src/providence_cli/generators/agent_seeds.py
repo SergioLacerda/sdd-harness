@@ -1,8 +1,8 @@
 """Generate AI agent seed configurations.
 
-Public API — all implementations live in private submodules:
+Public API  all implementations live in private submodules:
 - _shared.py          Fingerprint utils + _render_instruction_document
-- _seeds.py           Standalone agent seed orchestrator (.sdd-centric guidance)
+- _seeds.py           Standalone agent seed orchestrator (.providence-centric guidance)
 - _seeds_platforms.py    Per-platform agent seed renderers
 - _instruction_files.py  IDE-specific instruction files (.github/, .claude/, etc.)
 - _prompt_commands.py    CLI prompt/command files (CLAUDE.md, .github/prompts/, etc.)

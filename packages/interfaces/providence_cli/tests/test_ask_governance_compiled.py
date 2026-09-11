@@ -22,10 +22,10 @@ def _mk_compiled_artifact(compiled_dir: Path) -> None:
 
 
 def test_compiled_candidates_only_returns_active_dir(tmp_path: Path) -> None:
-    active = tmp_path / ".sdd" / "compiled" / "active"
+    active = tmp_path / ".providence" / "compiled" / "active"
     candidates = _compiled_candidates(tmp_path, compiled_active_dir_fn=lambda _: active)
     assert candidates == [active]
-    assert (tmp_path / ".sdd" / "compiled") not in candidates
+    assert (tmp_path / ".providence" / "compiled") not in candidates
 
 
 def test_load_compiled_governance_does_not_use_legacy_extra_fallback(
@@ -37,7 +37,7 @@ def test_load_compiled_governance_does_not_use_legacy_extra_fallback(
         lambda *args, **kwargs: None,
     )
     active = tmp_path / "missing-active-dir"
-    legacy = tmp_path / ".sdd" / "compiled"
+    legacy = tmp_path / ".providence" / "compiled"
     _mk_compiled_artifact(legacy)
 
     source, fingerprint, mandates_count, *_ = load_compiled_governance(
@@ -56,7 +56,7 @@ def test_load_compiled_governance_reads_from_active_dir(
         "providence_cli.services.ask_governance.load_governance_via_runtime",
         lambda *args, **kwargs: None,
     )
-    active = tmp_path / ".sdd" / "compiled" / "active"
+    active = tmp_path / ".providence" / "compiled" / "active"
     _mk_compiled_artifact(active)
 
     source, fingerprint, mandates_count, *_ = load_compiled_governance(

@@ -17,7 +17,7 @@ from providence_cli.commands.governance import app as governance_app
 from providence_cli.services.runtime_preflight import PreflightResult
 
 # ---------------------------------------------------------------------------
-# governance compile — next-step on failure
+# governance compile  next-step on failure
 # ---------------------------------------------------------------------------
 
 
@@ -51,7 +51,7 @@ class TestGovernanceCompileNextStep:
 
 
 # ---------------------------------------------------------------------------
-# governance validate — next-step on failure
+# governance validate  next-step on failure
 # ---------------------------------------------------------------------------
 
 
@@ -106,7 +106,7 @@ class TestGovernanceValidateNextStep:
 
 
 # ---------------------------------------------------------------------------
-# doctor — next-step when spec not found
+# doctor  next-step when spec not found
 # ---------------------------------------------------------------------------
 
 

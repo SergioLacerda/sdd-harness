@@ -1,4 +1,4 @@
-"""sdd bootstrap — initialize/refresh local runtime bootstrap state."""
+"""sdd bootstrap  initialize/refresh local runtime bootstrap state."""
 
 from __future__ import annotations
 
@@ -56,21 +56,21 @@ def run(
         help="Minimum hours before forcing bootstrap refresh with same fingerprint.",
     ),
 ) -> None:
-    """Create/update `.sdd/runtime/bootstrap-state.json` with governance fingerprint."""
+    """Create/update `.providence/runtime/bootstrap-state.json` with governance fingerprint."""
     try:
         from providence_core.utils.environment import find_workspace_root
     except ImportError as exc:
-        typer.echo(f"ERROR: providence_core not installed — {exc}", err=True)
+        typer.echo(f"ERROR: providence_core not installed  {exc}", err=True)
         raise typer.Exit(2) from exc
 
     root = find_workspace_root() or Path.cwd()
-    metadata_path = root / ".sdd" / "metadata.json"
-    governance_path = root / ".sdd" / "source" / "governance-core.json"
-    state_path = root / ".sdd" / "runtime" / "bootstrap-state.json"
+    metadata_path = root / ".providence" / "metadata.json"
+    governance_path = root / ".providence" / "source" / "governance-core.json"
+    state_path = root / ".providence" / "runtime" / "bootstrap-state.json"
 
     if not metadata_path.exists() or not governance_path.exists():
         typer.echo(
-            "ERROR: bootstrap requires `.sdd/metadata.json` and `.sdd/source/governance-core.json`.",
+            "ERROR: bootstrap requires `.providence/metadata.json` and `.providence/source/governance-core.json`.",
             err=True,
         )
         raise typer.Exit(1)

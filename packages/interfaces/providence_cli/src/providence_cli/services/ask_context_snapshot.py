@@ -27,7 +27,7 @@ def get_cached_governance_snapshot(
 ) -> dict[str, Any] | None:
     """Return a cached compiled-governance snapshot for `fingerprint`, if still fresh.
 
-    Keyed by fingerprint only — the cached fields (`context_source`,
+    Keyed by fingerprint only  the cached fields (`context_source`,
     `mandates_count`, `authenticated`, `degraded`, `degrade_reason`,
     `trust_source`) are a pure function of the compiled governance state for a
     given fingerprint, mirroring the in-process `_GOV_CACHE` but persisted to
@@ -36,7 +36,7 @@ def get_cached_governance_snapshot(
     Bounded by a TTL (mirroring `ContextLoader`'s own 5-minute TTL) rather than
     relying on fingerprint match alone: the lookup fingerprint here is the
     *last-known* one recorded in `governance-state.json`, not a freshly
-    reloaded one — skipping the real compiled-governance load on every hit
+    reloaded one  skipping the real compiled-governance load on every hit
     means a recompile would otherwise never be detected. The TTL bounds how
     long a cache hit can go without forcing a fresh load, so staleness after a
     recompile is capped at `_SNAPSHOT_CACHE_TTL_SECONDS`, not unbounded.

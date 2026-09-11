@@ -1,4 +1,4 @@
-"""Tests for providence_cli.generators._plugins — generate_plugins_registry."""
+"""Tests for providence_cli.generators._plugins  generate_plugins_registry."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class TestStrategistEntry:
         inj = _STRATEGIST_ENTRY["sdd_injection"]
         assert inj["execution_provider"] == "sdd-ask"
         assert inj["approval_gate"] == "required"
-        assert ".sdd/analysis" in inj["base_path"]
+        assert ".providence/analysis" in inj["base_path"]
 
     def test_forbidden_list_present(self) -> None:
         assert isinstance(_STRATEGIST_ENTRY["forbidden"], list)
@@ -40,7 +40,7 @@ class TestGeneratePluginsRegistry:
 
     def test_registry_in_sdd_plugins_dir(self, tmp_path: Path) -> None:
         result = generate_plugins_registry(str(tmp_path), {})
-        assert ".sdd/plugins" in result["registry_path"]
+        assert ".providence/plugins" in result["registry_path"]
 
     def test_plugin_count_is_one(self, tmp_path: Path) -> None:
         result = generate_plugins_registry(str(tmp_path), {})
@@ -48,12 +48,12 @@ class TestGeneratePluginsRegistry:
 
     def test_registry_yaml_contains_strategist(self, tmp_path: Path) -> None:
         generate_plugins_registry(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "plugins" / "registry.yaml")
+        content = read_text_utf8(tmp_path / ".providence" / "plugins" / "registry.yaml")
         assert "strategist" in content
 
     def test_registry_yaml_contains_schema_version(self, tmp_path: Path) -> None:
         generate_plugins_registry(str(tmp_path), {})
-        content = read_text_utf8(tmp_path / ".sdd" / "plugins" / "registry.yaml")
+        content = read_text_utf8(tmp_path / ".providence" / "plugins" / "registry.yaml")
         assert "schema_version" in content
 
     def test_creates_parent_dirs(self, tmp_path: Path) -> None:

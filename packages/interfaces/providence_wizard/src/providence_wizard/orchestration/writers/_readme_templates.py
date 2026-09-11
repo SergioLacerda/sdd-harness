@@ -1,4 +1,4 @@
-"""Template builders for .sdd/source/README.md and .sdd/runtime/README.md."""
+"""Template builders for .providence/source/README.md and .providence/runtime/README.md."""
 
 from __future__ import annotations
 

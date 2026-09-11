@@ -31,7 +31,7 @@ class SeedlingBridge:
                 )
             )
         except Exception as exc:
-            emitter(f"  ❌ Error: {exc}")
+            emitter(f"   Error: {exc}")
             import traceback
 
             traceback.print_exc()

@@ -39,14 +39,14 @@ def test_operational_error_preserves_context() -> None:
         command="providence init",
         step="profile",
         operation="write profile",
-        path="C:/repo/.sdd/profile",
+        path="C:/repo/.providence/profile",
         next_hint="retry: providence init --force",
     )
 
     assert error is not None
     assert error.command == "providence init"
     assert error.step == "profile"
-    assert error.path == "C:/repo/.sdd/profile"
+    assert error.path == "C:/repo/.providence/profile"
 
 
 def test_render_operational_error(capsys) -> None:
@@ -57,7 +57,7 @@ def test_render_operational_error(capsys) -> None:
             command="providence init",
             step="profile",
             operation="write profile",
-            path="C:/repo/.sdd/profile",
+            path="C:/repo/.providence/profile",
             next_hint="retry: providence init --force",
         )
     )
@@ -66,7 +66,7 @@ def test_render_operational_error(capsys) -> None:
     assert "ERROR: Could not write profile." in err
     assert "Command: providence init" in err
     assert "Step: profile" in err
-    assert "Path: C:/repo/.sdd/profile" in err
+    assert "Path: C:/repo/.providence/profile" in err
     assert "Next: retry: providence init --force" in err
     assert "Traceback" not in err
 
@@ -78,7 +78,7 @@ def test_render_operational_error_json_mode(capsys) -> None:
         command="providence init",
         step="profile",
         operation="write profile",
-        path="C:/repo/.sdd/profile",
+        path="C:/repo/.providence/profile",
         next_hint="retry: providence init --force",
     )
 
@@ -89,6 +89,6 @@ def test_render_operational_error_json_mode(capsys) -> None:
     assert payload["state"] == "error"
     assert payload["command"] == "providence init"
     assert payload["step"] == "profile"
-    assert payload["path"] == "C:/repo/.sdd/profile"
+    assert payload["path"] == "C:/repo/.providence/profile"
     assert payload["next"] == "retry: providence init --force"
     assert payload["error"]["type"] == "PermissionError"

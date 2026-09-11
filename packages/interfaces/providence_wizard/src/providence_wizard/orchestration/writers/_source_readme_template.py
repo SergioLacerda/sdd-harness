@@ -1,4 +1,4 @@
-"""Template builder for .sdd/source/README.md."""
+"""Template builder for .providence/source/README.md."""
 
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ def build_source_readme(
     mandate_count: int,
     guideline_count: int,
 ) -> str:
-    """Return the full .sdd/source/README.md content."""
-    return f"""# .sdd/source - Governance Source of Truth
+    """Return the full .providence/source/README.md content."""
+    return f"""# .providence/source - Governance Source of Truth
 
-⚡ **For AI Agents: This is your primary query directory**
+ **For AI Agents: This is your primary query directory**
 
 ## Overview
 
@@ -30,22 +30,22 @@ This directory contains the **compiled and optimized** governance specifications
 ## Directory Structure
 
 ```
-.sdd/source/
-├── mandates/
-│   └── mandates.md              ← Read mandates first (hard rules)
-├── guidelines.dsl               ← Guideline source of truth (universal + tagged)
-├── guidelines/
-{guideline_category_block}└── README.md                    ← This file
+.providence/source/
+ mandates/
+    mandates.md               Read mandates first (hard rules)
+ guidelines.dsl                Guideline source of truth (universal + tagged)
+ guidelines/
+{guideline_category_block} README.md                     This file
 ```
 
 ## For AI Agents: How to Use This
 
 ### 1. Query Mandates First
 
-Always read `.sdd/source/mandates/mandates.md` to understand **hard rules** that CANNOT be customized.
+Always read `.providence/source/mandates/mandates.md` to understand **hard rules** that CANNOT be customized.
 
 ```
-cat .sdd/source/mandates/mandates.md
+cat .providence/source/mandates/mandates.md
 ```
 
 ### 2. Query Relevant Guidelines
@@ -54,7 +54,7 @@ Based on the task, read relevant guidelines:
 
 ```
 # Full DSL source
-cat .sdd/source/guidelines.dsl
+cat .providence/source/guidelines.dsl
 
 # Example rendered category files
 {guideline_read_examples}```
@@ -78,10 +78,10 @@ Example agent prompt structure:
 You are a development assistant following SDD (Specification-Driven Development).
 
 MANDATES (Hard Rules):
-<read from .sdd/source/mandates/mandates.md>
+<read from .providence/source/mandates/mandates.md>
 
 GUIDELINES (Best Practices):
-<read from .sdd/source/guidelines/{{relevant-category}}.md>
+<read from .providence/source/guidelines/{{relevant-category}}.md>
 
 TASK:
 <your specific task>
@@ -94,19 +94,19 @@ For optimal performance when using these with agents:
 1. **Load once**: Read governance files once per session
 2. **Cache in memory**: Store in agent context/memory
 3. **Reference later**: Use markdown file references instead of re-reading
-4. **Update on changes**: Re-read if .sdd/source files change
+4. **Update on changes**: Re-read if .providence/source files change
 
-See `.sdd/runtime/README.md` for detailed pre-cache instructions.
+See `.providence/runtime/README.md` for detailed pre-cache instructions.
 
 ## File Organization
 
 ### Mandates (Non-customizable)
-- Location: `.sdd/source/mandates/mandates.md`
+- Location: `.providence/source/mandates/mandates.md`
 - Count: {mandate_count}
 - Rule: **MUST** be followed (no exceptions)
 
 ### Guidelines (Customizable)
-- Location: `.sdd/source/guidelines.dsl` and rendered `.sdd/source/guidelines/`
+- Location: `.providence/source/guidelines.dsl` and rendered `.providence/source/guidelines/`
 - Count: {guideline_count}
 - Rule: Should be followed (exceptions allowed with documentation)
 
@@ -124,8 +124,8 @@ See `.sdd/runtime/README.md` for detailed pre-cache instructions.
 
 ## Next Steps
 
-1. **Read Mandates**: Start with `.sdd/source/mandates/mandates.md`
-2. **Browse Guidelines**: Review `.sdd/source/guidelines/` for your domain
+1. **Read Mandates**: Start with `.providence/source/mandates/mandates.md`
+2. **Browse Guidelines**: Review `.providence/source/guidelines/` for your domain
 3. **Use in Tasks**: Reference these when making decisions
 4. **Cache Strategically**: Load once, reuse across multiple agent calls
 

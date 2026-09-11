@@ -53,9 +53,9 @@ def test_profile_context_display_handles_supported_shapes() -> None:
     assert profile_loader_mod.profile_context_display(None) == ""
     assert (
         profile_loader_mod.profile_context_display({"profile": "master"})
-        == "🏗️  profile=master"
+        == "  profile=master"
     )
     assert (
         profile_loader_mod.profile_context_display({"profile": "client"})
-        == "📦 profile=client"
+        == " profile=client"
     )

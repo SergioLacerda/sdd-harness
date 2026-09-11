@@ -1,5 +1,5 @@
 """Regression tests for generate_runtime_handbook_required()'s repo-root
-resolution — see .analysis/pending/20260906-editable-install-leak-repro.md.
+resolution  see .analysis/pending/20260906-editable-install-leak-repro.md.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ def test_does_not_fall_back_to_leaked_repo_root_under_editable_install(
 
     with (
         patch(
-            "providence_cli.utils.sdd_authority.resolve_workspace_root",
+            "providence_cli.utils.providence_authority.resolve_workspace_root",
             return_value=None,
         ),
         patch(
@@ -61,7 +61,7 @@ def test_uses_detected_repo_root_when_it_has_the_registry(tmp_path: Path) -> Non
 
     with (
         patch(
-            "providence_cli.utils.sdd_authority.resolve_workspace_root",
+            "providence_cli.utils.providence_authority.resolve_workspace_root",
             return_value=None,
         ),
         patch(

@@ -33,7 +33,7 @@ def test_build_and_output_dossier_computes_real_percentage_not_hardcoded(
     tmp_path: Path,
 ) -> None:
     """The dossier's displayed percentage must reflect actual bytes_loaded,
-    not the old hardcoded 50.0 constant — regression guard for the fix."""
+    not the old hardcoded 50.0 constant  regression guard for the fix."""
     from providence_runtime.context import ContextResult
 
     probe_result = ContextResult(
@@ -61,14 +61,14 @@ def test_build_and_output_dossier_computes_real_percentage_not_hardcoded(
         )
 
     printed = typer_module.echo.call_args[0][0]
-    # 40 / 400 * 100 = 10.0% — not the old hardcoded 50.0%.
+    # 40 / 400 * 100 = 10.0%  not the old hardcoded 50.0%.
     assert "10.0%" in printed
     assert "50.0%" not in printed
 
 
 def test_build_and_output_dossier_raises_on_breach(tmp_path: Path) -> None:
     """When measured bytes exceed the token budget, BudgetBreachError must
-    actually propagate to the caller's error handler — previously
+    actually propagate to the caller's error handler  previously
     unreachable because the percentage was hardcoded below the 100% breach
     threshold regardless of real dossier size."""
     from providence_runtime.context import ContextResult
@@ -93,7 +93,7 @@ def test_build_and_output_dossier_raises_on_breach(tmp_path: Path) -> None:
         build_and_output_dossier(
             query="status?",
             skill=None,
-            budget=1,  # 1 token * 4 bytes/token = 4 byte budget — trivially breached
+            budget=1,  # 1 token * 4 bytes/token = 4 byte budget  trivially breached
             mandates_count=1,
             workspace_root=tmp_path,
             resolve_workspace_root_fn=lambda: tmp_path,
@@ -101,14 +101,14 @@ def test_build_and_output_dossier_raises_on_breach(tmp_path: Path) -> None:
             logger=logging.getLogger(__name__),
             typer_module=typer_module,
         )
-    # handle_dossier_error prints the breach message before exiting —
+    # handle_dossier_error prints the breach message before exiting 
     # confirms the breach was actually surfaced, not silently swallowed.
     assert typer_module.echo.called
     assert "Budget breach" in str(typer_module.echo.call_args_list[0])
 
 
 def test_load_dossier_artifact_passes_compiled_path(tmp_path: Path) -> None:
-    compiled_dir = tmp_path / ".sdd" / "compiled"
+    compiled_dir = tmp_path / ".providence" / "compiled"
     compiled_dir.mkdir(parents=True)
     artifact_path = compiled_dir / "governance-core.json"
     artifact_path.write_text('{"items": [], "version": "3.0"}', encoding="utf-8")

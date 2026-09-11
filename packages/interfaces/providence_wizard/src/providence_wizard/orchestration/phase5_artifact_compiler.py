@@ -1,5 +1,5 @@
 """
-ArtifactCompiler — Phase 5 step: compile binary artifacts and generate metadata.json.
+ArtifactCompiler  Phase 5 step: compile binary artifacts and generate metadata.json.
 """
 
 import json
@@ -27,7 +27,7 @@ class ArtifactCompiler:
         emitter: Callable[[str], None] | None = None,
     ) -> None:
         self.repo_root = repo_root
-        self.sdd_dir = sdd_dir
+        self.providence_dir = sdd_dir
         self.runtime_dir = runtime_dir
         self.mandates = mandates
         self.guidelines = guidelines
@@ -43,7 +43,7 @@ class ArtifactCompiler:
 
     def _log(self, message: str) -> None:
         if self.verbose:
-            self._emit(f"  ℹ️  {message}")
+            self._emit(f"    {message}")
 
     def compile_artifacts(self) -> bool:
         """Compile mandate.spec and guidelines.dsl to binary format. Non-critical."""
@@ -72,7 +72,7 @@ class ArtifactCompiler:
 
             if not spec_dir:
                 self._log(
-                    "ℹ️  No spec source directory found — skipping artifact compilation"
+                    "  No spec source directory found  skipping artifact compilation"
                 )
                 return True
 
@@ -84,22 +84,22 @@ class ArtifactCompiler:
                     mandate_spec, self.runtime_dir / "mandate.bin", format=fmt
                 )
                 if not success:
-                    self._log("⚠️  Failed to compile mandate.spec")
+                    self._log("  Failed to compile mandate.spec")
             else:
-                self._log(f"ℹ️  mandate.spec not found at {mandate_spec}")
+                self._log(f"  mandate.spec not found at {mandate_spec}")
 
             if guidelines_dsl.exists():
                 success = compiler.compile_guidelines_dsl(
                     guidelines_dsl, self.runtime_dir / "guidelines.bin", format=fmt
                 )
                 if not success:
-                    self._log("⚠️  Failed to compile guidelines.dsl")
+                    self._log("  Failed to compile guidelines.dsl")
             else:
-                self._log(f"ℹ️  guidelines.dsl not found at {guidelines_dsl}")
+                self._log(f"  guidelines.dsl not found at {guidelines_dsl}")
 
             return True
         except Exception as e:
-            self._log(f"⚠️  Artifact compilation error: {e}")
+            self._log(f"  Artifact compilation error: {e}")
             return True  # Non-critical
 
     def generate_metadata(self) -> bool:
@@ -138,11 +138,11 @@ class ArtifactCompiler:
                 "structure": {
                     "source": "Governance source of truth for agent queries",
                     "runtime": "Pre-cache instructions for agents",
-                    "seedlings": ".vscode, .cursor directories with references to .sdd/source",
+                    "seedlings": ".vscode, .cursor directories with references to .providence/source",
                 },
             }
 
-            metadata_file = self.sdd_dir / "metadata.json"
+            metadata_file = self.providence_dir / "metadata.json"
             with open(metadata_file, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2)
 
@@ -152,7 +152,7 @@ class ArtifactCompiler:
             self._log(f"Generated metadata.json (fingerprint: {combined_fingerprint})")
             return True
         except Exception as e:
-            self._emit(f"  ❌ Failed to generate metadata.json: {e}")
+            self._emit(f"   Failed to generate metadata.json: {e}")
             import traceback
 
             traceback.print_exc()

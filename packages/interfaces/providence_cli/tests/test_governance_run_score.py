@@ -1,4 +1,4 @@
-"""Tests for providence_cli.services.governance_scoring_output — run_governance_score basics."""
+"""Tests for providence_cli.services.governance_scoring_output  run_governance_score basics."""
 
 from __future__ import annotations
 
@@ -69,7 +69,7 @@ class TestRunGovernanceScore:
                 return_value=profile_ctx,
             ),
             patch(
-                "providence_cli.utils.sdd_authority.compiled_active_dir",
+                "providence_cli.utils.providence_authority.compiled_active_dir",
                 return_value=compiled_dir,
             ),
             patch(
@@ -107,7 +107,7 @@ class TestRunGovernanceScore:
                 side_effect=WorkspaceNotInitializedError("not initialized"),
             ),
             patch(
-                "providence_cli.utils.sdd_authority.compiled_active_dir",
+                "providence_cli.utils.providence_authority.compiled_active_dir",
                 return_value=compiled_dir,
             ),
             patch(
@@ -123,7 +123,7 @@ class TestRunGovernanceScore:
             )
 
         checks_by_label = {label: passed for label, passed, _ in captured["checks"]}
-        assert checks_by_label[".sdd/profile valid"] is False
+        assert checks_by_label[".providence/profile valid"] is False
         assert checks_by_label["core_hash matches artifact"] is False
         # profile (30) fails, artifacts (30) + AHP (20) pass => 50/100
         assert captured["final_score"] == 50
@@ -154,7 +154,7 @@ class TestRunGovernanceScore:
                 return_value=profile_ctx,
             ),
             patch(
-                "providence_cli.utils.sdd_authority.compiled_active_dir",
+                "providence_cli.utils.providence_authority.compiled_active_dir",
                 return_value=compiled_dir,
             ),
             patch(

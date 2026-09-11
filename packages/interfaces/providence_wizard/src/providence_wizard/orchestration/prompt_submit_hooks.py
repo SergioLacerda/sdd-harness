@@ -6,9 +6,12 @@ import json
 from pathlib import Path
 
 from providence_core.utils.text_io import write_text_utf8
+from providence_wizard.constants import RUNTIME_DIRNAME
 
 SUPPORTED_PROMPT_HOOK_AGENTS = frozenset({"claude", "codex", "gemini"})
-CENTRAL_PROMPT_SUBMIT_HOOK = Path(".sdd") / "runtime" / "hooks" / "prompt-submit.py"
+CENTRAL_PROMPT_SUBMIT_HOOK = (
+    Path(RUNTIME_DIRNAME) / "runtime" / "hooks" / "prompt-submit.py"
+)
 CENTRAL_PROMPT_SUBMIT_COMMAND = f"python3 {CENTRAL_PROMPT_SUBMIT_HOOK.as_posix()}"
 
 PROMPT_SUBMIT_HOOK_SCRIPT = '''#!/usr/bin/env python3
@@ -82,9 +85,9 @@ def _render_explicit_command_context() -> str:
     ])
 
 def main() -> int:
-    if Path(".sdd/runtime/hook-disabled").exists():
+    if Path(".providence/runtime/hook-disabled").exists():
         return 0
-    if not Path(".sdd/metadata.json").exists():
+    if not Path(".providence/metadata.json").exists():
         return 0
     try:
         payload = json.loads(sys.stdin.read() or "{}")

@@ -1,4 +1,4 @@
-"""providence ask — runtime telemetry sync and command implementation."""
+"""providence ask  runtime telemetry sync and command implementation."""
 
 from __future__ import annotations
 
@@ -174,7 +174,7 @@ def _ask_cmd_impl(
     )
     # Recorded after ask.telemetry.emit already ran and flushed this
     # invocation's governance.ask.phase events, so ask.response.render has
-    # no JSONL row of its own for *this* call — same self-measurement
+    # no JSONL row of its own for *this* call  same self-measurement
     # constraint as ask.telemetry.emit (see _sync_ask_runtime). It is still
     # visible in the console summary below and in --full's timing dump.
     with session.phase_timer.phase("ask.response.render", latency_domain="rendering"):

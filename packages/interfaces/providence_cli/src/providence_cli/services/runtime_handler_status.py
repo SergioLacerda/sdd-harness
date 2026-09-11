@@ -12,8 +12,8 @@ from typing import Any
 
 
 def _check_cache_staleness(root: Path) -> dict[str, Any]:
-    """Return staleness info for .sdd/runtime/.sdd-cache.md."""
-    cache_file = root / ".sdd" / "runtime" / ".sdd-cache.md"
+    """Return staleness info for .providence/runtime/.sdd-cache.md."""
+    cache_file = root / ".providence" / "runtime" / ".sdd-cache.md"
     if not cache_file.exists():
         return {"stale": False, "missing": True, "age_min": None}
     age = int(time.time() - cache_file.stat().st_mtime)

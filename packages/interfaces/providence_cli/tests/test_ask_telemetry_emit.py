@@ -1,4 +1,4 @@
-"""Tests for _emit_ask_telemetry — duration/timestamps, OtelBridge, TelemetrySink."""
+"""Tests for _emit_ask_telemetry  duration/timestamps, OtelBridge, TelemetrySink."""
 
 from __future__ import annotations
 
@@ -38,8 +38,8 @@ def test_duration_and_timestamps_passed_to_event(
     from providence_cli.commands._ask_backend import _emit_ask_telemetry
 
     monkeypatch.delenv("SDD_OTEL_ENDPOINT", raising=False)
-    (tmp_path / ".sdd" / "runtime").mkdir(parents=True)
-    (tmp_path / ".sdd" / "profile").write_text(
+    (tmp_path / ".providence" / "runtime").mkdir(parents=True)
+    (tmp_path / ".providence" / "profile").write_text(
         "[sdd]\nworkspace_id=test-ws\n", encoding="utf-8"
     )
 
@@ -76,8 +76,8 @@ def test_phase_slow_flag_passed_through_to_runtime_event(
     from providence_cli.commands._ask_backend import _emit_ask_telemetry
 
     monkeypatch.delenv("SDD_OTEL_ENDPOINT", raising=False)
-    (tmp_path / ".sdd" / "runtime").mkdir(parents=True)
-    (tmp_path / ".sdd" / "profile").write_text(
+    (tmp_path / ".providence" / "runtime").mkdir(parents=True)
+    (tmp_path / ".providence" / "profile").write_text(
         "[sdd]\nworkspace_id=test-ws\n", encoding="utf-8"
     )
 
@@ -106,8 +106,8 @@ def test_phase_slow_flag_defaults_to_false(
     from providence_cli.commands._ask_backend import _emit_ask_telemetry
 
     monkeypatch.delenv("SDD_OTEL_ENDPOINT", raising=False)
-    (tmp_path / ".sdd" / "runtime").mkdir(parents=True)
-    (tmp_path / ".sdd" / "profile").write_text(
+    (tmp_path / ".providence" / "runtime").mkdir(parents=True)
+    (tmp_path / ".providence" / "profile").write_text(
         "[sdd]\nworkspace_id=test-ws\n", encoding="utf-8"
     )
 
@@ -135,8 +135,8 @@ def test_otel_bridge_used_when_endpoint_set(
     from providence_cli.commands._ask_backend import _emit_ask_telemetry
 
     monkeypatch.setenv("SDD_OTEL_ENDPOINT", "http://otel.example.com:4318")
-    (tmp_path / ".sdd").mkdir()
-    (tmp_path / ".sdd" / "profile").write_text(
+    (tmp_path / ".providence").mkdir()
+    (tmp_path / ".providence" / "profile").write_text(
         "[sdd]\nworkspace_id=test-ws\n", encoding="utf-8"
     )
 
@@ -173,8 +173,8 @@ def test_telemetry_sink_used_without_otel_env(
     from providence_cli.commands._ask_backend import _emit_ask_telemetry
 
     monkeypatch.delenv("SDD_OTEL_ENDPOINT", raising=False)
-    (tmp_path / ".sdd").mkdir()
-    (tmp_path / ".sdd" / "profile").write_text(
+    (tmp_path / ".providence").mkdir()
+    (tmp_path / ".providence" / "profile").write_text(
         "[sdd]\nworkspace_id=test-ws\n", encoding="utf-8"
     )
 

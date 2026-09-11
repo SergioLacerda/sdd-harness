@@ -163,7 +163,7 @@ def test_verbose_option_callback_sets_verbose() -> None:
 
 
 # ---------------------------------------------------------------------------
-# main() — ImportError path + normal return
+# main()  ImportError path + normal return
 # ---------------------------------------------------------------------------
 
 

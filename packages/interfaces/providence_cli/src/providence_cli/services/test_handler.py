@@ -58,12 +58,12 @@ def _run_pytest(args: list[str], cwd: str) -> int:
 
 
 def _resolve_golden_path(root: Path) -> Path:
-    return root / ".sdd" / "runtime" / "golden-ast.json"
+    return root / ".providence" / "runtime" / "golden-ast.json"
 
 
 def _find_artifact(root: Path) -> Path | None:
-    """Return the compiled governance-core.json from canonical .sdd location."""
-    candidate = root / ".sdd" / "compiled" / "governance-core.json"
+    """Return the compiled governance-core.json from canonical .providence location."""
+    candidate = root / ".providence" / "compiled" / "governance-core.json"
     return candidate if candidate.exists() else None
 
 
@@ -73,7 +73,7 @@ def _save_golden(golden_path: Path, current_ast: Any) -> None:
     golden_path.write_text(current_ast.to_json(), encoding="utf-8")
     typer.echo(f"Golden snapshot updated: {golden_path}")
     typer.echo(
-        f"  Items: {len(current_ast.items)}, fingerprint: {current_ast.source_fingerprint[:12]}…"
+        f"  Items: {len(current_ast.items)}, fingerprint: {current_ast.source_fingerprint[:12]}"
     )
 
 
@@ -83,7 +83,7 @@ def _print_diff(diff: Any) -> None:
         typer.echo(f"\n  BREAKING changes ({len(diff.breaking_changes)}):")
         for entry in diff.breaking_changes:
             typer.echo(
-                f"    [{entry.item_id}] {entry.change_type}: {entry.before!r} → {entry.after!r}"
+                f"    [{entry.item_id}] {entry.change_type}: {entry.before!r}  {entry.after!r}"
             )
 
     if diff.non_breaking_changes:
@@ -91,7 +91,7 @@ def _print_diff(diff: Any) -> None:
         for entry in diff.non_breaking_changes:
             field_info = f" ({entry.field})" if entry.field else ""
             typer.echo(
-                f"    [{entry.item_id}]{field_info}: {entry.before!r} → {entry.after!r}"
+                f"    [{entry.item_id}]{field_info}: {entry.before!r}  {entry.after!r}"
             )
 
     if diff.added_items:
@@ -167,7 +167,7 @@ def run_review_golden(
     typer.echo(f"  Summary: {diff.summary()}")
 
     if diff.is_clean:
-        typer.echo("  Status: CLEAN — no changes detected.")
+        typer.echo("  Status: CLEAN  no changes detected.")
         return
 
     _print_diff(diff)

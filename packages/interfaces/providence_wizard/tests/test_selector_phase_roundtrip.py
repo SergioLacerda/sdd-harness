@@ -1,4 +1,4 @@
-"""Roundtrip tests: selector-selection.json → Phase 1 filter.
+"""Roundtrip tests: selector-selection.json  Phase 1 filter.
 
 Verifies that IDs emitted by the selector (M-IDs and G-IDs) are correctly
 applied by Phase1Generator._apply_selector_selection() so only selected items

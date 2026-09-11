@@ -5,7 +5,7 @@ Last verified: `{{ last_verified }}`
 
 ## Governance Model
 
-This project uses file-based soft governance. Rules are advisory — they guide
+This project uses file-based soft governance. Rules are advisory â€” they guide
 your behavior but are not fully enforced at the tool level (see `git-safety.md`
 for the one exception: `.devin/config.json`'s `permissions.deny` list). Your
 compliance depends on reading and following the rule files below.
@@ -42,10 +42,10 @@ Before considering a task done, verify:
 - [ ] Changes have test-first evidence (test written/updated alongside code)
 - [ ] No generated files were hand-edited
 - [ ] Error messages include the offending value and expected shape
-- [ ] Output is concise — no unnecessary preambles or disclaimers
+- [ ] Output is concise â€” no unnecessary preambles or disclaimers
 
 This is an advisory checklist, not a blocking gate.
 
 Permissions and lifecycle hooks are configured in `.devin/config.json` and `.devin/hooks.v1.json`.
 
-These files are a generated starting point. Edit them directly to fit this project — there is no external source they must stay in sync with.
+These files are a generated starting point. Edit them directly to fit this project â€” there is no external source they must stay in sync with.

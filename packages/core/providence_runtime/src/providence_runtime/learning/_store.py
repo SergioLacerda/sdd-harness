@@ -18,7 +18,7 @@ class SupervisedLearningStore(_RuleRegistryMixin):
     """File-backed learning registry with human approval gate."""
 
     def __init__(self, project_root: Path) -> None:
-        self._runtime_dir = project_root / ".sdd" / "runtime"
+        self._runtime_dir = project_root / ".providence" / "runtime"
         self._runtime_dir.mkdir(parents=True, exist_ok=True)
         self._ledger_path = self._runtime_dir / "failure-ledger.jsonl"
         self._candidates_path = self._runtime_dir / "rule-candidates.json"

@@ -52,7 +52,7 @@ def _build_architecture_review(context: dict[str, Any]) -> dict[str, Any]:
 
 
 def _baseline_path(project_root: Path) -> Path:
-    return project_root / ".sdd" / "runtime" / "architecture-baseline.json"
+    return project_root / ".providence" / "runtime" / "architecture-baseline.json"
 
 
 def _load_architecture_baseline(project_root: Path) -> dict[str, Any]:

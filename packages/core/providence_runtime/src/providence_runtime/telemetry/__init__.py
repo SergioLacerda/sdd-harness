@@ -2,7 +2,7 @@
 
 Event schema is aligned with the Datadog-inspired envelope defined in §13.3
 of the improvement plan.  The canonical audit sink is the JSONL file at
-``.sdd/runtime/compliance-events.jsonl``; the sink path is caller-supplied so
+``.providence/runtime/compliance-events.jsonl``; the sink path is caller-supplied so
 the package remains zero-dependency.
 """
 

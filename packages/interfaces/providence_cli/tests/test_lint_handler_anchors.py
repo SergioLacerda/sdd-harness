@@ -1,4 +1,4 @@
-"""Unit tests for providence_cli.services.lint_handler — anchor and link validation."""
+"""Unit tests for providence_cli.services.lint_handler  anchor and link validation."""
 
 from __future__ import annotations
 

@@ -25,7 +25,7 @@ def read_profile_value(
 def ask_confidence_payload(*, workspace_root: Path) -> dict[str, Any] | None:
     import json
 
-    state_path = workspace_root / ".sdd" / "runtime" / "governance-state.json"
+    state_path = workspace_root / ".providence" / "runtime" / "governance-state.json"
     if not state_path.exists():
         return None
     try:
@@ -117,7 +117,7 @@ def emit_runtime_events(
                 artifact_fingerprint=artifact_fingerprint,
                 schema_version=schema_version,
                 decision_source_refs=[
-                    "§12.5-anti-drift-strategy",
+                    "12.5-anti-drift-strategy",
                     "ADR-001-runtime-authority-boundary",
                 ],
                 details={"drift_type": drift_type},

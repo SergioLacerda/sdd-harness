@@ -138,7 +138,7 @@ class TestResolveJsonlPath:
     def test_returns_existing_default_path(self, tmp_path, monkeypatch) -> None:
         from providence_cli.commands.metrics import _resolve_jsonl_path
 
-        events = tmp_path / ".sdd" / "runtime" / "compliance-events.jsonl"
+        events = tmp_path / ".providence" / "runtime" / "compliance-events.jsonl"
         events.parent.mkdir(parents=True, exist_ok=True)
         events.write_text("", encoding="utf-8")
         monkeypatch.chdir(tmp_path)

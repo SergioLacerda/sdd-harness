@@ -24,7 +24,7 @@ from providence_cli.services.governance_docs_sources import (
 
 def _source_output_path(output: object) -> Path | None:
     raw = str(output).replace("\\", "/")
-    if not raw.startswith(".sdd/source/"):
+    if not raw.startswith(".providence/source/"):
         return None
     return Path(*raw.split("/"))
 
@@ -57,7 +57,7 @@ def _declared_handbook_outputs(entries: list[dict[str, Any]]) -> set[Path]:
         for output in entry.get("outputs", []):
             output_path = _source_output_path(output)
             if output_path is not None and output_path.as_posix().startswith(
-                ".sdd/source/handbook/"
+                ".providence/source/handbook/"
             ):
                 outputs.add(output_path)
     return outputs
@@ -100,7 +100,7 @@ def _append_handbook_output_drift(
 def _append_readable_source_output_drift(
     root: Path, entries: list[dict[str, Any]], warnings: list[str]
 ) -> None:
-    source_root = root / ".sdd" / "source"
+    source_root = root / ".providence" / "source"
     if not source_root.exists():
         return
     declared = _declared_readable_source_outputs(entries)
@@ -145,15 +145,15 @@ def validate_governance_sources(
     registry_handbooks = set(handbook_ids)
     metadata_mandates = _metadata_mandate_ids(root)
     compiled_mandates = _load_runtime_ids(
-        root, ".sdd/compiled/governance-core.json", "MANDATE"
+        root, ".providence/compiled/governance-core.json", "MANDATE"
     )
     compiled_guidelines = _load_runtime_ids(
-        root, ".sdd/compiled/governance-client.json", "GUIDELINE"
+        root, ".providence/compiled/governance-client.json", "GUIDELINE"
     )
 
     _append_id_drift_error(
         errors,
-        label="mandate registry drift vs .sdd/metadata.json",
+        label="mandate registry drift vs .providence/metadata.json",
         registry_ids=registry_mandates,
         runtime_ids=metadata_mandates,
     )

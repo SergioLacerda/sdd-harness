@@ -22,10 +22,10 @@ def _guard_budget_breach() -> None:
     """Block context loading if the session budget is in BREACH state.
 
     Reads ``SDD_BUDGET_UTILIZATION_PCT`` from the environment (set by the
-    agent after each context load).  When utilization is ≥ 100 the command
+    agent after each context load).  When utilization is  100 the command
     is aborted with exit code 3 and a human checkpoint message is displayed.
 
-    This enforces §economy/execution-budget.md Circuit Breaker Rule 3:
+    This enforces economy/execution-budget.md Circuit Breaker Rule 3:
     "Agent MUST NOT load additional context once BREACH is reached."
     """
     pct_str = os.environ.get("SDD_BUDGET_UTILIZATION_PCT", "").strip()
@@ -40,7 +40,7 @@ def _guard_budget_breach() -> None:
 
     typer.echo(
         f"\n[SDD] BUDGET BREACH: context utilization at {pct:.1f}% (>= 100%).\n"
-        "Further context loading is blocked (§economy/execution-budget.md).\n"
+        "Further context loading is blocked (economy/execution-budget.md).\n"
         "Human checkpoint required. Options:\n"
         "  1. Decompose the task into smaller PATH A/B units\n"
         "  2. Clear session context and restart\n"
@@ -56,7 +56,7 @@ def _guard_handshake(workspace_root: Path) -> None:
     Resolution of ``is_valid`` is fail-open on unexpected errors (a broken
     cache read or AHP construction failure must not itself block `ask`).
     The *decision* to raise `typer.Exit` for a confirmed-invalid handshake
-    in strict mode happens outside that fail-open boundary — `typer.Exit`
+    in strict mode happens outside that fail-open boundary  `typer.Exit`
     is exception-based (`RuntimeError` subclass), so raising it from inside
     the same `try` that fails open on `Exception` silently swallowed the
     intended hard block. See

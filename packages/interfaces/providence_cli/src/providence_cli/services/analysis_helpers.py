@@ -12,7 +12,7 @@ _DURATION_RE = re.compile(r"^(\d+)(d|h|m)$")
 
 
 def _analysis_root(ws_root: Path) -> Path:
-    return ws_root / ".sdd" / "analysis"
+    return ws_root / ".providence" / "analysis"
 
 
 def _parse_duration(value: str) -> timedelta | None:
@@ -66,8 +66,8 @@ def _collect_expired(done_dir: Path, cutoff: datetime, dry_run: bool) -> list[st
 def _next_action(state: str) -> str:
     actions = {
         "todo": "move to pending when analysis begins",
-        "pending": "discovery in progress — awaiting Ranger artifact",
-        "refined": "plan ready — awaiting approval gate",
+        "pending": "discovery in progress  awaiting Ranger artifact",
+        "refined": "plan ready  awaiting approval gate",
         "done": "mission complete",
     }
     return actions.get(state, "unknown")

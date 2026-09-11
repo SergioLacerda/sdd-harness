@@ -156,8 +156,8 @@ def build_status_data(path: Path) -> dict[str, Any]:
     )
 
     timestamps = [ts for e in events if (ts := _event_ts(e))]
-    first_ts = min(timestamps) if timestamps else "—"
-    last_ts = max(timestamps) if timestamps else "—"
+    first_ts = min(timestamps) if timestamps else ""
+    last_ts = max(timestamps) if timestamps else ""
 
     return {
         "events_file": str(path),

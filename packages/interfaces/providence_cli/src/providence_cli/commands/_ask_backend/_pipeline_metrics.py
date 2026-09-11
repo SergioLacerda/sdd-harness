@@ -1,4 +1,4 @@
-"""providence ask — budget zone resolution and runtime token metric helpers."""
+"""providence ask  budget zone resolution and runtime token metric helpers."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import os
 import time
 
 from providence_cli.services.ask_types import _AskInputs
-from providence_cli.utils.sdd_console import format_sdd_phase_line
+from providence_cli.utils.providence_console import format_sdd_phase_line
 
 from ._phase_timer import PhaseTimer
 from ._telemetry import _capture_effective_tokens_with_source
@@ -21,7 +21,7 @@ def _maybe_record_llm_exchange_phase(timer: PhaseTimer) -> None:
     Reads the optional `SDD_ADAPTER_LLM_EXCHANGE_MS` env var, the minimal
     viable channel for an IDE/adapter to report externally-observed LLM
     exchange latency that `providence_cli` cannot measure locally. If unset or not
-    a valid non-negative integer, no phase is recorded — never fabricate a
+    a valid non-negative integer, no phase is recorded  never fabricate a
     `0ms` measurement.
     """
     raw = os.environ.get("SDD_ADAPTER_LLM_EXCHANGE_MS", "").strip()
@@ -46,9 +46,9 @@ def print_ask_console_summary(timer: PhaseTimer, *, entry_mono: float) -> None:
     """Print the default-on compact `[SDD] <phase>  <Xs>` timing summary.
 
     Replaces the previous `--full`-only raw dump as the default,
-    human-readable view (design.md §4). The raw `--full` dump remains
+    human-readable view (design.md 4). The raw `--full` dump remains
     available unchanged for deep debugging (`ask_response.py`). Callers must
-    check `_json_mode()` first — this always prints to stdout via
+    check `_json_mode()` first  this always prints to stdout via
     `typer.echo`, machine (JSON) output has no use for it.
     """
     import typer
@@ -59,7 +59,7 @@ def print_ask_console_summary(timer: PhaseTimer, *, entry_mono: float) -> None:
         typer.echo(format_sdd_phase_line(record.phase_id, record.duration_ms))
     total_ms = int((time.monotonic() - entry_mono) * 1000)
     typer.echo(format_sdd_phase_line("Total", total_ms))
-    # Soft, non-blocking watchdog warnings (design.md §3) — never raised,
+    # Soft, non-blocking watchdog warnings (design.md 3)  never raised,
     # never affects the command's exit code or duration.
     for record in timer.slow_records():
         threshold_ms = timer.threshold_for(record.phase_id)

@@ -1,4 +1,4 @@
-"""providence init — nested-workspace boundary detection.
+"""providence init  nested-workspace boundary detection.
 
 Split out of `init.py` (T5,
 `.analysis/pending/2026-06-15-providence-cli-refactoring-pending-followup.md`): pure
@@ -37,14 +37,14 @@ def _find_project_boundary(cwd: Path) -> Path | None:
 
 
 def _find_parent_workspace_with_profile(start: Path) -> Path | None:
-    """Nearest ancestor that is a real workspace (`.sdd/profile` present).
+    """Nearest ancestor that is a real workspace (`.providence/profile` present).
 
-    A bare `.sdd/` directory without a profile — e.g. the `~/.sdd/bin`
-    compiler-binary cache — is not a workspace and must not block `providence init`.
+    A bare `.providence/` directory without a profile  e.g. the `~/.providence/bin`
+    compiler-binary cache  is not a workspace and must not block `providence init`.
     """
     current = start.resolve()
     for candidate in [current, *current.parents]:
-        if (candidate / ".sdd" / "profile").is_file():
+        if (candidate / ".providence" / "profile").is_file():
             return candidate
     return None
 
@@ -53,8 +53,8 @@ def _find_blocking_parent_workspace(cwd: Path) -> Path | None:
     parent_workspace = _find_parent_workspace_with_profile(cwd.parent)
     if parent_workspace is None:
         return None
-    if not (parent_workspace / ".sdd" / "profile").exists():
-        # A bare `.sdd/` with no profile is a global CLI cache (toolchain
+    if not (parent_workspace / ".providence" / "profile").exists():
+        # A bare `.providence/` with no profile is a global CLI cache (toolchain
         # binaries, runtime state), not an initialized project workspace.
         return None
     project_boundary = _find_project_boundary(cwd)

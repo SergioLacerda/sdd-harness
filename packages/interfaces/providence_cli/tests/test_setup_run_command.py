@@ -1,4 +1,4 @@
-"""Tests for providence_cli.commands.setup — `providence setup run` orchestration."""
+"""Tests for providence_cli.commands.setup  `providence setup run` orchestration."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ class TestRunSetup:
         """Regression test: `providence setup` used to crash at *import time* for a
         real standalone install (no repo markers found), turning into an
         opaque "command unavailable" error from the CLI's lazy loader
-        instead of this clear message — see
+        instead of this clear message  see
         .analysis/pending/20260906-detect-repo-root-callsite-audit.md."""
         from providence_cli.main import app
 

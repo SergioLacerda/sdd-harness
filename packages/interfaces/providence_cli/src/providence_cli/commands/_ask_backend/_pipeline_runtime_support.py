@@ -19,9 +19,9 @@ def run_intake_only_ask(
     """Cheap hook-mode profile (spike: 20260714-sdd-ask-single-entrypoint-spike,
     I-005). Deliberately skips build_governed_ask_snapshot (compiled-governance
     load, signature verification, drift checks, full handbook payload) and
-    telemetry/runtime-cache writes — those are the stages the spike identified
+    telemetry/runtime-cache writes  those are the stages the spike identified
     as unnecessary for every hook-fired prompt. A compact runtime handbook hint
-    is still allowed because it reads only `.sdd/source/handbook/**` and stays
+    is still allowed because it reads only `.providence/source/handbook/**` and stays
     opportunistic.
     """
     handbook_hint = build_runtime_handbook_hint_fn(
