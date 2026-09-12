@@ -161,7 +161,7 @@ class AISeedsGenerator(BaseSeedlingGenerator):
         try:
             skill_file = self.output_base / "CLAUDE.md"
             claude_dir = self.output_base / ".claude"
-            hook_file = claude_dir / "sdd-bootstrap.sh"
+            hook_file = claude_dir / "providence-bootstrap.sh"
             settings_file = claude_dir / "settings.json"
             fp_header = "\n".join(
                 build_fingerprint_header(

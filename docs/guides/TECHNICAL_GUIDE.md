@@ -121,7 +121,7 @@ Budget breach guard blocks context loading:
 ```bash
 # When budget is breached (≥100% utilization), ask in full mode exits with code 3
 SDD_BUDGET_UTILIZATION_PCT=105 providence ask --full "query"
-# → [SDD] BUDGET BREACH: context utilization at 105.0% (>= 100%).
+# → [Providence] BUDGET BREACH: context utilization at 105.0% (>= 100%).
 # → Further context loading is blocked.
 ```
 

@@ -13,9 +13,9 @@ from typing import Any
 # rely on providence_core being pip/uv-installed into the active venv — same guard
 # as tools/maintenance/lint_all.py and tools/docs/check_links.py.
 REPO_ROOT = Path(__file__).resolve().parents[2]
-_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "providence_core" / "src"
-if str(_SDD_CORE_SRC) not in sys.path:
-    sys.path.insert(0, str(_SDD_CORE_SRC))
+_PROVIDENCE_CORE_SRC = REPO_ROOT / "packages" / "core" / "providence_core" / "src"
+if str(_PROVIDENCE_CORE_SRC) not in sys.path:
+    sys.path.insert(0, str(_PROVIDENCE_CORE_SRC))
 
 from providence_core.utils.process import SafeProcessRunner  # noqa: E402
 

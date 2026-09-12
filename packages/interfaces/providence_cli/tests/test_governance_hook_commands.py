@@ -62,7 +62,7 @@ def _write_current_central_hook(root: Path) -> Path:
     central_hook.parent.mkdir(parents=True, exist_ok=True)
     central_hook.write_text(
         "#!/usr/bin/env python3\n"
-        "# SDD GOVERNANCE ACTIVE\n"
+        "# PROVIDENCE GOVERNANCE ACTIVE\n"
         "def _render_activation_header(context):\n"
         "    return context\n"
         '# {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit"}}\n',

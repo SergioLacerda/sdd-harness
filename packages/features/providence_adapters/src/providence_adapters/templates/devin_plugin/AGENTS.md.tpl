@@ -1,4 +1,4 @@
-# SDD Governance Projection for Devin
+# Providence Governance Projection for Devin
 
 Profile: **Soft/Standalone**
 Provider: `devin`
@@ -15,23 +15,23 @@ This plugin ships an embedded snapshot of Providence governance skills. It has *
 - `assurance: reduced`
 - `external_dependencies: none`
 
-Soft/Standalone assurance is never equivalent to a connected Hard/Connected Providence session. Do not represent this plugin's governance as equivalent to a live-verified SDD policy.
+Soft/Standalone assurance is never equivalent to a connected Hard/Connected Providence session. Do not represent this plugin's governance as equivalent to a live-verified Providence policy.
 
 ## Precedence order
 
 1. Provider or organization safety controls (Devin's own permissions/config).
-2. Connected SDD hard policy (not active in this profile).
+2. Connected Providence hard policy (not active in this profile).
 3. Project canonical policy (this project's own `.providence/`, if present).
-4. Embedded SDD snapshot (this plugin's governance summary{% if include_skills %} and `skills/`{% endif %}).
+4. Embedded Providence snapshot (this plugin's governance summary{% if include_skills %} and `skills/`{% endif %}).
 5. Provider local rules (`.devin/config.json`, project `AGENTS.md`, `rules/`).
 6. User task instructions.
 
 ## Skill discovery
 
 {% if include_skills %}
-Skills embedded in this plugin are listed under `skills/`. Each skill file documents its own allowed CLI commands and risk score. Do not invent commands beyond what a skill file declares. Each skill's allowed CLI assumes the `sdd` CLI is installed in this environment â€” if it is not, treat that skill as unavailable rather than improvising an equivalent command.
+Skills embedded in this plugin are listed under `skills/`. Each skill file documents its own allowed CLI commands and risk score. Do not invent commands beyond what a skill file declares. Each skill's allowed CLI assumes the `providence` CLI is installed in this environment â€” if it is not, treat that skill as unavailable rather than improvising an equivalent command.
 {% else %}
-This build does not embed the SDD skill catalog (`include_skills=False`). No `skills/` directory is present. This plugin provides governance context only (assurance disclosure, precedence order, Providence summary below) â€” it does not teach Devin any `sdd`-CLI-backed operations.
+This build does not embed the Providence skill catalog (`include_skills=False`). No `skills/` directory is present. This plugin provides governance context only (assurance disclosure, precedence order, Providence summary below) â€” it does not teach Devin any `providence`-CLI-backed operations.
 {% endif %}
 {% if has_coding_practices %}
 See `rules/sdd-coding-practices.md` for coding anti-patterns and cures (currently: universal + Go-specific).

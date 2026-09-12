@@ -45,7 +45,7 @@ def install(
     ),
     list_commands: bool = typer.Option(False, "--list", help="List install commands."),
 ) -> None:
-    """Install SDD governance (canonical entrypoint)."""
+    """Install Providence governance (canonical entrypoint)."""
     if ctx.invoked_subcommand is not None:
         return
 

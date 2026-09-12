@@ -2,7 +2,7 @@
 # /// script
 # dependencies = []
 # ///
-"""Governance compliance validator for SDD Architecture."""
+"""Governance compliance validator for Providence Architecture."""
 
 import argparse
 import base64
@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from tools.lib.sdd_env import detect_repo_root, get_sdd_paths
+    from tools.lib.providence_env import detect_repo_root, get_sdd_paths
 except ImportError:
     # Fallback if lib is not found (unlikely in standard structure)
     def detect_repo_root() -> Path:

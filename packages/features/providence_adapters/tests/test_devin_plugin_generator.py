@@ -133,7 +133,7 @@ def test_generate_with_include_skills_false_omits_skill_catalog(tmp_path: Path) 
     assert "skills" not in plugin_json
 
     agents_md = (bundle / "AGENTS.md").read_text(encoding="utf-8")
-    assert "does not embed the SDD skill catalog" in agents_md
+    assert "does not embed the Providence skill catalog" in agents_md
 
 
 def test_generate_with_include_skills_true_still_requires_skills(

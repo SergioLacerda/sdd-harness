@@ -17,9 +17,9 @@ NC='\033[0m'
 echo -e "${YELLOW}[PRE-PUSH] Starting final validation before push...${NC}"
 
 # ── P003: Block AI agent pushes ──────────────────────────────────────────────
-# Requires SDD_AGENT_MODE to be exactly "true" (case-sensitive).
+# Requires PROVIDENCE_AGENT_MODE to be exactly "true" (case-sensitive).
 # Any other value (empty, false, 1) does NOT trigger the block.
-if [ "${SDD_AGENT_MODE:-}" = "true" ]; then
+if [ "${PROVIDENCE_AGENT_MODE:-}" = "true" ]; then
     echo -e "${RED}BLOCKED (P003): Agents are not allowed to push.${NC}"
     echo "Policy P003 (Mandatory Human Review) requires all remote updates"
     echo "to be performed by a human."

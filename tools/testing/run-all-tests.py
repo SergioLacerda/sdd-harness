@@ -15,7 +15,7 @@
 #   "pydantic",
 # ]
 # ///
-"""Run all SDD tests across all layers of the monorepo."""
+"""Run all Providence tests across all layers of the monorepo."""
 
 import argparse
 import json
@@ -27,13 +27,15 @@ from pathlib import Path
 
 # Repo root is two levels up from tools/testing/
 REPO_ROOT = Path(__file__).resolve().parents[2]
-_SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "providence_core" / "src"
-_SDD_RUNTIME_SRC = REPO_ROOT / "packages" / "core" / "providence_runtime" / "src"
-_SDD_TELEMETRY_SRC = REPO_ROOT / "packages" / "core" / "providence_telemetry" / "src"
-if str(_SDD_CORE_SRC) not in sys.path:
-    sys.path.insert(0, str(_SDD_CORE_SRC))
-if str(_SDD_RUNTIME_SRC) not in sys.path:
-    sys.path.insert(0, str(_SDD_RUNTIME_SRC))
+_PROVIDENCE_CORE_SRC = REPO_ROOT / "packages" / "core" / "providence_core" / "src"
+_PROVIDENCE_RUNTIME_SRC = REPO_ROOT / "packages" / "core" / "providence_runtime" / "src"
+_PROVIDENCE_TELEMETRY_SRC = (
+    REPO_ROOT / "packages" / "core" / "providence_telemetry" / "src"
+)
+if str(_PROVIDENCE_CORE_SRC) not in sys.path:
+    sys.path.insert(0, str(_PROVIDENCE_CORE_SRC))
+if str(_PROVIDENCE_RUNTIME_SRC) not in sys.path:
+    sys.path.insert(0, str(_PROVIDENCE_RUNTIME_SRC))
 
 # Every workspace member's src/, mirroring pyproject.toml's
 # [tool.pytest.ini_options].pythonpath. Each per-package layer below invokes
@@ -61,8 +63,8 @@ _WORKSPACE_SRC_DIRS = [
     REPO_ROOT / "packages" / "interfaces" / "providence_wizard" / "src",
     REPO_ROOT / "packages" / "interfaces" / "providence_cli" / "src",
 ]
-if str(_SDD_TELEMETRY_SRC) not in sys.path:
-    sys.path.insert(0, str(_SDD_TELEMETRY_SRC))
+if str(_PROVIDENCE_TELEMETRY_SRC) not in sys.path:
+    sys.path.insert(0, str(_PROVIDENCE_TELEMETRY_SRC))
 
 
 @dataclass
@@ -430,7 +432,7 @@ def main() -> int:
     main_args, extra_pytest_args = _parse_extra_args()
 
     parser = argparse.ArgumentParser(
-        description="Run all SDD tests across the monorepo"
+        description="Run all Providence tests across the monorepo"
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Show each test")
     parser.add_argument(
@@ -483,7 +485,7 @@ def main() -> int:
             return 1
 
     print(f"\n{'=' * 70}")
-    print(f"SDD Test Runner — {len(layers)} layer(s)")
+    print(f"Providence Test Runner — {len(layers)} layer(s)")
     if parallel:
         print("Parallel execution enabled (pytest-xdist)")
     print("=" * 70)

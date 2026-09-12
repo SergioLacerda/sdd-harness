@@ -1,4 +1,4 @@
-# SDD Governance Projection for Devin
+# Providence Governance Projection for Devin
 
 Generates a self-contained, distributable Devin plugin bundle from this repository's
 `.providence/skills/` registry, in **Soft/Standalone** profile.
@@ -12,15 +12,15 @@ Generates a self-contained, distributable Devin plugin bundle from this reposito
 - Is never represented as equivalent to a connected, Hard/Connected Providence session.
 
 Hard/Connected mode (a live Providence probe/handshake) is **not implemented**. It requires
-a separate RFC — see `docs/spec/guides/RFC_PROCESS.md` — because it would introduce a new SDD
+a separate RFC — see `docs/spec/guides/RFC_PROCESS.md` — because it would introduce a new Providence
 external integration protocol.
 
 ## Build
 
 ```bash
-sdd devin build
-# optional: sdd devin build --dest ./some/other/path
-# governance-only bundle, no SDD skill catalog: sdd devin build --no-skills
+providence devin build
+# optional: providence devin build --dest ./some/other/path
+# governance-only bundle, no Providence skill catalog: providence devin build --no-skills
 ```
 
 Or from Python:
@@ -33,7 +33,7 @@ DevinPluginGenerator().generate(output_dir=repo_root)
 ```
 
 `include_skills` defaults to `True`. Each embedded skill's "Allowed CLI" commands
-assume the `sdd` CLI is installed in the Devin environment — a dependency the base
+assume the `providence` CLI is installed in the Devin environment — a dependency the base
 governance summary (`AGENTS.md` + `rules/`) does not have. Pass
 `include_skills=False` (or `--no-skills`) for a bundle that is governance context
 only, with no `skills/` directory and no `"skills"` key in `plugin.json`.
@@ -54,7 +54,7 @@ devin plugins install ./dist/devin-plugin
 | `AGENTS.md` | Always-on assurance/precedence disclosure + governance summary Tier A (index) |
 | `rules/providence-summary.md` | Governance summary Tier B (condensed detail), loaded contextually |
 | `rules/sdd-soft-governance-behavior.md` | Curated, CLI-independent behavioral rules (git safety, escalation, mandate precedence) |
-| `skills/{name}/SKILL.md` | One per canonical SDD skill in `.providence/skills/registry.json` — omitted entirely when built with `--no-skills` |
+| `skills/{name}/SKILL.md` | One per canonical Providence skill in `.providence/skills/registry.json` — omitted entirely when built with `--no-skills` |
 | `hooks.json` + `hooks/session-start-assurance.sh` | Injects the Soft/Standalone disclosure into every session |
 | `metadata/provenance.json` | Plugin version, compiler version, source revision, embedded policy digest, embedded governance summary digest, soft governance ruleset version, profile |
 | `LICENSE` | Copied from the source project's root `LICENSE`, if present |
@@ -104,7 +104,7 @@ content changed.
 auto-parsed) set of behavioral rules distilled from this repository's
 `.providence/agent-instructions.md`: git safety (never execute state-modifying git
 commands autonomously), escalate-on-incomplete-context, and mandates-outrank-
-guidelines precedence. It deliberately excludes anything that assumes a live `sdd`
+guidelines precedence. It deliberately excludes anything that assumes a live `providence`
 CLI connection — the M015 handshake procedure, `execution_gate` /
 `intake_index_mode` semantics, fingerprint-diffing instructions — since those only
 apply in Hard/Connected mode, which this plugin does not implement; embedding them
@@ -120,15 +120,15 @@ has no stable per-rule structure to parse against safely).
 ## Precedence order
 
 1. Provider or organization safety controls (Devin's own permissions/config).
-2. Connected SDD hard policy (not active in Soft/Standalone).
+2. Connected Providence hard policy (not active in Soft/Standalone).
 3. Project canonical policy (the consuming project's own `.providence/`, if present).
-4. Embedded SDD snapshot (this plugin's `skills/`).
+4. Embedded Providence snapshot (this plugin's `skills/`).
 5. Provider local rules (`.devin/config.json`, project `AGENTS.md`, `rules/`).
 6. User task instructions.
 
 ## Canonical source
 
-This plugin is a generated projection, never a policy source. Canonical SDD governance stays
+This plugin is a generated projection, never a policy source. Canonical Providence governance stays
 in this repository's `.providence/`. See `metadata/provenance.json` in a built bundle for the exact
 source revision it was generated from.
 

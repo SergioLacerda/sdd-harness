@@ -49,7 +49,7 @@ def render_governance_activation_header(
     fp = (fingerprint or "unknown")[:8]
     return "\n".join(
         [
-            "SDD GOVERNANCE ACTIVE | "
+            "PROVIDENCE GOVERNANCE ACTIVE | "
             f"source={source or 'unknown'} | "
             f"governance_mode={governance_mode or 'hard'} | "
             f"execution_gate={execution_gate or 'unknown'} | "

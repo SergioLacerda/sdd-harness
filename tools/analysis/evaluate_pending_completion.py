@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SDD Analysis Pending Items Completion Evaluator
+Providence Analysis Pending Items Completion Evaluator
 
 Workflow para avaliar se pendências foram implementadas e movê-las para .analysis/done
 
@@ -389,7 +389,7 @@ class CompletionEvaluator:
             return
 
         print(f"\n{'=' * 70}")
-        print("SDD Analysis Completion Evaluator")
+        print("Providence Analysis Completion Evaluator")
         print(f"{'=' * 70}")
         print(f"📁 Scanning: {PENDING_DIR}")
         print(f"Dry-run: {'Yes' if dry_run else 'No'}")

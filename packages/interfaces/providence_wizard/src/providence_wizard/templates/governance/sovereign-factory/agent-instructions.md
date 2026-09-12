@@ -168,7 +168,7 @@ The following aliases are mapped to the operational prompt templates in `.github
 - `/sdd-organize`:  `.github/prompts/sdd-organize.prompt.md` (Large context intake/indexing)
 
 **Mandate**: All responses triggered by these commands MUST include the mandatory SDD footer:
-`SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`
+`PROVIDENCE GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`
 
 Additional mandate for `/sdd-ask`:
 - Always run preflight (`providence runtime status` + `providence governance validate`) before `providence ask --full`.

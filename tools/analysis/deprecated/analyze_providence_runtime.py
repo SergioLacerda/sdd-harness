@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SDD Runtime Module Analysis Workflow
+Providence Runtime Module Analysis Workflow
 
 Análise de três dimensões:
 1. Refatoração: Classes/arquivos com >200 linhas
@@ -60,7 +60,7 @@ class RuntimeAnalyzer:
     def analyze_all(self) -> None:
         """Analisa todos os arquivos."""
         print(f"\n{'=' * 70}")
-        print("SDD Runtime Module Analysis")
+        print("Providence Runtime Module Analysis")
         print(f"{'=' * 70}\n")
 
         if not RUNTIME_DIR.exists():
@@ -342,7 +342,7 @@ class RuntimeAnalyzer:
         large_files = [f for f in files_by_size if f.lines > 200]
         problem_files = [f for f in self.files if f.issues]
 
-        content = f"""# SDD Runtime Module - Discovery Report
+        content = f"""# Providence Runtime Module - Discovery Report
 
 **Data**: {datetime.now().isoformat()}
 
@@ -434,7 +434,7 @@ Encontrados em {len([f for f in self.files if f.duplicate_patterns])} arquivo(s)
 
     def _write_analysis(self) -> None:
         """Escreve análise detalhada."""
-        content = f"""# SDD Runtime Module - Detailed Analysis
+        content = f"""# Providence Runtime Module - Detailed Analysis
 
 **Data**: {datetime.now().isoformat()}
 
@@ -541,7 +541,7 @@ Código que pode ser consolidado:
             reverse=True,
         )
 
-        content = f"""# SDD Runtime Module - Recommendations
+        content = f"""# Providence Runtime Module - Recommendations
 
 **Data**: {datetime.now().isoformat()}
 

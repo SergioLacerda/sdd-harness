@@ -29,7 +29,7 @@ def test_skills_run_json_syncs_runtime_success_payload(monkeypatch) -> None:
         policy_result="executed",
         reason="runtime execution completed",
         exit_code=0,
-        governance_footer="SDD GOVERNANCE: drift=none | governance=ok | profile=default",
+        governance_footer="PROVIDENCE GOVERNANCE: drift=none | governance=ok | profile=default",
         fallback=["providence governance validate", "providence runtime status"],
         command_results=[
             {
@@ -80,7 +80,7 @@ def test_skills_run_json_syncs_runtime_error_payload(monkeypatch) -> None:
         policy_result="blocked",
         reason="enforcement strict: high-risk skill blocked",
         exit_code=1,
-        governance_footer="SDD GOVERNANCE: drift=fallback_cli | governance=blocked | profile=default",
+        governance_footer="PROVIDENCE GOVERNANCE: drift=fallback_cli | governance=blocked | profile=default",
         fallback=["providence governance score --verbose"],
         command_results=[
             {

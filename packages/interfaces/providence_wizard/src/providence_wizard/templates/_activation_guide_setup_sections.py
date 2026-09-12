@@ -25,7 +25,7 @@ def _checklist_section() -> str:
 - [ ] Check SeedlingLoader output
 - [ ] Test agent knowledge of mandates
 - [ ] Confirm every governed response ends with:
-  `SDD GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
+  `PROVIDENCE GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
 
 ---
 

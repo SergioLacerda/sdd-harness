@@ -1,10 +1,10 @@
-# SDD CLI Reference (v3.1)
+# Providence CLI Reference (v3.1)
 
-The sdd command is the main entry point for framework operations.
+The `providence` command is the main entry point for framework operations.
 
 ## Profile Detection
 
-The SDD CLI operates in one of two profiles: **master** (framework development) or **client** (project instance). The profile is auto-detected using the following priority:
+The Providence CLI operates in one of two profiles: **master** (framework development) or **client** (project instance). The profile is auto-detected using the following priority:
 
 1. `--profile` flag (highest priority)
 2. `SDD_PROFILE` environment variable
@@ -120,7 +120,7 @@ response.
 Both `providence ask` and `providence ask --full` emit:
 
 ```
-=== SDD Governance Context ===
+=== Providence Governance Context ===
 query_hash      : <hash>
 context_source  : compiled
 fingerprint     : <hash>
@@ -128,7 +128,7 @@ mandates_loaded : <n>
 trust_source    : canonical
 degraded        : no
 
-SDD GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>
+PROVIDENCE GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>
 ```
 
 Every profile (including `--intake-only`) also emits a structured intake
@@ -216,7 +216,7 @@ Skill output schema (`skill_output.schema.yaml`):
 
 Governance footer contract:
 
-- `SDD GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
+- `PROVIDENCE GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
 
 JSON automation examples:
 
@@ -333,7 +333,7 @@ sdd docs deploy --no-force
 
 ### Version
 
-- providence version: Shows the installed SDD CLI version.
+- providence version: Shows the installed Providence CLI version.
 
 ### Diagnostics
 

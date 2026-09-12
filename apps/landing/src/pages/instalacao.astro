@@ -5,7 +5,7 @@ import InstallCard from '../components/InstallCard.astro';
 import { INSTALL_CONTENT } from '../lib/i18n';
 
 const install = INSTALL_CONTENT.pt;
-const RELEASES_URL = 'https://github.com/SergioLacerda/sdd-harness/releases';
+const RELEASES_URL = 'https://github.com/SergioLacerda/providence/releases';
 ---
 <BaseLayout title="Providentian — Instalação" description="Como instalar o sdd-cli e configurar a governança no seu repositório.">
   <SiteNav />
@@ -24,14 +24,14 @@ const RELEASES_URL = 'https://github.com/SergioLacerda/sdd-harness/releases';
       <InstallCard
         label="github releases (recomendado)"
         linkHref={RELEASES_URL}
-        linkText="github.com/SergioLacerda/sdd-harness/releases"
+        linkText="github.com/SergioLacerda/providence/releases"
         note="Baixe os artefatos dist/ de um release publicado e instale sdd-cli localmente (python -m venv + pip install --no-index --find-links) — canal oficial validado por CI."
         copyLabel="copiar"
         openLabel="abrir ↗"
       />
       <InstallCard
         label="uv tool install · a partir do código-fonte"
-        command='uv tool install "git+https://github.com/SergioLacerda/sdd-harness@&lt;tag&gt;#subdirectory=packages/interfaces/sdd_cli"'
+        command='uv tool install "git+https://github.com/SergioLacerda/providence@&lt;tag&gt;#subdirectory=packages/interfaces/sdd_cli"'
         note="Substitua <tag> por um release (ex.: v1.0.13). Omitir a tag instala o HEAD do branch default — não recomendado."
         copyLabel="copiar"
       />

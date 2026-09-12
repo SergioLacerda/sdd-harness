@@ -292,7 +292,7 @@ def test_runtime_image_satisfies_hadolint_entrypoint_policy() -> None:
     assert "\nUSER 1000\n" in dockerfile
     assert "CMD []" not in dockerfile
     assert 'ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]' in dockerfile
-    assert 'CMD ["sh", "-c", "sdd --help || exit 1"]' in dockerfile
+    assert 'CMD ["sh", "-c", "providence --help || exit 1"]' in dockerfile
 
 
 def test_docker_build_paths_use_buildkit_buildx() -> None:

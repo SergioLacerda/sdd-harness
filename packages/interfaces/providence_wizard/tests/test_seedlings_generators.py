@@ -192,7 +192,7 @@ class TestAISeedsGeneratorGemini:
         instructions = (tmp_path / ".gemini" / "gemini-instructions.md").read_text(
             encoding="utf-8"
         )
-        assert "Gemini  SDD Governance Bootstrap" in instructions
+        assert "Gemini  Providence Governance Bootstrap" in instructions
         assert ".gemini/commands.md" in instructions
         assert ".providence/agent-instructions.md" in instructions
 
@@ -783,7 +783,7 @@ class TestAISeedsGeneratorClaudeSeed:
         assert ".claude/commands/" in content
         assert ".providence/agent-instructions.md" in content
         assert "Version: 3.0" in content
-        assert (tmp_path / ".claude" / "sdd-bootstrap.sh").exists()
+        assert (tmp_path / ".claude" / "providence-bootstrap.sh").exists()
         assert (tmp_path / ".claude" / "settings.json").exists()
 
 

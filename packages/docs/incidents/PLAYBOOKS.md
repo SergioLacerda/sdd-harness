@@ -411,7 +411,7 @@ print(f'Total: {time.perf_counter() - start:.2f}s')
 providence runtime status
 
 # Check token economy metrics
-sdd metrics summary
+providence metrics summary
 ```
 
 #### Phase 2: Investigate (5 min)
@@ -421,7 +421,7 @@ sdd metrics summary
 cat .providence/runtime/providence-runtime-sessions.json | jq '.' 2>/dev/null || echo "Session file not found"
 
 # Check token consumption by query
-sdd metrics summary --last-hours 24
+providence metrics summary --last-hours 24
 
 # Is budget legitimately exhausted?
 # Or is it a bug?
@@ -433,7 +433,7 @@ sdd metrics summary --last-hours 24
 
 ```bash
 # Reset runtime state and re-bootstrap
-sdd bootstrap
+providence bootstrap
 
 # Or: increase token_budget_ceiling in pyproject.toml
 # [tool.sdd.runtime]
@@ -444,7 +444,7 @@ sdd bootstrap
 
 ```bash
 # Check recent events to identify expensive queries
-sdd metrics summary --last-hours 1
+providence metrics summary --last-hours 1
 
 # Single query consumed many tokens → expensive
 # Options:
@@ -462,7 +462,7 @@ providence ask "architecture" --skill "diagnose"  # route to lighter path
 # If not, it's a bug — file an issue.
 
 # Workaround: re-bootstrap the runtime state
-sdd bootstrap
+providence bootstrap
 
 # File bug: "Budget not reset between sessions"
 ```
@@ -473,13 +473,13 @@ sdd bootstrap
 # Reproduce: providence ask "<query>" N times
 # Check if tokens charged correctly via metrics
 
-sdd metrics summary --last-hours 1
+providence metrics summary --last-hours 1
 
 # File bug with reproduction steps
 # Escalate to maintainer
 
 # Workaround: re-bootstrap the runtime state
-sdd bootstrap
+providence bootstrap
 ```
 
 #### Phase 4: Verify
@@ -487,7 +487,7 @@ sdd bootstrap
 ```bash
 # Confirm runtime is healthy
 providence runtime status
-# Should show: "SDD Governance: ACTIVE" with drift=none
+# Should show: "PROVIDENCE GOVERNANCE: drift=none | governance=ok | ..."
 
 # Try query again
 providence ask "test"
@@ -850,7 +850,7 @@ python -m sdd_compiler  # Rebuild
 
 - Telemetry events not persisting
 - JSONL log file not updated or missing
-- `sdd metrics summary` returns empty results
+- `providence metrics summary` returns empty results
 - Telemetry file permission errors in logs
 
 ### Root Causes
@@ -869,7 +869,7 @@ python -m sdd_compiler  # Rebuild
 providence runtime status
 
 # Check if metrics reflect recent activity
-sdd metrics summary
+providence metrics summary
 # If output is empty or stale: pipeline may be blocked
 ```
 
@@ -916,7 +916,7 @@ tail -1 .providence/runtime/compliance-events.jsonl | jq .
 mv .providence/runtime/compliance-events.jsonl .providence/runtime/compliance-events.jsonl.backup
 
 # Bootstrap fresh runtime state
-sdd bootstrap
+providence bootstrap
 ```
 
 ---

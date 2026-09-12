@@ -1,14 +1,14 @@
-# SDD Governance Projection for Claude Code
+# Providence Governance Projection for Claude Code
 
-Generates a self-contained, zero-SDD-mention Claude Code governance configuration
+Generates a self-contained, zero-Providence-mention Claude Code governance configuration
 from curated, static content, in **Soft/Standalone** profile. This is the Claude
-Code analogue of `sdd devin build --standalone` and `sdd copilot build` — same
+Code analogue of `providence devin build --standalone` and `providence copilot build` — same
 criteria, same curated/generic (not repo-specific) content approach, adapted to
 Claude Code's own real file conventions.
 
 This is a different mechanism from two pre-existing, unrelated Claude-specific
 integrations: the per-skill `AdapterGenerator` (writing `.claude/commands/*.md`
-from `.providence/skills/`, wizard-integrated, SDD-branded), and the `providence governance
+from `.providence/skills/`, wizard-integrated, Providence-branded), and the `providence governance
 generate` wizard subsystem that produces this repository's own root `CLAUDE.md`.
 This projection is additive and does not touch either.
 
@@ -38,8 +38,8 @@ This projection is additive and does not touch either.
 ## Build
 
 ```bash
-sdd claude build
-# optional: sdd claude build --dest ./some/other/path
+providence claude build
+# optional: providence claude build --dest ./some/other/path
 ```
 
 Or from Python:

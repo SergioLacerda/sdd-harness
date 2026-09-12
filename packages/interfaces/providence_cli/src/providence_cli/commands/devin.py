@@ -41,8 +41,8 @@ def build(
         None,
         "--skills/--no-skills",
         help=(
-            "Include the SDD skill catalog (skills/*.md). Each skill's allowed CLI "
-            "assumes the sdd CLI is installed in the Devin environment; use "
+            "Include the Providence skill catalog (skills/*.md). Each skill's allowed CLI "
+            "assumes the providence CLI is installed in the Devin environment; use "
             "--no-skills for a governance-only bundle (AGENTS.md + rules/) with no "
             "such dependency. Not allowed together with --standalone. Default: "
             "included, unless --standalone is set."
@@ -52,15 +52,15 @@ def build(
         False,
         "--standalone",
         help=(
-            "Build a zero-SDD-mention project configuration "
+            "Build a zero-Providence-mention project configuration "
             "(AGENTS.md + .devin/config.json + .devin/hooks.v1.json + "
-            ".devin/rules/*.md) instead of the SDD-branded plugin bundle. "
+            ".devin/rules/*.md) instead of the Providence-branded plugin bundle. "
             "Written under dist/devin-standalone/ (or --dest), never into the "
             "project's real root files."
         ),
     ),
 ) -> None:
-    """Build a Devin governance surface: the SDD-branded plugin bundle (default) or a zero-SDD-mention standalone project config (--standalone)."""
+    """Build a Devin governance surface: the Providence-branded plugin bundle (default) or a zero-Providence-mention standalone project config (--standalone)."""
     from providence_adapters.devin import DevinPluginGenerator
 
     ws_root = resolve_workspace_root()
@@ -69,9 +69,9 @@ def build(
         if skills:
             console.print(
                 "[red]--standalone and --skills cannot be used together[/red]  "
-                "skills are SDD-branded content (sourced from .providence/skills/, "
+                "skills are Providence-branded content (sourced from .providence/skills/, "
                 "documenting sdd-prefixed CLI commands), which contradicts "
-                "--standalone's zero-SDD-mention guarantee."
+                "--standalone's zero-Providence-mention guarantee."
             )
             raise typer.Exit(1)
 

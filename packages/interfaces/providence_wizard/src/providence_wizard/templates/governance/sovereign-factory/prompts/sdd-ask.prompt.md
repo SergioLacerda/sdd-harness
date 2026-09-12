@@ -23,9 +23,9 @@ Response contract:
 - Show `fingerprint`, `context_source`, and `mandates_loaded` from runtime output.
 - Treat `.providence` runtime artifacts as source of truth for these fields.
 
-SDD GOVERNANCE CHECK
+PROVIDENCE GOVERNANCE CHECK
 - Always end responses with this compact footer:
-  `SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`
+  `PROVIDENCE GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`
 
 Audit JSON policy:
 - `.providence/compiled/audit/*.json` is human/audit oriented.

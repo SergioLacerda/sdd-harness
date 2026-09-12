@@ -8,7 +8,7 @@
 
 ## Overview
 
-Plugin registration is **agent-mediated**: the agent detects SDD governance,
+Plugin registration is **agent-mediated**: the agent detects Providence governance,
 identifies the active skill, and offers to register it. The user approves.
 The agent writes the entry to `.providence/plugins/registry.yaml` and emits a
 GovernanceEvent.

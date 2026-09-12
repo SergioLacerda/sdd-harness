@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-commit Hook --- SDD Architecture Framework
+# Pre-commit Hook --- Providence Architecture Framework
 # Enforces governance guardrails before every local commit.
 
 set -euo pipefail
@@ -19,7 +19,7 @@ export UV_CACHE_DIR="${UV_CACHE_DIR:-$REPO_ROOT/.uv-cache}"
 # `-m` invocation resolve regardless of uv's sync state.
 WORKSPACE_PYTHONPATH="$REPO_ROOT/packages/core/providence_core/src:$REPO_ROOT/packages/core/providence_runtime/src:$REPO_ROOT/packages/core/providence_telemetry/src:$REPO_ROOT/packages/features/providence_integration/src:$REPO_ROOT/packages/features/providence_adapters/src:$REPO_ROOT/packages/features/providence_skills/src:$REPO_ROOT/packages/features/providence_pages/src:$REPO_ROOT/packages/interfaces/providence_wizard/src:$REPO_ROOT/packages/interfaces/providence_cli/src"
 
-echo "SDD Guardrail: Pre-commit Validation"
+echo "Providence Guardrail: Pre-commit Validation"
 echo "Branch: $CURRENT_BRANCH"
 
 # ------ Helper: cross-platform file modification time (seconds since epoch) ------------------
@@ -52,8 +52,8 @@ if [ "$CURRENT_BRANCH" = "main" ]; then
 fi
 
 # ------ 2. P003: Block agent-initiated commits ---------------------------------------------------------------------------------------------------------
-# SDD_AGENT_MODE must be explicitly "true" (exact string, case-sensitive).
-if [ "${SDD_AGENT_MODE:-}" = "true" ]; then
+# PROVIDENCE_AGENT_MODE must be explicitly "true" (exact string, case-sensitive).
+if [ "${PROVIDENCE_AGENT_MODE:-}" = "true" ]; then
     echo "BLOCKED (P003): Agents must not commit autonomously."
     echo "FIX: Stage the changes and ask the user to run git commit."
     exit 1
@@ -76,7 +76,7 @@ else
     if [ "$age" -gt 3600 ]; then
         if is_protected_branch; then
             echo "GUARDRAIL L2 FAILURE: .providence/runtime/.providence-cache.md is stale ($((age / 60)) min ago)."
-            echo "FIX: Update the cache and run the Validation Quiz before committing."
+            echo "FIX: Update the cache and run the Validation Quiz before committing.uv run providence runtime status --update-cache"
             exit 1
         fi
         echo "WARNING L2: .providence/runtime/.providence-cache.md is stale ($((age / 60)) min ago)."
@@ -146,7 +146,7 @@ for doc in $new_docs; do
     fi
 done
 
-echo "SDD Guardrails Passed."
+echo "Providence Guardrails Passed."
 
 # ------ 8. Encoding guardrail (blocking) ------------------------------------------------------------------------------------------------------------------------
 echo "Running encoding guardrail..."

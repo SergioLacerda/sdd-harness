@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SDD Deployment Orchestrator (Wrapper)
+Providence Deployment Orchestrator (Wrapper)
 Thin wrapper around providence_core.deployment_manager.
 """
 
@@ -9,7 +9,7 @@ import sys
 try:
     from providence_core.utils.environment import get_sdd_paths
 except ImportError:
-    print("ERROR: Could not load sdd_env utility.")
+    print("ERROR: Could not load providence environment utility.")
     sys.exit(1)
 
 

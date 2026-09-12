@@ -12,7 +12,7 @@
     "explicit_command": "sdd-ask",
     "fingerprint": "fp-1",
     "gate_reason": "intake_index_mode=none: governance context not indexed; agent must not proceed",
-    "governance_footer": "SDD GOVERNANCE: drift=none | governance=ok | profile=master | root_seed_drift=none",
+    "governance_footer": "PROVIDENCE GOVERNANCE: drift=none | governance=ok | profile=master | root_seed_drift=none",
     "governance_mode": "hard",
     "handoff_owner": "calling_agent",
     "intake_artifact": "n/a",

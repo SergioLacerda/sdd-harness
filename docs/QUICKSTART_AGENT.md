@@ -1,4 +1,4 @@
-# ⚡ SDD Agent QuickStart
+# ⚡ Providence Agent QuickStart
 
 > **Load this if you have < 500 tokens left.**
 

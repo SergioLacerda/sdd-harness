@@ -53,7 +53,9 @@ def test_validate_skill_definition_rejects_invalid_contract_types() -> None:
 
 def test_format_governance_footer_contract() -> None:
     footer = format_governance_footer(drift="none", governance="ok", profile="executor")
-    assert footer == "SDD GOVERNANCE: drift=none | governance=ok | profile=executor"
+    assert (
+        footer == "PROVIDENCE GOVERNANCE: drift=none | governance=ok | profile=executor"
+    )
 
 
 # ---------------------------------------------------------------------------

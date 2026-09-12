@@ -121,9 +121,9 @@ class DevinPluginGenerator:
                 obtained by the caller â€” this method never shells out to git).
             built_at: ISO-8601 timestamp. Defaults to current UTC time; pass a
                 fixed value in tests for reproducible output.
-            include_skills: when False, skip the SDD skill catalog entirely
+            include_skills: when False, skip the Providence skill catalog entirely
                 (no skills/ directory, no "skills" key in plugin.json). Each
-                skill's "Allowed CLI" commands assume the sdd CLI is installed
+                skill's "Allowed CLI" commands assume the providence CLI is installed
                 in the Devin environment â€” a real dependency the base
                 AGENTS.md/rules/ governance summary does not have. Default True
                 preserves existing behavior.

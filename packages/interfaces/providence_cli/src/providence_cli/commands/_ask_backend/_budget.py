@@ -39,7 +39,7 @@ def _guard_budget_breach() -> None:
         return
 
     typer.echo(
-        f"\n[SDD] BUDGET BREACH: context utilization at {pct:.1f}% (>= 100%).\n"
+        f"\n[Providence] BUDGET BREACH: context utilization at {pct:.1f}% (>= 100%).\n"
         "Further context loading is blocked (economy/execution-budget.md).\n"
         "Human checkpoint required. Options:\n"
         "  1. Decompose the task into smaller PATH A/B units\n"

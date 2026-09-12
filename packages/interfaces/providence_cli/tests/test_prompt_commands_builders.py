@@ -121,7 +121,7 @@ def test_prompt_spec_for_sdd_ask() -> None:
     slug, description, mode, body = _prompt_spec_for_command({"id": "sdd-ask"})
 
     assert slug == "sdd-ask"
-    assert description == "Query SDD governance context"
+    assert description == "Query Providence governance context"
     assert mode == "agent"
     assert 'providence ask --full "$QUERY"' in body
     assert "API Error: 5xx" in body

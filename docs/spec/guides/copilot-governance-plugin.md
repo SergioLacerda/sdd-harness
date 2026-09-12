@@ -1,14 +1,14 @@
-# SDD Governance Projection for GitHub Copilot
+# Providence Governance Projection for GitHub Copilot
 
-Generates a self-contained, zero-SDD-mention GitHub Copilot governance
+Generates a self-contained, zero-Providence-mention GitHub Copilot governance
 configuration from curated, static content, in **Soft/Standalone** profile. This is
-the Copilot analogue of `sdd devin build --standalone` — same criteria, same
+the Copilot analogue of `providence devin build --standalone` — same criteria, same
 curated/generic (not repo-specific) content approach, adapted to Copilot's own real
 file conventions.
 
 This is a different mechanism from the existing per-skill Copilot adapter
 (`AdapterGenerator`, writing `.github/prompts/*.prompt.md` from `.providence/skills/`,
-wizard-integrated, SDD-branded) — see
+wizard-integrated, Providence-branded) — see
 `docs/spec/decisions/2026-05-16-multi-agent-adapters-design.md`. This projection is
 additive and does not touch that integration.
 
@@ -27,8 +27,8 @@ additive and does not touch that integration.
 ## Build
 
 ```bash
-sdd copilot build
-# optional: sdd copilot build --dest ./some/other/path
+providence copilot build
+# optional: providence copilot build --dest ./some/other/path
 ```
 
 Or from Python:

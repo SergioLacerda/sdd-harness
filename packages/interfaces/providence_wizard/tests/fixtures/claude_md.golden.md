@@ -58,6 +58,8 @@ If that file says something different from what you remember seeing in CLAUDE.md
 
 ---
 
+If `providence` is not found on your shell `PATH`, run it via `uv run providence <command>` instead  see `docs/guides/ONBOARDING.md` for why.
+
 ## Safe Fallback
 
 If registries or canonical files are missing/inconsistent, register bootstrap drift and continue in safe fallback mode without inventing missing rules.

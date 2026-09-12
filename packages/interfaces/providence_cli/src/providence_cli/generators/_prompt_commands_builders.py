@@ -24,9 +24,9 @@ _RUNTIME_STATUS_NOTE = (
 )
 
 _SOFT_GOVERNANCE_CHECK = (
-    "\nSDD GOVERNANCE CHECK\n"
+    "\nPROVIDENCE GOVERNANCE CHECK\n"
     "- Always end responses with this compact footer:\n"
-    "  `SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`\n"
+    "  `PROVIDENCE GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`\n"
 )
 
 _HARD_MODE_FIELD_CONTRACT = (
@@ -89,7 +89,7 @@ def _prompt_spec_for_command(command: dict[str, Any]) -> tuple[str, str, str, st
     if slug == "sdd-ask":
         return (
             slug,
-            "Query SDD governance context",
+            "Query Providence governance context",
             "agent",
             "Query the SDD governance context with the user's question.\n\n"
             'Execute in the terminal:\n```bash\nprovidence runtime status\nprovidence governance validate\nprovidence ask --full "$QUERY"\n```\n\n'

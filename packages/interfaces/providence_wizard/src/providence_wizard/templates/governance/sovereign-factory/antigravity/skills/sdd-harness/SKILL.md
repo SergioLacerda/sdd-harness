@@ -24,7 +24,7 @@ this skill as governance drift.
 ## Mandatory Protocols
 
 1. **Governance Footer**: Every response generated while operating under this skill MUST end with the following compact footer:
-   `SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`
+   `PROVIDENCE GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}`
    *(Replace ${status} and ${profile} with actual values from `providence runtime status`)*
 
 2. **PEP 723 Execution**:

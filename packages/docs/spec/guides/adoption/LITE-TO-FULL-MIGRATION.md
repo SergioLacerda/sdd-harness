@@ -214,7 +214,7 @@ git push origin upgrade/lite-to-full
 ### Notify Team
 
 ```markdown
-## 🚀 Upgrading to SDD FULL
+## 🚀 Upgrading to Providence FULL
 
 We're upgrading governance to comprehensive level. Here's what changes:
 

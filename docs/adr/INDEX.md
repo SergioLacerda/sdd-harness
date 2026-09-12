@@ -372,6 +372,36 @@ being associated with `ask`.
 
 ---
 
+### ADR-024: Providence CI/CD Brand Alignment (2026-09-12)
+
+**Decision:** Rename public CI/CD display strings (workflow/job/step names,
+Docker OCI labels, entrypoint banner, pre-commit hook output) from `SDD`/
+`sdd-harness` to Providence now. Rename the internal CI gate id
+`repo-sdd-mutation-guard` to canonical `repo-providence-mutation-guard` with a
+compatibility alias for the old id. Leave `SDD_*` environment variables,
+`sdd-compile`, and the `sdd-validation.yml` workflow filename unchanged —
+compatibility-sensitive identifiers with real external dependents. Fixed two
+latent `sdd` CLI invocations in the Dockerfile (no `sdd` console script has
+existed since the Providence rename) as a side effect of the same edit.
+
+**Rationale:**
+
+- The Python/Go workspace has been Providence-branded since `pyproject.toml`
+  declared `name = "providence"`; CI/CD surfaces were the last visible holdout
+- Internal identifiers (the CI gate id) carry no external branch-protection
+  risk and can be renamed immediately with a one-line alias; env vars and the
+  release binary name (`sdd-compile`) do carry that risk and are deferred
+- This is a narrower rename than ADR-023's "Providentian" direction — ADR-023
+  itself keeps the CLI/packages/README on "Providence" pending a separate
+  decision, which this ADR does not revisit
+
+**Links:**
+
+- [ADR-024-providence-cicd-brand-alignment.md](ADR-024-providence-cicd-brand-alignment.md)
+- `.analysis/refined/20260912-providence-cicd-brand-refinement/`
+
+---
+
 ## 🧾 Operational Appendices
 
 These artifacts support governance operations but are not ADRs:

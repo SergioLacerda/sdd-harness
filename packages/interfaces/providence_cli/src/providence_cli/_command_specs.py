@@ -25,10 +25,12 @@ class CommandSpec:
 
 
 COMMAND_SPECS: dict[str, CommandSpec] = {
-    "init": CommandSpec("providence_cli.commands.init", "Initialize an SDD workspace"),
+    "init": CommandSpec(
+        "providence_cli.commands.init", "Initialize a Providence workspace"
+    ),
     "install": CommandSpec(
         "providence_cli.commands.install",
-        "Install SDD governance (canonical entrypoint)",
+        "Install Providence governance (canonical entrypoint)",
     ),
     "bootstrap": CommandSpec(
         "providence_cli.commands.bootstrap", "Bootstrap runtime state"
@@ -88,7 +90,7 @@ COMMAND_SPECS: dict[str, CommandSpec] = {
     ),
     "ask": CommandSpec(
         "providence_cli.commands.ask_entry",
-        "Query SDD governance context (governed, minimal output)",
+        "Query Providence governance context (governed, minimal output)",
     ),
     "organize": CommandSpec(
         "providence_cli.commands.organize",

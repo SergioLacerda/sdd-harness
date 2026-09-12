@@ -121,7 +121,7 @@ def init(  # noqa: C901
     ),
     list_commands: bool = typer.Option(False, "--list", help="List init commands."),
 ) -> None:
-    """Initialize an SDD workspace in the current directory (`.providence/profile`; refuses nested workspaces)."""
+    """Initialize a Providence workspace in the current directory (`.providence/profile`; refuses nested workspaces)."""
     cwd = Path.cwd()
 
     if list_commands:

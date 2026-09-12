@@ -26,9 +26,9 @@ def test_generated_prompts_include_soft_governance_footer(tmp_path: Path) -> Non
         gemini_commands,
     ]:
         content = path.read_text(encoding="utf-8")
-        assert "SDD GOVERNANCE CHECK" in content
+        assert "PROVIDENCE GOVERNANCE CHECK" in content
         assert (
-            "SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}"
+            "PROVIDENCE GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}"
             in content
         )
         assert ".providence/compiled/audit/*.json" in content

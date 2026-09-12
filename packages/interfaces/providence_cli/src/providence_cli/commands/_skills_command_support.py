@@ -92,7 +92,7 @@ def emit_pipeline_required(name: str, *, output_json: bool, emit_fn: Any) -> Non
             command="skills run",
             data={
                 "state": "error",
-                "profile": "default",
+                "profile": name,
                 "skill": name,
                 "policy_result": "denied",
                 "reason": message,

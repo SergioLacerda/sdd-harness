@@ -524,7 +524,7 @@ class TestAskFullCommand:
 
         assert result.exit_code == 0
         assert "execution_gate" in result.output
-        assert "SDD GOVERNANCE:" in result.output
+        assert "PROVIDENCE GOVERNANCE:" in result.output
 
     def test_ask_full_event_contains_trace_id_and_steps(self, tmp_path: Path) -> None:
         _write_compiled_mandates(tmp_path, [{"id": "M001"}])

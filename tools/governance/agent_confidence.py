@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SDD Architecture - Agent Confidence Evaluator
+Providence Architecture - Agent Confidence Evaluator
 
 Evaluates AI agent confidence and safety:
 - Model information (if available in context)

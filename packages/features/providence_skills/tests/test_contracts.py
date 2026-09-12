@@ -20,13 +20,13 @@ class TestSkillRunResult:
             policy_result="PASS",
             reason="all checks passed",
             exit_code=0,
-            governance_footer="SDD GOVERNANCE: drift=none | governance=ok | profile=diagnose",
+            governance_footer="PROVIDENCE GOVERNANCE: drift=none | governance=ok | profile=diagnose",
         )
         d = result.to_dict()
         assert d["state"] == "ok"
         assert d["skill"] == "diagnose"
         assert d["exit_code"] == 0
-        assert d["governance_footer"].startswith("SDD GOVERNANCE")
+        assert d["governance_footer"].startswith("PROVIDENCE GOVERNANCE")
 
     def test_defaults_are_empty(self) -> None:
         result = SkillRunResult(
@@ -72,4 +72,7 @@ class TestFormatGovernanceFooter:
         footer = format_governance_footer(
             drift="none", governance="ok", profile="diagnose"
         )
-        assert footer == "SDD GOVERNANCE: drift=none | governance=ok | profile=diagnose"
+        assert (
+            footer
+            == "PROVIDENCE GOVERNANCE: drift=none | governance=ok | profile=diagnose"
+        )

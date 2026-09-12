@@ -24,7 +24,7 @@ from tools.guardrails.core.metrics import DimensionResult, FileMetrics
 from tools.guardrails.reporters.template import ReportTemplate
 
 try:
-    from tools.lib.sdd_env import detect_repo_root
+    from tools.lib.providence_env import detect_repo_root
 except ImportError:
     try:
         from providence_core.utils.environment import detect_repo_root

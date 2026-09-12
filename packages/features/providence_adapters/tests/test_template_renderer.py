@@ -57,7 +57,7 @@ class TestTemplateRenderer:
         assert "diagnose" in content
         assert "providence doctor run" in content
         assert "providence organize" in content  # analysis category triggers pre-step
-        assert "SDD GOVERNANCE" in content
+        assert "PROVIDENCE GOVERNANCE" in content
         assert "Non-compliance" in content  # SKILL.md enrichment present
         assert "execution_gate" in content
         assert "intake_index_mode: none" in content

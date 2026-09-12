@@ -23,9 +23,9 @@ if sys.platform == "win32":
         sys.stderr.reconfigure(encoding="utf-8")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SDD_CORE_SRC = REPO_ROOT / "packages" / "core" / "providence_core" / "src"
-if str(SDD_CORE_SRC) not in sys.path:
-    sys.path.insert(0, str(SDD_CORE_SRC))
+PROVIDENCE_CORE_SRC = REPO_ROOT / "packages" / "core" / "providence_core" / "src"
+if str(PROVIDENCE_CORE_SRC) not in sys.path:
+    sys.path.insert(0, str(PROVIDENCE_CORE_SRC))
 
 # Fallback used only if pyproject.toml is missing or has no parseable typer pin.
 _FALLBACK_MIN_TYPER_VERSION = (0, 26, 8)
@@ -174,8 +174,8 @@ def run_check_venv() -> int:
 
 def run_help() -> int:
     """Print Make target help without awk/shell dependencies."""
-    print("SDD Architecture Development")
-    print("===========================")
+    print("Providence Architecture Development")
+    print("====================================")
     for path in [REPO_ROOT / "Makefile", *sorted((REPO_ROOT / "mk").glob("*.mk"))]:
         for raw_line in path.read_text(encoding="utf-8").splitlines():
             line = raw_line.strip()
@@ -331,6 +331,28 @@ def _npm_cmd() -> str:
 
 def run_npm_script(script: str) -> int:
     return _run([_npm_cmd(), "--prefix", "apps/landing", "run", script])
+
+
+def run_npm_audit_fix() -> int:
+    """Best-effort dependency vulnerability fix; never blocks lint-web.
+
+    `npm audit fix` exits non-zero when vulnerabilities remain that need
+    `--force` (a breaking major bump) to resolve. Those need a deliberate,
+    manual call rather than an automatic lint-time upgrade, so a non-zero
+    exit here is logged and swallowed instead of failing lint-web.
+    """
+    returncode = _run([_npm_cmd(), "--prefix", "apps/landing", "audit", "fix"])
+    if returncode != 0:
+        print(
+            "lint-web: npm audit fix left unresolved vulnerabilities "
+            "(likely requiring --force / a breaking upgrade); continuing."
+        )
+    return 0
+
+
+def run_lint_web() -> int:
+    run_npm_audit_fix()
+    return run_npm_script("lint")
 
 
 def run_install_web() -> int:
@@ -773,7 +795,7 @@ def main(argv: list[str] | None = None) -> int:
         "lint-fix": lambda: run_lint(fix=True),
         "lint-go": lambda: run_lint_go(fix=False),
         "lint-fix-go": lambda: run_lint_go(fix=True),
-        "lint-web": lambda: run_npm_script("lint"),
+        "lint-web": run_lint_web,
         "lint-fix-web": run_lint_fix_web,
         "install-web": run_install_web,
         "build-web": lambda: run_npm_script("build"),

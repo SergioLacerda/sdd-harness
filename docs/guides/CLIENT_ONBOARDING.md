@@ -10,7 +10,7 @@ Get your SDD workspace running with governed bootstrap and agent command packs.
 
 ## Quick Start (One Command)
 
-> Prerequisite: install the SDD CLI first — see [Step 1](#step-by-step-setup-client-project)
+> Prerequisite: install the Providence CLI first — see [Step 1](#step-by-step-setup-client-project)
 > below if you haven't already.
 
 After `providence install --wizard` has generated and deployed your project template,
@@ -45,7 +45,7 @@ Each step is skipped automatically if it already ran (idempotent re-run); use
 
 ## Step-by-step Setup (Client Project)
 
-**Step 1 — Install the SDD CLI from a released version.** Two supported channels,
+**Step 1 — Install the Providence CLI from a released version.** Two supported channels,
 both pinned to a tag:
 
 ```bash
@@ -227,7 +227,7 @@ To disable writes: `export SDD_COMPLIANCE_LOG=disabled`
 
 ### `/sdd-ask` returns `API Error: 500`
 
-This usually indicates a provider/IDE API incident, not a local SDD CLI failure.
+This usually indicates a provider/IDE API incident, not a local Providence CLI failure.
 
 1. Stop retrying the same slash command in the IDE for that turn.
 2. Run the local governed fallback in terminal:

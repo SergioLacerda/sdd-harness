@@ -33,7 +33,7 @@ Answer these questions about your project. **Be honest.** These aren't trick que
 
 ### Question 1: Team Size & Composition
 
-**"How many people will be developing with SDD?"**
+**"How many people will be developing with Providence?"**
 
 - A: 1-5 people
 - B: 5-20 people
@@ -217,14 +217,14 @@ Add a section:
 ### Option 2: In Your Project README
 
 ```markdown
-## SDD Governance
+## Providence Governance
 
-This project uses **SDD LITE** (or FULL) governance.
+This project uses **Providence LITE** (or FULL) governance.
 - Setup time: 15 minutes (or 40)
 - Rules: 5 essential (or 16 mandatory)
 - DoD Criteria: 10 items (or 45 items)
 
-See [SDD Adoption Guide](../adoption/LITE-ADOPTION.md)
+See [Providence Adoption Guide](../adoption/LITE-ADOPTION.md)
 ```
 
 ---
@@ -290,7 +290,7 @@ After this step:
 
 **LITE Projects:**
 
-- Team learning SDD for the first time
+- Team learning Providence for the first time
 - Side project, hobby, personal tools
 - Internal utilities, < 5 people
 - Proof of concepts, MVPs

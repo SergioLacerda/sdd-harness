@@ -84,7 +84,7 @@ def test_root_json_flag_sets_structured_runtime_output(monkeypatch) -> None:
     assert payload["data"]["state"] == "HEALTHY"
     assert payload["data"]["exit_code"] == 0
     assert payload["data"]["drift"]["detected"] is False
-    assert payload["data"]["governance_footer"].startswith("SDD GOVERNANCE:")
+    assert payload["data"]["governance_footer"].startswith("PROVIDENCE GOVERNANCE:")
 
 
 def test_global_verbose_is_accepted_on_runtime_status(monkeypatch) -> None:
@@ -108,7 +108,7 @@ def test_global_verbose_is_accepted_on_runtime_status(monkeypatch) -> None:
 
     assert result.exit_code == 0, result.output
     assert "HEALTHY:verbose" in result.output
-    assert "SDD GOVERNANCE: drift=none" in result.output
+    assert "PROVIDENCE GOVERNANCE: drift=none" in result.output
 
 
 def test_runtime_status_json_uses_canonical_data_payload(

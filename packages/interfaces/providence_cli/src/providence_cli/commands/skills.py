@@ -159,7 +159,7 @@ def run(
     if enforce_pipeline and name == "sdd-correct":
         emit_pipeline_required(name, output_json=_ctx_json(), emit_fn=_emit_skills_json)
     engine = SkillEngine()
-    result = engine.run_skill(name, execute=execute, profile="default")
+    result = engine.run_skill(name, execute=execute, profile=name)
     emit_skill_run_result(result, output_json=_ctx_json(), emit_fn=_emit_skills_json)
 
 

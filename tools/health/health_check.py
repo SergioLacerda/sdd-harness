@@ -2,7 +2,7 @@
 # /// script
 # dependencies = []
 # ///
-"""SDD Architecture — Health Check Engine."""
+"""Providence Architecture — Health Check Engine."""
 
 import json
 import sys
@@ -12,7 +12,7 @@ from typing import Any
 
 
 class HealthCheckEngine:
-    """Core health check validator for the SDD monorepo."""
+    """Core health check validator for the Providence monorepo."""
 
     def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose
@@ -95,7 +95,7 @@ class HealthCheckEngine:
             f"Python {v.major}.{v.minor}.{v.micro} ({'OK' if ok else 'requires 3.10+'})",
         )
 
-    def check_sdd_compiled(self) -> tuple[bool, str]:
+    def check_governance_compiled(self) -> tuple[bool, str]:
         compiled = self.project_root / ".providence" / "compiled"
         if not compiled.is_dir():
             return (
@@ -114,10 +114,10 @@ class HealthCheckEngine:
         venv = self.project_root / ".venv"
         if not venv.is_dir():
             return False, ".venv not found — run: ./setup.sh"
-        sdd_bin = venv / "bin" / "sdd"
-        if sdd_bin.exists():
-            return True, ".venv exists and sdd CLI is installed"
-        return True, ".venv exists (sdd CLI not yet installed)"
+        providence_bin = venv / "bin" / "providence"
+        if providence_bin.exists():
+            return True, ".venv exists and providence CLI is installed"
+        return True, ".venv exists (providence CLI not yet installed)"
 
     def check_docs_structure(self) -> tuple[bool, str]:
         docs = self.project_root / "docs" / "spec" / "canonical"
@@ -132,7 +132,7 @@ class HealthCheckEngine:
             ("Git Status", self.check_git_status),
             ("Package Structure", self.check_packages_structure),
             ("Python Version", self.check_python_version),
-            ("Compiled Governance", self.check_sdd_compiled),
+            ("Compiled Governance", self.check_governance_compiled),
             ("Virtual Environment", self.check_venv),
             ("Docs Structure", self.check_docs_structure),
         ]

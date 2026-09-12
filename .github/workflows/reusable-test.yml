@@ -32,7 +32,7 @@ jobs:
           version: "0.11.9"
           enable-cache: true
 
-      - name: Bootstrap SDD CLI
+      - name: Bootstrap Providence CLI
         uses: ./.github/actions/bootstrap-providence-cli
 
       - name: Environment boundary preflight (tests)
@@ -64,7 +64,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+          uv run python tools/ci/environment_gates.py repo-providence-mutation-guard --context test --mode enforce
 
       - name: Runtime/seed drift check
         if: always()
@@ -109,7 +109,7 @@ jobs:
           version: "0.11.9"
           enable-cache: true
 
-      - name: Bootstrap SDD CLI
+      - name: Bootstrap Providence CLI
         uses: ./.github/actions/bootstrap-providence-cli
 
       - name: Environment boundary preflight (tests)
@@ -135,7 +135,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+          uv run python tools/ci/environment_gates.py repo-providence-mutation-guard --context test --mode enforce
 
       - name: Runtime/seed drift check
         if: always()
@@ -160,7 +160,7 @@ jobs:
           version: "0.11.9"
           enable-cache: true
 
-      - name: Bootstrap SDD CLI
+      - name: Bootstrap Providence CLI
         uses: ./.github/actions/bootstrap-providence-cli
 
       - name: Environment boundary preflight (tests)
@@ -238,7 +238,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+          uv run python tools/ci/environment_gates.py repo-providence-mutation-guard --context test --mode enforce
 
       - name: Runtime/seed drift check
         if: always()
@@ -272,7 +272,7 @@ jobs:
           version: "0.11.9"
           enable-cache: true
 
-      - name: Bootstrap SDD CLI
+      - name: Bootstrap Providence CLI
         uses: ./.github/actions/bootstrap-providence-cli
 
       - name: Environment boundary preflight (tests)
@@ -292,7 +292,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+          uv run python tools/ci/environment_gates.py repo-providence-mutation-guard --context test --mode enforce
 
       - name: Runtime/seed drift check
         if: always()
@@ -317,7 +317,7 @@ jobs:
           version: "0.11.9"
           enable-cache: true
 
-      - name: Bootstrap SDD CLI
+      - name: Bootstrap Providence CLI
         uses: ./.github/actions/bootstrap-providence-cli
 
       - name: Environment boundary preflight (tests)
@@ -334,7 +334,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+          uv run python tools/ci/environment_gates.py repo-providence-mutation-guard --context test --mode enforce
 
       - name: Runtime/seed drift check
         if: always()
@@ -359,7 +359,7 @@ jobs:
           version: "0.11.9"
           enable-cache: true
 
-      - name: Bootstrap SDD CLI
+      - name: Bootstrap Providence CLI
         uses: ./.github/actions/bootstrap-providence-cli
 
       - name: Environment boundary preflight (tests)
@@ -382,7 +382,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+          uv run python tools/ci/environment_gates.py repo-providence-mutation-guard --context test --mode enforce
 
       - name: Runtime/seed drift check
         if: always()
@@ -436,7 +436,7 @@ jobs:
       - name: Repository .providence mutation guard
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+          uv run python tools/ci/environment_gates.py repo-providence-mutation-guard --context test --mode enforce
 
       - name: Runtime/seed drift check
         if: always()
@@ -462,7 +462,7 @@ jobs:
           version: "0.11.9"
           enable-cache: true
 
-      - name: Bootstrap SDD CLI
+      - name: Bootstrap Providence CLI
         uses: ./.github/actions/bootstrap-providence-cli
 
       - name: Environment boundary preflight (tests)
@@ -485,7 +485,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          uv run python tools/ci/environment_gates.py repo-sdd-mutation-guard --context test --mode enforce
+          uv run python tools/ci/environment_gates.py repo-providence-mutation-guard --context test --mode enforce
 
       - name: Runtime/seed drift check
         if: always()

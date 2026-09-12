@@ -21,7 +21,7 @@ def test_sdd_ask_prompt_includes_preflight_and_500_fallback(tmp_path: Path) -> N
     assert "intake_index_mode: none" in ask_prompt
     assert "delegation_executed" in ask_prompt
     assert (
-        "SDD GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}"
+        "PROVIDENCE GOVERNANCE: drift=${status} | governance=${status} | profile=${profile}"
         in ask_prompt
     )
 

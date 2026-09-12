@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SDD Architecture — Diagnostic Test Suite
+Providence Architecture — Diagnostic Test Suite
 
 Runs critical checks across file structure, configuration, imports, and git.
 
@@ -104,7 +104,7 @@ class DiagnosticTestSuite:
         d = self.project_root / "docs"
         return d.is_dir(), f"{'Found' if d.is_dir() else 'Not found'} at {d}"
 
-    def _check_sdd_compiled(self) -> tuple[bool, str]:
+    def _check_governance_compiled(self) -> tuple[bool, str]:
         d = self.project_root / ".providence" / "compiled"
         if not d.is_dir():
             return (
@@ -222,7 +222,7 @@ class DiagnosticTestSuite:
         self._run("docs/ root", self._check_docs_root, "structure")
         self._run(
             "Compiled governance (.providence/compiled/)",
-            self._check_sdd_compiled,
+            self._check_governance_compiled,
             "structure",
             optional=True,
         )
@@ -269,7 +269,7 @@ class DiagnosticTestSuite:
 
     def print_report(self) -> None:
         print(f"\n{'=' * 70}")
-        print("SDD Diagnostic Report")
+        print("Providence Diagnostic Report")
         print(f"{'=' * 70}\n")
 
         by_category: dict[str, list[Any]] = {}
@@ -297,7 +297,7 @@ class DiagnosticTestSuite:
 def main() -> int:
     import argparse
 
-    parser = argparse.ArgumentParser(description="SDD Diagnostic Test Suite")
+    parser = argparse.ArgumentParser(description="Providence Diagnostic Test Suite")
     parser.add_argument("--verbose", "-v", action="store_true")
     parser.add_argument("--json", dest="as_json", action="store_true")
     args = parser.parse_args()

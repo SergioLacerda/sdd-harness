@@ -1,5 +1,5 @@
 #!/bin/bash
-# Post-merge Hook — SDD Architecture Framework
+# Post-merge Hook — Providence Architecture Framework
 # Clears stale governance cache and warms it after a merge.
 
 set -euo pipefail

@@ -31,7 +31,7 @@ _HOOK_REFERENCES = (
 # A hook missing these still passes adapter-reference checks but is stale:
 # it was generated before this behavior was added to the template.
 _CENTRAL_HOOK_CURRENT_MARKERS = (
-    "SDD GOVERNANCE ACTIVE",
+    "PROVIDENCE GOVERNANCE ACTIVE",
     "_render_activation_header",
     '"hookEventName"',
 )

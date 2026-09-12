@@ -7,7 +7,7 @@ graph TB
     humanDev["👤 Human Developer\n(defines specs, reviews AI proposals,\napproves governance changes)"]
     aiAgent["🤖 AI Agent\n(Claude / Cursor / VSCode Copilot)\n(executes governed tasks,\nrequests skills, submits proposals)"]
 
-    subgraph sddHarness["Providence"]
+    subgraph providence["Providence"]
         direction TB
         core["Governance Engine\n(compile specs → enforce at runtime)"]
     end
@@ -16,14 +16,14 @@ graph TB
     pypi["📦 PyPI\n(dependency source)"]
     ide["🖥️ IDE\n(VSCode / Cursor / JetBrains)\n(reads .providence/seedlings for agent config)"]
 
-    humanDev -->|"writes specs\ndocs/spec/canonical/"| sddHarness
-    humanDev -->|"reviews & approves\nAI proposals"| sddHarness
-    aiAgent -->|"providence ask / sdd run\nvia CLI or SDK"| sddHarness
-    sddHarness -->|"governance verdict\n(allow / block / escalate)"| aiAgent
-    sddHarness -->|"compliance events\n(.providence/runtime/compliance-events.jsonl)"| humanDev
-    sddHarness <-->|"CI checks\n(lint, test, bandit, CodeQL)"| github
-    sddHarness -->|"reads dependencies\nuv.lock"| pypi
-    ide -->|"reads agent seeds\n.providence/seedlings/*.seed.json"| sddHarness
+    humanDev -->|"writes specs\ndocs/spec/canonical/"| providence
+    humanDev -->|"reviews & approves\nAI proposals"| providence
+    aiAgent -->|"providence ask / sdd run\nvia CLI or SDK"| providence
+    providence -->|"governance verdict\n(allow / block / escalate)"| aiAgent
+    providence -->|"compliance events\n(.providence/runtime/compliance-events.jsonl)"| humanDev
+    providence <-->|"CI checks\n(lint, test, bandit, CodeQL)"| github
+    providence -->|"reads dependencies\nuv.lock"| pypi
+    ide -->|"reads agent seeds\n.providence/seedlings/*.seed.json"| providence
 ```
 
 ## Key Points

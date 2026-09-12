@@ -39,7 +39,20 @@ def test_skills_run_dry_run_json() -> None:
     data = _payload_data(payload)
     assert data["policy_result"] == "planned"
     assert data["exit_code"] == 0
-    assert data["governance_footer"].startswith("SDD GOVERNANCE:")
+    assert data["governance_footer"].startswith("PROVIDENCE GOVERNANCE:")
+
+
+def test_skills_run_footer_uses_providence_label_for_skill_id() -> None:
+    with patch(
+        "providence_runtime.policy.PolicyEngine._check_handshake_guard",
+        return_value=None,
+    ):
+        result = runner.invoke(app, ["--json", "skills", "run", "sdd-diagnose"])
+    assert result.exit_code == 0, result.output
+    payload = _load_json_output(result.output)
+    data = _payload_data(payload)
+    assert data["profile"] == "sdd-diagnose"
+    assert "profile=providence-diagnose" in data["governance_footer"]
 
 
 def test_skills_run_text_appends_governance_footer() -> None:
@@ -49,7 +62,7 @@ def test_skills_run_text_appends_governance_footer() -> None:
     ):
         result = runner.invoke(app, ["skills", "run", "validate-governance"])
     assert result.exit_code == 0, result.output
-    assert "SDD GOVERNANCE: drift=" in result.output
+    assert "PROVIDENCE GOVERNANCE: drift=" in result.output
 
 
 def test_skills_run_execute_json_includes_command_results() -> None:
@@ -61,7 +74,7 @@ def test_skills_run_execute_json_includes_command_results() -> None:
     fake_result.reason = "runtime execution completed"
     fake_result.exit_code = 0
     fake_result.governance_footer = (
-        "SDD GOVERNANCE: drift=none | governance=ok | profile=default"
+        "PROVIDENCE GOVERNANCE: drift=none | governance=ok | profile=default"
     )
     fake_result.fallback = ["providence governance validate"]
     fake_result.command_results = [
@@ -124,7 +137,7 @@ def test_skills_run_exit_nonzero_on_failed_result() -> None:
     fake_result.policy_result = "error"
     fake_result.reason = "failed"
     fake_result.exit_code = 1
-    fake_result.governance_footer = "SDD GOVERNANCE: drift=none"
+    fake_result.governance_footer = "PROVIDENCE GOVERNANCE: drift=none"
     fake_result.fallback = []
     fake_result.command_results = []
     fake_result.artifacts = {}

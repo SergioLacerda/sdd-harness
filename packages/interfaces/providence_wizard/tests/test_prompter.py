@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -232,9 +231,7 @@ class TestRichPrompter:
         mock_q = MagicMock()
         mock_q.select.return_value.ask.return_value = "choice_a"
         with patch.dict(sys.modules, {"questionary": mock_q}):
-            pm = importlib.import_module("providence_wizard.application.prompter")
-            importlib.reload(pm)
-            p = pm.RichPrompter()
+            p = RichPrompter()
             result = p.select("Pick:", ["choice_a", "choice_b"])
         assert result == "choice_a"
 
@@ -242,9 +239,7 @@ class TestRichPrompter:
         mock_q = MagicMock()
         mock_q.select.return_value.ask.return_value = None
         with patch.dict(sys.modules, {"questionary": mock_q}):
-            pm = importlib.import_module("providence_wizard.application.prompter")
-            importlib.reload(pm)
-            p = pm.RichPrompter()
+            p = RichPrompter()
             with pytest.raises(KeyboardInterrupt):
                 p.select("Pick:", ["a"])
 
@@ -252,9 +247,7 @@ class TestRichPrompter:
         mock_q = MagicMock()
         mock_q.checkbox.return_value.ask.return_value = ["a", "b"]
         with patch.dict(sys.modules, {"questionary": mock_q}):
-            pm = importlib.import_module("providence_wizard.application.prompter")
-            importlib.reload(pm)
-            p = pm.RichPrompter()
+            p = RichPrompter()
             result = p.checkbox("Pick:", ["a", "b", "c"])
         assert result == ["a", "b"]
 
@@ -262,9 +255,7 @@ class TestRichPrompter:
         mock_q = MagicMock()
         mock_q.checkbox.return_value.ask.return_value = None
         with patch.dict(sys.modules, {"questionary": mock_q}):
-            pm = importlib.import_module("providence_wizard.application.prompter")
-            importlib.reload(pm)
-            p = pm.RichPrompter()
+            p = RichPrompter()
             with pytest.raises(KeyboardInterrupt):
                 p.checkbox("Pick:", ["a"])
 
@@ -272,17 +263,13 @@ class TestRichPrompter:
         mock_q = MagicMock()
         mock_q.confirm.return_value.ask.return_value = True
         with patch.dict(sys.modules, {"questionary": mock_q}):
-            pm = importlib.import_module("providence_wizard.application.prompter")
-            importlib.reload(pm)
-            p = pm.RichPrompter()
+            p = RichPrompter()
             assert p.confirm("Sure?") is True
 
     def test_confirm_raises_keyboard_interrupt_on_none(self) -> None:
         mock_q = MagicMock()
         mock_q.confirm.return_value.ask.return_value = None
         with patch.dict(sys.modules, {"questionary": mock_q}):
-            pm = importlib.import_module("providence_wizard.application.prompter")
-            importlib.reload(pm)
-            p = pm.RichPrompter()
+            p = RichPrompter()
             with pytest.raises(KeyboardInterrupt):
                 p.confirm("Sure?")

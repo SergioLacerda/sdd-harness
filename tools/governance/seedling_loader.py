@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SDD Seedlings Framework - Auto-activation of Governance
+Providence Seedlings Framework - Auto-activation of Governance
 
 A seedling is a lightweight trigger that automatically activates governance
 when a project is loaded, without requiring manual commands.
@@ -38,7 +38,7 @@ def _resolve_seedlings_dir(project_root: Path) -> Path:
 
 
 class SeedlingLoader:
-    """Load and execute SDD seedlings (auto-activation triggers)"""
+    """Load and execute Providence seedlings (auto-activation triggers)"""
 
     def __init__(self, project_root: Path):
         """Initialize seedling loader

@@ -59,7 +59,7 @@ def test_prompt_submit_hook_generator_writes_central_hook_and_selected_adapter(
     assert central_hook.exists()
     central_hook_text = central_hook.read_text(encoding="utf-8")
     assert ".providence/runtime/hook-disabled" in central_hook_text
-    assert "SDD GOVERNANCE ACTIVE" in central_hook_text
+    assert "PROVIDENCE GOVERNANCE ACTIVE" in central_hook_text
     assert "prompt-submit-hook" in central_hook_text
     codex_config = tmp_path / ".codex" / "config.toml"
     assert CENTRAL_PROMPT_SUBMIT_COMMAND in codex_config.read_text(encoding="utf-8")
@@ -152,7 +152,7 @@ def test_prompt_submit_hook_injects_governance_activation_header(
         [
             "print('governance=active fingerprint=58a087b3c9fb9ce2 mandates=16')",
             "print('intake_mode=none governance_mode=hard execution_gate=allowed')",
-            "print('SDD GOVERNANCE: drift=none | governance=ok | profile=default')",
+            "print('PROVIDENCE GOVERNANCE: drift=none | governance=ok | profile=default')",
         ],
     )
 
@@ -172,17 +172,17 @@ def test_prompt_submit_hook_injects_governance_activation_header(
     payload = json.loads(result.stdout)
     assert payload["hookSpecificOutput"]["hookEventName"] == "UserPromptSubmit"
     context = payload["hookSpecificOutput"]["additionalContext"]
-    assert context.startswith("SDD GOVERNANCE ACTIVE")
+    assert context.startswith("PROVIDENCE GOVERNANCE ACTIVE")
     assert "source=prompt-submit-hook" in context
     assert "execution_gate=allowed" in context
     assert "fingerprint=58a087b3" in context
     assert "context injection only" in context
     assert "no provider delegation or implementation was executed" in context
     assert "start your response with one short SDD governance status line" in context
-    assert "SDD GOVERNANCE: drift=none" in context
+    assert "PROVIDENCE GOVERNANCE: drift=none" in context
     assert (
         "end your response with this compact footer: "
-        "SDD GOVERNANCE: drift=none | governance=ok | profile=default"
+        "PROVIDENCE GOVERNANCE: drift=none | governance=ok | profile=default"
     ) in context
 
 
@@ -276,4 +276,4 @@ def test_prompt_submit_hook_runs_full_path_for_non_slash_prompt(
     assert env_marker_path.read_text(encoding="utf-8") == "hook"
     payload = json.loads(result.stdout)
     context = payload["hookSpecificOutput"]["additionalContext"]
-    assert context.startswith("SDD GOVERNANCE ACTIVE")
+    assert context.startswith("PROVIDENCE GOVERNANCE ACTIVE")

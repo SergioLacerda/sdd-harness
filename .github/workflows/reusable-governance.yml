@@ -24,7 +24,7 @@ jobs:
           version: "0.11.9"
           enable-cache: true
 
-      - name: Bootstrap SDD CLI
+      - name: Bootstrap Providence CLI
         uses: ./.github/actions/bootstrap-providence-cli
 
       - name: Validate Human Review (P003)

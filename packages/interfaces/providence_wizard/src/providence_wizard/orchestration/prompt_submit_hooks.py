@@ -41,14 +41,14 @@ def _extract_context_field(context: str, field: str, default: str) -> str:
     return match.group(1) if match else default
 
 def _extract_footer_line(context: str) -> str | None:
-    match = re.search(r"^SDD GOVERNANCE:.*$", context, re.MULTILINE)
+    match = re.search(r"^PROVIDENCE GOVERNANCE:.*$", context, re.MULTILINE)
     return match.group(0) if match else None
 
 def _render_activation_header(context: str) -> str:
     fingerprint = _extract_context_field(context, "fingerprint", "unknown")[:8]
     execution_gate = _extract_context_field(context, "execution_gate", "unknown")
     lines = [
-        "SDD GOVERNANCE ACTIVE | "
+        "PROVIDENCE GOVERNANCE ACTIVE | "
         "source=prompt-submit-hook | "
         "governance_mode=hard | "
         f"execution_gate={execution_gate} | "
@@ -72,7 +72,7 @@ def _is_explicit_sdd_ask(prompt: str) -> bool:
 
 def _render_explicit_command_context() -> str:
     return "\\n".join([
-        "SDD GOVERNANCE ACTIVE | "
+        "PROVIDENCE GOVERNANCE ACTIVE | "
         "source=prompt-submit-hook | "
         "entrypoint=explicit_command | "
         "explicit_command=sdd-ask",

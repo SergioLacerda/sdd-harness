@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Detect import cycles between first-party SDD modules.
+Detect import cycles between first-party Providence modules.
 
 Usage:
     python tools/architecture/validate_cycles.py [--root <path>] [--json]
@@ -14,7 +14,7 @@ import json
 import sys
 from pathlib import Path
 
-SDD_PREFIXES = (
+PROVIDENCE_PREFIXES = (
     "providence_core",
     "providence_telemetry",
     "providence_integration",
@@ -61,7 +61,7 @@ def _module_name(file: Path, root: Path) -> str | None:
 
 
 def _is_first_party(module: str) -> bool:
-    return any(module == p or module.startswith(f"{p}.") for p in SDD_PREFIXES)
+    return any(module == p or module.startswith(f"{p}.") for p in PROVIDENCE_PREFIXES)
 
 
 def _resolve_relative(base_module: str, level: int, imported: str | None) -> str | None:

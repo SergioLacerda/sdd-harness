@@ -1,4 +1,4 @@
-# 🟢 SDD LITE — Minimal Governance Adoption
+# 🟢 Providence LITE — Minimal Governance Adoption
 
 **For:** Teams wanting to experiment, small projects, learning SDD
 **Setup Time:** 15 minutes
@@ -52,7 +52,7 @@ EOF
 
 # 4. Commit your constitution (2 min)
 git add .providence/constitution.yaml
-git commit -m "Add SDD LITE constitution"
+git commit -m "Add Providence LITE constitution"
 
 # 5. Verify setup (3 min)
 pytest tests/test_constitution.py -v

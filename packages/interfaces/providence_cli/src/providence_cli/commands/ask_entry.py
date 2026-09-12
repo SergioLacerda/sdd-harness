@@ -9,7 +9,7 @@ from providence_cli.services.command_group_output import show_command_group
 from providence_cli.utils.output import is_json_mode
 
 app = typer.Typer(
-    help="Query SDD governance context (minimal).",
+    help="Query Providence governance context (minimal).",
     context_settings={"allow_interspersed_args": True},
 )
 

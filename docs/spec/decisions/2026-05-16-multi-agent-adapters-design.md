@@ -262,9 +262,9 @@ mode: agent
 - `{{ cmd }}`
 {% endfor %}
 
-## SDD GOVERNANCE
+## PROVIDENCE GOVERNANCE
 
-`SDD GOVERNANCE: drift=${status} | governance=${status} | profile={{ skill.name }}`
+`PROVIDENCE GOVERNANCE: drift=${status} | governance=${status} | profile={{ skill.name }}`
 
 Agents must prefer `.providence/source/*` for governance context over compiled artifacts.
 ```

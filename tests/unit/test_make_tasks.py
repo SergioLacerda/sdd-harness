@@ -283,6 +283,48 @@ def test_web_wrappers_use_npm_prefix() -> None:
         assert npm_cmd.call_count == 2
 
 
+def test_npm_audit_fix_uses_npm_prefix() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_npm_cmd", return_value="npm"),
+        patch.object(make_tasks, "_run", return_value=0) as run,
+    ):
+        assert make_tasks.run_npm_audit_fix() == 0
+        run.assert_called_with(["npm", "--prefix", "apps/landing", "audit", "fix"])
+
+
+def test_npm_audit_fix_swallows_unresolved_vulnerabilities(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "_npm_cmd", return_value="npm"),
+        patch.object(make_tasks, "_run", return_value=1),
+    ):
+        assert make_tasks.run_npm_audit_fix() == 0
+    assert "unresolved vulnerabilities" in capsys.readouterr().out
+
+
+def test_lint_web_runs_audit_fix_then_lint_script() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "run_npm_audit_fix", return_value=0) as audit_fix,
+        patch.object(make_tasks, "run_npm_script", return_value=0) as npm_script,
+    ):
+        assert make_tasks.run_lint_web() == 0
+        audit_fix.assert_called_once_with()
+        npm_script.assert_called_once_with("lint")
+
+
+def test_lint_web_ignores_audit_fix_result() -> None:
+    make_tasks = _make_tasks_module()
+    with (
+        patch.object(make_tasks, "run_npm_audit_fix", return_value=1),
+        patch.object(make_tasks, "run_npm_script", return_value=0),
+    ):
+        assert make_tasks.run_lint_web() == 0
+
+
 def test_lint_go_skips_when_tool_missing() -> None:
     make_tasks = _make_tasks_module()
     with patch.object(make_tasks.shutil, "which", return_value=None):

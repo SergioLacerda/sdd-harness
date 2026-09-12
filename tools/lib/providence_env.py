@@ -19,7 +19,7 @@ def detect_repo_root() -> Path:
 
 
 def get_sdd_paths() -> dict[str, Path]:
-    """Get SDD-related directory paths."""
+    """Get Providence-related directory paths."""
     try:
         from providence_core.utils.environment import get_sdd_paths as _get
 

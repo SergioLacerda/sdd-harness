@@ -20,7 +20,7 @@ def _base_kwargs(**overrides):
         degraded=False,
         degraded_reason="",
         drift_detected=False,
-        governance_footer="SDD GOVERNANCE: drift=ok | governance=ok | profile=master",
+        governance_footer="PROVIDENCE GOVERNANCE: drift=ok | governance=ok | profile=master",
         intake_index_mode="none",
         intake_chunks=0,
         intake_retrieval="indexed_only",

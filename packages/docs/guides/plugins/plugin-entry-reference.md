@@ -90,7 +90,7 @@
 
 - **Default:** `when_relevant`
 
-- **Description:** When the plugin consults SDD governance sources (mandates, guidelines, ADRs).
+- **Description:** When the plugin consults Providence governance sources (mandates, guidelines, ADRs).
 
 ### `output_schema`
 
@@ -144,7 +144,7 @@
 
 ## What Does NOT Go Here
 
-- Internal SDD skills (`.providence/skills/`) — governed via `governance_adherence:`in`skill.yaml`
+- Internal Providence skills (`.providence/skills/`) — governed via `governance_adherence:`in`skill.yaml`
 
 - Plugin-instance documentation (requirements-strategist, openspec, etc.) — created when the plugin is implemented
 

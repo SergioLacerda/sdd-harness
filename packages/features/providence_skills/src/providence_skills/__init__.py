@@ -11,6 +11,7 @@ from .contracts import (
     UnauthorizedSkillError,
 )
 from .formatter import format_governance_footer
+from .profile_labels import resolve_profile_label
 from .validation import validate_awakening_profile, validate_skill_definition
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "SkillRunResult",
     "UnauthorizedSkillError",
     "format_governance_footer",
+    "resolve_profile_label",
     "validate_awakening_profile",
     "validate_skill_definition",
 ]

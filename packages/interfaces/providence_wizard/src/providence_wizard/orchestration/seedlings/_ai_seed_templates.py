@@ -6,12 +6,12 @@ CLAUDE_BOOTSTRAP_SCRIPT = """#!/usr/bin/env sh
 set -eu
 
 if [ ! -f ".providence/metadata.json" ]; then
-  echo "[sdd-bootstrap] missing .providence/metadata.json"
+  echo "[providence-bootstrap] missing .providence/metadata.json"
   exit 0
 fi
 
-if command -v sdd >/dev/null 2>&1; then
-  sdd bootstrap run --session-guard-hours 4 >/dev/null 2>&1 || true
+if command -v providence >/dev/null 2>&1; then
+  providence bootstrap run --session-guard-hours 4 >/dev/null 2>&1 || true
 fi
 """
 
@@ -23,7 +23,7 @@ CLAUDE_SETTINGS = """{
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/sdd-bootstrap.sh"
+            "command": ".claude/providence-bootstrap.sh"
           }
         ]
       }
@@ -164,6 +164,8 @@ No other file overrides or extends the governance in `.providence/`. Everything 
 If that file says something different from what you remember seeing in CLAUDE.md, **trust `.providence/agent-instructions.md`  it is authoritative.**
 
 ---
+
+If `providence` is not found on your shell `PATH`, run it via `uv run providence <command>` instead  see `docs/guides/ONBOARDING.md` for why.
 
 ## Safe Fallback
 

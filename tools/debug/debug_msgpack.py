@@ -80,7 +80,7 @@ def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Inspect SDD compiled governance msgpack artifacts"
+        description="Inspect Providence compiled governance msgpack artifacts"
     )
     parser.add_argument(
         "--spec-dir",
@@ -92,7 +92,7 @@ def main() -> int:
         "--out-dir",
         type=Path,
         default=None,
-        help="Compiled output directory (default: <tmp>/sdd-debug-compiled-<uid>)",
+        help="Compiled output directory (default: <tmp>/providence-debug-compiled-<uid>)",
     )
     parser.add_argument(
         "--compiled-only",
@@ -107,7 +107,7 @@ def main() -> int:
     spec_dir = args.spec_dir or (repo_root / "docs" / "spec" / "canonical")
     out_dir = (
         args.out_dir
-        or Path(tempfile.gettempdir()) / f"sdd-debug-compiled-{os.getuid()}"
+        or Path(tempfile.gettempdir()) / f"providence-debug-compiled-{os.getuid()}"
     )
 
     if args.compiled_only:

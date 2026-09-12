@@ -25,7 +25,7 @@ from tools.guardrails.core.metrics import (
 from tools.guardrails.reporters.template import ReportTemplate
 
 try:
-    from tools.lib.sdd_env import detect_repo_root
+    from tools.lib.providence_env import detect_repo_root
 except ImportError:
     try:
         from providence_core.utils.environment import detect_repo_root
@@ -422,7 +422,7 @@ class TelemetryAnalyzer(GuardrailAnalyzer):
             )
 
         sections = [
-            template.header("SDD Telemetry Module - Discovery Report"),
+            template.header("Providence Telemetry Module - Discovery Report"),
             f"**Timestamp**: {self.results.timestamp}",
             template.section("Executive Summary", template.bullet_list(summary_items)),
         ]
@@ -443,7 +443,7 @@ class TelemetryAnalyzer(GuardrailAnalyzer):
 
     def _render_analysis(self) -> str:
         template = ReportTemplate()
-        sections = [template.header("SDD Telemetry Module - Detailed Analysis")]
+        sections = [template.header("Providence Telemetry Module - Detailed Analysis")]
 
         for dimension in self.get_dimensions():
             file_sections = []
@@ -467,7 +467,7 @@ class TelemetryAnalyzer(GuardrailAnalyzer):
 
     def _render_recommendations(self) -> str:
         template = ReportTemplate()
-        sections = [template.header("SDD Telemetry Module - Recommendations")]
+        sections = [template.header("Providence Telemetry Module - Recommendations")]
 
         for dimension in self.get_dimensions():
             files_with_findings = [

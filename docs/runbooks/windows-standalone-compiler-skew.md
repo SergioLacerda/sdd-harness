@@ -31,7 +31,7 @@ Verification state: documented
    & $bin version
    ```
 
-4. Compare the compiler version with the installed SDD CLI version.
+4. Compare the compiler version with the installed Providence CLI version.
 
 ## Resolution Steps
 
@@ -60,7 +60,7 @@ Verification state: documented
 ## Rollback
 
 1. Remove `SDD_COMPILE_BIN` if it points to a temporary binary.
-2. Reinstall the SDD CLI from the last known-good release wheelhouse.
+2. Reinstall the Providence CLI from the last known-good release wheelhouse.
 3. Regenerate governance from authored sources.
 
 ## Post-Incident

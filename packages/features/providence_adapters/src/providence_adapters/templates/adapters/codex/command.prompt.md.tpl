@@ -28,6 +28,6 @@ mode: agent
 
 {% include "_governance_contract.md" %}
 
-## SDD GOVERNANCE
+## PROVIDENCE GOVERNANCE
 
-`SDD GOVERNANCE: drift=${status} | governance=${status} | profile={{ command.id }}`
+`PROVIDENCE GOVERNANCE: drift=${status} | governance=${status} | profile={{ command.id }}`

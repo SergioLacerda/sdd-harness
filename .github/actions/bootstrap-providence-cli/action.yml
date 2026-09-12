@@ -1,5 +1,5 @@
-name: Bootstrap SDD CLI
-description: Initialize SDD workspace using uv (uv must already be installed)
+name: Bootstrap Providence CLI
+description: Initialize Providence workspace using uv (uv must already be installed)
 
 runs:
   using: composite
@@ -19,7 +19,7 @@ runs:
       shell: bash
       run: uv run python -m providence_cli --help > /dev/null
 
-    - name: Configure isolated SDD output
+    - name: Configure isolated Providence output
       shell: bash
       run: |
         if [ -n "${GITHUB_ENV:-}" ] && [ -z "${SDD_TEST_OUTPUT_DIR:-}" ]; then
@@ -28,7 +28,7 @@ runs:
           echo "SDD_TEST_OUTPUT_DIR=$output_dir" >> "$GITHUB_ENV"
         fi
 
-    - name: Initialize SDD Workspace
+    - name: Initialize Providence Workspace
       shell: bash
       run: uv run python -m providence_cli init --type master --force
 

@@ -114,7 +114,7 @@ def _run_wizard(
 
 @click.command(
     name="wizard",
-    help="Install complete SDD governance and agent bootstrap files.",
+    help="Install complete Providence governance and agent bootstrap files.",
     context_settings={"allow_extra_args": True},
 )
 @click.option("--list", "list_options", is_flag=True, help="List wizard options.")
@@ -153,7 +153,7 @@ def app(
     non_interactive: bool,
     debug: bool,
 ) -> None:
-    """Install complete SDD governance and agent bootstrap files."""
+    """Install complete Providence governance and agent bootstrap files."""
     if list_options:
         _show_wizard_usage()
         raise click.exceptions.Exit(0)

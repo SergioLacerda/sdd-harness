@@ -86,7 +86,7 @@ Compliance is enforced through CI environment-boundary gates, including:
 1. `env-boundary-lint`
 2. `workspace-root-resolution-check`
 3. `test-isolation-preflight`
-4. `repo-sdd-mutation-guard`
+4. `repo-providence-mutation-guard` (compatibility alias: `repo-sdd-mutation-guard`)
 5. `runtime-seed-drift-check`
 6. `telemetry-path-scope-check`
 7. `trusted-keyring-precedence-check`

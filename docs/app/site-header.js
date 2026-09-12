@@ -90,7 +90,7 @@
         '<span class="providence-site-header-mote providence-site-header-mote-f"></span>' +
         '<img src="' + root + 'assets/sdd-mark.svg" width="24" height="24" alt="" />' +
       '</span>' +
-      '<span class="providence-site-header-brand-text">SDD<span class="dim">Harness</span></span>';
+      '<span class="providence-site-header-brand-text">Providence</span>';
 
     var navEl = document.createElement("nav");
     navEl.className = "providence-site-header-nav";

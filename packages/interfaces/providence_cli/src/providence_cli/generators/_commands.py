@@ -12,7 +12,7 @@ _CLI_COMMANDS = [
         "id": "sdd-ask",
         "slash": "/sdd-ask",
         "routes_to": {"type": "cli", "command": "providence ask"},
-        "description": "Query SDD governance context. Minimal governed query against compiled context.",
+        "description": "Query Providence governance context. Minimal governed query against compiled context.",
         "targets": ["claude", "codex", "copilot", "antigravity"],
     },
     {

@@ -4,7 +4,7 @@ set -e
 # Sovereign Entrypoint: Governance-Aware Boot Sequence
 # Mandate: P003 (Mandatory Human Sign-off)
 
-echo "🛡️ Starting SDD Sovereign Container..."
+echo "🛡️ Starting Providence Sovereign Container..."
 
 # 1. Keyring Pre-flight
 TRUST_DIR="/app/.providence/trust"
@@ -37,7 +37,7 @@ if [ "$SDD_GOVERNANCE_MODE" == "safety" ]; then
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     if [ "$#" -eq 0 ]; then
-        set -- sdd tools list
+        set -- providence tools list
     fi
 else
     if [ "$#" -eq 0 ]; then

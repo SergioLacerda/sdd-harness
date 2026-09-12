@@ -64,7 +64,7 @@ class TestRenderGovernanceActivationHeader:
             execution_gate="allowed",
         )
 
-        assert output.startswith("SDD GOVERNANCE ACTIVE")
+        assert output.startswith("PROVIDENCE GOVERNANCE ACTIVE")
         assert "source=prompt-submit-hook" in output
         assert "governance_mode=hard" in output
         assert "execution_gate=allowed" in output
@@ -124,7 +124,7 @@ class TestRenderAskTextOutput:
             "organize_chunks": 0,
             "organize_artifact_path": "",
             "query_len": 10,
-            "governance_footer": "SDD GOVERNANCE: drift=none",
+            "governance_footer": "PROVIDENCE GOVERNANCE: drift=none",
         }
         defaults.update(kwargs)
         return render_ask_text_output(**defaults)  # type: ignore[arg-type]
@@ -172,7 +172,9 @@ class TestRenderAskTextOutput:
         assert len(intake_lines) <= 2
 
     def test_footer_included(self) -> None:
-        output = self._make_output(governance_footer="SDD GOVERNANCE: test-footer")
+        output = self._make_output(
+            governance_footer="PROVIDENCE GOVERNANCE: test-footer"
+        )
         assert "test-footer" in output
 
 
@@ -188,7 +190,7 @@ class TestBuildAskJsonPayload:
             "degraded": False,
             "degrade_reason": "",
             "drift_detected": False,
-            "governance_footer": "SDD GOVERNANCE: ok",
+            "governance_footer": "PROVIDENCE GOVERNANCE: ok",
             "organize_used": False,
             "organize_chunks": 0,
             "organize_retrieval": "indexed_only",

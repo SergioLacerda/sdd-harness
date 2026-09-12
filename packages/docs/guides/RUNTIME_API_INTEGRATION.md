@@ -7,7 +7,7 @@ This guide documents the practical runtime integration contract for external age
 SDD integrates as a governance layer in front of your orchestration runtime.
 It does not replace your framework scheduler, memory, or tool routing.
 
-Use SDD runtime API/CLI for:
+Use the Providence runtime API/CLI for:
 
 - workspace governance health (AHP + GAP)
 - governed context queries
@@ -81,7 +81,7 @@ Supported options:
 ### 4) Bootstrap/Activation Refresh
 
 ```bash
-sdd bootstrap run
+providence bootstrap run
 ```
 
 Use when:
@@ -105,7 +105,7 @@ Contract:
 - emits skill runtime telemetry (`runtime.skill.run`) when telemetry sink is configured
 - keeps fallback command references for governed escalation
 - always includes `governance_footer` in JSON/text final output:
-  `SDD GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
+  `PROVIDENCE GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
 
 ## Response Footer Contract
 
@@ -113,7 +113,7 @@ Governed outputs must end with a compact governance footer.
 
 - Canonical source: `providence_runtime.format_governance_footer(...)`
 - Required format:
-  `SDD GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
+  `PROVIDENCE GOVERNANCE: drift=<status> | governance=<status> | profile=<profile>`
 - Applies to:
   - `providence skills run`
   - `providence runtime status`
@@ -206,7 +206,7 @@ def autogen_event_attrs(event: dict) -> dict:
 
 ## Error Handling and Exit Codes
 
-Treat SDD commands as hard gates for runtime safety:
+Treat Providence commands as hard gates for runtime safety:
 
 - `runtime status` non-zero: stop orchestration loop
 - budget/compliance failure in `ask --full`: fallback to safe response path
@@ -230,7 +230,7 @@ Recommended export flow:
 
 1. Keep `.providence/runtime/compliance-events.jsonl` as append-only local audit trail.
 2. Forward copies to central SIEM/observability pipeline.
-3. Correlate SDD events with framework run/session IDs.
+3. Correlate Providence events with framework run/session IDs.
 
 ### Direct OTEL Attribute Mapping
 
@@ -275,7 +275,7 @@ providence ask --full "What constraints apply to this deployment action?" \
   --log-format jsonl
 
 # 3) Refresh bootstrap state if needed between sessions
-sdd bootstrap run
+providence bootstrap run
 ```
 
 ## Production Checklist

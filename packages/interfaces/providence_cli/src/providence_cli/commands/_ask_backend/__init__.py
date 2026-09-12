@@ -16,6 +16,7 @@ __all__ = [
     "app",
     "_JSON_MODE_OVERRIDE",
     "ask_cmd",
+    "_ask_cmd_impl",
     "build_runtime_handbook_hint",
     "build_governed_ask_snapshot",
     "run_sdd_organize",
@@ -32,6 +33,7 @@ __all__ = [
     "_try_sdd_compiled_dir",
     "_hash_query",
     "_load_compiled_governance",
+    "_normalize_typer_value",
     "_check_fingerprint_drift",
     "_get_cached_governance_snapshot",
     "_get_last_known_fingerprint",
@@ -53,7 +55,7 @@ __all__ = [
     "OtlpHttpExporter",
 ]
 
-app: typer.Typer = typer.Typer(help="Query SDD governance context.")
+app: typer.Typer = typer.Typer(help="Query Providence governance context.")
 
 _JSON_MODE_OVERRIDE: ContextVar[bool | None] = ContextVar(
     "ask_json_mode_override", default=None
@@ -69,6 +71,7 @@ from ._helpers import (  # noqa: E402
     _governance_footer_for_state,
     _hash_query,
     _load_compiled_governance,
+    _normalize_typer_value,  # noqa: E402
     _render_context_output,
     _resolve_routing_decision,
     _resolve_workspace_root,
@@ -79,14 +82,13 @@ from ._helpers import (  # noqa: E402
     _write_runtime_cache,
     _write_runtime_cache_and_routing_decision,
 )
-from ._helpers import _normalize_typer_value as _normalize_typer_value  # noqa: E402
 from ._pipeline import (  # noqa: E402
     _should_use_organize,
     ask_cmd,
     run_sdd_organize,
 )
 from ._pipeline_handbook import build_runtime_handbook_hint  # noqa: E402
-from ._pipeline_runtime import _ask_cmd_impl as _ask_cmd_impl  # noqa: E402
+from ._pipeline_runtime import _ask_cmd_impl  # noqa: E402
 from ._pipeline_session import (  # noqa: E402
     _emit_state_warnings,
     _run_organize_intake,
